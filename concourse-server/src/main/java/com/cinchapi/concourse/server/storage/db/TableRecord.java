@@ -119,7 +119,7 @@ public final class TableRecord extends Record<Identifier, Text, Value> {
                         else if(action == Action.REMOVE) {
                             snapshot.remove(value);
                         }
-                        if(timestamp >= start && !snapshot.isEmpty()) {
+                        if(timestamp >= start) {
                             context.put(timestamp, snapshot);
                         }
                     }

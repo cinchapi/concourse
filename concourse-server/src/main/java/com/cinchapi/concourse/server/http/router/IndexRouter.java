@@ -16,9 +16,12 @@
 package com.cinchapi.concourse.server.http.router;
 
 import java.nio.ByteBuffer;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -145,6 +148,47 @@ public class IndexRouter extends EndpointContainer {
     };
 
     /**
+     * GET /record/review?timestamp=<ts>
+     * GET /record/review?start=<ts>&end=<te>
+     */
+    public final JsonEndpoint get$RecordReview = new JsonEndpoint() {
+
+        @Override
+        public Object serve(HttpRequest request, AccessToken creds,
+                TransactionToken transaction, String environment,
+                HttpResponse response) throws Exception {
+            String arg1 = request.getParamValue(":record");
+            String start = request.getParamValue("start");
+            String end = request.getParamValue("end");
+            start = AnyObjects.firstThat(object -> object != null, start,
+                    request.getParamValue("timestamp"));
+            Long record = Longs.tryParse(arg1);
+            Map<Long, List<String>> data;
+            Preconditions.checkArgument(record != null,
+                    "Cannot perform audit on %s because it "
+                            + "is not a valid record",
+                    arg1);
+            if(start != null && end != null) {
+                data = concourse.reviewRecordStartEnd(record,
+                        NaturalLanguage.parseMicros(start),
+                        NaturalLanguage.parseMicros(end), creds, transaction,
+                        environment);
+            }
+            else if(start != null) {
+                data = concourse.reviewRecordStart(record,
+                        NaturalLanguage.parseMicros(start), creds, transaction,
+                        environment);
+            }
+            else {
+                data = concourse.reviewRecord(record, creds, transaction,
+                        environment);
+            }
+            return data;
+        }
+
+    };
+
+    /**
      * GET /record/audit?timestamp=<ts>
      * GET /record/audit?start=<ts>&end=<te>
      */
@@ -160,27 +204,32 @@ public class IndexRouter extends EndpointContainer {
             start = AnyObjects.firstThat(object -> object != null, start,
                     request.getParamValue("timestamp"));
             Long record = Longs.tryParse(arg1);
-            Object data;
+            Map<Long, List<String>> data;
             Preconditions.checkArgument(record != null,
                     "Cannot perform audit on %s because it "
                             + "is not a valid record",
                     arg1);
             if(start != null && end != null) {
-                data = concourse.auditRecordStartEnd(record,
+                data = concourse.reviewRecordStartEnd(record,
                         NaturalLanguage.parseMicros(start),
                         NaturalLanguage.parseMicros(end), creds, transaction,
                         environment);
             }
             else if(start != null) {
-                data = concourse.auditRecordStart(record,
+                data = concourse.reviewRecordStart(record,
                         NaturalLanguage.parseMicros(start), creds, transaction,
                         environment);
             }
             else {
-                data = concourse.auditRecord(record, creds, transaction,
+                data = concourse.reviewRecord(record, creds, transaction,
                         environment);
             }
-            return data;
+            return data.entrySet().stream().collect(Collectors.toMap(
+                    Entry::getKey,
+                    entry -> entry.getValue().size() == 1
+                            ? entry.getValue().iterator().next().toString()
+                            : entry.getValue().toString(),
+                    (a, b) -> a, LinkedHashMap::new));
         }
 
     };
@@ -391,6 +440,52 @@ public class IndexRouter extends EndpointContainer {
     };
 
     /**
+     * GET /record/key/review?timestamp=<ts>
+     * GET /record/key/review?start=<ts>&end=<te>
+     * GET /key/record/review?timestamp=<ts>
+     * GET /key/record/review?start=<ts>&end=<te>
+     */
+    public final JsonEndpoint get$Arg1$Arg2Review = new JsonEndpoint() {
+
+        @Override
+        public Object serve(HttpRequest request, AccessToken creds,
+                TransactionToken transaction, String environment,
+                HttpResponse response) throws Exception {
+            String arg1 = request.getParamValue(":arg1");
+            String arg2 = request.getParamValue(":arg2");
+            String start = request.getParamValueOrAlias("start", "timestamp");
+            String end = request.getParamValue("end");
+            RouteArgs args = RouteArgs.parse(arg1, arg2);
+            String key = args.key();
+            Long record = args.record();
+            Preconditions.checkArgument(
+                    record != null && !StringUtils.isBlank(key),
+                    "Cannot perform audit on %s/%s because it "
+                            + "is not a valid key/record combination",
+                    arg1, arg2);
+            Map<Long, List<String>> data = null;
+            if(start != null && end != null) {
+                data = concourse.reviewKeyRecordStartEnd(key, record,
+                        NaturalLanguage.parseMicros(start),
+                        NaturalLanguage.parseMicros(end), creds, transaction,
+                        environment);
+            }
+            else if(start != null) {
+                data = concourse.reviewKeyRecordStart(key, record,
+                        NaturalLanguage.parseMicros(start), creds, transaction,
+                        environment);
+            }
+            else {
+                data = concourse.reviewKeyRecord(key, record, creds,
+                        transaction, environment);
+            }
+            return data;
+
+        }
+
+    };
+
+    /**
      * GET /record/key/audit?timestamp=<ts>
      * GET /record/key/audit?start=<ts>&end=<te>
      * GET /key/record/audit?timestamp=<ts>
@@ -414,23 +509,28 @@ public class IndexRouter extends EndpointContainer {
                     "Cannot perform audit on %s/%s because it "
                             + "is not a valid key/record combination",
                     arg1, arg2);
-            Object data = null;
+            Map<Long, List<String>> data = null;
             if(start != null && end != null) {
-                data = concourse.auditKeyRecordStartEnd(key, record,
+                data = concourse.reviewKeyRecordStartEnd(key, record,
                         NaturalLanguage.parseMicros(start),
                         NaturalLanguage.parseMicros(end), creds, transaction,
                         environment);
             }
             else if(start != null) {
-                data = concourse.auditKeyRecordStart(key, record,
+                data = concourse.reviewKeyRecordStart(key, record,
                         NaturalLanguage.parseMicros(start), creds, transaction,
                         environment);
             }
             else {
-                data = concourse.auditKeyRecord(key, record, creds, transaction,
-                        environment);
+                data = concourse.reviewKeyRecord(key, record, creds,
+                        transaction, environment);
             }
-            return data;
+            return data.entrySet().stream().collect(Collectors.toMap(
+                    Entry::getKey,
+                    entry -> entry.getValue().size() == 1
+                            ? entry.getValue().iterator().next().toString()
+                            : entry.getValue().toString(),
+                    (a, b) -> a, LinkedHashMap::new));
 
         }
 

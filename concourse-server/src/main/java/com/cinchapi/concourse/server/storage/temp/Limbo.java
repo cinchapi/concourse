@@ -209,7 +209,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 Sets.<TObject> newLinkedHashSet());
         if(snapshot.isEmpty() && !context.isEmpty()) {
             // CON-474: Empty set is placed in the context if it was the last
-            // snapshot know to the database
+            // snapshot known to the database
             context.remove(Time.NONE);
         }
         for (Iterator<Write> it = iterator(); it.hasNext();) {
@@ -219,25 +219,25 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 break;
             }
             else {
-                Text writeKey = write.getKey();
-                long writeRecord = write.getRecord().longValue();
+                Text $key = write.getKey();
+                long $record = write.getRecord().longValue();
                 Action action = write.getType();
-                if(writeKey.toString().equals(key) && writeRecord == record) {
+                if($key.toString().equals(key) && $record == record) {
                     snapshot = Sets.newLinkedHashSet(snapshot);
-                    Value writeValue = write.getValue();
+                    Value value = write.getValue();
                     if(action == Action.ADD) {
-                        snapshot.add(writeValue.getTObject());
+                        snapshot.add(value.getTObject());
                     }
                     else if(action == Action.REMOVE) {
-                        snapshot.remove(writeValue.getTObject());
+                        snapshot.remove(value.getTObject());
                     }
-                    if(timestamp >= start && !snapshot.isEmpty()) {
+                    if(timestamp >= start) {
                         context.put(timestamp, snapshot);
                     }
                 }
             }
         }
-        return context;
+        return Maps.filterValues(context, emptySetFilter);
     }
 
     @Override

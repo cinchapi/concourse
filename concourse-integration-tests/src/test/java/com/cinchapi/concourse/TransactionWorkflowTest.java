@@ -150,7 +150,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.stage();
             client.get("foo", 1);
             client2.set("foo", "baz", 1);
-            client.audit("foo", 1);
+            client.review("foo", 1);
         }
         finally {
             client.abort();
@@ -163,7 +163,7 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
             client.stage();
             client.get("foo", 1);
             client2.set("foo", "baz", 1);
-            client.audit(1);
+            client.review(1);
         }
         finally {
             client.abort();

@@ -18,6 +18,7 @@ package com.cinchapi.concourse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -33,7 +34,7 @@ import com.google.common.collect.Iterables;
  * @author Vijay
  *
  */
-public class AuditTest extends ConcourseIntegrationTest {
+public class ReviewTest extends ConcourseIntegrationTest {
 
     @Test
     public void testAuditRangeSanityCheck() {
@@ -42,12 +43,12 @@ public class AuditTest extends ConcourseIntegrationTest {
         client.add(key, 1, record);
         client.add(key, 2, record);
         client.add(key, 3, record);
-        Map<Timestamp, String> auditing = client.audit(key, record);
-        Timestamp preStart = Iterables.get(auditing.keySet(), 0);
-        Timestamp start = Iterables.get(auditing.keySet(), 1);
-        auditing = client.audit(key, record, start, Timestamp.now());
-        assertFalse(auditing.keySet().contains(preStart));
-        assertEquals(2, auditing.size());
+        Map<Timestamp, List<String>> reviewing = client.review(key, record);
+        Timestamp preStart = Iterables.get(reviewing.keySet(), 0);
+        Timestamp start = Iterables.get(reviewing.keySet(), 1);
+        reviewing = client.review(key, record, start, Timestamp.now());
+        assertFalse(reviewing.keySet().contains(preStart));
+        assertEquals(2, reviewing.size());
     }
 
     @Test
@@ -60,18 +61,18 @@ public class AuditTest extends ConcourseIntegrationTest {
         client.add(key, 4, record);
         client.add(key, 5, record);
         client.add(key, 6, record);
-        Map<Timestamp, String> auditing = client.audit(key, record);
-        Timestamp preStart = Iterables.get(auditing.keySet(), 1);
-        Timestamp start = Iterables.get(auditing.keySet(), 2);
-        Timestamp end = Iterables.get(auditing.keySet(), 4);
-        Timestamp postend1 = Iterables.get(auditing.keySet(), 5);
-        auditing = client.audit(key, record, start, end);
-        assertFalse(auditing.keySet().contains(preStart));
-        assertFalse(auditing.keySet().contains(postend1));
-        assertEquals(2, auditing.size());
-        Entry<Timestamp, String> entry = null;
-        for (int i = 0; i < auditing.size(); i++) {
-            entry = Iterables.get(auditing.entrySet(), i);
+        Map<Timestamp, List<String>> reviewing = client.review(key, record);
+        Timestamp preStart = Iterables.get(reviewing.keySet(), 1);
+        Timestamp start = Iterables.get(reviewing.keySet(), 2);
+        Timestamp end = Iterables.get(reviewing.keySet(), 4);
+        Timestamp postend1 = Iterables.get(reviewing.keySet(), 5);
+        reviewing = client.review(key, record, start, end);
+        assertFalse(reviewing.keySet().contains(preStart));
+        assertFalse(reviewing.keySet().contains(postend1));
+        assertEquals(2, reviewing.size());
+        Entry<Timestamp, List<String>> entry = null;
+        for (int i = 0; i < reviewing.size(); i++) {
+            entry = Iterables.get(reviewing.entrySet(), i);
             if(entry.getKey().getMicros() > end.getMicros()) {
                 System.out.println("Error\n");
             }
@@ -89,21 +90,21 @@ public class AuditTest extends ConcourseIntegrationTest {
         client.add(key, 2, record);
         client.add(key, 3, record);
         client.add(key, 4, record);
-        Map<Timestamp, String> auditing = client.audit(key, record);
-        Timestamp preStart = Iterables.get(auditing.keySet(), 1);
-        Timestamp start = Iterables.get(auditing.keySet(), 2);
-        Timestamp end = Iterables.get(auditing.keySet(), 3);
-        auditing = client.audit(key, record, start);
+        Map<Timestamp, List<String>> reviewing = client.review(key, record);
+        Timestamp preStart = Iterables.get(reviewing.keySet(), 1);
+        Timestamp start = Iterables.get(reviewing.keySet(), 2);
+        Timestamp end = Iterables.get(reviewing.keySet(), 3);
+        reviewing = client.review(key, record, start);
         client.add(key, 5, record);
         client.add(key, 6, record);
-        Map<Timestamp, String> newaudit = client.audit(key, record);
-        Timestamp postend1 = Iterables.get(newaudit.keySet(), 5);
-        assertFalse(auditing.keySet().contains(preStart));
-        assertFalse(auditing.keySet().contains(postend1));
-        assertEquals(2, auditing.size());
-        Entry<Timestamp, String> entry = null;
-        for (int i = 0; i < auditing.size(); i++) {
-            entry = Iterables.get(auditing.entrySet(), i);
+        Map<Timestamp, List<String>> newreview = client.review(key, record);
+        Timestamp postend1 = Iterables.get(newreview.keySet(), 5);
+        assertFalse(reviewing.keySet().contains(preStart));
+        assertFalse(reviewing.keySet().contains(postend1));
+        assertEquals(2, reviewing.size());
+        Entry<Timestamp, List<String>> entry = null;
+        for (int i = 0; i < reviewing.size(); i++) {
+            entry = Iterables.get(reviewing.entrySet(), i);
             if(entry.getKey().getMicros() > end.getMicros()) {
                 System.out.println("Error\n");
             }
@@ -123,18 +124,18 @@ public class AuditTest extends ConcourseIntegrationTest {
         client.add(key, 4, record);
         client.add(key, 5, record);
         client.add(key, 6, record);
-        Map<Timestamp, String> auditing = client.audit(key, record);
-        Timestamp preStart = Iterables.get(auditing.keySet(), 1);
-        Timestamp start = Iterables.get(auditing.keySet(), 2);
-        Timestamp end = Iterables.get(auditing.keySet(), 4);
-        Timestamp postend1 = Iterables.get(auditing.keySet(), 5);
-        auditing = client.audit(record, start, end);
-        assertFalse(auditing.keySet().contains(preStart));
-        assertFalse(auditing.keySet().contains(postend1));
-        assertEquals(2, auditing.size());
-        Entry<Timestamp, String> entry = null;
-        for (int i = 0; i < auditing.size(); i++) {
-            entry = Iterables.get(auditing.entrySet(), i);
+        Map<Timestamp, List<String>> reviewing = client.review(key, record);
+        Timestamp preStart = Iterables.get(reviewing.keySet(), 1);
+        Timestamp start = Iterables.get(reviewing.keySet(), 2);
+        Timestamp end = Iterables.get(reviewing.keySet(), 4);
+        Timestamp postend1 = Iterables.get(reviewing.keySet(), 5);
+        reviewing = client.review(record, start, end);
+        assertFalse(reviewing.keySet().contains(preStart));
+        assertFalse(reviewing.keySet().contains(postend1));
+        assertEquals(2, reviewing.size());
+        Entry<Timestamp, List<String>> entry = null;
+        for (int i = 0; i < reviewing.size(); i++) {
+            entry = Iterables.get(reviewing.entrySet(), i);
             if(entry.getKey().getMicros() > end.getMicros()) {
                 System.out.println("Error\n");
             }
@@ -152,21 +153,21 @@ public class AuditTest extends ConcourseIntegrationTest {
         client.add(key, 2, record);
         client.add(key, 3, record);
         client.add(key, 4, record);
-        Map<Timestamp, String> auditing = client.audit(key, record);
-        Timestamp preStart = Iterables.get(auditing.keySet(), 1);
-        Timestamp start = Iterables.get(auditing.keySet(), 2);
-        Timestamp end = Iterables.get(auditing.keySet(), 3);
-        auditing = client.audit(record, start);
+        Map<Timestamp, List<String>> reviewing = client.review(key, record);
+        Timestamp preStart = Iterables.get(reviewing.keySet(), 1);
+        Timestamp start = Iterables.get(reviewing.keySet(), 2);
+        Timestamp end = Iterables.get(reviewing.keySet(), 3);
+        reviewing = client.review(record, start);
         client.add(key, 5, record);
         client.add(key, 6, record);
-        Map<Timestamp, String> newaudit = client.audit(key, record);
-        Timestamp postend1 = Iterables.get(newaudit.keySet(), 5);
-        assertFalse(auditing.keySet().contains(preStart));
-        assertFalse(auditing.keySet().contains(postend1));
-        assertEquals(2, auditing.size());
-        Entry<Timestamp, String> entry = null;
-        for (int i = 0; i < auditing.size(); i++) {
-            entry = Iterables.get(auditing.entrySet(), i);
+        Map<Timestamp, List<String>> newreview = client.review(key, record);
+        Timestamp postend1 = Iterables.get(newreview.keySet(), 5);
+        assertFalse(reviewing.keySet().contains(preStart));
+        assertFalse(reviewing.keySet().contains(postend1));
+        assertEquals(2, reviewing.size());
+        Entry<Timestamp, List<String>> entry = null;
+        for (int i = 0; i < reviewing.size(); i++) {
+            entry = Iterables.get(reviewing.entrySet(), i);
             if(entry.getKey().getMicros() > end.getMicros()) {
                 System.out.println("Error\n");
             }

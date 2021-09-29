@@ -411,7 +411,7 @@ public final class Buffer extends Limbo {
                 Sets.<TObject> newLinkedHashSet());
         if(snapshot.isEmpty() && !context.isEmpty()) {
             // CON-474: Empty set is placed in the context if it was the last
-            // snapshot know to the database
+            // snapshot known to the database
             context.remove(Time.NONE);
         }
         Iterator<Write> it = iterator(key, record, end - 1);
@@ -419,25 +419,24 @@ public final class Buffer extends Limbo {
             while (it.hasNext()) {
                 Write write = it.next();
                 long timestamp = write.getVersion();
-                Text writtenKey = write.getKey();
-                long writtenRecordId = write.getRecord().longValue();
+                Text $key = write.getKey();
+                long $record = write.getRecord().longValue();
                 Action action = write.getType();
-                if(writtenKey.toString().equals(key)
-                        && writtenRecordId == record) {
+                if($key.toString().equals(key) && $record == record) {
                     snapshot = Sets.newLinkedHashSet(snapshot);
-                    Value newValue = write.getValue();
+                    Value value = write.getValue();
                     if(action == Action.ADD) {
-                        snapshot.add(newValue.getTObject());
+                        snapshot.add(value.getTObject());
                     }
                     else if(action == Action.REMOVE) {
-                        snapshot.remove(newValue.getTObject());
+                        snapshot.remove(value.getTObject());
                     }
-                    if(timestamp >= start && !snapshot.isEmpty()) {
+                    if(timestamp >= start) {
                         context.put(timestamp, snapshot);
                     }
                 }
             }
-            return context;
+            return Maps.filterValues(context, emptySetFilter);
         }
         finally {
             Iterators.close(it);

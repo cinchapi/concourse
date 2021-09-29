@@ -19,7 +19,9 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -35,6 +37,7 @@ import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
@@ -247,8 +250,17 @@ public abstract class Concourse implements AutoCloseable {
      * @param record the record id
      * @return a {@link Map} associating the {@link Timestamp} of each change
      *         to the respective description of the change
+     * @deprecated in favor of {@link #review(long)}
      */
-    public abstract Map<Timestamp, String> audit(long record);
+    @Deprecated
+    public final Map<Timestamp, String> audit(long record) {
+        return review(record).entrySet().stream()
+                .collect(Collectors.toMap(Entry::getKey,
+                        entry -> entry.getValue().size() == 1
+                                ? entry.getValue().iterator().next().toString()
+                                : entry.getValue().toString(),
+                        (a, b) -> a, PrettyLinkedHashMap::create));
+    }
 
     /**
      * Return a list all the changes made to {@code record} since {@code start}
@@ -265,8 +277,17 @@ public abstract class Concourse implements AutoCloseable {
      *            DateTime} object
      * @return a {@link Map} associating the {@link Timestamp} of each change
      *         to the respective description of the change
+     * @deprecated in favor of {@link #review(long, Timestamp)}
      */
-    public abstract Map<Timestamp, String> audit(long record, Timestamp start);
+    @Deprecated
+    public final Map<Timestamp, String> audit(long record, Timestamp start) {
+        return review(record, start).entrySet().stream()
+                .collect(Collectors.toMap(Entry::getKey,
+                        entry -> entry.getValue().size() == 1
+                                ? entry.getValue().iterator().next().toString()
+                                : entry.getValue().toString(),
+                        (a, b) -> a, PrettyLinkedHashMap::create));
+    }
 
     /**
      * Return a list all the changes made to {@code record} between
@@ -291,9 +312,18 @@ public abstract class Concourse implements AutoCloseable {
      *            DateTime} object
      * @return a {@link Map} associating the {@link Timestamp} of each change
      *         to the respective description of the change
+     * @deprecated in favor of {@link #review(long, Timestamp, Timestamp)}
      */
-    public abstract Map<Timestamp, String> audit(long record, Timestamp start,
-            Timestamp end);
+    @Deprecated
+    public final Map<Timestamp, String> audit(long record, Timestamp start,
+            Timestamp end) {
+        return review(record, start, end).entrySet().stream()
+                .collect(Collectors.toMap(Entry::getKey,
+                        entry -> entry.getValue().size() == 1
+                                ? entry.getValue().iterator().next().toString()
+                                : entry.getValue().toString(),
+                        (a, b) -> a, PrettyLinkedHashMap::create));
+    }
 
     /**
      * Return a list all the changes ever made to the {@code key} field in
@@ -303,8 +333,17 @@ public abstract class Concourse implements AutoCloseable {
      * @param record the record id
      * @return a {@link Map} associating the {@link Timestamp} of each change
      *         to the respective description of the change
+     * @deprecated in favor of {@link #review(String, long)}
      */
-    public abstract Map<Timestamp, String> audit(String key, long record);
+    @Deprecated
+    public final Map<Timestamp, String> audit(String key, long record) {
+        return review(key, record).entrySet().stream()
+                .collect(Collectors.toMap(Entry::getKey,
+                        entry -> entry.getValue().size() == 1
+                                ? entry.getValue().iterator().next().toString()
+                                : entry.getValue().toString(),
+                        (a, b) -> a, PrettyLinkedHashMap::create));
+    }
 
     /**
      * Return a list of all the changes made to the {@code key} field in
@@ -322,9 +361,18 @@ public abstract class Concourse implements AutoCloseable {
      *            DateTime} object
      * @return a {@link Map} associating the {@link Timestamp} of each change
      *         to the respective description of the change
+     * @deprecated in favor of {@link #review(String, long, Timestamp)}
      */
-    public abstract Map<Timestamp, String> audit(String key, long record,
-            Timestamp start);
+    @Deprecated
+    public final Map<Timestamp, String> audit(String key, long record,
+            Timestamp start) {
+        return review(key, record, start).entrySet().stream()
+                .collect(Collectors.toMap(Entry::getKey,
+                        entry -> entry.getValue().size() == 1
+                                ? entry.getValue().iterator().next().toString()
+                                : entry.getValue().toString(),
+                        (a, b) -> a, PrettyLinkedHashMap::create));
+    }
 
     /**
      * Return a list of all the changes made to the {@code key} field in
@@ -351,9 +399,19 @@ public abstract class Concourse implements AutoCloseable {
      *            DateTime} object
      * @return a {@link Map} associating the {@link Timestamp} of each change
      *         to the respective description of the change
+     * @deprecated in favor of
+     *             {@link #review(String, long, Timestamp, Timestamp)}
      */
-    public abstract Map<Timestamp, String> audit(String key, long record,
-            Timestamp start, Timestamp end);
+    @Deprecated
+    public final Map<Timestamp, String> audit(String key, long record,
+            Timestamp start, Timestamp end) {
+        return review(key, record, start, end).entrySet().stream()
+                .collect(Collectors.toMap(Entry::getKey,
+                        entry -> entry.getValue().size() == 1
+                                ? entry.getValue().iterator().next().toString()
+                                : entry.getValue().toString(),
+                        (a, b) -> a, PrettyLinkedHashMap::create));
+    }
 
     /**
      * Return a view of the values from all records that are currently stored
@@ -5203,6 +5261,122 @@ public abstract class Concourse implements AutoCloseable {
      *            DateTime} object
      */
     public abstract void revert(String key, long record, Timestamp timestamp);
+
+    /**
+     * Return a list all the changes ever made to {@code record}.
+     * 
+     * @param record the record id
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
+     */
+    public abstract Map<Timestamp, List<String>> review(long record);
+
+    /**
+     * Return a list all the changes made to {@code record} since {@code start}
+     * (inclusive).
+     *
+     * @param record the record id
+     * @param start an inclusive {@link Timestamp} of the oldest change that
+     *            should possibly be included in the audit – created from either
+     *            a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
+     */
+    public abstract Map<Timestamp, List<String>> review(long record,
+            Timestamp start);
+
+    /**
+     * Return a list all the changes made to {@code record} between
+     * {@code start} (inclusive) and {@code end} (non-inclusive).
+     *
+     * @param record the record id
+     * @param start an inclusive {@link Timestamp} for the oldest change that
+     *            should possibly be included in the audit – created from either
+     *            a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param end a non-inclusive {@link Timestamp} for the most recent change
+     *            that should possibly be included in the audit – created from
+     *            either a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
+     */
+    public abstract Map<Timestamp, List<String>> review(long record,
+            Timestamp start, Timestamp end);
+
+    /**
+     * Return a list all the changes ever made to the {@code key} field in
+     * {@code record}
+     *
+     * @param key the field name
+     * @param record the record id
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
+     */
+    public abstract Map<Timestamp, List<String>> review(String key,
+            long record);
+
+    /**
+     * Return a list of all the changes made to the {@code key} field in
+     * {@code record} since {@code start} (inclusive).
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param start an inclusive {@link Timestamp} for the oldest change that
+     *            should possibly be included in the audit – created from either
+     *            a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
+     */
+    public abstract Map<Timestamp, List<String>> review(String key, long record,
+            Timestamp start);
+
+    /**
+     * Return a list of all the changes made to the {@code key} field in
+     * {@code record} between {@code start} (inclusive) and {@code end}
+     * (non-inclusive).
+     * 
+     * @param key the field name
+     * @param record the record id
+     * @param start an inclusive {@link Timestamp} for the oldest change that
+     *            should possibly be included in the audit – created from either
+     *            a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @param end a non-inclusive {@link Timestamp} for the most recent change
+     *            that should possibly be included in the audit – created from
+     *            either a {@link Timestamp#fromString(String) natural language
+     *            description} of a point in time (i.e. two weeks ago), OR
+     *            the {@link Timestamp#fromMicros(long) number
+     *            of microseconds} since the Unix epoch, OR
+     *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
+     *            DateTime} object
+     * @return a {@link Map} associating the {@link Timestamp} of each change
+     *         to the respective description of the change
+     */
+    public abstract Map<Timestamp, List<String>> review(String key, long record,
+            Timestamp start, Timestamp end);
 
     /**
      * Perform a full text search for {@code query} against the {@code key}
