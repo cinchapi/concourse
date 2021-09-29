@@ -27,7 +27,7 @@ import com.cinchapi.concourse.util.PrettyLinkedHashMap;
  *
  * @author Jeff Nelson
  */
-final class BackwardsCompatability {
+public final class BackwardsCompatability {
 
     /**
      * Transform a value returned from {@link Concourse#review(long) review}
@@ -37,8 +37,8 @@ final class BackwardsCompatability {
      * @param review
      * @return the transformed value
      */
-    public static Map<Timestamp, String> auditFromReview(
-            Map<Timestamp, List<String>> review) {
+    public static <K> Map<K, String> auditFromReview(
+            Map<K, List<String>> review) {
         return review.entrySet().stream()
                 .collect(Collectors.toMap(Entry::getKey,
                         entry -> entry.getValue().size() == 1

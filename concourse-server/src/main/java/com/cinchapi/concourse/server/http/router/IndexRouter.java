@@ -16,18 +16,16 @@
 package com.cinchapi.concourse.server.http.router;
 
 import java.nio.ByteBuffer;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.cinchapi.ccl.util.NaturalLanguage;
 import com.cinchapi.common.base.AnyObjects;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.BackwardsCompatability;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.http.EndpointContainer;
@@ -224,12 +222,7 @@ public class IndexRouter extends EndpointContainer {
                 data = concourse.reviewRecord(record, creds, transaction,
                         environment);
             }
-            return data.entrySet().stream().collect(Collectors.toMap(
-                    Entry::getKey,
-                    entry -> entry.getValue().size() == 1
-                            ? entry.getValue().iterator().next().toString()
-                            : entry.getValue().toString(),
-                    (a, b) -> a, LinkedHashMap::new));
+            return BackwardsCompatability.auditFromReview(data);
         }
 
     };
@@ -525,12 +518,7 @@ public class IndexRouter extends EndpointContainer {
                 data = concourse.reviewKeyRecord(key, record, creds,
                         transaction, environment);
             }
-            return data.entrySet().stream().collect(Collectors.toMap(
-                    Entry::getKey,
-                    entry -> entry.getValue().size() == 1
-                            ? entry.getValue().iterator().next().toString()
-                            : entry.getValue().toString(),
-                    (a, b) -> a, LinkedHashMap::new));
+            return BackwardsCompatability.auditFromReview(data);
 
         }
 

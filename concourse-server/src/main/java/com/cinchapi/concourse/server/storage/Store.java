@@ -137,7 +137,7 @@ public interface Store {
      */
     public default Set<String> describe(long record) {
         return select(record).keySet();
-    };
+    }
 
     /**
      * Describe {@code record} at {@code timestamp}.
