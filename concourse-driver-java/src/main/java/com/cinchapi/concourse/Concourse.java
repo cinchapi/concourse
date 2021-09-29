@@ -5236,8 +5236,8 @@ public abstract class Concourse implements AutoCloseable {
      * Return a list all the changes ever made to {@code record}.
      * 
      * @param record the record id
-     * @return a {@link Map} associating the {@link Timestamp} of each change
-     *         to the respective description of the change
+     * @return a {@link Map} from the {@link Timestamp} of each commit to a list
+     *         of descriptions for each change made within the commit
      */
     public abstract Map<Timestamp, List<String>> review(long record);
 
@@ -5254,8 +5254,8 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating the {@link Timestamp} of each change
-     *         to the respective description of the change
+     * @return a {@link Map} from the {@link Timestamp} of each commit to a list
+     *         of descriptions for each change made within the commit
      */
     public abstract Map<Timestamp, List<String>> review(long record,
             Timestamp start);
@@ -5281,8 +5281,8 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating the {@link Timestamp} of each change
-     *         to the respective description of the change
+     * @return a {@link Map} from the {@link Timestamp} of each commit to a list
+     *         of descriptions for each change made within the commit
      */
     public abstract Map<Timestamp, List<String>> review(long record,
             Timestamp start, Timestamp end);
@@ -5293,8 +5293,8 @@ public abstract class Concourse implements AutoCloseable {
      *
      * @param key the field name
      * @param record the record id
-     * @return a {@link Map} associating the {@link Timestamp} of each change
-     *         to the respective description of the change
+     * @return a {@link Map} from the {@link Timestamp} of each commit to a list
+     *         of descriptions for each change made within the commit
      */
     public abstract Map<Timestamp, List<String>> review(String key,
             long record);
@@ -5313,8 +5313,8 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating the {@link Timestamp} of each change
-     *         to the respective description of the change
+     * @return a {@link Map} from the {@link Timestamp} of each commit to a list
+     *         of descriptions for each change made within the commit
      */
     public abstract Map<Timestamp, List<String>> review(String key, long record,
             Timestamp start);
@@ -5342,8 +5342,8 @@ public abstract class Concourse implements AutoCloseable {
      *            of microseconds} since the Unix epoch, OR
      *            a {@link Timestamp#fromJoda(org.joda.time.DateTime) Joda
      *            DateTime} object
-     * @return a {@link Map} associating the {@link Timestamp} of each change
-     *         to the respective description of the change
+     * @return a {@link Map} from the {@link Timestamp} of each commit to a list
+     *         of descriptions for each change made within the commit
      */
     public abstract Map<Timestamp, List<String>> review(String key, long record,
             Timestamp start, Timestamp end);
