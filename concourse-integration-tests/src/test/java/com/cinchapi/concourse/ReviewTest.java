@@ -43,12 +43,12 @@ public class ReviewTest extends ConcourseIntegrationTest {
         client.add(key, 1, record);
         client.add(key, 2, record);
         client.add(key, 3, record);
-        Map<Timestamp, List<String>> reviewing = client.review(key, record);
-        Timestamp preStart = Iterables.get(reviewing.keySet(), 0);
-        Timestamp start = Iterables.get(reviewing.keySet(), 1);
-        reviewing = client.review(key, record, start, Timestamp.now());
-        assertFalse(reviewing.keySet().contains(preStart));
-        assertEquals(2, reviewing.size());
+        Map<Timestamp, List<String>> review = client.review(key, record);
+        Timestamp preStart = Iterables.get(review.keySet(), 0);
+        Timestamp start = Iterables.get(review.keySet(), 1);
+        review = client.review(key, record, start, Timestamp.now());
+        assertFalse(review.keySet().contains(preStart));
+        assertEquals(2, review.size());
     }
 
     @Test
@@ -61,18 +61,18 @@ public class ReviewTest extends ConcourseIntegrationTest {
         client.add(key, 4, record);
         client.add(key, 5, record);
         client.add(key, 6, record);
-        Map<Timestamp, List<String>> reviewing = client.review(key, record);
-        Timestamp preStart = Iterables.get(reviewing.keySet(), 1);
-        Timestamp start = Iterables.get(reviewing.keySet(), 2);
-        Timestamp end = Iterables.get(reviewing.keySet(), 4);
-        Timestamp postend1 = Iterables.get(reviewing.keySet(), 5);
-        reviewing = client.review(key, record, start, end);
-        assertFalse(reviewing.keySet().contains(preStart));
-        assertFalse(reviewing.keySet().contains(postend1));
-        assertEquals(2, reviewing.size());
+        Map<Timestamp, List<String>> review = client.review(key, record);
+        Timestamp preStart = Iterables.get(review.keySet(), 1);
+        Timestamp start = Iterables.get(review.keySet(), 2);
+        Timestamp end = Iterables.get(review.keySet(), 4);
+        Timestamp postend1 = Iterables.get(review.keySet(), 5);
+        review = client.review(key, record, start, end);
+        assertFalse(review.keySet().contains(preStart));
+        assertFalse(review.keySet().contains(postend1));
+        assertEquals(2, review.size());
         Entry<Timestamp, List<String>> entry = null;
-        for (int i = 0; i < reviewing.size(); i++) {
-            entry = Iterables.get(reviewing.entrySet(), i);
+        for (int i = 0; i < review.size(); i++) {
+            entry = Iterables.get(review.entrySet(), i);
             if(entry.getKey().getMicros() > end.getMicros()) {
                 System.out.println("Error\n");
             }
@@ -90,21 +90,21 @@ public class ReviewTest extends ConcourseIntegrationTest {
         client.add(key, 2, record);
         client.add(key, 3, record);
         client.add(key, 4, record);
-        Map<Timestamp, List<String>> reviewing = client.review(key, record);
-        Timestamp preStart = Iterables.get(reviewing.keySet(), 1);
-        Timestamp start = Iterables.get(reviewing.keySet(), 2);
-        Timestamp end = Iterables.get(reviewing.keySet(), 3);
-        reviewing = client.review(key, record, start);
+        Map<Timestamp, List<String>> review = client.review(key, record);
+        Timestamp preStart = Iterables.get(review.keySet(), 1);
+        Timestamp start = Iterables.get(review.keySet(), 2);
+        Timestamp end = Iterables.get(review.keySet(), 3);
+        review = client.review(key, record, start);
         client.add(key, 5, record);
         client.add(key, 6, record);
         Map<Timestamp, List<String>> newreview = client.review(key, record);
         Timestamp postend1 = Iterables.get(newreview.keySet(), 5);
-        assertFalse(reviewing.keySet().contains(preStart));
-        assertFalse(reviewing.keySet().contains(postend1));
-        assertEquals(2, reviewing.size());
+        assertFalse(review.keySet().contains(preStart));
+        assertFalse(review.keySet().contains(postend1));
+        assertEquals(2, review.size());
         Entry<Timestamp, List<String>> entry = null;
-        for (int i = 0; i < reviewing.size(); i++) {
-            entry = Iterables.get(reviewing.entrySet(), i);
+        for (int i = 0; i < review.size(); i++) {
+            entry = Iterables.get(review.entrySet(), i);
             if(entry.getKey().getMicros() > end.getMicros()) {
                 System.out.println("Error\n");
             }
@@ -124,18 +124,18 @@ public class ReviewTest extends ConcourseIntegrationTest {
         client.add(key, 4, record);
         client.add(key, 5, record);
         client.add(key, 6, record);
-        Map<Timestamp, List<String>> reviewing = client.review(key, record);
-        Timestamp preStart = Iterables.get(reviewing.keySet(), 1);
-        Timestamp start = Iterables.get(reviewing.keySet(), 2);
-        Timestamp end = Iterables.get(reviewing.keySet(), 4);
-        Timestamp postend1 = Iterables.get(reviewing.keySet(), 5);
-        reviewing = client.review(record, start, end);
-        assertFalse(reviewing.keySet().contains(preStart));
-        assertFalse(reviewing.keySet().contains(postend1));
-        assertEquals(2, reviewing.size());
+        Map<Timestamp, List<String>> review = client.review(key, record);
+        Timestamp preStart = Iterables.get(review.keySet(), 1);
+        Timestamp start = Iterables.get(review.keySet(), 2);
+        Timestamp end = Iterables.get(review.keySet(), 4);
+        Timestamp postend1 = Iterables.get(review.keySet(), 5);
+        review = client.review(record, start, end);
+        assertFalse(review.keySet().contains(preStart));
+        assertFalse(review.keySet().contains(postend1));
+        assertEquals(2, review.size());
         Entry<Timestamp, List<String>> entry = null;
-        for (int i = 0; i < reviewing.size(); i++) {
-            entry = Iterables.get(reviewing.entrySet(), i);
+        for (int i = 0; i < review.size(); i++) {
+            entry = Iterables.get(review.entrySet(), i);
             if(entry.getKey().getMicros() > end.getMicros()) {
                 System.out.println("Error\n");
             }
@@ -153,21 +153,21 @@ public class ReviewTest extends ConcourseIntegrationTest {
         client.add(key, 2, record);
         client.add(key, 3, record);
         client.add(key, 4, record);
-        Map<Timestamp, List<String>> reviewing = client.review(key, record);
-        Timestamp preStart = Iterables.get(reviewing.keySet(), 1);
-        Timestamp start = Iterables.get(reviewing.keySet(), 2);
-        Timestamp end = Iterables.get(reviewing.keySet(), 3);
-        reviewing = client.review(record, start);
+        Map<Timestamp, List<String>> review = client.review(key, record);
+        Timestamp preStart = Iterables.get(review.keySet(), 1);
+        Timestamp start = Iterables.get(review.keySet(), 2);
+        Timestamp end = Iterables.get(review.keySet(), 3);
+        review = client.review(record, start);
         client.add(key, 5, record);
         client.add(key, 6, record);
         Map<Timestamp, List<String>> newreview = client.review(key, record);
         Timestamp postend1 = Iterables.get(newreview.keySet(), 5);
-        assertFalse(reviewing.keySet().contains(preStart));
-        assertFalse(reviewing.keySet().contains(postend1));
-        assertEquals(2, reviewing.size());
+        assertFalse(review.keySet().contains(preStart));
+        assertFalse(review.keySet().contains(postend1));
+        assertEquals(2, review.size());
         Entry<Timestamp, List<String>> entry = null;
-        for (int i = 0; i < reviewing.size(); i++) {
-            entry = Iterables.get(reviewing.entrySet(), i);
+        for (int i = 0; i < review.size(); i++) {
+            entry = Iterables.get(review.entrySet(), i);
             if(entry.getKey().getMicros() > end.getMicros()) {
                 System.out.println("Error\n");
             }
