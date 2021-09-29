@@ -19,9 +19,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -37,7 +35,6 @@ import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.FileOps;
-import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
@@ -254,12 +251,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     @Deprecated
     public final Map<Timestamp, String> audit(long record) {
-        return review(record).entrySet().stream()
-                .collect(Collectors.toMap(Entry::getKey,
-                        entry -> entry.getValue().size() == 1
-                                ? entry.getValue().iterator().next().toString()
-                                : entry.getValue().toString(),
-                        (a, b) -> a, PrettyLinkedHashMap::create));
+        return BackwardsCompatability.auditFromReview(review(record));
     }
 
     /**
@@ -281,12 +273,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     @Deprecated
     public final Map<Timestamp, String> audit(long record, Timestamp start) {
-        return review(record, start).entrySet().stream()
-                .collect(Collectors.toMap(Entry::getKey,
-                        entry -> entry.getValue().size() == 1
-                                ? entry.getValue().iterator().next().toString()
-                                : entry.getValue().toString(),
-                        (a, b) -> a, PrettyLinkedHashMap::create));
+        return BackwardsCompatability.auditFromReview(review(record, start));
     }
 
     /**
@@ -317,12 +304,8 @@ public abstract class Concourse implements AutoCloseable {
     @Deprecated
     public final Map<Timestamp, String> audit(long record, Timestamp start,
             Timestamp end) {
-        return review(record, start, end).entrySet().stream()
-                .collect(Collectors.toMap(Entry::getKey,
-                        entry -> entry.getValue().size() == 1
-                                ? entry.getValue().iterator().next().toString()
-                                : entry.getValue().toString(),
-                        (a, b) -> a, PrettyLinkedHashMap::create));
+        return BackwardsCompatability
+                .auditFromReview(review(record, start, end));
     }
 
     /**
@@ -337,12 +320,7 @@ public abstract class Concourse implements AutoCloseable {
      */
     @Deprecated
     public final Map<Timestamp, String> audit(String key, long record) {
-        return review(key, record).entrySet().stream()
-                .collect(Collectors.toMap(Entry::getKey,
-                        entry -> entry.getValue().size() == 1
-                                ? entry.getValue().iterator().next().toString()
-                                : entry.getValue().toString(),
-                        (a, b) -> a, PrettyLinkedHashMap::create));
+        return BackwardsCompatability.auditFromReview(review(key, record));
     }
 
     /**
@@ -366,12 +344,8 @@ public abstract class Concourse implements AutoCloseable {
     @Deprecated
     public final Map<Timestamp, String> audit(String key, long record,
             Timestamp start) {
-        return review(key, record, start).entrySet().stream()
-                .collect(Collectors.toMap(Entry::getKey,
-                        entry -> entry.getValue().size() == 1
-                                ? entry.getValue().iterator().next().toString()
-                                : entry.getValue().toString(),
-                        (a, b) -> a, PrettyLinkedHashMap::create));
+        return BackwardsCompatability
+                .auditFromReview(review(key, record, start));
     }
 
     /**
@@ -405,12 +379,8 @@ public abstract class Concourse implements AutoCloseable {
     @Deprecated
     public final Map<Timestamp, String> audit(String key, long record,
             Timestamp start, Timestamp end) {
-        return review(key, record, start, end).entrySet().stream()
-                .collect(Collectors.toMap(Entry::getKey,
-                        entry -> entry.getValue().size() == 1
-                                ? entry.getValue().iterator().next().toString()
-                                : entry.getValue().toString(),
-                        (a, b) -> a, PrettyLinkedHashMap::create));
+        return BackwardsCompatability
+                .auditFromReview(review(key, record, start, end));
     }
 
     /**
