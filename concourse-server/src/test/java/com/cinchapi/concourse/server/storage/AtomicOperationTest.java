@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,6 +30,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 
 /**
@@ -418,12 +421,25 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
             atomic.remove("name", Convert.javaToThrift("jeff"), i + 1);
             atomic.add("name", Convert.javaToThrift("jeff"), i + 1);
         }
+        long before = CommitVersions.next();
         atomic.commit();
+        long after = CommitVersions.next();
+        Set<Long> expected = null;
         for (int i = 0; i < count; ++i) {
-            System.out.println(destination.review(i + 1));
+            Map<Long, List<String>> review = destination.review(i + 1);
+            Assert.assertEquals(1, review.size());
+            expected = MoreObjects.firstNonNull(expected, review.keySet());
+            Assert.assertEquals(expected, review.keySet());
         }
-        // TODO: finish
-
+        Assert.assertEquals(0, destination.find(before, "name", Operator.EQUALS,
+                Convert.javaToThrift("jeff")).size());
+        Assert.assertEquals(count, destination.find(after, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")).size());
+        Assert.assertEquals(
+                destination.find(expected.iterator().next(), "name",
+                        Operator.EQUALS, Convert.javaToThrift("jeff")),
+                destination.find(after, "name", Operator.EQUALS,
+                        Convert.javaToThrift("jeff")));
     }
 
     @Override
