@@ -930,7 +930,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     @VerifyAccessToken
     public boolean commit(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
-        return transactions.remove(transaction).commit(Time.now());
+        return transactions.remove(transaction).commit(CommitVersions.next());
     }
 
     @Override
