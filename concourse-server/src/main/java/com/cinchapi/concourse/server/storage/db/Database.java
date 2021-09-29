@@ -235,19 +235,10 @@ public final class Database implements DurableStore {
     private transient Compactor compactor;
 
     /**
-     * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
-     * is done in an attempt to avoid attempting cache updates for every infix
-     * of a value when it is known that no search caches exist for the key from
-     * which the value is mapped (e.g. we are indexing a term for a key that
-     * isn't being searched).
-     */
-    private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
-            ? new ConcurrentHashMap<>()
-            : ImmutableMap.of();
-    /**
      * The location where the Database stores data.
      */
     private final transient Path directory;
+
     /**
      * Runs full compaction in the background.
      */
@@ -257,8 +248,6 @@ public final class Database implements DurableStore {
      * Runs incremental compaction in the background.
      */
     private transient ScheduledExecutorService incrementalCompaction;
-
-    private final Cache<Composite, IndexRecord> indexCache = buildCache();
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -317,8 +306,19 @@ public final class Database implements DurableStore {
      * the appropriate detection.
      */
     private final Cache<Composite, TableRecord> tableCache = buildCache();
-
     private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
+    private final Cache<Composite, IndexRecord> indexCache = buildCache();
+
+    /**
+     * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
+     * is done in an attempt to avoid attempting cache updates for every infix
+     * of a value when it is known that no search caches exist for the key from
+     * which the value is mapped (e.g. we are indexing a term for a key that
+     * isn't being searched).
+     */
+    private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
+            ? new ConcurrentHashMap<>()
+            : ImmutableMap.of();
 
     /**
      * A "tag" used to identify the Database's affiliations (e.g. environment).
