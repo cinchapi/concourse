@@ -203,7 +203,7 @@ public final class Engine extends BufferedStore implements
      * The thread that is responsible for transporting buffer content in the
      * background.
      */
-    private final Thread bufferTransportThread; // NOTE: Having a dedicated
+    private Thread bufferTransportThread; // NOTE: Having a dedicated
                                                 // thread that sleeps is faster
                                                 // than using an
                                                 // ExecutorService.
@@ -252,7 +252,7 @@ public final class Engine extends BufferedStore implements
     /**
      * A {@link Timer} that is used to schedule some regular tasks.
      */
-    private final Timer scheduler = new Timer(true);
+    private Timer scheduler;
 
     /**
      * A lock that prevents the Engine from causing the Buffer to transport
@@ -320,7 +320,6 @@ public final class Engine extends BufferedStore implements
         this.lockService = LockService.create();
         this.rangeLockService = RangeLockService.create();
         this.environment = environment;
-        this.bufferTransportThread = new BufferTransportThread();
         this.transactionStore = buffer.getBackingStore() + File.separator
                 + "txn"; /* (authorized) */
         this.inventory = Inventory.create(buffer.getBackingStore()
@@ -895,6 +894,8 @@ public final class Engine extends BufferedStore implements
             limbo.start();
             durable.reconcile(limbo.versions());
             doTransactionRecovery();
+            bufferTransportThread = new BufferTransportThread();
+            scheduler = new Timer(true);
             scheduler.scheduleAtFixedRate(new TimerTask() {
 
                 @Override
