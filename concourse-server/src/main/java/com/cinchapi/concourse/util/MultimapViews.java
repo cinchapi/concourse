@@ -81,10 +81,16 @@ public final class MultimapViews {
     public static <K extends Comparable<K>, V> boolean remove(
             Map<K, Set<V>> map, K key, V value) {
         Set<V> set = map.get(key);
-        if(set != null && set.size() == 1) {
-            map.remove(key);
+        if(set != null) {
+            boolean removed = set.remove(value);
+            if(set.isEmpty()) {
+                map.remove(key);
+            }
+            return removed;
         }
-        return set.remove(value);
+        else {
+            return false;
+        }
     }
 
     /**
