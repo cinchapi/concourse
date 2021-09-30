@@ -572,6 +572,47 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertNull(e);
     }
 
+    @Test
+    public void testCommitVersionSplitBetweenBufferAndDatabase() {
+        Engine engine = (Engine) store;
+        Buffer buffer = (Buffer) engine.limbo;
+        Database db = (Database) engine.durable;
+        engine.bufferTransportThreadSleepInMs = Integer.MAX_VALUE;
+        AtomicOperation atomic = engine.startAtomicOperation();
+        atomic.add("name", Convert.javaToThrift("jeff"), 1);
+        atomic.remove("name", Convert.javaToThrift("jeff"), 1);
+        long before = Time.now();
+        atomic.commit();
+        long after = Time.now();
+        while(!Reflection.<Boolean> call(buffer, "canTransport")) {
+            engine.add("foo", Convert.javaToThrift("bar"), Time.now());
+        }
+        buffer.transport(db);
+        db.sync();
+        Iterator<Write> it = db.iterator();
+        long version = 0;
+        while(it.hasNext()) {
+            Write write = it.next();
+            version = write.getVersion();
+        }
+        Assert.assertEquals(ImmutableSet.of(), store.find("name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(before, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(after, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(version, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+        engine.stop();
+        engine.bufferTransportThreadSleepInMs = Integer.MAX_VALUE;
+        engine.start();
+        it = db.iterator();
+        while(it.hasNext()) {
+            Write write = it.next();
+            System.out.println(write);
+        }
+        Assert.assertEquals(ImmutableSet.of(), store.find("name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(before, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(after, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(version, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+    }
+
     // @Test
     // public void testAddThroughputDifferentKeysInRecord() throws
     // InterruptedException {
