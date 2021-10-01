@@ -95,7 +95,7 @@ public interface Versioned {
      * created or read from storage.
      * </p>
      * <p>
-     * Given these constraints, {@link #stamp() Stamps} should always be
+     * Given these constraints, {@link #stamp() stamps} should always be
      * assigned in monotonically increasing order.
      * </p>
      * 

@@ -236,6 +236,8 @@ public final class Database implements DurableStore {
     private transient Compactor compactor;
 
     /**
+     * Corpus Cache
+     * ------------
      * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
      * is done in an attempt to avoid attempting cache updates for every infix
      * of a value when it is known that no search caches exist for the key from
@@ -261,6 +263,19 @@ public final class Database implements DurableStore {
      */
     private transient ScheduledExecutorService incrementalCompaction;
 
+    /**
+     * Index Cache
+     * -----------
+     * Records are cached in memory to reduce the number of seeks required. When
+     * writing new revisions, we check the appropriate caches for relevant
+     * records and append the new revision so that the cached data doesn't grow
+     * stale.
+     * 
+     * The caches are only populated if the Database is #running (see
+     * #accept(Write)). Attempts to get a Record when the Database is not
+     * running will ignore the cache by virtue of an internal wrapper that has
+     * the appropriate detection.
+     */
     private final Cache<Composite, IndexRecord> indexCache = buildCache();
 
     /**
@@ -278,7 +293,6 @@ public final class Database implements DurableStore {
      * A flag to indicate if the Buffer is running or not.
      */
     private transient boolean running = false;
-
     /**
      * We hold direct references to the current Segment. This pointer changes
      * whenever the database triggers a sync operation.
@@ -300,13 +314,15 @@ public final class Database implements DurableStore {
      * </p>
      */
     private final transient List<Segment> segments = Lists.newArrayList();
+
     /**
      * The underlying {@link Storage}.
      */
     private final transient Storage storage;
-    /*
-     * RECORD CACHES
-     * -------------
+
+    /**
+     * Table Cache
+     * -----------
      * Records are cached in memory to reduce the number of seeks required. When
      * writing new revisions, we check the appropriate caches for relevant
      * records and append the new revision so that the cached data doesn't grow
@@ -319,6 +335,19 @@ public final class Database implements DurableStore {
      */
     private final Cache<Composite, TableRecord> tableCache = buildCache();
 
+    /**
+     * Partial Table Cache
+     * -------------------
+     * Records are cached in memory to reduce the number of seeks required. When
+     * writing new revisions, we check the appropriate caches for relevant
+     * records and append the new revision so that the cached data doesn't grow
+     * stale.
+     * 
+     * The caches are only populated if the Database is #running (see
+     * #accept(Write)). Attempts to get a Record when the Database is not
+     * running will ignore the cache by virtue of an internal wrapper that has
+     * the appropriate detection.
+     */
     private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
 
     /**

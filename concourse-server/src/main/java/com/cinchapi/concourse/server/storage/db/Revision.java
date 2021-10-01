@@ -176,9 +176,9 @@ public abstract class Revision<L extends Comparable<L> & Byteable, K extends Com
     private final V value;
 
     /**
-     * The version that of this Revision. Revisions within the same
+     * The version that of this Revision. Revisions created within the same
      * commit may have the same version. Across commits, versions are
-     * assumed to be an atomically increasing value (e.g. timestamps).
+     * assumed to be a monotonically increasing value (e.g. timestamps).
      */
     private final long version;
 

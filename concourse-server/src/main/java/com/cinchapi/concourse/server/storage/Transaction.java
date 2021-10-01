@@ -50,7 +50,7 @@ import com.google.common.collect.Multimap;
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
  * that it is durable in the event of crash, power loss or failure.
  * 
- * @implNote Internally,uses a {@link ToggleQueue} to ensure that a logical
+ * @implNote Internally uses a {@link ToggleQueue} to ensure that a logical
  *           {@link Write} topic isn't needlessly toggled (e.g. ADD X, REMOVE
  *           X, ADD X, etc)
  * 

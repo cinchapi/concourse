@@ -39,7 +39,7 @@ class CompactRevision<V extends Comparable<V>> implements Versioned {
     /**
      * Tracks when the {@link CompactRevision} was
      * {@link #CompactRevision(Comparable, long, Action)}. Helps to disambiguate
-     * and sequence {@link CompactRevision CompactRevision} with the same
+     * and sequence {@link CompactRevision CompactRevisions} with the same
      * {@link #version version}.
      */
     private final transient long stamp;
