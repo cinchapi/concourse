@@ -22,7 +22,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 
@@ -71,6 +73,18 @@ public class ToggleQueue extends Queue {
      */
     public ToggleQueue(int initialSize) {
         super(new ToggleWriteList(initialSize));
+    }
+
+    @Override
+    public void transform(Function<Write, Write> transformer) {
+        ToggleWriteList twl = (ToggleWriteList) getWrites();
+        for (Entry<ToggleWriteList.Wrapper, Boolean> entry : twl.items
+                .entrySet()) {
+            if(entry.getValue()) {
+                entry.getKey().write = transformer.apply(entry.getKey().write);
+                twl.filtered = null;
+            }
+        }
     }
 
     /**
@@ -259,7 +273,7 @@ public class ToggleQueue extends Queue {
             /**
              * The wrapped {@link Write}.
              */
-            private final Write write;
+            private Write write;
 
             /**
              * Construct a new instance.

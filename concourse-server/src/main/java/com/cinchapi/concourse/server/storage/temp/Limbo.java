@@ -50,6 +50,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
 
 /**
  * {@link Limbo} is a lightweight in-memory proxy store that is a suitable cache
@@ -415,6 +416,27 @@ public abstract class Limbo implements Store, Iterable<Write> {
      */
     public int getDesiredTransportSleepTimeInMs() {
         return 0;
+    }
+
+    /**
+     * Return a snapshot {@link Iterable} that contains the
+     * {@link Write#hash() hash} of every {@link Write} in the
+     * {@link Store}.
+     * 
+     * @return all the contained {@link Write} {@link Write#hash() hashes}
+     */
+    public Set<HashCode> hashes() {
+        Set<HashCode> hashes = new HashSet<>();
+        Iterator<Write> it = iterator();
+        try {
+            while (it.hasNext()) {
+                hashes.add(it.next().hash());
+            }
+        }
+        finally {
+            Iterators.close(it);
+        }
+        return hashes;
     }
 
     /**
@@ -826,28 +848,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
         else {
             return TernaryTruth.UNSURE;
         }
-    }
-
-    /**
-     * Return a snapshot {@link Iterable} that contains the
-     * {@link Write#getVersion() version} of every {@link Write} in the
-     * {@link Store}.
-     * 
-     * @return all the contained {@link Write} {@link Write#getVersion()
-     *         versions}
-     */
-    public Set<Long> versions() {
-        Set<Long> versions = new HashSet<>();
-        Iterator<Write> it = iterator();
-        try {
-            while (it.hasNext()) {
-                versions.add(it.next().getVersion());
-            }
-        }
-        finally {
-            Iterators.close(it);
-        }
-        return versions;
     }
 
     /**

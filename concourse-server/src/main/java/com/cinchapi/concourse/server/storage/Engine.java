@@ -204,9 +204,9 @@ public final class Engine extends BufferedStore implements
      * background.
      */
     private Thread bufferTransportThread; // NOTE: Having a dedicated
-                                                // thread that sleeps is faster
-                                                // than using an
-                                                // ExecutorService.
+                                          // thread that sleeps is faster
+                                          // than using an
+                                          // ExecutorService.
 
     /**
      * A flag that indicates whether the {@link BufferTransportThread} is
@@ -892,7 +892,7 @@ public final class Engine extends BufferedStore implements
             running = true;
             durable.start();
             limbo.start();
-            durable.reconcile(limbo.versions());
+            durable.reconcile(limbo.hashes());
             doTransactionRecovery();
             bufferTransportThread = new BufferTransportThread();
             scheduler = new Timer(true);

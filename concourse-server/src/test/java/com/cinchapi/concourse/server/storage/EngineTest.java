@@ -584,33 +584,41 @@ public class EngineTest extends BufferedStoreTest {
         long before = Time.now();
         atomic.commit();
         long after = Time.now();
-        while(!Reflection.<Boolean> call(buffer, "canTransport")) {
+        while (!Reflection.<Boolean> call(buffer, "canTransport")) {
             engine.add("foo", Convert.javaToThrift("bar"), Time.now());
         }
         buffer.transport(db);
         db.sync();
         Iterator<Write> it = db.iterator();
         long version = 0;
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Write write = it.next();
             version = write.getVersion();
         }
-        Assert.assertEquals(ImmutableSet.of(), store.find("name", Operator.EQUALS, Convert.javaToThrift("jeff")));
-        Assert.assertEquals(ImmutableSet.of(), store.find(before, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
-        Assert.assertEquals(ImmutableSet.of(), store.find(after, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
-        Assert.assertEquals(ImmutableSet.of(), store.find(version, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find("name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(before, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(after, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(version, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
         engine.stop();
         engine.bufferTransportThreadSleepInMs = Integer.MAX_VALUE;
         engine.start();
         it = db.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Write write = it.next();
             System.out.println(write);
         }
-        Assert.assertEquals(ImmutableSet.of(), store.find("name", Operator.EQUALS, Convert.javaToThrift("jeff")));
-        Assert.assertEquals(ImmutableSet.of(), store.find(before, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
-        Assert.assertEquals(ImmutableSet.of(), store.find(after, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
-        Assert.assertEquals(ImmutableSet.of(), store.find(version, "name", Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find("name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(before, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(after, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(version, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
     }
 
     // @Test

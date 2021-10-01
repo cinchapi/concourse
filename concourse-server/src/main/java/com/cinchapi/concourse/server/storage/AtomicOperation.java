@@ -39,6 +39,7 @@ import com.cinchapi.concourse.server.model.Ranges;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.temp.Queue;
+import com.cinchapi.concourse.server.storage.temp.ToggleQueue;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -58,6 +59,11 @@ import com.google.common.collect.TreeRangeSet;
  * committed to a destination store. For optimal concurrency, we use
  * <em>just in time locking</em> where destination resources are only locked
  * when its time to commit the operation.
+ * 
+ * @implNote Does not require the use of a {@link ToggleQueue} (and the
+ *           associated overhead) because it is assumed that internally defined
+ *           {@link AtomicOperation AtomicOperations} won't toggle a
+ *           {@link Write} topic.
  * 
  * @author Jeff Nelson
  */

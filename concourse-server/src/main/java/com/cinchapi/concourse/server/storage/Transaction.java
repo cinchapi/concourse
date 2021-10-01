@@ -36,6 +36,7 @@ import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.temp.Queue;
+import com.cinchapi.concourse.server.storage.temp.ToggleQueue;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
@@ -48,6 +49,10 @@ import com.google.common.collect.Multimap;
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
  * that it is durable in the event of crash, power loss or failure.
+ * 
+ * @implNote Internally,uses a {@link ToggleQueue} to ensure that a logical
+ *           {@link Write} topic isn't needlessly toggled (e.g. ADD X, REMOVE
+ *           X, ADD X, etc)
  * 
  * @author Jeff Nelson
  */
@@ -121,8 +126,8 @@ public final class Transaction extends AtomicOperation implements
      * @param destination
      */
     private Transaction(Engine destination) {
-        super(new Queue(INITIAL_CAPACITY), destination, destination.lockService,
-                destination.rangeLockService);
+        super(new ToggleQueue(INITIAL_CAPACITY), destination,
+                destination.lockService, destination.rangeLockService);
         this.id = Long.toString(Time.now());
     }
 

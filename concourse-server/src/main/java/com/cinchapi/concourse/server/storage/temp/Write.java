@@ -24,13 +24,18 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.Versioned;
+import com.cinchapi.concourse.server.storage.cache.ByteableFunnel;
 import com.cinchapi.concourse.thrift.TObject;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 
 /**
  * A {@link Write} is a temporary representation of data before it is
@@ -290,6 +295,29 @@ public final class Write implements Byteable, Versioned {
     @Override
     public long getVersion() {
         return version;
+    }
+
+    /**
+     * Return a {@link HashCode} for this {@link Write Write's} topic (e.g.
+     * {@link #getKey() key}, {@link #getValue() value} and {@link #getRecord()
+     * record}) and commit {@link #getVersion() version}.
+     * <p>
+     * The hash does not consider the {@link #getType() type}. It is assumed
+     * that a single commit version will only contain one instance of a
+     * {@link Write} topic, so the {@link #getType() type} isn't necessary when
+     * using the hash to detect if a duplicate {@link Write} exists during
+     * {@link com.cinchapi.concourse.server.storage.DurableStore#reconcile(java.util.Set)
+     * reconciliation}
+     * </p>
+     * 
+     * @return the {@link HashCode}
+     */
+    public HashCode hash() {
+        Hasher hasher = Hashing.murmur3_128().newHasher();
+        hasher.putLong(version);
+        hasher.putObject(Composite.create(key, value, record),
+                ByteableFunnel.INSTANCE);
+        return hasher.hash();
     }
 
     /**

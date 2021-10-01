@@ -90,15 +90,15 @@ public class Queue extends Limbo {
     public Queue(int initialSize) {
         this(new ArrayList<>(initialSize));
     }
-    
+
     /**
      * Construct a new instance.
+     * 
      * @param writes
      */
     protected Queue(List<Write> writes) {
         this.writes = writes;
     }
-
 
     /**
      * Return an unmodifiable copy of the writes contained in the Queue.

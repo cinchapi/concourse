@@ -42,7 +42,7 @@ public class ToggleQueueTest extends QueueTest {
     protected Queue getStore() {
         return new ToggleQueue(100);
     }
-    
+
     @Test
     public void testToggleWriteSanityCheck() {
         Write add = Write.add("name", Convert.javaToThrift("jeff"), 1);
@@ -58,18 +58,20 @@ public class ToggleQueueTest extends QueueTest {
         queue.insert(add);
         Assert.assertEquals(2, Iterators.size(queue.iterator()));
     }
-    
+
     @Test
     public void testToggleWrites() {
         Map<Write, List<Write>> writes = new HashMap<>();
-        for(int i = 0; i < TestData.getScaleCount(); ++i) {
-            Write write = TestData.getScaleCount() % 2 == 0 ? TestData.getWriteAdd() : TestData.getWriteRemove();
+        for (int i = 0; i < TestData.getScaleCount(); ++i) {
+            Write write = TestData.getScaleCount() % 2 == 0
+                    ? TestData.getWriteAdd()
+                    : TestData.getWriteRemove();
             writes.put(write, new ArrayList<>());
         }
         ToggleQueue queue = (ToggleQueue) store;
         Random rand = new Random();
         long version = CommitVersions.next();
-        for(int i = 0 ; i < writes.size() * 2.5; ++i) {
+        for (int i = 0; i < writes.size() * 2.5; ++i) {
             int index = rand.nextInt(writes.size());
             Write write = Iterables.get(writes.keySet(), index);
             write = Iterables.getLast(writes.get(write), write);
@@ -78,7 +80,7 @@ public class ToggleQueueTest extends QueueTest {
             writes.get(write).add(write);
         }
         int expected = 0;
-        for(List<Write> value : writes.values()) {
+        for (List<Write> value : writes.values()) {
             if(Numbers.isEven(value.size())) {
                 expected += 0;
             }

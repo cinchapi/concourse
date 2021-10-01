@@ -65,6 +65,7 @@ import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
+import com.google.common.hash.HashCode;
 import com.google.common.util.concurrent.MoreExecutors;
 
 /**
@@ -215,6 +216,12 @@ public final class Segment extends TransferableByteSequence implements
     };
 
     /**
+     * Multiplied times the number of expected insertions in an attempt to size
+     * the {@link Chunk#filter() bloom filter} of each {@link Chunk} correctly.
+     */
+    private static final int BLOOM_FILTER_ENTRIES_PER_INSERTION_MULTIPLE = 3;
+
+    /**
      * The expected number of Segment insertions. This number is used to size
      * the Segment's internal data structures. This value should be large enough
      * to reflect the fact that, for each revision, we make 3 inserts into the
@@ -223,34 +230,6 @@ public final class Segment extends TransferableByteSequence implements
      */
     private static final int DEFAULT_EXPECTED_INSERTIONS = GlobalState.BUFFER_PAGE_SIZE
             / Write.MINIMUM_SIZE;
-
-    /**
-     * Multiplied times the number of expected insertions in an attempt to size
-     * the {@link #objects} pool correctly.
-     * <p>
-     * For a given Write(key, value, record) we have the following insertions:
-     * <ol>
-     * <li>key (table as K)</li>
-     * <li>key (index as L)</li>
-     * <li>key (corpus as L)</li>
-     * <li>value (table as V)</li>
-     * <li>value (index as K)</li>
-     * <li>record (table as L)</li>
-     * <li>record (index as V)</li>
-     * <li>$position (corpus as V)</li>
-     * </ol>
-     * </p>
-     */
-    private static final int OBJECTS_POOL_ENTRIES_PER_INSERTION_MULTIPLE = 8
-            + (GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0
-                    ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
-                    : 100);
-
-    /**
-     * Multiplied times the number of expected insertions in an attempt to size
-     * the {@link Chunk#filter() bloom filter} of each {@link Chunk} correctly.
-     */
-    private static final int BLOOM_FILTER_ENTRIES_PER_INSERTION_MULTIPLE = 3;
 
     /**
      * The expected bytes at the beginning of a {@link Segment} file to properly
@@ -286,6 +265,28 @@ public final class Segment extends TransferableByteSequence implements
             + 8 // corpus.size()
             ;
     // @formatter:on
+
+    /**
+     * Multiplied times the number of expected insertions in an attempt to size
+     * the {@link #objects} pool correctly.
+     * <p>
+     * For a given Write(key, value, record) we have the following insertions:
+     * <ol>
+     * <li>key (table as K)</li>
+     * <li>key (index as L)</li>
+     * <li>key (corpus as L)</li>
+     * <li>value (table as V)</li>
+     * <li>value (index as K)</li>
+     * <li>record (table as L)</li>
+     * <li>record (index as V)</li>
+     * <li>$position (corpus as V)</li>
+     * </ol>
+     * </p>
+     */
+    private static final int OBJECTS_POOL_ENTRIES_PER_INSERTION_MULTIPLE = 8
+            + (GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0
+                    ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
+                    : 100);
 
     /**
      * The current schema version.
@@ -339,16 +340,6 @@ public final class Segment extends TransferableByteSequence implements
     private final IndexChunk index;
 
     /**
-     * The {@link TableChunk} that contains the logical view of the data.
-     */
-    private final TableChunk table;
-
-    /**
-     * The schema version at which this {@link Segment} was written.
-     */
-    private byte version;
-
-    /**
      * A collection of all the known objects that have been acquired by
      * this {@link Segment} from {@link Write} components and are added to
      * {@link Chunk Chunks} as either a locator, key or value.
@@ -368,6 +359,16 @@ public final class Segment extends TransferableByteSequence implements
      * </p>
      */
     private Map<Byteable, Byteable> objects;
+
+    /**
+     * The {@link TableChunk} that contains the logical view of the data.
+     */
+    private final TableChunk table;
+
+    /**
+     * The schema version at which this {@link Segment} was written.
+     */
+    private byte version;
 
     /**
      * Construct a new instance.
@@ -604,6 +605,18 @@ public final class Segment extends TransferableByteSequence implements
     }
 
     /**
+     * Return a {@link Set} (not necessarily sorted) of all the
+     * {@link Write#hash() hashes} represented by the data
+     * {@link #acquire(Write) acquired} by this {@link Segment}.
+     * 
+     * @return the contained data {@link Write#hash() hashes}
+     */
+    public Set<HashCode> hashes() {
+        return writes().map(Write::hash)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
      * Return the {@code id} of this {@link Segment}.
      * 
      * @return the segment id
@@ -623,7 +636,7 @@ public final class Segment extends TransferableByteSequence implements
     }
 
     /**
-     * Return {@code true} if the Set of {@link #verions()} in this
+     * Return {@code true} if the Set of {@link #hashes()} in this
      * {@link Segment} intersect with those of the {@code other} one.
      * 
      * @param other
@@ -741,23 +754,6 @@ public final class Segment extends TransferableByteSequence implements
                         revision.getVersion()));
     }
 
-    /**
-     * Return a {@link Set} (not necessarily sorted) of all the
-     * {@link Write#getVersion() versions} represented by the data
-     * {@link #acquire(Write) acquired} by this {@link Segment}.
-     * 
-     * @return the contained data {@link Write#getVersion() versions}
-     */
-    public Set<Long> verions() {
-        return writes().mapToLong(Write::getVersion).boxed()
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    @Nullable
-    protected final Map<Byteable, Byteable> objects() {
-        return objects;
-    }
-
     @Override
     protected void flush(ByteSink sink) {
         this.syncTs = Time.now();
@@ -809,6 +805,11 @@ public final class Segment extends TransferableByteSequence implements
         this.objects = null;
     }
 
+    @Nullable
+    protected final Map<Byteable, Byteable> objects() {
+        return objects;
+    }
+
     /**
      * A {@link Receipt} is acknowledges the successful
      * {@link Segment#acquire(Write, AwaitableExecutorService) transfer} of a
@@ -830,9 +831,9 @@ public final class Segment extends TransferableByteSequence implements
             return new Builder();
         }
 
+        private final Collection<CorpusArtifact> corpus;
         private final IndexArtifact index;
         private final TableArtifact table;
-        private final Collection<CorpusArtifact> corpus;
 
         /**
          * Construct a new instance.
@@ -846,6 +847,16 @@ public final class Segment extends TransferableByteSequence implements
             this.table = table;
             this.index = index;
             this.corpus = corpus;
+        }
+
+        /**
+         * Return the {@link CorpusRevision CorpusRevisions} included with this
+         * {@link Receipt}.
+         * 
+         * @return the {@link CorpusRevision CorpusRevisions}
+         */
+        public Collection<CorpusArtifact> corpus() {
+            return corpus;
         }
 
         /**
@@ -869,23 +880,13 @@ public final class Segment extends TransferableByteSequence implements
         }
 
         /**
-         * Return the {@link CorpusRevision CorpusRevisions} included with this
-         * {@link Receipt}.
-         * 
-         * @return the {@link CorpusRevision CorpusRevisions}
-         */
-        public Collection<CorpusArtifact> corpus() {
-            return corpus;
-        }
-
-        /**
          * {@link Receipt} builder.
          */
         static class Builder {
 
+            Collection<CorpusArtifact> corpus;
             IndexArtifact index;
             TableArtifact table;
-            Collection<CorpusArtifact> corpus;
 
             /**
              * Build and return the {@link Receipt}.
@@ -894,6 +895,17 @@ public final class Segment extends TransferableByteSequence implements
              */
             Receipt build() {
                 return new Receipt(table, index, corpus);
+            }
+
+            /**
+             * Add the {@code artifacts} to the {@link Receipt}.
+             * 
+             * @param artifacts
+             * @return this
+             */
+            Builder itemize(Collection<CorpusArtifact> artifacts) {
+                corpus = artifacts;
+                return this;
             }
 
             /**
@@ -915,17 +927,6 @@ public final class Segment extends TransferableByteSequence implements
              */
             Builder itemize(TableArtifact artifact) {
                 table = artifact;
-                return this;
-            }
-
-            /**
-             * Add the {@code artifacts} to the {@link Receipt}.
-             * 
-             * @param artifacts
-             * @return this
-             */
-            Builder itemize(Collection<CorpusArtifact> artifacts) {
-                corpus = artifacts;
                 return this;
             }
         }

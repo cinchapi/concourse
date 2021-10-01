@@ -100,6 +100,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
+import com.google.common.hash.HashCode;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -235,6 +236,17 @@ public final class Database implements DurableStore {
     private transient Compactor compactor;
 
     /**
+     * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
+     * is done in an attempt to avoid attempting cache updates for every infix
+     * of a value when it is known that no search caches exist for the key from
+     * which the value is mapped (e.g. we are indexing a term for a key that
+     * isn't being searched).
+     */
+    private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
+            ? new ConcurrentHashMap<>()
+            : ImmutableMap.of();
+
+    /**
      * The location where the Database stores data.
      */
     private final transient Path directory;
@@ -248,6 +260,8 @@ public final class Database implements DurableStore {
      * Runs incremental compaction in the background.
      */
     private transient ScheduledExecutorService incrementalCompaction;
+
+    private final Cache<Composite, IndexRecord> indexCache = buildCache();
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -286,12 +300,10 @@ public final class Database implements DurableStore {
      * </p>
      */
     private final transient List<Segment> segments = Lists.newArrayList();
-
     /**
      * The underlying {@link Storage}.
      */
     private final transient Storage storage;
-
     /*
      * RECORD CACHES
      * -------------
@@ -306,19 +318,8 @@ public final class Database implements DurableStore {
      * the appropriate detection.
      */
     private final Cache<Composite, TableRecord> tableCache = buildCache();
-    private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
-    private final Cache<Composite, IndexRecord> indexCache = buildCache();
 
-    /**
-     * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
-     * is done in an attempt to avoid attempting cache updates for every infix
-     * of a value when it is known that no search caches exist for the key from
-     * which the value is mapped (e.g. we are indexing a term for a key that
-     * isn't being searched).
-     */
-    private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
-            ? new ConcurrentHashMap<>()
-            : ImmutableMap.of();
+    private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
 
     /**
      * A "tag" used to identify the Database's affiliations (e.g. environment).
@@ -572,15 +573,15 @@ public final class Database implements DurableStore {
     }
 
     @Override
-    public void reconcile(Set<Long> versions) {
-        Logger.debug("Reconciling the states of the Database and Buffer...");
+    public void reconcile(Set<HashCode> hashes) {
+        Logger.info("Reconciling the states of the Database and Buffer...");
         // CON-83, GH-441, GH-442: Check for premature shutdown or crash that
         // regenerated Segment files based on Write versions that are all still
         // in the buffer.
         if(segments.size() > 1) {
             int index = segments.size() - 2;
             Segment seg1 = segments.get(index);
-            if(versions.containsAll(seg1.verions())) {
+            if(hashes.containsAll(seg1.hashes())) {
                 Logger.warn(
                         "The data in {} is still completely in the BUFFER so it is being discarded",
                         seg1);
