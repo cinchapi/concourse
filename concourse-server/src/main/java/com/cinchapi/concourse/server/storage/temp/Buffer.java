@@ -728,6 +728,7 @@ public final class Buffer extends Limbo {
                     Logger.info("Loading Buffer content from {}...", page);
                 }
             }
+            pages.clear();
             pages.addAll(pageSorter.values());
             if(pages.isEmpty()) {
                 addPage(false);
