@@ -65,6 +65,7 @@ import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.lib.offheap.memory.OffHeapMemory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
+import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -648,7 +649,8 @@ public final class Segment extends TransferableByteSequence implements
         Range<Long> r2 = other.count > 0
                 ? Range.closed(other.minTs, other.maxTs)
                 : Range.greaterThan(CommitVersions.next());
-        return r1.isConnected(r2);
+        return r1.isConnected(r2)
+                && !Sets.intersection(hashes(), other.hashes()).isEmpty();
     }
 
     @Override
