@@ -1166,7 +1166,7 @@ public class ManagedConcourseServer {
                 Timestamp start) {
             return invoke("diff", long.class, Timestamp.class).with(record,
                     start);
-        };
+        }
 
         @Override
         public <T> Map<String, Map<Diff, Set<T>>> diff(long record,
