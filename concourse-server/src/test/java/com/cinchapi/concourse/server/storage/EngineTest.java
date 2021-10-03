@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -619,6 +620,64 @@ public class EngineTest extends BufferedStoreTest {
                 Operator.EQUALS, Convert.javaToThrift("jeff")));
         Assert.assertEquals(ImmutableSet.of(), store.find(version, "name",
                 Operator.EQUALS, Convert.javaToThrift("jeff")));
+    }
+
+    @Test
+    public void testSameWriteVersionDatabaseIntersectionDetection() {
+        Engine engine = (Engine) store;
+        Buffer buffer = (Buffer) engine.limbo;
+        Database db = (Database) engine.durable;
+        int count = TestData.getScaleCount();
+        AtomicLong commits = new AtomicLong();
+        AtomicLong expected = new AtomicLong();
+        for (int i = 0; i < count; ++i) {
+            AtomicOperation atomic = engine.startAtomicOperation();
+            int writes = TestData.getScaleCount();
+            for (int j = 0; j < writes; ++j) {
+                atomic.add("name", Convert.javaToThrift("jeff" + i),
+                        Math.abs(TestData.getInt()) % 2 == 0 ? Time.now() : j);
+                expected.incrementAndGet();
+            }
+            atomic.commit();
+            commits.incrementAndGet();
+        }
+        while (Reflection.<Boolean> call(buffer, "canTransport")) {
+            buffer.transport(db);
+        }
+        Set<Long> versions = new HashSet<>();
+        AtomicLong actual = new AtomicLong();
+        Iterator<Write> it = db.iterator();
+        while (it.hasNext()) {
+            versions.add(it.next().getVersion());
+            actual.incrementAndGet();
+        }
+        it = buffer.iterator();
+        while (it.hasNext()) {
+            versions.add(it.next().getVersion());
+            actual.incrementAndGet();
+        }
+        Assert.assertEquals(commits.get(), versions.size());
+        Assert.assertEquals(expected.get(), actual.get());
+        engine.stop();
+        engine.start();
+        buffer = (Buffer) engine.limbo;
+        db = (Database) engine.durable;
+        versions.clear();
+        actual = new AtomicLong(0);
+        it = db.iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            versions.add(write.getVersion());
+            actual.incrementAndGet();
+        }
+        it = buffer.iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            versions.add(write.getVersion());
+            actual.incrementAndGet();
+        }
+        Assert.assertEquals(commits.get(), versions.size());
+        Assert.assertEquals(expected.get(), actual.get());
     }
 
     // @Test
