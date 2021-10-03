@@ -24,42 +24,28 @@ import javax.annotation.concurrent.Immutable;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
+import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.Versioned;
+import com.cinchapi.concourse.server.storage.cache.ByteableFunnel;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.time.Time;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 
 /**
- * A Write is a {@link Byteable} and {@link Versioned} container that serves as
- * a temporary representation of a revision before it is permanently stored and
+ * A {@link Write} is a temporary representation of data before it is
+ * {@link com.cinchapi.concourse.server.storage.DurableStore durably} stored and
  * indexed.
  * 
  * @author Jeff Nelson
  */
 @Immutable
 public final class Write implements Byteable, Versioned {
-
-    /**
-     * The minimum number of bytes needed to encode every Write.
-     */
-    private static final int CONSTANT_SIZE = Identifier.SIZE + 13; // type(1),
-                                                                   // version(8),
-                                                                   // keySize(4)
-
-    /**
-     * The minimum number of bytes needed to encode every Write.
-     */
-    // @formatter:off
-    public static final int MINIMUM_SIZE = 
-            CONSTANT_SIZE
-            + 1 // minimum key size since it cannot be empty
-            + 1 // value type
-            + 1 // minimum value size since it cannot be empty
-    ; 
-    // @formatter:on
 
     /**
      * Return a storable Write that represents a revision to ADD {@code key} as
@@ -72,7 +58,7 @@ public final class Write implements Byteable, Versioned {
      */
     public static Write add(String key, TObject value, long record) {
         return new Write(Action.ADD, Text.wrapCached(key), Value.wrap(value),
-                Identifier.of(record), Time.now());
+                Identifier.of(record), CommitVersions.next());
     }
 
     /**
@@ -122,8 +108,27 @@ public final class Write implements Byteable, Versioned {
      */
     public static Write remove(String key, TObject value, long record) {
         return new Write(Action.REMOVE, Text.wrapCached(key), Value.wrap(value),
-                Identifier.of(record), Time.now());
+                Identifier.of(record), CommitVersions.next());
     }
+
+    /**
+     * The minimum number of bytes needed to encode every Write.
+     */
+    private static final int CONSTANT_SIZE = Identifier.SIZE + 13; // type(1),
+                                                                   // version(8),
+                                                                   // keySize(4)
+
+    /**
+     * The minimum number of bytes needed to encode every Write.
+     */
+    // @formatter:off
+    public static final int MINIMUM_SIZE = 
+            CONSTANT_SIZE
+            + 1 // minimum key size since it cannot be empty
+            + 1 // value type
+            + 1 // minimum value size since it cannot be empty
+    ; 
+    // @formatter:on
 
     /**
      * A cached copy of the binary representation that is returned from
@@ -131,16 +136,37 @@ public final class Write implements Byteable, Versioned {
      */
     @Nullable
     private transient ByteBuffer bytes = null;
+
+    /**
+     * The {@link #getKey() key}.
+     */
     private final Text key;
+
+    /**
+     * The {@link #getRecord() record}.
+     */
     private final Identifier record;
+
+    /**
+     * Tracks when this {@link Write} was created or
+     * {@link #fromByteBuffer(ByteBuffer) loaded}.
+     */
+    private final transient long stamp;
     /**
      * Indicates the action that generated the Write. The type information is
      * recorded so that the Database knows how to apply the Write when accepting
      * it from a transport.
      */
     private final Action type;
+
+    /**
+     * The {@link #getValue() value}.
+     */
     private final Value value;
 
+    /**
+     * The {@link #getVersion() version}.
+     */
     private final long version;
 
     /**
@@ -175,6 +201,7 @@ public final class Write implements Byteable, Versioned {
         this.record = record;
         this.version = version;
         this.bytes = bytes;
+        this.stamp = CommitVersions.next();
     }
 
     /**
@@ -271,6 +298,29 @@ public final class Write implements Byteable, Versioned {
     }
 
     /**
+     * Return a {@link HashCode} for this {@link Write Write's} topic (e.g.
+     * {@link #getKey() key}, {@link #getValue() value} and {@link #getRecord()
+     * record}) and commit {@link #getVersion() version}.
+     * <p>
+     * The hash does not consider the {@link #getType() type}. It is assumed
+     * that a single commit version will only contain one instance of a
+     * {@link Write} topic, so the {@link #getType() type} isn't necessary when
+     * using the hash to detect if a duplicate {@link Write} exists during
+     * {@link com.cinchapi.concourse.server.storage.DurableStore#reconcile(java.util.Set)
+     * reconciliation}
+     * </p>
+     * 
+     * @return the {@link HashCode}
+     */
+    public HashCode hash() {
+        Hasher hasher = Hashing.murmur3_128().newHasher();
+        hasher.putLong(version);
+        hasher.putObject(Composite.create(key, value, record),
+                ByteableFunnel.INSTANCE);
+        return hasher.hash();
+    }
+
+    /**
      * {@inheritDoc}.
      * <p>
      * <strong>NOTE:</strong> The Write type is not taken into account when
@@ -293,10 +343,12 @@ public final class Write implements Byteable, Versioned {
      */
     public Write inverse() {
         if(type == Action.ADD) {
-            return new Write(Action.REMOVE, key, value, record, Time.now());
+            return new Write(Action.REMOVE, key, value, record,
+                    CommitVersions.next());
         }
         else if(type == Action.REMOVE) {
-            return new Write(Action.ADD, key, value, record, Time.now());
+            return new Write(Action.ADD, key, value, record,
+                    CommitVersions.next());
         }
         else {
             throw new UnsupportedOperationException(
@@ -321,18 +373,23 @@ public final class Write implements Byteable, Versioned {
     }
 
     /**
-     * Return a new {@link Write} that contains the same elements, at a later
-     * {@code version}.
+     * Return a new {@link Write} that contains the same elements, at the
+     * specified {@code version}.
      * 
      * @return a redone {@link Write}
      */
-    public Write redo() {
-        return new Write(type, key, value, record, Time.now());
+    public Write rewrite(long version) {
+        return new Write(type, key, value, record, version);
     }
 
     @Override
     public int size() {
         return CONSTANT_SIZE + key.size() + value.size();
+    }
+
+    @Override
+    public long stamp() {
+        return stamp;
     }
 
     @Override

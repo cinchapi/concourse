@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +36,7 @@ import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.temp.Queue;
+import com.cinchapi.concourse.server.storage.temp.ToggleQueue;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
@@ -47,6 +49,10 @@ import com.google.common.collect.Multimap;
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
  * that it is durable in the event of crash, power loss or failure.
+ * 
+ * @implNote Internally uses a {@link ToggleQueue} to ensure that a logical
+ *           {@link Write} topic isn't needlessly toggled (e.g. ADD X, REMOVE
+ *           X, ADD X, etc)
  * 
  * @author Jeff Nelson
  */
@@ -120,8 +126,8 @@ public final class Transaction extends AtomicOperation implements
      * @param destination
      */
     private Transaction(Engine destination) {
-        super(new Queue(INITIAL_CAPACITY), destination, destination.lockService,
-                destination.rangeLockService);
+        super(new ToggleQueue(INITIAL_CAPACITY), destination,
+                destination.lockService, destination.rangeLockService);
         this.id = Long.toString(Time.now());
     }
 
@@ -146,16 +152,14 @@ public final class Transaction extends AtomicOperation implements
     @Override
     public void accept(Write write) {
         // Accept writes from an AtomicOperation and put them in this
-        // Transaction's buffer.
+        // Transaction's buffer without performing an additional #verify, but
+        // grabbing the necessary lock intentions.
         checkArgument(write.getType() != Action.COMPARE);
-        String key = write.getKey().toString();
-        TObject value = write.getValue().getTObject();
-        long record = write.getRecord().longValue();
         if(write.getType() == Action.ADD) {
-            add(key, value, record);
+            add(write, Sync.NO, Verify.NO);
         }
         else {
-            remove(key, value, record);
+            remove(write, Sync.NO, Verify.NO);
         }
     }
 
@@ -175,26 +179,6 @@ public final class Transaction extends AtomicOperation implements
         // in the Transaction, which registers the Transaction with
         // the Engine as a version change listener.
         managedVersionChangeListeners.put((AtomicOperation) listener, token);
-    }
-
-    @Override
-    public Map<Long, String> auditUnlocked(long record) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return audit(record);
-    }
-
-    @Override
-    public Map<Long, String> auditUnlocked(String key, long record) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return audit(key, record);
     }
 
     @Override
@@ -275,6 +259,26 @@ public final class Transaction extends AtomicOperation implements
             VersionChangeListener listener) {}
 
     @Override
+    public Map<Long, List<String>> reviewUnlocked(long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
+        return review(record);
+    }
+
+    @Override
+    public Map<Long, List<String>> reviewUnlocked(String key, long record) {
+        // The call below inherits from AtomicOperation, which grabs the
+        // appropriate lock intentions and instructs the Transaction's
+        // #destination to perform the work unlocked. This all has the affect of
+        // making it such that the Transaction inherits the lock intentions of
+        // any of its offspring AtomicOperations.
+        return review(key, record);
+    }
+
+    @Override
     public Map<String, Set<TObject>> selectUnlocked(long record) {
         // The call below inherits from AtomicOperation, which grabs the
         // appropriate lock intentions and instructs the Transaction's
@@ -300,7 +304,8 @@ public final class Transaction extends AtomicOperation implements
         // A Transaction is, itself, an AtomicOperation that must adhere to the
         // JIT Locking guarantee with respect to the Engine's lock services, so
         // if it births an AtomicOperation, it should just inherit but defer any
-        // locks needed therewithin instead of passing the Engine's lock service
+        // locks needed therewithin, instead of passing the Engine's lock
+        // service
         // on
         return AtomicOperation.start(this, LockService.noOp(),
                 RangeLockService.noOp());

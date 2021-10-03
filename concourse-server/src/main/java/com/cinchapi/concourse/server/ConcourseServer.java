@@ -96,6 +96,7 @@ import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.BufferedStore;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.Transaction;
@@ -482,133 +483,6 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
         });
         return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, String> auditKeyRecord(String key, long record,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return getStore(transaction, environment).audit(key, record);
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, String> auditKeyRecordStart(String key, long record,
-            long start, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return auditKeyRecordStartEnd(key, record, start, Time.NONE, creds,
-                transaction, environment);
-    }
-
-    @Override
-    @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, String> auditKeyRecordStartEnd(String key, long record,
-            long start, long end, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        Map<Long, String> base = store.audit(key, record);
-        Map<Long, String> result = TMaps
-                .newLinkedHashMapWithCapacity(base.size());
-        int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
-                start);
-        Entry<Long, String> entry = null;
-        for (int i = index; i < base.size(); ++i) {
-            entry = Iterables.get(base.entrySet(), i);
-            if(entry.getKey() >= end) {
-                break;
-            }
-            result.put(entry.getKey(), entry.getValue());
-        }
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, String> auditKeyRecordStartstr(String key, long record,
-            String start, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return auditKeyRecordStart(key, record,
-                NaturalLanguage.parseMicros(start), creds, transaction,
-                environment);
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, String> auditKeyRecordStartstrEndstr(String key,
-            long record, String start, String end, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return auditKeyRecordStartEnd(key, record,
-                NaturalLanguage.parseMicros(start),
-                NaturalLanguage.parseMicros(end), creds, transaction,
-                environment);
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, String> auditRecord(long record, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return getStore(transaction, environment).audit(record);
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, String> auditRecordStart(long record, long start,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return auditRecordStartEnd(record, start, Time.NONE, creds, transaction,
-                environment);
-    }
-
-    @Override
-    @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, String> auditRecordStartEnd(long record, long start,
-            long end, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        Map<Long, String> base = store.audit(record);
-        Map<Long, String> result = TMaps
-                .newLinkedHashMapWithCapacity(base.size());
-        int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
-                start);
-        Entry<Long, String> entry = null;
-        for (int i = index; i < base.size(); ++i) {
-            entry = Iterables.get(base.entrySet(), i);
-            if(entry.getKey() >= end) {
-                break;
-            }
-            result.put(entry.getKey(), entry.getValue());
-        }
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, String> auditRecordStartstr(long record, String start,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return auditRecordStart(record, NaturalLanguage.parseMicros(start),
-                creds, transaction, environment);
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, String> auditRecordStartstrEndstr(long record,
-            String start, String end, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return auditRecordStartEnd(record, NaturalLanguage.parseMicros(start),
-                NaturalLanguage.parseMicros(end), creds, transaction,
-                environment);
     }
 
     @Override
@@ -1056,7 +930,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     @VerifyAccessToken
     public boolean commit(AccessToken creds, TransactionToken transaction,
             String env) throws TException {
-        return transactions.remove(transaction).commit();
+        return transactions.remove(transaction).commit(CommitVersions.next());
     }
 
     @Override
@@ -1108,7 +982,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                     // 3. Clear the #source
                     Operations.clearRecordAtomic(source, atomic);
                 }
-                return atomic.commit();
+                return atomic.commit(CommitVersions.next());
             }
             catch (TransactionStateException e) {
                 throw new TransactionException();
@@ -3721,7 +3595,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<DeferredWrite> deferred = Lists.newArrayList();
             return Operations.insertAtomic(data, record, atomic, deferred)
                     && Operations.insertDeferredAtomic(deferred, atomic)
-                    && atomic.commit();
+                    && atomic.commit(CommitVersions.next());
         }
         catch (TransactionStateException e) {
             throw new TransactionException();
@@ -4833,6 +4707,134 @@ public class ConcourseServer extends BaseConcourseServer implements
             String environment) throws TException {
         revertKeysRecordTime(keys, record,
                 NaturalLanguage.parseMicros(timestamp), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, List<String>> reviewKeyRecord(String key, long record,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getStore(transaction, environment).review(key, record);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, List<String>> reviewKeyRecordStart(String key, long record,
+            long start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return reviewKeyRecordStartEnd(key, record, start, Time.NONE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, List<String>> reviewKeyRecordStartEnd(String key,
+            long record, long start, long end, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, List<String>> base = store.review(key, record);
+        Map<Long, List<String>> result = TMaps
+                .newLinkedHashMapWithCapacity(base.size());
+        int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
+                start);
+        Entry<Long, List<String>> entry = null;
+        for (int i = index; i < base.size(); ++i) {
+            entry = Iterables.get(base.entrySet(), i);
+            if(entry.getKey() >= end) {
+                break;
+            }
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, List<String>> reviewKeyRecordStartstr(String key,
+            long record, String start, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return reviewKeyRecordStart(key, record,
+                NaturalLanguage.parseMicros(start), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, List<String>> reviewKeyRecordStartstrEndstr(String key,
+            long record, String start, String end, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return reviewKeyRecordStartEnd(key, record,
+                NaturalLanguage.parseMicros(start),
+                NaturalLanguage.parseMicros(end), creds, transaction,
+                environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, List<String>> reviewRecord(long record, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getStore(transaction, environment).review(record);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, List<String>> reviewRecordStart(long record, long start,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return reviewRecordStartEnd(record, start, Time.NONE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Map<Long, List<String>> reviewRecordStartEnd(long record, long start,
+            long end, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Map<Long, List<String>> base = store.review(record);
+        Map<Long, List<String>> result = TMaps
+                .newLinkedHashMapWithCapacity(base.size());
+        int index = Timestamps.findNearestSuccessorForTimestamp(base.keySet(),
+                start);
+        Entry<Long, List<String>> entry = null;
+        for (int i = index; i < base.size(); ++i) {
+            entry = Iterables.get(base.entrySet(), i);
+            if(entry.getKey() >= end) {
+                break;
+            }
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, List<String>> reviewRecordStartstr(long record,
+            String start, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return reviewRecordStart(record, NaturalLanguage.parseMicros(start),
+                creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, List<String>> reviewRecordStartstrEndstr(long record,
+            String start, String end, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return reviewRecordStartEnd(record, NaturalLanguage.parseMicros(start),
+                NaturalLanguage.parseMicros(end), creds, transaction,
                 environment);
     }
 
@@ -6914,7 +6916,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             AtomicOperation atomic = getStore(transaction, environment)
                     .startAtomicOperation();
             return atomic.remove(key, expected, record)
-                    && atomic.add(key, replacement, record) ? atomic.commit()
+                    && atomic.add(key, replacement, record)
+                            ? atomic.commit(CommitVersions.next())
                             : false;
         }
         catch (TransactionStateException e) {

@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.storage;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -38,12 +39,14 @@ import com.cinchapi.concourse.server.model.Ranges;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.temp.Queue;
+import com.cinchapi.concourse.server.storage.temp.ToggleQueue;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Transformers;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -56,6 +59,11 @@ import com.google.common.collect.TreeRangeSet;
  * committed to a destination store. For optimal concurrency, we use
  * <em>just in time locking</em> where destination resources are only locked
  * when its time to commit the operation.
+ * 
+ * @implNote Does not require the use of a {@link ToggleQueue} (and the
+ *           associated overhead) because it is assumed that internally defined
+ *           {@link AtomicOperation AtomicOperations} won't toggle a
+ *           {@link Write} topic.
  * 
  * @author Jeff Nelson
  */
@@ -201,46 +209,7 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     public final boolean add(String key, TObject value, long record)
             throws AtomicStateException {
-        checkState();
-        Token token = Token.wrap(key, record);
-        RangeToken rangeToken = RangeToken.forWriting(Text.wrapCached(key),
-                Value.wrap(value));
-        Token wide = wideReads.get(record);
-        if(wide != null) {
-            wide.upgrade();
-            writes2Lock.add(wide);
-        }
-        else {
-            source.addVersionChangeListener(token, this);
-            writes2Lock.add(token);
-            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
-                                                      // conflicting wide read,
-                                                      // but don't listen for
-                                                      // wide version change
-        }
-        writes2Lock.add(rangeToken);
-        return super.add(Write.add(key, value, record), Sync.NO, Verify.YES);
-    }
-
-    @Override
-    public final Map<Long, String> audit(long record)
-            throws AtomicStateException {
-        checkState();
-        Token token = Token.wrap(record);
-        source.addVersionChangeListener(token, this);
-        reads2Lock.add(token);
-        wideReads.put(record, token);
-        return super.audit(record);
-    }
-
-    @Override
-    public final Map<Long, String> audit(String key, long record)
-            throws AtomicStateException {
-        checkState();
-        Token token = Token.wrap(key, record);
-        source.addVersionChangeListener(token, this);
-        reads2Lock.add(token);
-        return super.audit(key, record);
+        return add(Write.add(key, value, record), Sync.NO, Verify.YES);
     }
 
     @Override
@@ -294,13 +263,15 @@ public class AtomicOperation extends BufferedStore implements
      * the destination. If the commit fails, the caller should retry the atomic
      * operation.
      * 
+     * @param version the {@link Versioned#getVersion() version} to apply to all
+     *            the writes in this {@link AtomicOperation}
      * @return {@code true} if the atomic operation is completely applied
      */
-    public final boolean commit() throws AtomicStateException {
+    public final boolean commit(long version) throws AtomicStateException {
         if(open.compareAndSet(true, false)) {
             if(grabLocks() && !notifiedAboutVersionChange
                     && finalizing.compareAndSet(false, true)) {
-                limbo.transform(Write::redo);
+                limbo.transform(write -> write.rewrite(version));
                 doCommit();
                 releaseLocks();
                 if(durable instanceof Transaction) {
@@ -399,30 +370,32 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     public final boolean remove(String key, TObject value, long record)
             throws AtomicStateException {
-        checkState();
-        Token token = Token.wrap(key, record);
-        RangeToken rangeToken = RangeToken.forWriting(Text.wrapCached(key),
-                Value.wrap(value));
-        Token wide = wideReads.get(record);
-        if(wide != null) {
-            wide.upgrade();
-            writes2Lock.add(wide);
-        }
-        else {
-            source.addVersionChangeListener(token, this);
-            writes2Lock.add(token);
-            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
-                                                      // conflicting wide read,
-                                                      // but don't listen for
-                                                      // wide version change
-        }
-        writes2Lock.add(rangeToken);
-        return super.remove(Write.remove(key, value, record), Sync.NO,
-                Verify.YES);
+        return remove(Write.remove(key, value, record), Sync.NO, Verify.YES);
     }
 
     @Override
     public final void repair() {/* no-op */}
+
+    @Override
+    public final Map<Long, List<String>> review(long record)
+            throws AtomicStateException {
+        checkState();
+        Token token = Token.wrap(record);
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
+        wideReads.put(record, token);
+        return super.review(record);
+    }
+
+    @Override
+    public final Map<Long, List<String>> review(String key, long record)
+            throws AtomicStateException {
+        checkState();
+        Token token = Token.wrap(key, record);
+        source.addVersionChangeListener(token, this);
+        reads2Lock.add(token);
+        return super.review(key, record);
+    }
 
     @Override
     public final Set<Long> search(String key, String query)
@@ -543,16 +516,6 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    protected Map<Long, String> $audit(long record) {
-        return source.auditUnlocked(record);
-    }
-
-    @Override
-    protected Map<Long, String> $audit(String key, long record) {
-        return source.auditUnlocked(key, record);
-    }
-
-    @Override
     protected Map<TObject, Set<Long>> $browse(String key) {
         return source.browseUnlocked(key);
     }
@@ -574,6 +537,16 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    protected Map<Long, List<String>> $review(long record) {
+        return source.reviewUnlocked(record);
+    }
+
+    @Override
+    protected Map<Long, List<String>> $review(String key, long record) {
+        return source.reviewUnlocked(key, record);
+    }
+
+    @Override
     protected Map<String, Set<TObject>> $select(long record) {
         return source.selectUnlocked(record);
     }
@@ -586,6 +559,32 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     protected boolean $verify(Write write) {
         return source.verifyUnlocked(write);
+    }
+
+    @Override
+    protected final boolean add(Write write, Sync sync, Verify verify)
+            throws AtomicStateException {
+        checkState();
+        String key = write.getKey().toString();
+        long record = write.getRecord().longValue();
+        Token token = Token.wrap(key, record);
+        RangeToken rangeToken = RangeToken.forWriting(write.getKey(),
+                write.getValue());
+        Token wide = wideReads.get(record);
+        if(wide != null) {
+            wide.upgrade();
+            writes2Lock.add(wide);
+        }
+        else {
+            source.addVersionChangeListener(token, this);
+            writes2Lock.add(token);
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
+        }
+        writes2Lock.add(rangeToken);
+        return super.add(write, sync, verify);
     }
 
     /**
@@ -666,8 +665,47 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    protected final boolean remove(Write write, Sync sync, Verify verify)
+            throws AtomicStateException {
+        checkState();
+        String key = write.getKey().toString();
+        long record = write.getRecord().longValue();
+        Token token = Token.wrap(key, record);
+        RangeToken rangeToken = RangeToken.forWriting(write.getKey(),
+                write.getValue());
+        Token wide = wideReads.get(record);
+        if(wide != null) {
+            wide.upgrade();
+            writes2Lock.add(wide);
+        }
+        else {
+            source.addVersionChangeListener(token, this);
+            writes2Lock.add(token);
+            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
+                                                      // conflicting wide read,
+                                                      // but don't listen for
+                                                      // wide version change
+        }
+        writes2Lock.add(rangeToken);
+        return super.remove(write, sync, verify);
+    }
+
+    @Override
     protected boolean verifyWithReentrancy(Write write) {
         return super.verify(write);
+    }
+
+    /**
+     * Commit the atomic operation to the destination store. The commit is only
+     * successful if all the grouped operations can be successfully applied to
+     * the destination. If the commit fails, the caller should retry the atomic
+     * operation.
+     * 
+     * @return {@code true} if the atomic operation is completely applied
+     */
+    @VisibleForTesting
+    final boolean commit() throws AtomicStateException {
+        return commit(CommitVersions.next());
     }
 
     /**

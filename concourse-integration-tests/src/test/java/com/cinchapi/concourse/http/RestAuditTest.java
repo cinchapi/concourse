@@ -32,6 +32,7 @@ import com.squareup.okhttp.Response;
  * 
  * @author Jeff Nelson
  */
+@SuppressWarnings("deprecation")
 public class RestAuditTest extends RestTest {
 
     @Test

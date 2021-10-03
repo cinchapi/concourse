@@ -16,6 +16,7 @@
 package com.cinchapi.concourse;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,39 +53,6 @@ public class NoOpConcourse extends Concourse {
 
     @Override
     public <T> boolean add(String key, T value, long record) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(long record) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(long record, Timestamp start) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(long record, Timestamp start,
-            Timestamp end) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(String key, long record) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(String key, long record,
-            Timestamp start) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(String key, long record,
-            Timestamp start, Timestamp end) {
         throw new UnsupportedOperationException();
     }
 
@@ -1152,6 +1120,39 @@ public class NoOpConcourse extends Concourse {
     public void revert(String key, long record, Timestamp timestamp) {
         throw new UnsupportedOperationException();
 
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(long record, Timestamp start) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(long record, Timestamp start,
+            Timestamp end) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(String key, long record) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(String key, long record,
+            Timestamp start) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(String key, long record,
+            Timestamp start, Timestamp end) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

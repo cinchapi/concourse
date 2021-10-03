@@ -9,9 +9,13 @@
 	* The upgrade task will not delete v2 data files, so be mindful that **you will need twice the amount of data space available on disk to upgrade**. You can safely manually delete the v2 files after the upgrade. If the v2 files remain, a future version of Concourse may automatically delete them for you.
 * In addition to improved data integrity, the v3 storage format brings performance improvements to all operations because of more efficient memory management and smarter usage of asynchronous work queues.
 
+##### Atomic Commit Timestamps
+All the writes in a committed `atomic operation` (e.g. anything from primitive atomics to user-defined `transactions`) will now have the **same** version/timestamp. Previously, when an atomic operation was committed, each write was assigned a distinct version. But because each atomic write was applied as a distinct state change, it was possible to violate ACID semantics after the fact by performing a partial undo or partial historical read. Now, the version associated with each write is known as the **commit version**. For non-atomic operations, autocommit is in effect, so each write continues to have a distinct commit version. For atomic operations, the commit version is assigned when the operation is committed and assigned to each atomic write. As a result, all historical reads will either see all or see none of the committed atomic state and undo operations (e.g. `clear`, `revert`) will either affect all or affect none of the commited atomic state.
+
 ##### Optimizations
 * The storage engine has been optimized to use less memory when indexing by de-duplicating and reusing equal data components. This drastically reduces the amount of time that the JVM must dedicate to Garbage Collection. Previously, when indexing, the storage engine would allocate new objects to represent data even if equal objects were already buffered in memory.
 * We switched to a more compact in-memory representation of the `Inventory`, resulting in a reduction of its heap space usage by up to **97.9%**. This has an indirect benefit to overall performance and throughput by reducing memory contention that could lead to frequence JVM garbage collection cycles.
+* Improved user-defined `transactions` by detecting when an attempt is made to atomically commit multiple Writes that toggle the state of a field (e.g. `ADD name as jeff in 1`, `REMOVE name as jeff in 1`, `ADD name as jeff in 1`) and only committing at most one equal Write that is required to obtain the intended state. For example, in the previous example, only 1 write for `ADD name as jeff in 1` would be committed.
 
 ##### Performance
 * We improved the performance of commands that sort data by an average of **38.7%**. These performance improvements are the result of an new `Strategy` framework that allows Concourse Server to dynamically choose the most opitmal path for data lookups depending upon the entire context of the command and the state of storage engine. For example, when sorting a result set on `key1`, Concourse Server will now intelligently decide to lookup the values across `key1` using the relevant secondary index if `key1` is also a condition key. Alternatively, Concourse Server will decide to lookup the values across `key1` using the primary key for each impacted record if `key1` is also a being explicitly selected as part of the operation.
@@ -56,6 +60,7 @@
 * Deprecated `PrettyLinkedHashMap.setValueName` in favor of `PrettyLinkedHashMap.setValueColumnHeader`
 * Deprecated `PrettyLinkedTableMap.setRowName` in favor of `PrettyLinkedHashMap.setIdentifierColumnHeader`
 * Deprecated `PrettyLinkedTableMap.newPrettyLinkedTableMap` factory methods in favor of `PrettyLinkedTableMap.create`
+* Deprecated the `Concourse#audit` methods in favor of `Concourse#review` ones that take similar parameters. A `review` returns a `Map<Timestamp, List<String>>` instead of a `Map<Timestamp, String>` (as is the case with an `audit`) to account for the fact that a single commit timestamp/version may contain multiple changes.
 
 ##### Bug Fixes
 * Fixed a bug that caused the system version to be set incorrectly when a newly installed instance of Concourse Server (e.g. not upgraded) utilized data directories containing data from an older system version. This bug caused some upgrade tasks to be skipped, placing the system in an unstable state.

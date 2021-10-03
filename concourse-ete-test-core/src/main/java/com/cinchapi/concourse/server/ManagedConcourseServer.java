@@ -1020,43 +1020,6 @@ public class ManagedConcourseServer {
         }
 
         @Override
-        public Map<Timestamp, String> audit(long record) {
-            return invoke("audit", long.class).with(record);
-        }
-
-        @Override
-        public Map<Timestamp, String> audit(long record, Timestamp start) {
-            return invoke("audit", long.class, Timestamp.class).with(record,
-                    start);
-        }
-
-        @Override
-        public Map<Timestamp, String> audit(long record, Timestamp start,
-                Timestamp end) {
-            return invoke("audit", long.class, Timestamp.class, Timestamp.class)
-                    .with(start, end);
-        }
-
-        @Override
-        public Map<Timestamp, String> audit(String key, long record) {
-            return invoke("audit", String.class, long.class).with(key, record);
-        }
-
-        @Override
-        public Map<Timestamp, String> audit(String key, long record,
-                Timestamp start) {
-            return invoke("audit", String.class, long.class, Timestamp.class)
-                    .with(key, record, start);
-        }
-
-        @Override
-        public Map<Timestamp, String> audit(String key, long record,
-                Timestamp start, Timestamp end) {
-            return invoke("audit", String.class, long.class, Timestamp.class,
-                    Timestamp.class).with(key, record, start, end);
-        }
-
-        @Override
         public Map<String, Map<Object, Set<Long>>> browse(
                 Collection<String> keys) {
             return invoke("browse", Collection.class, Object.class).with(keys);
@@ -1168,7 +1131,7 @@ public class ManagedConcourseServer {
         @Override
         public Set<String> describe() {
             return invoke("describe").with();
-        };
+        }
 
         @Override
         public Map<Long, Set<String>> describe(Collection<Long> records) {
@@ -2351,6 +2314,44 @@ public class ManagedConcourseServer {
         }
 
         @Override
+        public Map<Timestamp, List<String>> review(long record) {
+            return invoke("review", long.class).with(record);
+        }
+
+        @Override
+        public Map<Timestamp, List<String>> review(long record,
+                Timestamp start) {
+            return invoke("review", long.class, Timestamp.class).with(record,
+                    start);
+        }
+
+        @Override
+        public Map<Timestamp, List<String>> review(long record, Timestamp start,
+                Timestamp end) {
+            return invoke("review", long.class, Timestamp.class,
+                    Timestamp.class).with(start, end);
+        }
+
+        @Override
+        public Map<Timestamp, List<String>> review(String key, long record) {
+            return invoke("review", String.class, long.class).with(key, record);
+        }
+
+        @Override
+        public Map<Timestamp, List<String>> review(String key, long record,
+                Timestamp start) {
+            return invoke("review", String.class, long.class, Timestamp.class)
+                    .with(key, record, start);
+        }
+
+        @Override
+        public Map<Timestamp, List<String>> review(String key, long record,
+                Timestamp start, Timestamp end) {
+            return invoke("review", String.class, long.class, Timestamp.class,
+                    Timestamp.class).with(key, record, start, end);
+        }
+
+        @Override
         public Set<Long> search(String key, String query) {
             return invoke("search", String.class, String.class).with(key,
                     query);
@@ -2985,7 +2986,7 @@ public class ManagedConcourseServer {
         @Override
         public boolean verify(String key, Object value, long record,
                 Timestamp timestamp) {
-            return invoke("audit", String.class, Object.class, long.class,
+            return invoke("review", String.class, Object.class, long.class,
                     Timestamp.class).with(key, value, record, timestamp);
         }
 

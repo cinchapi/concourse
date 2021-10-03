@@ -46,7 +46,7 @@ public class ThriftComplianceTest extends ConcourseIntegrationTest {
         client.add("name", 1, 1);
         client.add("name", true, 1);
         Timestamp previous = null;
-        for (Timestamp timestamp : client.audit(1).keySet()) {
+        for (Timestamp timestamp : client.review(1).keySet()) {
             if(previous != null) {
                 Assert.assertTrue(timestamp.getMicros() > previous.getMicros());
             }

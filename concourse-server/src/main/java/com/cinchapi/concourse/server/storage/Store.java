@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,47 +43,6 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
  * @author Jeff Nelson
  */
 public interface Store {
-
-    /**
-     * Audit {@code record}.
-     * <p>
-     * This method returns a log of revisions in {@code record} as a Map
-     * associating timestamps (in milliseconds) to CAL statements:
-     * </p>
-     * 
-     * <pre>
-     * {
-     *    "13703523370000" : "ADD 'foo' AS 'bar bang' TO 1", 
-     *    "13703524350000" : "ADD 'baz' AS '10' TO 1",
-     *    "13703526310000" : "REMOVE 'foo' AS 'bar bang' FROM 1"
-     * }
-     * </pre>
-     * 
-     * @param record
-     * @return the the revision log
-     */
-    public Map<Long, String> audit(long record);
-
-    /**
-     * Audit {@code key} in {@code record}
-     * <p>
-     * This method returns a log of revisions in {@code record} as a Map
-     * associating timestamps (in milliseconds) to CAL statements:
-     * </p>
-     * 
-     * <pre>
-     * {
-     *    "13703523370000" : "ADD 'foo' AS 'bar bang' TO 1", 
-     *    "13703524350000" : "ADD 'baz' AS '10' TO 1",
-     *    "13703526310000" : "REMOVE 'foo' AS 'bar bang' FROM 1"
-     * }
-     * </pre>
-     * 
-     * @param key
-     * @param record
-     * @return the revision log
-     */
-    public Map<Long, String> audit(String key, long record);
 
     /**
      * Browse {@code key}.
@@ -152,7 +112,7 @@ public interface Store {
      * guarantees that are normally provided by the {@link Store}.
      * </p>
      */
-    public default void compact() {/* no-op */};
+    public default void compact() {/* no-op */}
 
     /**
      * Return {@code true} if the store contains any data, present or
@@ -395,6 +355,49 @@ public interface Store {
      * </p>
      */
     public default void repair() {/* no-op */}
+
+    /**
+     * Review the history of {@code record}.
+     * <p>
+     * Returns a log of changes in the form of a {@link Map} from commit
+     * version to a {@link List} of descriptions for each change in that
+     * commit:
+     * </p>
+     * 
+     * <pre>
+     * {
+     *    13703523370000 : ["ADD 'foo' AS 'bar bang' TO 1"], 
+     *    13703524350000 : ["ADD 'baz' AS '10' TO 1"],
+     *    13703526310000 : ["REMOVE 'foo' AS 'bar bang' FROM 1"]
+     * }
+     * </pre>
+     * 
+     * @param record
+     * @return the log of changes
+     */
+    public Map<Long, List<String>> review(long record);
+
+    /**
+     * Review the history of {@code key} in {@code record}.
+     * <p>
+     * Returns a log of changes in the form of a {@link Map} from commit
+     * version to a {@link List} of descriptions for each change in that
+     * commit:
+     * </p>
+     * 
+     * <pre>
+     * {
+     *    13703523370000 : ["ADD 'foo' AS 'bar bang' TO 1"], 
+     *    13703524350000 : ["ADD 'baz' AS '10' TO 1"],
+     *    13703526310000 : ["REMOVE 'foo' AS 'bar bang' FROM 1"]
+     * }
+     * </pre>
+     * 
+     * @param key
+     * @param record
+     * @return the log of changes
+     */
+    public Map<Long, List<String>> review(String key, long record);
 
     /**
      * Search {@code key} for {@code query}.

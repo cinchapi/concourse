@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -27,7 +28,6 @@ import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.EagerProducer;
-import com.google.common.collect.Lists;
 
 /**
  * A {@link Queue} is a very simple form of {@link Limbo} that represents
@@ -88,7 +88,16 @@ public class Queue extends Limbo {
      * @param initialSize
      */
     public Queue(int initialSize) {
-        writes = Lists.newArrayListWithCapacity(initialSize);
+        this(new ArrayList<>(initialSize));
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param writes
+     */
+    protected Queue(List<Write> writes) {
+        this.writes = writes;
     }
 
     /**

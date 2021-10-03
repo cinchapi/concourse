@@ -16,10 +16,21 @@
 package com.cinchapi.concourse.server.storage;
 
 /**
- * An object that is versioned by a unique 8 byte long (i.e. a timestamp). The
- * version is stored directly with the object so that it does not change when
- * the object's storage context changes (i.e. buffer transport, data
+ * A storable object that is versioned by a {@link Long} (e.g. a timestamp).
+ * <p>
+ * The version is stored directly with the object so that it does not change
+ * when the object's storage context changes (e.g. transport from a
+ * {@link com.cinchapi.concourse.server.storage.temp.Limbo} to
+ * {@link com.cinchapi.concourse.server.storage.DurableStore DurableStore}, data
  * replication, cluster rebalance, etc).
+ * </p>
+ * <p>
+ * Versions are unique <em>across commits</em>, but objects within the same
+ * commit (e.g.
+ * an {@link com.cinchapi.concourse.server.storage.AtomicOperation atomic
+ * operation}) may have the same version. In that case, the object's can be
+ * distinguished and sequence by their {@link #stamp() stamp}.
+ * </p>
  * 
  * @author Jeff Nelson
  */
@@ -27,7 +38,7 @@ public interface Versioned {
 
     /**
      * Represents a {@code null} version, which indicates that the object is
-     * notStorable.
+     * not {@link #isStorable() storable}.
      */
     public static final long NO_VERSION = 0;
 
@@ -40,11 +51,13 @@ public interface Versioned {
     public boolean equals(Object obj);
 
     /**
-     * Return this object's version, which is unique amongst storable objects.
-     * For notStorable objects, the version is always equal to
-     * {@link #NO_VERSION}.
+     * Return this object's version.
+     * <p>
+     * For non-{@link #isStorable() storable} objects, the value returned is
+     * always {@link #NO_VERSION}.
+     * </p>
      * 
-     * @return the {@code version}
+     * @return the version
      */
     public long getVersion();
 
@@ -63,6 +76,31 @@ public interface Versioned {
      * 
      * @return {@code true} if the object is storable
      */
-    public boolean isStorable();
+    public default boolean isStorable() {
+        return getVersion() != NO_VERSION;
+    }
+
+    /**
+     * Return this object's {@link #stamp() stamp}.
+     * <p>
+     * The {@link #stamp() stamp} is a globally unique value that distinguishes
+     * objects regardless of their {@link #getVersion() versions}.
+     * </p>
+     * <p>
+     * The primary purpose of a {@link #stamp() stamp} is to provide relative
+     * 1) disambiguation and 2) sequencing (e.g. determining the order of
+     * operations in a {@link com.cinchapi.concourse.server.storage.Transaction
+     * transaction}) Unlike {@link #getVersion() versions}, {@link #stamp()
+     * Stamps} are transient and are subject to change whenever an object is
+     * created or read from storage.
+     * </p>
+     * <p>
+     * Given these constraints, {@link #stamp() stamps} should always be
+     * assigned in monotonically increasing order.
+     * </p>
+     * 
+     * @return the stamp
+     */
+    public long stamp();
 
 }
