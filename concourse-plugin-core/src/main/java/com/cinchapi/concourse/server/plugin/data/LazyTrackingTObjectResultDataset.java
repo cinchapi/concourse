@@ -159,6 +159,11 @@ public class LazyTrackingTObjectResultDataset extends TObjectResultDataset {
         return data.toString();
     }
 
+    @Override
+    protected Map<TObject, Set<Long>> invertNullSafe(String attribute) {
+        return tracking().invertNullSafe(attribute);
+    }
+
     /**
      * Populate {@link #tracking}.
      */

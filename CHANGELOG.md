@@ -66,6 +66,7 @@ All the writes in a committed `atomic operation` (e.g. anything from primitive a
 * Fixed a bug that caused the system version to be set incorrectly when a newly installed instance of Concourse Server (e.g. not upgraded) utilized data directories containing data from an older system version. This bug caused some upgrade tasks to be skipped, placing the system in an unstable state.
 * Fixed a bug that made it possible for Database operations to unexpectedly fail in the rare cases due to a locator mismatch resulting from faulty indexing logic.
 * Fixed a bug in the serialization/deserialization logic for datasets passed between Concourse Server and plugins. This bug caused plugins to fail when performing operations that included non-trivial datasets.
+* Fixed a bug that caused datasets returned from Concourse Server to a plugin to have incorrect missing data when `invert`ed.
 
 #### Version 0.10.6 (September 9, 2021)
 
