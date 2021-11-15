@@ -1,0 +1,219 @@
+############################################
+###  CONFIGURATION FOR CONCOURSE SERVER  ###
+############################################
+
+# The path to the file where access credentials for Concourse Server are
+# stored. For optimal security, this file should be placed in a separate
+# directory from Concourse Server with more restrictive operating system 
+# permissions
+#
+# DEFAULT {$concourse.home}/.access
+access_credentials_file: .access
+
+# The absolute path to the directory where the Buffer data is stored. For
+# optimal write performance, the Buffer should be placed on a separate disk
+# partition (ideally a separate physical device) from the database_directory.
+#
+# DEFAULT: {$user.home}/concourse/buffer
+buffer_directory: /var/lib/concourse/buffer
+
+# The size for each page in the Buffer. It is generally a good idea to have
+# smaller pages in the Buffer to maximize read and indexing throughput, but
+# this should be balanced with the risk of having too many open files which
+# may lead to more frequent disk I/O and slower writes.
+#
+# DEFAULT: 8KB
+buffer_page_size: 8KB
+
+# The listener port (1-65535) for client connections. Choose a port between
+# 49152 and 65535 to minimize the possibility of conflicts with other services
+# on this host.
+#
+# DEFAULT: 1717
+client_port: 1717
+
+# The absolute path to the directory where the data and index files are
+# stored. For optimal performance, the Database should be placed on a
+# separate disk partition (ideally a separate physical device) from the
+# buffer_directory.
+#
+# DEFAULT: {$user.home}/concourse/db
+database_directory: /var/lib/concourse/db
+
+# The default environment that is automatically loaded when the server
+# starts and is used whenever a client does not specify an environment
+# for the connection.
+#
+# DEFAULT: default
+default_environment: default
+
+# Determine whether log messages should also be printed to the console (STDOUT)
+# in addition to the log files.
+#
+# DEFAULT: false
+enable_console_logging: false
+
+# The amount of memory that is allocated to the Concourse Server JVM.
+# Concourse requires a minimum heap size of 256MB to start, but much
+# more is recommended to ensure that read and write operations avoid
+# expensive disk seeks where possible. Concourse generally sets both
+# the initial and maximum heap sizes to the specified value, so there
+# must be enough system memory available for Concourse Server to start.
+#
+# Be careful and avoid setting the heap size too large because this may
+# cause longer garbage collection (gc) pauses or interfere with the ability
+# of Concourse Server to memory map (mmap) certain data files. We
+# recommend the following sizing guidelines:
+#
+# SYSTEM MEMORY    | Recommended heap_size
+# -----------------------------------------------------------
+# Less than 2GB    | 1/2 system memory
+# 2GB to 4GB       | 1GB
+# Greater than 4GB | 1/4 system memory, but not more than 8GB
+#
+# DEFAULT: automatically chosen based on the recommendations above
+heap_size: 1GB
+
+# The listener port (1-65535) for HTTP/S connections. Choose a port between
+# 49152 and 65535 to minimize the possibility of conflicts with other services
+# on this host. If the value of this preference is set to 0, then HTTP/S
+# connections on Concourse Server will be disabled.
+#
+# DEFAULT: 0 (disabled)
+http_port: 8817
+
+# Determine if the HTTP Server should enable and process preferences related to
+# Cross-Origin Resource Sharing requests.
+#
+# DEFAULT: false
+http_enable_cors: false
+
+# A comma separated list of default URIs that are permitted to access HTTP
+# endpoints. By default (if enabled), the value of this preference is set
+# to the wildcard character '*' which means that any origin is allowed access.
+# Changing this value to a discrete list will set the default origins that are
+# permitted, but individual endpoints may override this value.
+#
+# DEFAULT: (allow any origin)
+http_cors_default_allow_origin: *
+
+# A comma separated list of default headers that are sent in response to a
+# CORS preflight request to indicate which HTTP headers can be used when
+# making the actual request. By default (if enabled), the value of this
+# preference is set to the wildcard character '*' which means that any headers
+# specified in the preflight request are allowed. Changing this value to a
+# discrete list will set the default headers that are permitted, but individual
+# endpoints may override this value.
+#
+# DEFAULT: (allow any headers)
+http_cors_default_allow_headers: *
+
+# A comma separated list of default methods that are sent in response to a
+# CORS preflight request to indicate which HTTP methods can be used when making
+# the actual request. By default (if enabled), the value of this preference is
+# set to the wildcard character '*' which means that any method specified in the
+# preflight request is allowed. Changing this value to a discrete list will set
+# the default methods that are permitted, but individual endpoints may override
+# this value.
+#
+# DEFAULT: (allow any method)
+http_cors_default_allow_methods: *
+
+# The listener port (1-65535) for management commands via JMX. Choose a port
+# between 49152 and 65535 to minimize the possibility of conflicts with other
+# services on this host.
+#
+# DEFAULT: 9010
+jmx_port: 9010
+
+# The amount of runtime information logged by the system. The options below
+# are listed from least to most verbose. In addition to the indicated types
+# of information, each level also logs the information for each less verbose
+# level (i.e. ERROR only prints error messages, but INFO prints info, warn
+# and error messages).
+#
+# ERROR: critical information when the system reaches a potentially fatal
+#    state and may not operate normally.
+# WARN:  useful information when the system reaches a less than ideal state but
+#    can continue to operate normally.
+# INFO:  status information about the system that can be used for sanity
+#     checking.
+# DEBUG: detailed information about the system that can be used to diagnose
+#     bugs.
+#
+# Logging is important, but can cause performance degradation. Only use the
+# DEBUG level for staging environments or instances where detailed information
+# is needed to diagnose a bug. Otherwise use the WARN or INFO levels.
+#
+# DEFAULT: INFO
+log_level: INFO
+
+# The length of the longest substring that will be indexed for fulltext search.
+#
+# This value does not mean that longer words will not be indexed. It simply means 
+# that, for any indexable value (e.g. a String), any substring that is longer than
+# the value of this preference will not be added to the search index. The effect is
+# that search strings containing any words with a length greater than the value of 
+# this preference will return 0 results. 
+
+# For best performance, this value should be set to the longest word length of any 
+# possible search string. To be safe, we recommend setting this value to be the 
+# length of the longest possible word in the search language. For example, the longest 
+# possible word in English is about 40 characters long.
+#
+# By default, search substrings are not limited.
+#
+# DEFAULT: no limit
+max_search_substring_length: 40
+
+# The listener port (1-65535) for shutdown commands. Choose a port between
+# 49152 and 65535 to minimize the possibility of conflicts with other services
+# on this host. In general, you shouldn't need to specify a value unless you
+# have scripts to perform a remote shutdown and must configure firewall rules
+# accordingly.
+#
+# DEFAULT: automatically chosen based on the client_port
+shutdown_port: 3434
+
+# The listener port (1-65535) for remote debugger connections. Choose a port between
+# 49152 and 65535 to minimize the possibility of conflicts with other services
+# on this host. If the value of this preference is set to 0, then remote debugging for
+# Concourse Server is disabled.
+#
+# DEFAULT: 0
+remote_debugger_port: 0
+
+#########################################################
+###  EXPERIMENTAL CONFIGURATION FOR CONCOURSE SERVER  ###
+#########################################################
+
+# Automatically use a combination of defragmentation, garbage collection and load 
+# balancing within the data files to optimize storage for read performance.
+#
+# The compaction process may run continuously in the background without disrupting 
+# reads or writes. The storage engine uses a specific strategy to determine how 
+# data files should be reorganized to improve the performance of read operations. 
+#
+# DEFAULT: false
+enable_compaction: false
+
+# Maintain and in-memory cache of the data indexes used to respond to search commands.
+# Search indexes tend to be much larger than those used for primary and secondary 
+# lookups, so enabling the search cache may cause memory issues (and overall 
+# performance degradation) if search is heavily used. Furthermore, indexing and 
+# write performance may suffer if cached search indexes must be incrementally kept 
+# current.
+#
+# DEFAULT: false
+enable_search_cache: false
+
+# Attempt to optimize verify commands by using special lookup records.
+#
+# A lookup record only contains data for a single field. The database does not cache
+# lookup records, so, while generating one is theoretically faster than generating a
+# full or partial record, repeated attempts to verify data in the same field (e.g. a 
+# counter whose value is stored against a single locator/key) or record may be slower 
+# due to lack of caching.
+#
+# DEFAULT: false
+enable_verify_by_lookup: false
