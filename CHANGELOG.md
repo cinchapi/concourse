@@ -2,6 +2,15 @@
 
 #### Version 0.11.0 (TBD) 
 
+##### BREAKING CHANGES
+There is only **PARTIAL COMPATIBILITY** between 
+* an `0.11.0+` client and an older server, and 
+* a `0.11.0+` server and an older client.
+
+Due to changes in Concourse's internal APIs,
+* An older client will receive an error when trying to invoke any `audit` methods on a `0.11.0+` server.
+* An older server will throw an error message when any `audit` or `review` methods are invoked from an `0.11.0+` client. 
+
 ##### Storage Format Version 3
 * This version introduces a new, more concise storage format where Database files are now stored as **Segments** instead of Blocks. In a segment file (`.seg`), all views of indexed data (primary, secondary, and search) are stored in the same file whereas a separate block file (`.blk`) was used to store each view of data in the v2 storage format. The process of transporting writes from the `Buffer` to the `Database` remains unchanged. When a Buffer page is fully transported, its data is durably synced in a new Segment file on disk.
 * The v3 storage format should reduce the number of data file corruptions because there are fewer moving parts.
@@ -10,7 +19,7 @@
 * In addition to improved data integrity, the v3 storage format brings performance improvements to all operations because of more efficient memory management and smarter usage of asynchronous work queues.
 
 ##### Atomic Commit Timestamps
-All the writes in a committed `atomic operation` (e.g. anything from primitive atomics to user-defined `transactions`) will now have the **same** version/timestamp. Previously, when an atomic operation was committed, each write was assigned a distinct version. But because each atomic write was applied as a distinct state change, it was possible to violate ACID semantics after the fact by performing a partial undo or partial historical read. Now, the version associated with each write is known as the **commit version**. For non-atomic operations, autocommit is in effect, so each write continues to have a distinct commit version. For atomic operations, the commit version is assigned when the operation is committed and assigned to each atomic write. As a result, all historical reads will either see all or see none of the committed atomic state and undo operations (e.g. `clear`, `revert`) will either affect all or affect none of the commited atomic state.
+All the writes in a committed `atomic operation` (e.g. anything from primitive atomics to user-defined `transactions`) will now have the **same** version/timestamp. Previously, when an atomic operation was committed, each write was assigned a distinct version. But, because each atomic write was applied as a distinct state change, it was possible to violate ACID semantics after the fact by performing a partial undo or partial historical read. Now, the version associated with each write is known as the **commit version**. For non-atomic operations, autocommit is in effect, so each write continues to have a distinct commit version. For atomic operations, the commit version is assigned when the operation is committed and assigned to each atomic write. As a result, all historical reads will either see all or see none of the committed atomic state and undo operations (e.g. `clear`, `revert`) will either affect all or affect none of the commited atomic state.
 
 ##### Optimizations
 * The storage engine has been optimized to use less memory when indexing by de-duplicating and reusing equal data components. This drastically reduces the amount of time that the JVM must dedicate to Garbage Collection. Previously, when indexing, the storage engine would allocate new objects to represent data even if equal objects were already buffered in memory.
