@@ -499,7 +499,7 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static final int DISK_READ_BUFFER_SIZE = (int) Math.pow(2, 20); // 1048567
-                                                                           // (1MiB)
+                                                                           // (~1MiB)
 
     /**
      * The path to the underlying file from which the preferences are extracted.
