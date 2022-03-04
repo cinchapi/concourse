@@ -48,7 +48,7 @@ namespace rb concourse.thrift
 #
 # As much as possible, try to preserve backward compatibility so that
 # Concourse Server can always talk to older drivers.
-const string VERSION = "0.11.0"
+const string VERSION = "0.12.0"
 
 # This value is passed over the wire to represent a null value, usually
 # for get/select methods where a key/record has no data.
