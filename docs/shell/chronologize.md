@@ -34,7 +34,7 @@ The **chronologize** methods allow you to retrieve a time series that contains d
 Written by Jeff Nelson.
 
 ## COPYRIGHT
-Copyright (c) 2013-2021 Cinchapi Inc.
+Copyright (c) 2013-2022 Cinchapi Inc.
 
 ## LICENSE
 This manual is licensed under the Creative Commons Attribution 4.0 International Public License. <br />
