@@ -16,7 +16,7 @@
 
 dependencies {
     compile project(':concourse-driver-java')
-    compile 'org.codehaus.groovy:groovy-all:2.1.8'
+    compile 'org.codehaus.groovy:groovy-all:2.4.7'
     compile 'jline:jline:2.11'
     compile 'com.beust:jcommander:1.32'
 
