@@ -15,10 +15,14 @@
  */
 package com.cinchapi.concourse.server.storage.db.compaction;
 
+import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.cinchapi.concourse.server.storage.db.SegmentStorageSystem;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+import com.google.common.collect.ImmutableList;
 
 /**
  * A {@link Compactor} that doesn't do anything.
@@ -30,7 +34,34 @@ public final class NoOpCompactor extends Compactor {
     /**
      * Singleton.
      */
-    private static NoOpCompactor INSTANCE;
+    private static NoOpCompactor INSTANCE = new NoOpCompactor(new SegmentStorageSystem() {
+
+        @Override
+        public long availableDiskSpace() {
+            return 0;
+        }
+
+        @Override
+        public Lock lock() {
+            return new ReentrantLock();
+        }
+
+        @Override
+        public Path save(Segment segment) {
+            throw new UnsupportedOperationException("Cannot save "+segment);
+        }
+
+        @Override
+        public List<Segment> segments() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public long totalDiskSpace() {
+            return 0;
+        }
+        
+    });
 
     /**
      * Return a {@link NoOpCompactor}
@@ -54,5 +85,6 @@ public final class NoOpCompactor extends Compactor {
     protected List<Segment> compact(Segment... segments) {
         return null;
     }
+    
 
 }
