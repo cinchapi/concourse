@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#?Import data from a file or directory.
+#?Export data to a file or STDOUT.
 
 # Copyright (c) 2013-2019 Cinchapi Inc.
 #

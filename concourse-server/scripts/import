@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#?Import data from a file or directory.
+#?Import data from a file, directory or STDIN.
 
 # Copyright (c) 2013-2022 Cinchapi Inc.
 #
