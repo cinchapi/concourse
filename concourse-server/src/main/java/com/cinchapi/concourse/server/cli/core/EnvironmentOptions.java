@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.cli.core;
 
 import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.server.GlobalState;
+import com.google.common.base.Strings;
 
 /**
  * A set of Options for a CLI that interact with a server environment.
@@ -27,6 +27,19 @@ public class EnvironmentOptions extends Options {
 
     @Parameter(names = { "-e",
             "--environment" }, description = "The environment of the Concourse Server to use")
-    public String environment = GlobalState.DEFAULT_ENVIRONMENT;
+    public String environment = "";
+
+    /**
+     * Return a description of the {@link #environment} option. For example, if
+     * no environment is specified, the description will indicate that the
+     * server's configuration of a default environment will be used.
+     * 
+     * @return a description of the environment
+     */
+    public String environmentDescription() {
+        return Strings.isNullOrEmpty(environment)
+                ? "the default environment as defined in Concourse Server's configuration"
+                : "the '" + environment + "' environment";
+    }
 
 }
