@@ -1,5 +1,8 @@
 ## Changelog
 
+#### Version 0.11.1 (TBD)
+* Added the `ConcourseCompiler#evaluate(ConditionTree, Multimap)` method that uses the `Operators#evaluate` static method to perform local evaluation.
+
 #### Version 0.11.0 (March 4, 2022)
 
 ##### BREAKING CHANGES
