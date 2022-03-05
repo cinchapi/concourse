@@ -2,6 +2,7 @@
 
 #### Version 0.11.1 (TBD)
 * Added the `ConcourseCompiler#evaluate(ConditionTree, Multimap)` method that uses the `Operators#evaluate` static method to perform local evaluation.
+* Fixed a bug that, in some cases, caused the wrong default environment to be used when invoking server-side data CLIs (e.g., `concourse data <action>`). When a data CLI was invoked without specifying the environment using the `-e <environment>` flag, the `default` environment was always used instead of the `default_environment` that was specified in the Concourse Server configuration.
 
 #### Version 0.11.0 (March 4, 2022)
 

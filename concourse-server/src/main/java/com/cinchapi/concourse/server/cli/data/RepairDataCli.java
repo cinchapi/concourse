@@ -46,16 +46,15 @@ public class RepairDataCli extends DataCli {
         DataOptions opts = (DataOptions) options;
         try {
             System.out.println(AnyStrings.format(
-                    "Looking for corrupted data files in '{}' environment. "
-                            + "If any are found they will be repaired.",
-                    opts.environment));
+                    "Looking for corrupted data files in {}. If any are found they will be repaired.",
+                    opts.environmentDescription()));
             System.out.println("Follow the logs for more details...");
 
             client.repairData(opts.environment, token);
 
-            System.out.println(AnyStrings.format(
-                    "Finished repairing data in '{}' environment",
-                    opts.environment));
+            System.out
+                    .println(AnyStrings.format("Finished repairing data in {}.",
+                            opts.environmentDescription()));
         }
         catch (Exception e) {
             die(e.getMessage());

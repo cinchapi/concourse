@@ -48,8 +48,8 @@ public class CompactDataCli extends DataCli {
         try {
             client.compactData(opts.environment, token);
             System.out.println(AnyStrings.format(
-                    "Encouraged Concourse Server to compact data in the '{}' environment",
-                    opts.environment));
+                    "Encouraged Concourse Server to compact data in {}.",
+                    opts.environmentDescription()));
             System.out.println("Follow the logs for more details...");
         }
         catch (Exception e) {
