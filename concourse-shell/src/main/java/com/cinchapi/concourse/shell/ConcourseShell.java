@@ -30,6 +30,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -395,10 +396,11 @@ public final class ConcourseShell {
      * {@link Concourse} methods for which a {@link Closure} is defined within
      * the shell to protect againist any short syntax corner cases.
      */
-    private static final Stream<String> CLOSURE_ELIGIBLE_API_METHODS = Stream
+    private static final List<String> CLOSURE_ELIGIBLE_API_METHODS = Stream
             .of(Reflection.getAllDeclaredMethods(Concourse.class))
             .map(Method::getName).distinct()
-            .filter(method -> !BANNED_API_METHODS.contains(method));
+            .filter(method -> !BANNED_API_METHODS.contains(method))
+            .collect(Collectors.toList());
 
     /**
      * A list which contains all of the accessible API methods. This list is
