@@ -34,34 +34,36 @@ public final class NoOpCompactor extends Compactor {
     /**
      * Singleton.
      */
-    private static NoOpCompactor INSTANCE = new NoOpCompactor(new SegmentStorageSystem() {
+    private static NoOpCompactor INSTANCE = new NoOpCompactor(
+            new SegmentStorageSystem() {
 
-        @Override
-        public long availableDiskSpace() {
-            return 0;
-        }
+                @Override
+                public long availableDiskSpace() {
+                    return 0;
+                }
 
-        @Override
-        public Lock lock() {
-            return new ReentrantLock();
-        }
+                @Override
+                public Lock lock() {
+                    return new ReentrantLock();
+                }
 
-        @Override
-        public Path save(Segment segment) {
-            throw new UnsupportedOperationException("Cannot save "+segment);
-        }
+                @Override
+                public Path save(Segment segment) {
+                    throw new UnsupportedOperationException(
+                            "Cannot save " + segment);
+                }
 
-        @Override
-        public List<Segment> segments() {
-            return ImmutableList.of();
-        }
+                @Override
+                public List<Segment> segments() {
+                    return ImmutableList.of();
+                }
 
-        @Override
-        public long totalDiskSpace() {
-            return 0;
-        }
-        
-    });
+                @Override
+                public long totalDiskSpace() {
+                    return 0;
+                }
+
+            });
 
     /**
      * Return a {@link NoOpCompactor}
@@ -85,6 +87,5 @@ public final class NoOpCompactor extends Compactor {
     protected List<Segment> compact(Segment... segments) {
         return null;
     }
-    
 
 }
