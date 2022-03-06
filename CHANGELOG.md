@@ -6,7 +6,7 @@
 * Fixed a bug that caused the `concourse data compact` CLI to inexplicably die when invoked while `enable_compaction` was set to `false` in the Concourse Server configuration.
 * Fixed the usage message description of the `concourse export` and `concourse import` CLIs.
 * Fixed a bug that caused Concourse Shell to fail to parse short syntax within statements containing an open parenthesis as described in [GH-463](https://github.com/cinchapi/concourse/issues/463) and [GH-139](https://github.com/cinchapi/concourse/issues/139).
-* Fixed a bug that caused `Order`/`Sort` instructions to drop clauses when multiple clauses referenced the same key. For example, an `Order` instruction to sort on `key1` at multiple timestamps (e.g., `Order.by("key1").then().by("key1").at(timestamp)`) would ignore all clauses in the instruction that referenced `key1` except the last one.
+* Fixed a bug that caused `Order`/`Sort` instructions that contain multiple clauses referencing the same key to drop all but the last clause for that key.
 
 #### Version 0.11.0 (March 4, 2022)
 
