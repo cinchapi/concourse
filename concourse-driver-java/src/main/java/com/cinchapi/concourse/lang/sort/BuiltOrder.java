@@ -15,7 +15,8 @@
  */
 package com.cinchapi.concourse.lang.sort;
 
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -24,7 +25,6 @@ import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.Timestamp;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 /**
  * Implementation of {@link Order} that represents the result of calling
@@ -35,10 +35,9 @@ import com.google.common.collect.Maps;
 final class BuiltOrder implements Order {
 
     /**
-     * A mapping from each key to direction ordinal (e.g. 1 for ASC and -1 for
-     * DESC) in the constructed {@link BuiltOrder}.
+     * A list of all the {@link OrderComponent components} that have been added.
      */
-    private final LinkedHashMap<String, OrderComponent> spec;
+    private List<OrderComponent> spec;
 
     /**
      * The last key that was {@link #set(String, Direction) added}.
@@ -55,7 +54,7 @@ final class BuiltOrder implements Order {
      * Construct a new instance.
      */
     BuiltOrder() {
-        this.spec = Maps.newLinkedHashMap();
+        this.spec = new ArrayList<>();
     }
 
     @Override
@@ -75,51 +74,60 @@ final class BuiltOrder implements Order {
 
     @Override
     public List<OrderComponent> spec() {
-        return spec.values().stream().collect(Collectors.toList());
+        return Collections.unmodifiableList(spec);
     }
 
     /**
-     * Modify to the order {@link #spec()}.
+     * Modify the last {@link OrderComponent} and set the {@code direction}.
      * 
-     * @param key
      * @param direction
      */
-    final void set(String key, Direction direction) {
-        OrderComponent component = spec.get(key);
-        set(key, component == null ? null : component.timestamp(), direction);
+    final void append(Direction direction) {
+        Preconditions.checkState(spec.size() > 0);
+        OrderComponent component = spec.remove(spec.size() - 1);
+        push(component.key(), component.timestamp(), direction);
+    }
 
+    /**
+     * Append a new {@link OrderComponent} for {@code key}.
+     * 
+     * @param key
+     */
+    final void append(String key) {
+        push(key, null, Direction.$default());
+    }
+
+    /**
+     * Modify the last {@link OrderComponent} and set the {@code timestamp}.
+     * 
+     * @param direction
+     */
+    final void append(Timestamp timestamp) {
+        Preconditions.checkState(spec.size() > 0);
+        OrderComponent component = spec.remove(spec.size() - 1);
+        push(component.key(), timestamp, component.direction());
     }
 
     /**
      * Mark this {@link BuiltOrder} as {@code built}.
      */
     void close() {
+        spec = spec.stream().distinct().collect(Collectors.toList());
         built = !built ? true : built;
     }
 
     /**
-     * Modify to the order {@link #spec()}.
+     * Create an {@link OrderComponent} encompassing {@code key},
+     * {@code timestamp} and {@code direction} and add it to the {@link #spec}.
      * 
      * @param key
      * @param timestamp
      * @param direction
      */
-    final void set(String key, Timestamp timestamp) {
-        OrderComponent component = spec.get(key);
-        set(key, timestamp, component == null ? Direction.$default()
-                : component.direction());
-    }
-
-    /**
-     * Modify to the order {@link #spec()}.
-     * 
-     * @param key
-     * @param timestamp
-     * @param direction
-     */
-    final void set(String key, Timestamp timestamp, Direction direction) {
+    private final void push(String key, Timestamp timestamp,
+            Direction direction) {
         Preconditions.checkState(!built, "Cannot modify a built Order");
-        spec.put(key, new OrderComponent(key, timestamp, direction));
+        spec.add(new OrderComponent(key, timestamp, direction));
         this.lastKey = key;
     }
 
@@ -132,7 +140,7 @@ final class BuiltOrder implements Order {
      */
     @SuppressWarnings("unused")
     private void set(String key, long timestamp, int direction) {
-        set(key, timestamp > 0 ? Timestamp.fromMicros(timestamp) : null,
+        push(key, timestamp > 0 ? Timestamp.fromMicros(timestamp) : null,
                 Direction.values()[direction]);
     }
 

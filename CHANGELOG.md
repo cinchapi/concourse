@@ -8,6 +8,7 @@
 * Fixed a bug that caused Concourse Shell to fail to parse short syntax within statements containing an open parenthesis as described in [GH-463](https://github.com/cinchapi/concourse/issues/463) and [GH-139](https://github.com/cinchapi/concourse/issues/139).
 * Fixed a bug that caused the `Strategy` framework to select the wrong execution path when looking up historical values for order keys. This caused a regression in the performance for relevant commands.
 * Added `DEBUG` logging that provides details on the execution path chosen for each lookup.
+* Fixed a bug that caused `Order`/`Sort` instructions that contain multiple clauses referencing the same key to drop all but the last clause for that key.
 
 #### Version 0.11.0 (March 4, 2022)
 

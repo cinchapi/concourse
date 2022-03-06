@@ -15,7 +15,12 @@
  */
 package com.cinchapi.concourse.lang.sort;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -75,7 +80,7 @@ public class OrderTest {
     @Test(expected = IllegalStateException.class)
     public void testCannotAddSymbolToOrder() {
         Order order = Order.by("foo").build();
-        ((BuiltOrder) order).set("bar", Direction.ASCENDING);
+        ((BuiltOrder) order).append("bar");
     }
 
     @Test
@@ -131,6 +136,31 @@ public class OrderTest {
         Order order = Sort.by("name").then("age").then("foo").descending()
                 .then("bar");
         Assert.assertTrue(order.keysWithTimestamps().isEmpty());
+    }
+
+    @Test  
+    public void testOrderWithTimestampsCorrectness() {
+        Timestamp t1 = Timestamp.now();
+        Timestamp t2 = Timestamp.now();
+        Order order = Order.by("name").then("name").at(t1).then().by("age")
+                .then().by("score").at(t2).then("foo").then("bar").at(t1)
+                .then("name").at(t2);
+        Map<String, Collection<Timestamp>> expected = new LinkedHashMap<>();
+        expected.put("name", ImmutableList.of(t1, t2));
+        expected.put("score", ImmutableList.of(t2));
+        expected.put("bar", ImmutableList.of(t1));
+        Assert.assertEquals(expected, order.keysWithTimestamps());
+    }
+
+    @Test
+    public void testDeDuplicateOrderComponent() {
+        Timestamp t1 = Timestamp.now();
+        Order order = Order.by("name").then().by("name").at(t1).then()
+                .by("name").descending().then("name").at(t1).then().by("name")
+                .at(t1).decreasing();
+        Assert.assertEquals(4, order.spec().size());
+        Set<OrderComponent> unique = new HashSet<>(order.spec());
+        Assert.assertEquals(unique.size(), order.spec().size());
     }
 
 }
