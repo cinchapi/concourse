@@ -35,7 +35,7 @@ public class OrderAtState extends BuildableOrderState implements
      */
     protected OrderAtState(BuiltOrder order, String key, Timestamp timestamp) {
         super(order);
-        order.set(key, timestamp);
+        order.append(timestamp);
     }
 
     @Override
