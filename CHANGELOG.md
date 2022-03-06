@@ -6,7 +6,7 @@
 * Fixed a bug that caused the `concourse data compact` CLI to inexplicably die when invoked while `enable_compaction` was set to `false` in the Concourse Server configuration.
 * Fixed the usage message description of the `concourse export` and `concourse import` CLIs.
 * Fixed a bug that caused Concourse Shell to fail to parse short syntax within statements containing an open parenthesis as described in [GH-463](https://github.com/cinchapi/concourse/issues/463) and [GH-139](https://github.com/cinchapi/concourse/issues/139).
-* Fixed a bug that caused the `Strategy` framework to select the wrong execution path when looking up historical values for order keys.
+* Fixed a bug that caused the `Strategy` framework to select the wrong execution path when looking up historical values for order keys. This caused a regression in the performance for relevant commands.
 * Added `DEBUG` logging that provides details on the execution path chosen for each lookup.
 
 #### Version 0.11.0 (March 4, 2022)
