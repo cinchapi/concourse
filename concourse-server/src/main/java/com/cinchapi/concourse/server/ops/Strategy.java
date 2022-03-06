@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.ops;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.Store;
+import com.cinchapi.concourse.util.Logger;
 
 /**
  * A {@link Strategy} is a guided plan for interacting with a {@link Store} to
@@ -62,12 +63,16 @@ public class Strategy {
         // TODO: The notion of a "wide" operation should be extended to case
         // when the majority (or significant number) of, but not all keys are
         // involved with an operation.
+        boolean isHistoricalOperation = command.operationTimestamp() != null;
         boolean isWideOperation = command.operationKeys().isEmpty()
                 && !command.operation().startsWith("find");
         boolean isConditionKey = command.conditionKeys().contains(key);
         boolean isOrderKey = command.orderKeys().contains(key);
+        boolean isKeyRequiringTimestampRetrieval = command
+                .keysRequiringTimestampRetrieval().containsKey(key)
+                || (isOrderKey && isHistoricalOperation);
         Source source;
-        if((isConditionKey || isOrderKey)
+        if((isConditionKey || isOrderKey) && !isKeyRequiringTimestampRetrieval
                 && command.operationRecords().size() != 1) {
             // The IndexRecord must be loaded to evaluate the condition, so
             // leverage it to gather the values for key/record
@@ -88,6 +93,9 @@ public class Strategy {
             source = command.operationKeys().size() > 1 ? Source.RECORD
                     : Source.FIELD;
         }
+        Logger.debug(
+                "Using {} to retrieve {} in {} for the following command: {}",
+                source, key, record, command);
         return source;
     }
 
