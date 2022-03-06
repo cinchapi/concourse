@@ -138,7 +138,7 @@ public class OrderTest {
         Assert.assertTrue(order.keysWithTimestamps().isEmpty());
     }
 
-    @Test  
+    @Test
     public void testOrderWithTimestampsCorrectness() {
         Timestamp t1 = Timestamp.now();
         Timestamp t2 = Timestamp.now();
