@@ -132,6 +132,13 @@ public class OrderTest {
     }
 
     @Test
+    public void testEmptyOrderWithTimestampsCorrectness() {
+        Order order = Sort.by("name").then("age").then("foo").descending()
+                .then("bar");
+        Assert.assertTrue(order.keysWithTimestamps().isEmpty());
+    }
+
+    @Test
     public void testOrderWithTimestampsCorrectness() {
         Timestamp t1 = Timestamp.now();
         Timestamp t2 = Timestamp.now();

@@ -227,9 +227,11 @@ public final class IndexRecord extends Record<Text, Value, Identifier> {
             if(slice == null) {
                 Set<Value> values = Sets.newHashSet();
                 Set<Entry<Value, Set<Identifier>>> entries = timestamp != Time.NONE
-                        ? LazyTransformSet.of(history.keySet(),
-                                key -> new AbstractMap.SimpleImmutableEntry<>(
-                                        key, get(key, timestamp)))
+                        ? LazyTransformSet.of(history.entrySet(),
+                                entry -> new AbstractMap.SimpleImmutableEntry<>(
+                                        entry.getKey(),
+                                        extractHistoricalValues(
+                                                entry.getValue(), timestamp)))
                         : present.entrySet();
                 for (Entry<Value, Set<Identifier>> entry : entries) {
                     Value value = entry.getKey();
