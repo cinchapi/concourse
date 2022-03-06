@@ -235,8 +235,10 @@ public final class Command {
             Timestamp ts = Timestamp.fromMicros(operationTimestamp);
             operationKeys().forEach(key -> data.put(key, ts));
         }
-        order.keysWithTimestamps()
-                .forEach((key, collection) -> data.putAll(key, collection));
+        if(order != null) {
+            order.keysWithTimestamps()
+                    .forEach((key, collection) -> data.putAll(key, collection));
+        }
         return data.asMap();
     }
 
@@ -271,9 +273,10 @@ public final class Command {
         init();
         return operationRecords;
     }
-    
+
     /**
      * Return the timestamp associated with the operation, if one is supplied
+     * 
      * @return the operation timestamp
      */
     @Nullable
