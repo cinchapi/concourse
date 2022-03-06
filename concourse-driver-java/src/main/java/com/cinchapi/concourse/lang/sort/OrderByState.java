@@ -32,7 +32,8 @@ public class OrderByState extends BuildableOrderState implements
      */
     OrderByState(BuiltOrder order, String key, Direction direction) {
         super(order);
-        order.set(key, direction);
+        order.append(key);
+        order.append(direction);
     }
 
     @Override
