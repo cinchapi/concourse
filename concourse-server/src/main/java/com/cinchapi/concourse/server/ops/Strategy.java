@@ -94,7 +94,7 @@ public class Strategy {
                     : Source.FIELD;
         }
         Logger.debug(
-                "Using {} to retrieve {} in {} for the following command: {}",
+                "Using {} to lookup {} in {} for the following command: {}",
                 source, key, record, command);
         return source;
     }
