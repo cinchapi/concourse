@@ -19,6 +19,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,7 @@ import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.syntax.ConditionTree;
 import com.cinchapi.common.collect.Association;
 import com.cinchapi.common.describe.Empty;
+import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.lang.ConcourseCompiler;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.Language;
@@ -41,8 +43,10 @@ import com.cinchapi.concourse.thrift.TOrder;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 /**
@@ -79,30 +83,6 @@ import com.google.common.collect.Sets;
 public final class Command {
 
     /**
-     * The {@link Command} that is returned from {@link #current()}.
-     * <p>
-     * This value is held within a {@link ThreadLocal} so that each distinct
-     * operation {@link Thread} sees a different reference. It is assumed that
-     * the current operation will be retrieved <strong>before</strong> any
-     * subsequent asynchronous or multi-threaded processing.
-     * </p>
-     * <p>
-     * A {@link Thread} can set this reference using the
-     * {@link ThreadLocal#set(Object)} method.
-     * </p>
-     */
-    /* package */static ThreadLocal<Command> current = new ThreadLocal<>();
-
-    /**
-     * A collection of methods whose output should not be included in the
-     * {@link #toString string} representation of this class.
-     */
-    private static Set<String> TO_STRING_BLACKLIST = Arrays
-            .stream(Object.class.getDeclaredMethods())
-            .filter(m -> m.getParameterCount() == 0).map(Method::getName)
-            .collect(Collectors.toSet());
-
-    /**
      * Return a reference to the current {@link Command}.
      * 
      * @return the current {@link Command}
@@ -131,6 +111,30 @@ public final class Command {
     }
 
     /**
+     * The {@link Command} that is returned from {@link #current()}.
+     * <p>
+     * This value is held within a {@link ThreadLocal} so that each distinct
+     * operation {@link Thread} sees a different reference. It is assumed that
+     * the current operation will be retrieved <strong>before</strong> any
+     * subsequent asynchronous or multi-threaded processing.
+     * </p>
+     * <p>
+     * A {@link Thread} can set this reference using the
+     * {@link ThreadLocal#set(Object)} method.
+     * </p>
+     */
+    /* package */static ThreadLocal<Command> current = new ThreadLocal<>();
+
+    /**
+     * A collection of methods whose output should not be included in the
+     * {@link #toString string} representation of this class.
+     */
+    private static Set<String> TO_STRING_BLACKLIST = Arrays
+            .stream(Object.class.getDeclaredMethods())
+            .filter(m -> m.getParameterCount() == 0).map(Method::getName)
+            .collect(Collectors.toSet());
+
+    /**
      * The keys upon which an operation is conducted.
      */
     private Set<String> operationKeys;
@@ -157,6 +161,12 @@ public final class Command {
      */
     @Nullable
     private ConditionTree conditionTree;
+
+    /**
+     * The timestamp at which the operation is bound.
+     */
+    @Nullable
+    private Long operationTimestamp;
 
     /**
      * The type of operation that was commanded.
@@ -190,6 +200,18 @@ public final class Command {
     }
 
     /**
+     * Return the {@link AbstractSyntaxTree} for {@link Criteria} or {@code CCL}
+     * condition that was included with the command.
+     * 
+     * @return the {@link AbstractSyntaxTree} for the condition
+     */
+    @Nullable
+    public ConditionTree conditionAbstractSyntaxTree() {
+        init();
+        return conditionTree;
+    }
+
+    /**
      * Return he keys involved in a {@link Parser CCL condition} that determines
      * the {@link #operationRecords} that weren't explicitly provided.
      * 
@@ -198,6 +220,24 @@ public final class Command {
     public Set<String> conditionKeys() {
         init();
         return conditionKeys;
+    }
+
+    /**
+     * Return the operation and order keys that should be retrieved at a
+     * timestamp.
+     * 
+     * @return the keys requiring timestamp retrieval
+     */
+    public Map<String, Collection<Timestamp>> keysRequiringTimestampRetrieval() {
+        init();
+        Multimap<String, Timestamp> data = HashMultimap.create();
+        if(operationTimestamp != null) {
+            Timestamp ts = Timestamp.fromMicros(operationTimestamp);
+            operationKeys().forEach(key -> data.put(key, ts));
+        }
+        order.keysWithTimestamps()
+                .forEach((key, collection) -> data.putAll(key, collection));
+        return data.asMap();
     }
 
     /**
@@ -231,6 +271,16 @@ public final class Command {
         init();
         return operationRecords;
     }
+    
+    /**
+     * Return the timestamp associated with the operation, if one is supplied
+     * @return the operation timestamp
+     */
+    @Nullable
+    public Long operationTimestamp() {
+        init();
+        return operationTimestamp;
+    }
 
     /**
      * Return the {@link Order} may have been included with the operation. If
@@ -252,18 +302,6 @@ public final class Command {
     public Set<String> orderKeys() {
         init();
         return order != null ? order.keys() : ImmutableSet.of();
-    }
-
-    /**
-     * Return the {@link AbstractSyntaxTree} for {@link Criteria} or {@code CCL}
-     * condition that was included with the command.
-     * 
-     * @return the {@link AbstractSyntaxTree} for the condition
-     */
-    @Nullable
-    public ConditionTree conditionAbstractSyntaxTree() {
-        init();
-        return conditionTree;
     }
 
     @Override
@@ -416,6 +454,11 @@ public final class Command {
             }
             else if(conditionKeys == null) {
                 conditionKeys = ImmutableSet.of();
+            }
+
+            // operationTimestamp
+            if(args.containsKey("time")) {
+                operationTimestamp = args.fetch("time");
             }
             initialized = true;
         }
