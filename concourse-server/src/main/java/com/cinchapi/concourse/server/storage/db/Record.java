@@ -265,27 +265,8 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     public Set<V> get(K key, long timestamp) {
         read.lock();
         try {
-            Set<V> values = emptyValues;
             List<CompactRevision<V>> stored = history.get(key);
-            if(stored != null) {
-                values = Sets.newLinkedHashSet();
-                Iterator<CompactRevision<V>> it = stored.iterator();
-                while (it.hasNext()) {
-                    CompactRevision<V> revision = it.next();
-                    if(revision.getVersion() <= timestamp) {
-                        if(revision.getType() == Action.ADD) {
-                            values.add(revision.getValue());
-                        }
-                        else {
-                            values.remove(revision.getValue());
-                        }
-                    }
-                    else {
-                        break;
-                    }
-                }
-            }
-            return values;
+            return extractHistoricalValues(stored, timestamp);
         }
         finally {
             read.unlock();
@@ -464,6 +445,38 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
                 (partial && revision.getKey().equals(key)) || !partial,
                 "Cannot append %s because it does not belong to %s", revision,
                 this);
+    }
+
+    /**
+     * Extract the {@code values} from the list of {@link CompactRevision
+     * revisions} that occurred in or before {@code timestamp}.
+     * 
+     * @param revisions
+     * @param timestamp
+     * @return the set of values at {@code timestamp}.
+     */
+    protected Set<V> extractHistoricalValues(List<CompactRevision<V>> revisions,
+            long timestamp) {
+        Set<V> values = emptyValues;
+        if(revisions != null) {
+            values = Sets.newLinkedHashSet();
+            Iterator<CompactRevision<V>> it = revisions.iterator();
+            while (it.hasNext()) {
+                CompactRevision<V> revision = it.next();
+                if(revision.getVersion() <= timestamp) {
+                    if(revision.getType() == Action.ADD) {
+                        values.add(revision.getValue());
+                    }
+                    else {
+                        values.remove(revision.getValue());
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        return values;
     }
 
     /**
