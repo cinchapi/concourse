@@ -230,7 +230,8 @@ public final class IndexRecord extends Record<Text, Value, Identifier> {
                         ? LazyTransformSet.of(history.entrySet(),
                                 entry -> new AbstractMap.SimpleImmutableEntry<>(
                                         entry.getKey(),
-                                        extractHistoricalValues(entry.getValue(), timestamp)))
+                                        extractHistoricalValues(
+                                                entry.getValue(), timestamp)))
                         : present.entrySet();
                 for (Entry<Value, Set<Identifier>> entry : entries) {
                     Value value = entry.getKey();

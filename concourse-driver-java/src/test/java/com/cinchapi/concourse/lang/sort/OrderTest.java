@@ -125,10 +125,11 @@ public class OrderTest {
                 new OrderComponent("email", t2, Direction.ASCENDING));
         Assert.assertEquals(expected, order.spec());
     }
-    
+
     @Test
     public void testEmptyOrderWithTimestampsCorrectness() {
-        Order order = Sort.by("name").then("age").then("foo").descending().then("bar");
+        Order order = Sort.by("name").then("age").then("foo").descending()
+                .then("bar");
         Assert.assertTrue(order.keysWithTimestamps().isEmpty());
     }
 
