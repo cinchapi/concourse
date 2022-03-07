@@ -185,6 +185,12 @@ public final class ExportCli extends CommandLineInterface {
                 && !Empty.ness().describes(page)) {
             data = concourse.select(keys, records, order, page);
         }
+        else if(!Empty.ness().describes(condition)
+                && !Empty.ness().describes(keys)
+                && !Empty.ness().describes(order)
+                && !Empty.ness().describes(page)) {
+            data = concourse.select(keys, condition, order, page);
+        }
         else if(!Empty.ness().describes(records)
                 && !Empty.ness().describes(keys)
                 && !Empty.ness().describes(order)) {
@@ -195,39 +201,52 @@ public final class ExportCli extends CommandLineInterface {
                 && !Empty.ness().describes(page)) {
             data = concourse.select(keys, records, page);
         }
-        else if(!Empty.ness().describes(records)
-                && !Empty.ness().describes(keys)) {
-            data = concourse.select(keys, records);
-        }
-        else if(!Empty.ness().describes(records)) {
-            data = concourse.select(records);
-        }
-        else if(!Empty.ness().describes(condition)
-                && !Empty.ness().describes(keys)
-                && !Empty.ness().describes(order)
-                && !Empty.ness().describes(page)) {
-            data = concourse.select(keys, condition, order, page);
-        }
         else if(!Empty.ness().describes(condition)
                 && !Empty.ness().describes(keys)
                 && !Empty.ness().describes(order)) {
             data = concourse.select(keys, condition, order);
+        }
+        else if(!Empty.ness().describes(records)
+                && !Empty.ness().describes(page)
+                && !Empty.ness().describes(order)) {
+            data = concourse.select(records, page, order);
+        }
+        else if(!Empty.ness().describes(page) && !Empty.ness().describes(order)
+                && !Empty.ness().describes(condition)) {
+            data = concourse.select(condition, page, order);
         }
         else if(!Empty.ness().describes(condition)
                 && !Empty.ness().describes(keys)
                 && !Empty.ness().describes(page)) {
             data = concourse.select(keys, condition, page);
         }
+        else if(!Empty.ness().describes(keys) && !Empty.ness().describes(order)
+                && !Empty.ness().describes(page)) {
+            data = concourse.select(keys, concourse.inventory(), order, page);
+        }
+        else if(!Empty.ness().describes(records)
+                && !Empty.ness().describes(keys)) {
+            data = concourse.select(keys, records);
+        }
         else if(!Empty.ness().describes(condition)
                 && !Empty.ness().describes(keys)) {
             data = concourse.select(keys, condition);
         }
-        else if(!Empty.ness().describes(condition)) {
-            data = concourse.select(condition);
+        else if(!Empty.ness().describes(page)
+                && !Empty.ness().describes(records)) {
+            data = concourse.select(records, page);
         }
-        else if(!Empty.ness().describes(keys) && !Empty.ness().describes(order)
-                && !Empty.ness().describes(page)) {
-            data = concourse.select(keys, concourse.inventory(), order, page);
+        else if(!Empty.ness().describes(order)
+                && !Empty.ness().describes(records)) {
+            data = concourse.select(records, order);
+        }
+        else if(!Empty.ness().describes(page)
+                && !Empty.ness().describes(condition)) {
+            data = concourse.select(condition, page);
+        }
+        else if(!Empty.ness().describes(order)
+                && !Empty.ness().describes(condition)) {
+            data = concourse.select(condition, order);
         }
         else if(!Empty.ness().describes(keys)
                 && !Empty.ness().describes(order)) {
@@ -241,11 +260,20 @@ public final class ExportCli extends CommandLineInterface {
                 && !Empty.ness().describes(page)) {
             data = concourse.select(concourse.inventory(), order, page);
         }
+        else if(!Empty.ness().describes(records)) {
+            data = concourse.select(records);
+        }
+        else if(!Empty.ness().describes(condition)) {
+            data = concourse.select(condition);
+        }
         else if(!Empty.ness().describes(order)) {
             data = concourse.select(concourse.inventory(), order);
         }
         else if(!Empty.ness().describes(page)) {
             data = concourse.select(concourse.inventory(), page);
+        }
+        else if(!Empty.ness().describes(keys)) {
+            data = concourse.select(keys, concourse.inventory());
         }
         else {
             data = concourse.select(concourse.inventory());
@@ -284,11 +312,11 @@ public final class ExportCli extends CommandLineInterface {
         public String order = null;
 
         @Parameter(names = {
-                "--page" }, description = "The data page to export (default: export all data)")
+                "--page" }, description = "The data page to export (default: the first page)")
         public Integer page = null;
 
         @Parameter(names = {
-                "--size" }, description = "The maximum number of records to export (default: export all data)")
+                "--size" }, description = "The maximum number of records to include on the exported page (default: export all data)")
         public Integer size = null;
 
         @Parameter(names = { "-f",
