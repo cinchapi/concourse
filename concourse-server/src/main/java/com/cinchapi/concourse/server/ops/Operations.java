@@ -124,6 +124,30 @@ public final class Operations {
         return avg;
     }
 
+    public static Number minKeyAtomic(String key, long timestamp, Store store) {
+        checkAtomicity(store, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(store, key, timestamp);
+        TObject min = Iterables.getFirst(data.keySet(), null);
+        if(min != null) {
+            return (Number) Convert.thriftToJava(min);
+        }
+        else {
+            return null;
+        }
+    }
+
+    public static Number maxKeyAtomic(String key, long timestamp, Store store) {
+        checkAtomicity(store, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(store, key, timestamp);
+        TObject max = Iterables.getLast(data.keySet(), null);
+        if(max != null) {
+            return (Number) Convert.thriftToJava(max);
+        }
+        else {
+            return null;
+        }
+    }
+
     /**
      * Use the provided {@code store} to atomically add each of the values in
      * {@code key}/{@code record} at {@code timestamp} to the running

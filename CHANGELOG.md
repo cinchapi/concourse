@@ -10,6 +10,7 @@
 * Added `DEBUG` logging that provides details on the execution path chosen for each lookup.
 * Fixed a bug that caused `Order`/`Sort` instructions that contain multiple clauses referencing the same key to drop all but the last clause for that key.
 * Fixed a bug that caused the `concourse export` CLI to not process some combinations of command line arguments properly.
+* Fixed a bug tha caused an error to be thrown when using the `max` or `min` function over an entire index as an operation value in a CCL statement.
 
 #### Version 0.11.0 (March 4, 2022)
 
