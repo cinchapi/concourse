@@ -3769,7 +3769,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Map<TObject, Set<Long>> data = atomic.browse(key);
-            return Iterables.getLast(data.keySet(), null);
+            return Iterables.getLast(data.keySet(), TObject.NULL);
         });
     }
 
@@ -3983,7 +3983,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Map<TObject, Set<Long>> data = atomic.browse(key);
-            return Iterables.getFirst(data.keySet(), null);
+            return Iterables.getFirst(data.keySet(), TObject.NULL);
         });
     }
 

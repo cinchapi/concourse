@@ -42,4 +42,42 @@ public class NumbersTest {
         Assert.assertTrue(Numbers.compare(a, b) < 0);
     }
 
+    @Test
+    public void testAddZeroToAnyNumberEqualsThatNumberDouble() {
+        Number a = 2.1;
+        Number b = 0;
+        Assert.assertEquals(a, Numbers.add(a, b));
+        Assert.assertEquals(a, Numbers.add(b, a));
+    }
+
+    @Test
+    public void testAddZeroToAnyNumberEqualsThatNumberFloat() {
+        Number a = 2.1f;
+        Number b = 0;
+        Assert.assertEquals(a, Numbers.add(a, b));
+        Assert.assertEquals(a, Numbers.add(b, a));
+    }
+
+    @Test
+    public void testAddZeroToAnyNumberEqualsThatNumberDoubleDouble() {
+        Number a = 2.1;
+        Number b = 0.0000;
+        Assert.assertEquals(a, Numbers.add(a, b));
+        Assert.assertEquals(a, Numbers.add(b, a));
+    }
+
+    @Test
+    public void testAddZeroToAnyNumberEqualsThatNumberDoubleDoubleB() {
+        Number a = 2.100;
+        Number b = 0.0000;
+        Assert.assertEquals(a, Numbers.add(b, a));
+        Assert.assertEquals(a, Numbers.add(a, b));
+    }
+
+    @Test
+    public void testDivideAnyNumberByOneIsThatNumber() {
+        Number a = Random.getFloat();
+        Assert.assertEquals(a, Numbers.divide(a, 1));
+    }
+
 }
