@@ -3768,8 +3768,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Map<TObject, Set<Long>> data = atomic.browse(key);
-            return Iterables.getLast(data.keySet(), TObject.NULL);
+            Number min = Operations.maxKeyAtomic(key, Time.NONE, atomic);
+            return Convert.javaToThrift(min);
         });
     }
 
@@ -3959,8 +3959,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws SecurityException, TransactionException, TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Map<TObject, Set<Long>> data = atomic.browse(key, timestamp);
-            return Iterables.getLast(data.keySet(), null);
+            Number min = Operations.maxKeyAtomic(key, timestamp, atomic);
+            return Convert.javaToThrift(min);
         });
     }
 
@@ -3982,8 +3982,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Map<TObject, Set<Long>> data = atomic.browse(key);
-            return Iterables.getFirst(data.keySet(), TObject.NULL);
+            Number min = Operations.minKeyAtomic(key, Time.NONE, atomic);
+            return Convert.javaToThrift(min);
         });
     }
 
@@ -4174,8 +4174,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Map<TObject, Set<Long>> data = atomic.browse(key, timestamp);
-            return Iterables.getFirst(data.keySet(), null);
+            Number min = Operations.minKeyAtomic(key, timestamp, atomic);
+            return Convert.javaToThrift(min);
         });
     }
 
