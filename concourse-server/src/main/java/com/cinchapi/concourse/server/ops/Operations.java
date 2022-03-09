@@ -108,7 +108,7 @@ public final class Operations {
     public static Number avgKeyAtomic(String key, long timestamp, Store store) {
         checkAtomicity(store, timestamp);
         Map<TObject, Set<Long>> data = Stores.browse(store, key, timestamp);
-        Number avg = 0;
+        Number average = null;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
@@ -118,10 +118,11 @@ public final class Operations {
             Number number = (Number) value;
             for (int i = 0; i < records.size(); ++i) {
                 count++;
-                avg = Numbers.incrementalAverage(avg, number, count);
+                average = average == null ? Numbers.divide(number, count)
+                        : Numbers.incrementalAverage(average, number, count);
             }
         }
-        return avg;
+        return average;
     }
 
     /**
@@ -146,7 +147,7 @@ public final class Operations {
             Number number = (Number) object;
             sum = Numbers.add(sum, number);
         }
-        return Numbers.divide(sum, values.size());
+        return values.isEmpty() ? null : Numbers.divide(sum, values.size());
     }
 
     /**
@@ -743,8 +744,8 @@ public final class Operations {
      */
     public static Number maxKeyRecordAtomic(String key, long record,
             long timestamp, Store store) {
-        return calculateKeyRecordAtomic(key, record, timestamp, Long.MIN_VALUE,
-                store, Calculations.maxKeyRecord());
+        return calculateKeyRecordAtomic(key, record, timestamp, null, store,
+                Calculations.maxKeyRecord());
     }
 
     /**
@@ -760,7 +761,7 @@ public final class Operations {
      */
     public static Number maxKeyRecordsAtomic(String key,
             Collection<Long> records, long timestamp, Store store) {
-        Number max = Long.MIN_VALUE;
+        Number max = null;
         for (long record : records) {
             max = calculateKeyRecordAtomic(key, record, timestamp, max, store,
                     Calculations.maxKeyRecord());
@@ -801,8 +802,8 @@ public final class Operations {
      */
     public static Number minKeyRecordAtomic(String key, long record,
             long timestamp, Store store) {
-        return calculateKeyRecordAtomic(key, record, timestamp, Long.MAX_VALUE,
-                store, Calculations.minKeyRecord());
+        return calculateKeyRecordAtomic(key, record, timestamp, null, store,
+                Calculations.minKeyRecord());
     }
 
     /**
@@ -818,7 +819,7 @@ public final class Operations {
      */
     public static Number minKeyRecordsAtomic(String key,
             Collection<Long> records, long timestamp, Store store) {
-        Number min = Long.MAX_VALUE;
+        Number min = null;
         for (long record : records) {
             min = calculateKeyRecordAtomic(key, record, timestamp, min, store,
                     Calculations.minKeyRecord());
@@ -1269,7 +1270,7 @@ public final class Operations {
      * @return the sum
      */
     public static Number sumKeyAtomic(String key, long timestamp, Store store) {
-        return calculateKeyAtomic(key, timestamp, 0, store,
+        return calculateKeyAtomic(key, timestamp, null, store,
                 Calculations.sumKey());
     }
 
@@ -1285,7 +1286,7 @@ public final class Operations {
      */
     public static Number sumKeyRecordAtomic(String key, long record,
             long timestamp, Store store) {
-        return calculateKeyRecordAtomic(key, record, timestamp, 0, store,
+        return calculateKeyRecordAtomic(key, record, timestamp, null, store,
                 Calculations.sumKeyRecord());
     }
 
@@ -1302,7 +1303,7 @@ public final class Operations {
      */
     public static Number sumKeyRecordsAtomic(String key,
             Collection<Long> records, long timestamp, Store store) {
-        Number sum = 0;
+        Number sum = null;
         for (long record : records) {
             sum = calculateKeyRecordAtomic(key, record, timestamp, sum, store,
                     Calculations.sumKeyRecord());
