@@ -316,4 +316,39 @@ public class CclFunctionsTest extends ConcourseIntegrationTest {
         Assert.assertEquals(expected, actual);
     }
 
+    @Test
+    public void testUseMaxKeyAsEvaluationValue() {
+        setupDatabaseKey(client);
+        client.select("age", "age | average > max(age)");
+        Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Test
+    public void testUseMinKeyAsEvaluationValue() {
+        setupDatabaseKey(client);
+        client.select("age", "age | average > min(age)");
+        Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Test
+    public void testUseAverageKeyAsEvaluationValue() {
+        setupDatabaseKey(client);
+        client.select("age", "age | average > average(age)");
+        Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Test
+    public void testUseCountKeyAsEvaluationValue() {
+        setupDatabaseKey(client);
+        client.select("age", "age | average > count(age)");
+        Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Test
+    public void testUseSumKeyAsEvaluationValue() {
+        setupDatabaseKey(client);
+        client.select("age", "age | average > sum(age)");
+        Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
 }
