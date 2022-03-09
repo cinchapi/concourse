@@ -298,9 +298,10 @@ public final class Stores {
         else if((evalFunc = Keys.tryParseFunction(key)) != null) {
             String method = Calculations.alias(evalFunc.operation())
                     + "KeyRecordAtomic";
-            return ImmutableSet.of(
-                    Convert.javaToThrift(Reflection.callStatic(Operations.class,
-                            method, evalFunc.key(), record, timestamp, store)));
+            Number value = Reflection.callStatic(Operations.class, method,
+                    evalFunc.key(), record, timestamp, store);
+            return value != null ? ImmutableSet.of(Convert.javaToThrift(value))
+                    : ImmutableSet.of();
         }
         else {
             Source source;
@@ -322,15 +323,13 @@ public final class Stores {
             }
             else if(source == Source.FIELD) {
                 // @formatter:off
-                values = timestamp == Time.NONE 
-                        ? store.select(key, record)
+                values = timestamp == Time.NONE ? store.select(key, record)
                         : store.select(key, record, timestamp);
                 // @formatter:on
             }
             else { // source == Source.INDEX
                 // @formatter:off
-                values = timestamp == Time.NONE 
-                        ? store.gather(key, record)
+                values = timestamp == Time.NONE ? store.gather(key, record)
                         : store.gather(key, record, timestamp);
                 // @formatter:on
             }
