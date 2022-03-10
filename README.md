@@ -1,13 +1,13 @@
 # Concourse
 
- ![](https://img.shields.io/badge/version-0.11.1-green.svg)
+ ![](https://img.shields.io/badge/version-0.11.2-green.svg)
  ![](https://img.shields.io/badge/status-alpha-orange.svg) ![](https://img.shields.io/badge/license-Apache%202-blue.svg)
  [![Join the chat at https://gitter.im/cinchapi/concourse](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cinchapi/concourse?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
  [![](https://circleci.com/gh/cinchapi/concourse.svg?style=shield&circle-token=954a20e6114d649b1b6a046d95b953e7d05d2e2f)](https://circleci.com/gh/cinchapi/concourse)
 
 > [Concourse](http://concoursedb.com) is a distributed database warehouse for transactions search and analytics across time. Developers prefer Concourse because it simplifies building misssion-critical systems with on-demand data intelligence. Furthermore, Concourse makes end-to-end data management trivial by requiring no extra infrastructure, no prior configuration and no continuous tuning–all of which greatly reduce costs, and allow developers to focus on core business problems.
 
-This is version 0.11.1 of Concourse.
+This is version 0.11.2 of Concourse.
 
 ## Quickstart
 ### Docker
