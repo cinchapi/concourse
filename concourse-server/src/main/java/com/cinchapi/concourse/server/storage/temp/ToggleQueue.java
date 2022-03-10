@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -67,12 +68,44 @@ import com.google.common.collect.Maps;
 public class ToggleQueue extends Queue {
 
     /**
+     * The history of everything that has ever been
+     * {@link #insert(Write, boolean) inserted} into this {@link Queue} to
+     * facilitate accurate historical lookups via the {@link #iterator()}.
+     * <p>
+     * NOTE: The {@link ToggleWriteList} is used to access the consolidated
+     * state.
+     * </p>
+     */
+    private final List<Write> history;
+
+    /**
      * Construct a new instance.
      * 
      * @param initialSize
      */
     public ToggleQueue(int initialSize) {
         super(new ToggleWriteList(initialSize));
+        history = new ArrayList<>();
+    }
+
+    @Override
+    public boolean insert(Write write, boolean sync) {
+        if(super.insert(write, sync)) {
+            history.add(write);
+            return true;
+        }
+        else {
+            return false;
+        }
+
+    }
+
+    @Override
+    public Iterator<Write> iterator() {
+        // Limbo read methods rely on the iterators to perform historical
+        // lookups, so ensure that the #history is used instead of the
+        // ToggleWriteList, for accuracy.
+        return history.iterator();
     }
 
     @Override
@@ -85,6 +118,13 @@ public class ToggleQueue extends Queue {
                 twl.filtered = null;
             }
         }
+    }
+
+    @Override
+    protected long getOldestWriteTimestamp() {
+        return history.size() > 0 ? history.get(0).getVersion()
+                : super.getOldestWriteTimestamp();
+
     }
 
     /**
@@ -288,8 +328,7 @@ public class ToggleQueue extends Queue {
             public boolean equals(Object obj) {
                 if(obj instanceof Wrapper) {
                     Wrapper other = (Wrapper) obj;
-                    return write.getVersion() == other.write.getVersion()
-                            && write.getValue().equals(other.write.getValue())
+                    return write.getValue().equals(other.write.getValue())
                             && write.getRecord().equals(other.write.getRecord())
                             && write.getKey().equals(other.write.getKey());
                 }
@@ -301,7 +340,7 @@ public class ToggleQueue extends Queue {
             @Override
             public int hashCode() {
                 return Objects.hash(write.getKey(), write.getValue(),
-                        write.getRecord(), write.getVersion());
+                        write.getRecord());
             }
 
         }
