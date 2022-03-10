@@ -1,6 +1,7 @@
 ## Changelog
 
-#### Version 0.11.1 (TBD)
+#### Version 0.11.1 (March 9, 2022)
+* Upgraded to CCL version `3.1.2` to fix a regression that caused parenthetical expressions within a Condition containing `LIKE` `REGEX`, `NOT_LIKE` and `NOT_REGEX` operators to mistakenly throw a `SyntaxException` when being parsed.
 * Added the `ConcourseCompiler#evaluate(ConditionTree, Multimap)` method that uses the `Operators#evaluate` static method to perform local evaluation.
 * Fixed a bug that, in some cases, caused the wrong default environment to be used when invoking server-side data CLIs (e.g., `concourse data <action>`). When a data CLI was invoked without specifying the environment using the `-e <environment>` flag, the `default` environment was always used instead of the `default_environment` that was specified in the Concourse Server configuration.
 * Fixed a bug that caused the `concourse data compact` CLI to inexplicably die when invoked while `enable_compaction` was set to `false` in the Concourse Server configuration.
@@ -11,7 +12,7 @@
 * Fixed a bug that caused `Order`/`Sort` instructions that contain multiple clauses referencing the same key to drop all but the last clause for that key.
 * Fixed a bug that caused the `concourse export` CLI to not process some combinations of command line arguments properly.
 * Fixed a bug tha caused an error to be thrown when using the `max` or `min` function over an entire index as an operation value in a CCL statement.
-* Fixed several corner cases bugs with Concourse's arithmetic engine that caused the `calculate` functions to 1) return inaccurate results when aggregating numbers of different types or 2) inexplicably throw an error when a calculation was performed on data containing `null` values.
+* Fixed several corner case bugs with Concourse's arithmetic engine that caused the `calculate` functions to 1) return inaccurate results when aggregating numbers of different types and 2) inexplicably throw an error when a calculation was performed on data containing `null` values.
 
 #### Version 0.11.0 (March 4, 2022)
 
