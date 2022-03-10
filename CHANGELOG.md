@@ -1,5 +1,8 @@
 ## Changelog
 
+#### Version 0.11.2 (TBD)
+* Fixed a bug that caused Concourse Server to incorrectly detect when an attempt was made to atomically commit multiple Writes that toggle the state of a field (e.g. `ADD name as jeff in 1`, `REMOVE name as jeff in 1`, `ADD name as jeff in 1`) in user-defined `transactions`. As a result of this bug, all field toggling Writes were committed instead of the desired behaviour where there was a commit of at most one equal Write that was required to obtain the intended field state. Committing multiple writes that toggled the field state within the same transaction could cause failures, unexplained results or fatal inconsistencies when reconciling data.
+
 #### Version 0.11.1 (March 9, 2022)
 * Upgraded to CCL version `3.1.2` to fix a regression that caused parenthetical expressions within a Condition containing `LIKE` `REGEX`, `NOT_LIKE` and `NOT_REGEX` operators to mistakenly throw a `SyntaxException` when being parsed.
 * Added the `ConcourseCompiler#evaluate(ConditionTree, Multimap)` method that uses the `Operators#evaluate` static method to perform local evaluation.
