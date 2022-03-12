@@ -219,10 +219,8 @@ class ByteableCollectionStreamIterator implements
         try {
             buffer = ByteBuffer.allocate(size);
             channel.position(position);
-            while (buffer.hasRemaining()) {
-                if(channel.read(buffer) < 0) {
-                    break; // End of stream has been reached
-                }
+            while (buffer.hasRemaining() && channel.read(buffer) >= 0) {
+                continue;
             }
             buffer.flip();
             slice = buffer.duplicate();
