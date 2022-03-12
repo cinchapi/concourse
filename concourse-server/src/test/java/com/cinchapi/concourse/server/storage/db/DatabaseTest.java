@@ -479,7 +479,7 @@ public class DatabaseTest extends StoreTest {
         db.verify(write.getKey().toString(), write.getValue().getTObject(),
                 write.getRecord().longValue());
         db.select(write.getRecord().longValue());
-        for(Write w : toVerify) {
+        for (Write w : toVerify) {
             Assert.assertTrue(db.verify(w));
         }
     }
