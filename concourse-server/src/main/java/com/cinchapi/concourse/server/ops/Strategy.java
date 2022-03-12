@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.ops;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.Store;
-import com.cinchapi.concourse.util.Logger;
 
 /**
  * A {@link Strategy} is a guided plan for interacting with a {@link Store} to
@@ -93,9 +92,6 @@ public class Strategy {
             source = command.operationKeys().size() > 1 ? Source.RECORD
                     : Source.FIELD;
         }
-        Logger.debug(
-                "Using {} to lookup {} in {} for the following command: {}",
-                source, key, record, command);
         return source;
     }
 
