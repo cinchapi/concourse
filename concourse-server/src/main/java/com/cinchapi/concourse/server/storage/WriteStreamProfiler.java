@@ -37,6 +37,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
+import com.google.common.hash.HashCode;
 
 /**
  * Analyzes and profiles a collection of {@link WriteStream WriteStreams} and
@@ -69,9 +70,9 @@ public final class WriteStreamProfiler<T extends WriteStream> {
     private final Collection<T> streams;
 
     /**
-     * Tracks all the {@link Write#getVersion() versions) that have been seen.
+     * Tracks all the {@link Write#hash() hashes) that have been seen.
      */
-    private final VersionTracker versions;
+    private final Set<HashCode> hashes;
 
     /**
      * Construct a new instance.
@@ -81,7 +82,7 @@ public final class WriteStreamProfiler<T extends WriteStream> {
      */
     public WriteStreamProfiler(Collection<T> streams) {
         this.streams = streams;
-        this.versions = new VersionTracker(
+        this.hashes = new HashTracker(
                 (GlobalState.BUFFER_PAGE_SIZE / Write.MINIMUM_SIZE)
                         * streams.size());
         this.duplicates = null;
@@ -128,8 +129,8 @@ public final class WriteStreamProfiler<T extends WriteStream> {
             AtomicReference<T> staging = new AtomicReference<>(null);
             List<Write> unique = new ArrayList<>();
             stream.writes().forEach(write -> {
-                long version = write.getVersion();
-                if(versions.add(version)) {
+                HashCode hash = write.hash();
+                if(hashes.add(hash)) {
                     if(staging.get() != null) {
                         staging.get().append(write);
                     }
@@ -163,47 +164,39 @@ public final class WriteStreamProfiler<T extends WriteStream> {
 
     /**
      * A {@link Set} that can efficiently store a range of {@link Write}
-     * {@link Write#getVersion() versions}.
-     * <p>
-     * Because versions correspond to timestamps, the {@link VersionTracker}
-     * does
-     * not contain negative values. Furthermore, the first version is largely
-     * offset from {@code 0}, so a {@link VersionTracker} is more efficient than
-     * a
-     * {@link LongBitSet}.
-     * </p>
+     * {@link Write#hash() hashes}.
      *
      * @author Jeff Nelson
      */
-    private static class VersionTracker extends AbstractSet<Long> {
+    private static class HashTracker extends AbstractSet<HashCode> {
 
         /**
          * A {@link BloomFilter} to speed up calls to {@link #contains(Object)}.
          */
-        private final BloomFilter<Long> filter;
+        private final BloomFilter<byte[]> filter;
 
         /**
-         * Each version that has been {@link #add(Long) added}.
+         * Each hash that has been {@link #add(Long) added}.
          */
-        private final LinkedList<Long> versions;
+        private final LinkedList<HashCode> hashs;
 
         /**
          * Construct a new instance.
          * 
          * @param numBlocks
          */
-        public VersionTracker(int expectedInsertions) {
-            this.versions = new LinkedList<>();
-            this.filter = BloomFilter.create(Funnels.longFunnel(),
+        public HashTracker(int expectedInsertions) {
+            this.hashs = new LinkedList<>();
+            this.filter = BloomFilter.create(Funnels.byteArrayFunnel(),
                     expectedInsertions);
 
         }
 
         @Override
-        public boolean add(Long e) {
+        public boolean add(HashCode e) {
             if(!contains(e)) {
-                filter.put(e);
-                versions.add(e);
+                filter.put(e.asBytes());
+                hashs.add(e);
                 return true;
             }
             else {
@@ -213,23 +206,23 @@ public final class WriteStreamProfiler<T extends WriteStream> {
 
         @Override
         public boolean contains(Object o) {
-            if(o instanceof Long) {
-                long version = (long) o;
-                if(filter.mightContain(version)) {
-                    return versions.contains(version);
+            if(o instanceof HashCode) {
+                HashCode hash = (HashCode) o;
+                if(filter.mightContain(hash.asBytes())) {
+                    return hashs.contains(hash);
                 }
             }
             return false;
         }
 
         @Override
-        public Iterator<Long> iterator() {
-            return versions.iterator();
+        public Iterator<HashCode> iterator() {
+            return hashs.iterator();
         }
 
         @Override
         public int size() {
-            return versions.size();
+            return hashs.size();
         }
     }
 
