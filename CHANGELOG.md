@@ -2,6 +2,7 @@
 
 #### Version 0.11.2 (TBD)
 * Fixed a bug that caused Concourse Server to incorrectly detect when an attempt was made to atomically commit multiple Writes that toggle the state of a field (e.g. `ADD name as jeff in 1`, `REMOVE name as jeff in 1`, `ADD name as jeff in 1`) in user-defined `transactions`. As a result of this bug, all field toggling Writes were committed instead of the desired behaviour where there was a commit of at most one equal Write that was required to obtain the intended field state. Committing multiple writes that toggled the field state within the same transaction could cause failures, unexplained results or fatal inconsistencies when reconciling data.
+* Switched from using memory mapped files in favor of traditional buffering while reading data from Segment files in order to avoid a potential issue where Concourse Server very quickly exceeded the maximum number of mappings allowed on some Linux systems (as specified by the `vm.max_map_count` property).
 
 #### Version 0.11.1 (March 9, 2022)
 * Upgraded to CCL version `3.1.2` to fix a regression that caused parenthetical expressions within a Condition containing `LIKE` `REGEX`, `NOT_LIKE` and `NOT_REGEX` operators to mistakenly throw a `SyntaxException` when being parsed.

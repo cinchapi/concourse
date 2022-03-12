@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.io;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -218,9 +217,16 @@ class ByteableCollectionStreamIterator implements
      */
     private void read(int size) {
         try {
-            buffer = channel.map(MapMode.READ_ONLY, position, size);
+            buffer = ByteBuffer.allocate(size);
+            channel.position(position);
+            while (buffer.hasRemaining()) {
+                if(channel.read(buffer) < 0) {
+                    break; // End of stream has been reached
+                }
+            }
+            buffer.flip();
             slice = buffer.duplicate();
-            position += buffer.capacity();
+            position = channel.position();
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
