@@ -218,13 +218,12 @@ class ByteableCollectionStreamIterator implements
     private void read(int size) {
         try {
             buffer = ByteBuffer.allocate(size);
-            int read = 0;
-            while (buffer.hasRemaining() && read >= 0) {
-                read += channel.read(buffer, position + read);
+            while (buffer.hasRemaining()
+                    && channel.read(buffer, position) >= 0) {
+                position += buffer.position();
             }
             buffer.flip();
             slice = buffer.duplicate();
-            position += buffer.capacity();
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
