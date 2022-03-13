@@ -18,11 +18,16 @@ package com.cinchapi.concourse.server.io;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
@@ -191,6 +196,35 @@ public class ByteableCollectionsTest extends ConcourseBaseTest {
         }
         latch.await(2);
         Assert.assertTrue(avg1.get() < avg2.get());
+    }
+
+    @Test
+    public void testStreamIteratorThreadSafety()
+            throws InterruptedException, ExecutionException {
+        List<Identifier> values = Lists.newArrayList();
+        int count = 10;
+        for (int i = 0; i < count; ++i) {
+            values.add(Identifier.of(i));
+        }
+        Path file = Paths.get(TestData.getTemporaryTestFile());
+        ByteBuffer bytes = ByteableCollections.toByteBuffer(values);
+        FileSystem.writeBytes(bytes, file.toString());
+        FileChannel channel = FileSystem.getFileChannel(file);
+        ExecutorService executor = Executors.newCachedThreadPool();
+        List<Future<?>> futures = Lists.newArrayList();
+        for (int i = 0; i < 10; ++i) {
+            futures.add(executor.submit(() -> {
+                List<Identifier> actual = Lists.newArrayList();
+                Iterator<ByteBuffer> it = ByteableCollections.stream(channel, 0,
+                        FileSystem.getFileSize(file.toString()), 20);
+                while (it.hasNext()) {
+                    actual.add(Identifier.fromByteBuffer(it.next()));
+                }
+            }));
+        }
+        for (Future<?> future : futures) {
+            future.get();
+        }
     }
 
 }

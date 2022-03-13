@@ -2,6 +2,7 @@
 
 #### Version 0.11.2 (TBD)
 * Fixed a bug that caused Concourse Server to incorrectly detect when an attempt was made to atomically commit multiple Writes that toggle the state of a field (e.g. `ADD name as jeff in 1`, `REMOVE name as jeff in 1`, `ADD name as jeff in 1`) in user-defined `transactions`. As a result of this bug, all field toggling Writes were committed instead of the desired behaviour where there was a commit of at most one equal Write that was required to obtain the intended field state. Committing multiple writes that toggled the field state within the same transaction could cause failures, unexplained results or fatal inconsistencies when reconciling data.
+* Switched from using memory mapped files in favor of traditional buffering when reading data from Segment files. This change avoids a potential issue where Concourse Server could very quickly exceeded the maximum number of mappings allowed on some Linux systems (as specified by the `vm.max_map_count` property).
 * Removed the `DEBUG` logging (added in `0.11.1`) that provides details on the execution path chosen for each lookup because it is too noisy and drastically degrades performance.
 
 #### Version 0.11.1 (March 9, 2022)
