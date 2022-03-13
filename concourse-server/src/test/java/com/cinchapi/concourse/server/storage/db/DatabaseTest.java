@@ -411,6 +411,79 @@ public class DatabaseTest extends StoreTest {
         db.select(write.getRecord().longValue());
     }
 
+    @Test
+    public void testRepairDuplicateDataWithAtomicCommit() {
+        Database db = (Database) store;
+        Set<Write> duplicates = Sets.newHashSet();
+        for (int i = 0; i < 10; ++i) {
+            duplicates.add(
+                    Write.add(TestData.getSimpleString(), TestData.getTObject(),
+                            TestData.getIdentifier().longValue()));
+        }
+        for (Write write : duplicates) {
+            db.accept(write);
+        }
+        db.sync();
+        Write duplicate = null;
+        int count = 0;
+        List<Write> toVerify = Lists.newArrayList();
+        while (count < 5 || duplicate == null) {
+            boolean addDuplicates = TestData.getScaleCount() % 3 == 0;
+            for (int j = 0; j < TestData.getScaleCount(); ++j) {
+                Write write = null;
+                if(addDuplicates && TestData.getScaleCount() % 5 == 0) {
+                    write = Iterables.get(duplicates,
+                            Math.abs(TestData.getInt()) % duplicates.size());
+                    duplicate = MoreObjects.firstNonNull(duplicate, write);
+                }
+                else {
+                    while (write == null || duplicates.contains(write)) {
+                        write = TestData.getWriteAdd();
+                    }
+                }
+                db.accept(write);
+            }
+            // Simulate Atomic Operation
+            Write w1 = Write.add("foo", Convert.javaToThrift(Time.now()),
+                    Time.now());
+            Write w2 = Write.add("foo", Convert.javaToThrift(Time.now()),
+                    Time.now());
+            Write w3 = Write.add("foo", Convert.javaToThrift(Time.now()),
+                    Time.now());
+            toVerify.add(w1);
+            toVerify.add(w2);
+            toVerify.add(w3);
+            db.accept(w1);
+            db.accept(w2.rewrite(w1.getVersion()));
+            db.accept(w3.rewrite(w1.getVersion()));
+            db.sync();
+            ++count;
+        }
+        Write write = duplicate;
+        try {
+            db.verify(write.getKey().toString(), write.getValue().getTObject(),
+                    write.getRecord().longValue());
+            Assert.fail("Expected an unoffset Write exception");
+        }
+        catch (Exception e) {
+            Assert.assertTrue(true);
+        }
+        try {
+            db.select(write.getRecord().longValue());
+            Assert.fail("Expected an unoffset Write exception");
+        }
+        catch (Exception e) {
+            Assert.assertTrue(true);
+        }
+        db.repair();
+        db.verify(write.getKey().toString(), write.getValue().getTObject(),
+                write.getRecord().longValue());
+        db.select(write.getRecord().longValue());
+        for (Write w : toVerify) {
+            Assert.assertTrue(db.verify(w));
+        }
+    }
+
     @Override
     protected void add(String key, TObject value, long record) {
         if(!store.verify(key, value, record)) {
