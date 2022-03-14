@@ -5,6 +5,7 @@
 * Switched from using memory mapped files in favor of traditional buffering when reading data from Segment files. This change avoids a potential issue where Concourse Server could very quickly exceeded the maximum number of mappings allowed on some Linux systems (as specified by the `vm.max_map_count` property).
 * Removed the `DEBUG` logging (added in `0.11.1`) that provides details on the execution path chosen for each lookup because it is too noisy and drastically degrades performance.
 * Fixed a bug in the way that Concourse Server determined if duplicate data existed in the v3 storage files, which caused the `concourse data repair` CLI to no longer work properly (compared to how it worked on the v2 storage files).
+* Fixed a regression that caused a memory leak when data values were read from disk. The nature of the memory leak caused a degradation in performance because Concourse Server was forced to evict cached records from memory more frequently than in previous versions.
 
 #### Version 0.11.1 (March 9, 2022)
 * Upgraded to CCL version `3.1.2` to fix a regression that caused parenthetical expressions within a Condition containing `LIKE` `REGEX`, `NOT_LIKE` and `NOT_REGEX` operators to mistakenly throw a `SyntaxException` when being parsed.
