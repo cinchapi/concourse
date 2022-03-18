@@ -20,7 +20,7 @@ dependencies {
 
     testCompile project(':concourse-shell')
     testCompile 'junit:junit:4.11'
-    testCompile 'org.xerial:sqlite-jdbc:3.36.0.3'
+    testCompile 'org.xerial:sqlite-jdbc:3.7.2'
     testCompile 'com.squareup.okhttp:okhttp:2.3.0'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'
     testCompile project(':concourse-unit-test-core')
