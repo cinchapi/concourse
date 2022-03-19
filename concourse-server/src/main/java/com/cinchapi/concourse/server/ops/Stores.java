@@ -29,6 +29,7 @@ import com.cinchapi.ccl.type.function.KeyRecordsFunction;
 import com.cinchapi.ccl.type.function.TemporalFunction;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.server.calculate.Calculations;
 import com.cinchapi.concourse.server.ops.Strategy.Source;
 import com.cinchapi.concourse.server.query.Finder;
@@ -115,6 +116,10 @@ public final class Stores {
                 throw new UnsupportedOperationException(
                         "Cannot browse the current values of a navigation key using a Store that does not support atomic operations");
             }
+        }
+        else if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+            return store.getAllRecords().stream().collect(Collectors.toMap(
+                    Convert::javaToThrift, record -> ImmutableSet.of(record)));
         }
         else {
             return timestamp == Time.NONE ? store.browse(key)
@@ -302,6 +307,9 @@ public final class Stores {
                     evalFunc.key(), record, timestamp, store);
             return value != null ? ImmutableSet.of(Convert.javaToThrift(value))
                     : ImmutableSet.of();
+        }
+        else if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+            return ImmutableSet.of(Convert.javaToThrift(record));
         }
         else {
             Source source;
