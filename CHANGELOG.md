@@ -1,5 +1,8 @@
 ## Changelog
 
+#### Version 0.11.3 (TBD)
+* Fixed a bug that caused Concourse Server to not use the `Strategy` framework to determine the most efficient lookup source (e.g., field, record, or index) for navigation keys.
+
 #### Version 0.11.2 (March 18, 2022)
 * Fixed a bug that caused Concourse Server to incorrectly detect when an attempt was made to atomically commit multiple Writes that toggle the state of a field (e.g. `ADD name as jeff in 1`, `REMOVE name as jeff in 1`, `ADD name as jeff in 1`) in user-defined `transactions`. As a result of this bug, all field toggling Writes were committed instead of the desired behaviour where there was a commit of at most one equal Write that was required to obtain the intended field state. Committing multiple writes that toggled the field state within the same transaction could cause failures, unexplained results or fatal inconsistencies when reconciling data.
 * Added a fallback to automatically switch to reading data from Segment files using traditional IO in the event that Concourse Server ever exceedes the maximum number of open memory mapped files allowed (as specified by the `vm.max_map_count` property on some Linux systems).

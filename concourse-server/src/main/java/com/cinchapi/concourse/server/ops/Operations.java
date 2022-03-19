@@ -1399,8 +1399,8 @@ public final class Operations {
             Set<Long> descendents = Sets.newLinkedHashSet();
             for (long node : nodes) {
                 Set<TObject> $values = timestamp == Time.NONE
-                        ? store.select(key, node)
-                        : store.select(key, node, timestamp);
+                        ? Stores.select(store, key, node)
+                        : Stores.select(store, key, node, timestamp);
                 if(i == toks.length - 1) {
                     values.addAll($values);
                 }
