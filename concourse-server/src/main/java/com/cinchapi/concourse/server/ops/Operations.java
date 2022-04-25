@@ -1187,17 +1187,8 @@ public final class Operations {
         result.clear();
         for (long record : streamer != null ? streamer.apply(records)
                 : records) {
-            Map<String, Set<TObject>> entry = TMaps
-                    .newLinkedHashMapWithCapacity(keys.size());
-            for (String key : keys) {
-                try {
-                    entry.put(key,
-                            Stores.select(store, key, record, timestamp));
-                }
-                catch (NoSuchElementException e) {
-                    continue;
-                }
-            }
+            Map<String, Set<TObject>> entry = Stores.select(store, keys, record,
+                    timestamp);
             if(!entry.isEmpty()) {
                 TMaps.putResultDatasetOptimized(result, record, entry);
             }
