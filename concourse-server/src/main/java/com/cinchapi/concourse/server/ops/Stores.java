@@ -57,6 +57,7 @@ import com.cinchapi.concourse.validate.Keys;
 import com.cinchapi.concourse.validate.Keys.Key;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ForwardingMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -423,7 +424,7 @@ public final class Stores {
      *         the {@code store}
      */
     public static Set<TObject> select(Store store, String key, long record) {
-        return serialSelect(store, key, record);
+        return select(store, ImmutableList.of(key), record).get(key);
     }
 
     /**
@@ -448,7 +449,7 @@ public final class Stores {
      */
     public static Set<TObject> select(Store store, String key, long record,
             long timestamp) {
-        return serialSelect(store, key, record, timestamp);
+        return select(store, ImmutableList.of(key), record, timestamp).get(key);
     }
 
     /**
