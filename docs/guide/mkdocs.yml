@@ -9,7 +9,7 @@ docs_dir: src
 google_analytics:
   - 'UA-72515849-1'
   - 'auto'
-pages:
+nav:
     - Home: index.md
     - Introduction: introduction.md
     - Installation: installation.md
