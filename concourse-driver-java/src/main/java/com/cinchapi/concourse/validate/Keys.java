@@ -15,11 +15,7 @@
  */
 package com.cinchapi.concourse.validate;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -33,7 +29,6 @@ import com.cinchapi.ccl.type.Function;
 import com.cinchapi.ccl.type.function.ImplicitKeyRecordFunction;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.lang.ConcourseCompiler;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Utility functions for data keys.
@@ -111,32 +106,6 @@ public final class Keys {
             }
             return new Key(key, Type.INVALID_KEY, key);
         }
-    }
-
-    /**
-     * Parse each of the {@code keys} and return a corresponding {@link Map}
-     * from each parsed key's {@link Keys.Key#type()} to a {@link List} of
-     * {@link Key} objects, each with relevant information, for all of the
-     * {@code keys} that are of that {@link Type}.
-     * 
-     * @param key
-     * @return the parsed {@link Key}
-     */
-    public static Map<Type, List<Key>> parse(Collection<String> keys) {
-        // @formatter:off
-        Map<Type, List<Key>> _keys = ImmutableMap.of(
-                Type.FUNCTION_KEY, new ArrayList<>(0), 
-                Type.IDENTIFIER_KEY, new ArrayList<>(0),
-                Type.INVALID_KEY, new ArrayList<>(0), 
-                Type.NAVIGATION_KEY, new ArrayList<>(0), 
-                Type.WRITABLE_KEY, new ArrayList<>(keys.size())
-        );
-        // @formatter:on
-        for (String key : keys) {
-            Key _key = parse(key);
-            _keys.get(_key.type()).add(_key);
-        }
-        return _keys;
     }
 
     /**
