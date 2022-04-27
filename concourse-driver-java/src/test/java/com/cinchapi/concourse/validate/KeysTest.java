@@ -68,7 +68,8 @@ public class KeysTest {
     public void testParseInvalidKey() {
         Assert.assertEquals(KeyType.INVALID_KEY, Keys.parse("").type());
         Assert.assertEquals(KeyType.INVALID_KEY, Keys.parse("$id").type());
-        Assert.assertEquals(KeyType.INVALID_KEY, Keys.parse("invalid-key").type());
+        Assert.assertEquals(KeyType.INVALID_KEY,
+                Keys.parse("invalid-key").type());
     }
 
 }
