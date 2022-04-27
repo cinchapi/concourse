@@ -24,6 +24,17 @@ import java.util.AbstractMap.SimpleEntry;
  */
 public class KeyValue<K, V> extends SimpleEntry<K, V> {
 
+    /**
+     * Return a new {@link KeyValue} mapping {@code key} to {@code value}.
+     * 
+     * @param key
+     * @param value
+     * @return the {@link KeyValue}.
+     */
+    public static <K, V> KeyValue<K, V> of(K key, V value) {
+        return new KeyValue<>(key, value);
+    }
+
     private static final long serialVersionUID = 1L;
 
     /**
