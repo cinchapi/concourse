@@ -55,6 +55,7 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.KeyValue;
 import com.cinchapi.concourse.validate.Keys;
 import com.cinchapi.concourse.validate.Keys.Key;
+import com.cinchapi.concourse.validate.Keys.KeyType;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.ImmutableList;
@@ -253,7 +254,7 @@ public final class Stores {
      * <p>
      * This method contains optimizations to efficiently select multiple keys
      * from a record with as few lookups as possible; especially if there are
-     * multiple {@link Keys.Type#NAVIGATION_KEY navigation keys}.
+     * multiple {@link KeyType#NAVIGATION_KEY navigation keys}.
      * </p>
      * 
      * @param store
@@ -273,7 +274,7 @@ public final class Stores {
      * <p>
      * This method contains optimizations to efficiently select multiple keys
      * from a record with as few lookups as possible; especially if there are
-     * multiple {@link Keys.Type#NAVIGATION_KEY navigation keys}.
+     * multiple {@link KeyType#NAVIGATION_KEY navigation keys}.
      * </p>
      * 
      * @param store
@@ -295,8 +296,8 @@ public final class Stores {
             int count = 1;
             for (String key : keys) {
                 Key metadata = Keys.parse(key);
-                Keys.Type type = metadata.type();
-                if(type == Keys.Type.NAVIGATION_KEY) {
+                KeyType type = metadata.type();
+                if(type == KeyType.NAVIGATION_KEY) {
                     // Generate a single Graph containing all of the stops in
                     // each of the navigation keys.
                     root = root == null ? Node.root(record) : root;
@@ -310,14 +311,14 @@ public final class Stores {
                 }
                 else {
                     Set<TObject> values;
-                    if(type == Keys.Type.WRITABLE_KEY && keys.size() == 1) {
+                    if(type == KeyType.WRITABLE_KEY && keys.size() == 1) {
                         // Since there is only one key and it is writable, tap
                         // into the Strategy framework to determine the most
                         // efficient lookup source.
                         return ImmutableMap.of(key, lookupWithStrategy(store,
                                 key, record, timestamp));
                     }
-                    else if(type == Keys.Type.WRITABLE_KEY) {
+                    else if(type == KeyType.WRITABLE_KEY) {
                         // @formatter:off
                         stored = stored == null
                                 ? (timestamp == Time.NONE 
@@ -331,10 +332,10 @@ public final class Stores {
                             values = ImmutableSet.of();
                         }
                     }
-                    else if(type == Keys.Type.IDENTIFIER_KEY) {
+                    else if(type == KeyType.IDENTIFIER_KEY) {
                         values = ImmutableSet.of(Convert.javaToThrift(record));
                     }
-                    else if(type == Keys.Type.FUNCTION_KEY) {
+                    else if(type == KeyType.FUNCTION_KEY) {
                         Function function = metadata.data();
                         String method = Calculations.alias(function.operation())
                                 + "KeyRecordAtomic";
@@ -570,7 +571,7 @@ public final class Stores {
      * Use the {@link Strategy} framework to lookup {@code key} in
      * {@code record} at {@code timestamp} within {@code store}.
      * <p>
-     * It is assumed that the {@code key} is a {@link Keys.Type#WRITABLE_KEY
+     * It is assumed that the {@code key} is a {@link KeyType#WRITABLE_KEY
      * writable key}.
      * </p>
      * 
@@ -711,10 +712,10 @@ public final class Stores {
     }
 
     /**
-     * A node on the Graph made up on multiple {@link Keys.Type#NAVIGATION_KEY
+     * A node on the Graph made up on multiple {@link KeyType#NAVIGATION_KEY
      * navigation keys} that are being selected from a single record.
      * <p>
-     * A Graph is used to process {@link Keys.Type#NAVIGATION_KEY
+     * A Graph is used to process {@link KeyType#NAVIGATION_KEY
      * navigation keys} to optimize the number of lookups that are needed to
      * fully process all the selected paths.
      * </p>
@@ -740,7 +741,7 @@ public final class Stores {
         }
 
         /**
-         * The "stop" along a full {@link Keys.Type#NAVIGATION_KEY navigation
+         * The "stop" along a full {@link KeyType#NAVIGATION_KEY navigation
          * key} path that this {@link Node} represents.
          */
         private final String stop;

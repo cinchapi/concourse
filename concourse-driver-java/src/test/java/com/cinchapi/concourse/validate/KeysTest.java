@@ -22,7 +22,7 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.validate.Keys.Key;
-import com.cinchapi.concourse.validate.Keys.Type;
+import com.cinchapi.concourse.validate.Keys.KeyType;
 
 /**
  * Unit tests for {@link Keys}.
@@ -35,7 +35,7 @@ public class KeysTest {
     public void testParseWritableKey() {
         String input = Random.getSimpleString();
         Key key = Keys.parse(input);
-        Assert.assertEquals(Type.WRITABLE_KEY, key.type());
+        Assert.assertEquals(KeyType.WRITABLE_KEY, key.type());
     }
 
     @Test
@@ -46,7 +46,7 @@ public class KeysTest {
         }
         String input = AnyStrings.join('.', (Object[]) ab.build());
         Key key = Keys.parse(input);
-        Assert.assertEquals(Type.NAVIGATION_KEY, key.type());
+        Assert.assertEquals(KeyType.NAVIGATION_KEY, key.type());
         Assert.assertArrayEquals(ab.build(), key.data());
     }
 
@@ -54,21 +54,21 @@ public class KeysTest {
     public void testParseFunctionKey() {
         String input = "age | avg";
         Key key = Keys.parse(input);
-        Assert.assertEquals(Type.FUNCTION_KEY, key.type());
+        Assert.assertEquals(KeyType.FUNCTION_KEY, key.type());
     }
 
     @Test
     public void testParseIdentifierKey() {
         String input = "$id$";
         Key key = Keys.parse(input);
-        Assert.assertEquals(Type.IDENTIFIER_KEY, key.type());
+        Assert.assertEquals(KeyType.IDENTIFIER_KEY, key.type());
     }
 
     @Test
     public void testParseInvalidKey() {
-        Assert.assertEquals(Type.INVALID_KEY, Keys.parse("").type());
-        Assert.assertEquals(Type.INVALID_KEY, Keys.parse("$id").type());
-        Assert.assertEquals(Type.INVALID_KEY, Keys.parse("invalid-key").type());
+        Assert.assertEquals(KeyType.INVALID_KEY, Keys.parse("").type());
+        Assert.assertEquals(KeyType.INVALID_KEY, Keys.parse("$id").type());
+        Assert.assertEquals(KeyType.INVALID_KEY, Keys.parse("invalid-key").type());
     }
 
 }

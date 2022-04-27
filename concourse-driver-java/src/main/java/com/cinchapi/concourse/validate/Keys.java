@@ -90,21 +90,21 @@ public final class Keys {
         String[] toks;
         ImplicitKeyRecordFunction func;
         if(isWritable(key)) {
-            return new Key(key, Type.WRITABLE_KEY, key);
+            return new Key(key, KeyType.WRITABLE_KEY, key);
         }
         else if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-            return new Key(key, Type.IDENTIFIER_KEY, key);
+            return new Key(key, KeyType.IDENTIFIER_KEY, key);
         }
         else {
             toks = key.split("\\.");
             if(toks.length > 1) {
-                return new Key(key, Type.NAVIGATION_KEY, toks);
+                return new Key(key, KeyType.NAVIGATION_KEY, toks);
             }
             func = tryParseFunction(key);
             if(func != null) {
-                return new Key(key, Type.FUNCTION_KEY, func);
+                return new Key(key, KeyType.FUNCTION_KEY, func);
             }
-            return new Key(key, Type.INVALID_KEY, key);
+            return new Key(key, KeyType.INVALID_KEY, key);
         }
     }
 
@@ -154,7 +154,7 @@ public final class Keys {
 
     /**
      * A {@link Keys#parse(String) parsed} key that includes information about
-     * it's {@link Type} and some other data that may be useful in further
+     * it's {@link KeyType} and some other data that may be useful in further
      * processing.
      *
      * @author Jeff Nelson
@@ -162,9 +162,9 @@ public final class Keys {
     public static final class Key {
 
         /**
-         * The {@link Type} of key.
+         * The {@link KeyType} of key.
          */
-        private final Type type;
+        private final KeyType type;
 
         /**
          * Data that may be useful in further processing.
@@ -182,7 +182,7 @@ public final class Keys {
          * @param type
          * @param data
          */
-        private Key(String value, Type type, Object data) {
+        private Key(String value, KeyType type, Object data) {
             this.value = value;
             this.type = type;
             this.data = data;
@@ -191,9 +191,9 @@ public final class Keys {
         /**
          * Return the data associated with this {@link Key}.
          * <p>
-         * For example, if this is a {@link Type#NAVIGATION_KEY}, this will
+         * For example, if this is a {@link KeyType#NAVIGATION_KEY}, this will
          * return a {@code String[]} containing all of the stops in the path.
-         * Or, if this is a {@link Type#FUNCTION_KEY}, this will return the
+         * Or, if this is a {@link KeyType#FUNCTION_KEY}, this will return the
          * result of {@link Keys#tryParseFunction(String)}.
          * </p>
          * 
@@ -205,11 +205,11 @@ public final class Keys {
         }
 
         /**
-         * Return the {@link Type}.
+         * Return the {@link KeyType}.
          * 
          * @return the type
          */
-        public Type type() {
+        public KeyType type() {
             return type;
         }
 
@@ -234,7 +234,7 @@ public final class Keys {
      *
      * @author Jeff Nelson
      */
-    public static enum Type {
+    public static enum KeyType {
         /**
          * A key that can be written and therefore read directly from a Store
          */
