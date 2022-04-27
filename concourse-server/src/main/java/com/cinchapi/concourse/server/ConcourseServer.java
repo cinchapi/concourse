@@ -3312,10 +3312,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            Map<String, Set<TObject>> $data = Stores.select(atomic, keys,
+            Map<String, Set<TObject>> selected = Stores.select(atomic, keys,
                     record);
             Map<String, TObject> data = new LinkedHashMap<>();
-            for (Entry<String, Set<TObject>> entry : $data.entrySet()) {
+            for (Entry<String, Set<TObject>> entry : selected.entrySet()) {
                 Set<TObject> values = entry.getValue();
                 if(!values.isEmpty()) {
                     data.put(entry.getKey(), Iterables.getLast(values));
