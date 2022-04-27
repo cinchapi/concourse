@@ -23,6 +23,7 @@ import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -3310,19 +3311,18 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        Map<String, TObject> result = Maps.newLinkedHashMap();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (String key : keys) {
-                try {
-                    result.put(key, Iterables
-                            .getLast(Stores.select(atomic, key, record)));
-                }
-                catch (NoSuchElementException e) {
-                    continue;
+        return AtomicOperations.supplyWithRetry(store, atomic -> {
+            Map<String, Set<TObject>> selected = Stores.select(atomic, keys,
+                    record);
+            Map<String, TObject> data = new LinkedHashMap<>();
+            for (Entry<String, Set<TObject>> entry : selected.entrySet()) {
+                Set<TObject> values = entry.getValue();
+                if(!values.isEmpty()) {
+                    data.put(entry.getKey(), Iterables.getLast(values));
                 }
             }
+            return data;
         });
-        return result;
     }
 
     @Override
@@ -6115,13 +6115,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             long record, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (String key : keys) {
-                result.put(key, Stores.select(atomic, key, record));
-            }
+        return AtomicOperations.supplyWithRetry(store, atomic -> {
+            return Stores.select(atomic, keys, record);
         });
-        return result;
     }
 
     @Override

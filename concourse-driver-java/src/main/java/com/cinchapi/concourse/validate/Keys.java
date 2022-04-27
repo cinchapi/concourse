@@ -27,6 +27,7 @@ import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.syntax.FunctionTree;
 import com.cinchapi.ccl.type.Function;
 import com.cinchapi.ccl.type.function.ImplicitKeyRecordFunction;
+import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.lang.ConcourseCompiler;
 
 /**
@@ -79,6 +80,35 @@ public final class Keys {
     }
 
     /**
+     * Parse {@code key} and return a {@link Key} object that contains the
+     * relevant information.
+     * 
+     * @param key
+     * @return the parsed {@link Key}
+     */
+    public static Key parse(String key) {
+        String[] toks;
+        ImplicitKeyRecordFunction func;
+        if(isWritable(key)) {
+            return new Key(key, KeyType.WRITABLE_KEY, key);
+        }
+        else if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+            return new Key(key, KeyType.IDENTIFIER_KEY, key);
+        }
+        else {
+            toks = key.split("\\.");
+            if(toks.length > 1) {
+                return new Key(key, KeyType.NAVIGATION_KEY, toks);
+            }
+            func = tryParseFunction(key);
+            if(func != null) {
+                return new Key(key, KeyType.FUNCTION_KEY, func);
+            }
+            return new Key(key, KeyType.INVALID_KEY, key);
+        }
+    }
+
+    /**
      * If possible, parse the {@link Function} that is expressed by the
      * {@code key}.
      * 
@@ -121,4 +151,115 @@ public final class Keys {
     private static final Set<String> WRITABLE_KEY_CACHE = new HashSet<>(100);
 
     private Keys() {/* no-init */}
+
+    /**
+     * A {@link Keys#parse(String) parsed} key that includes information about
+     * it's {@link KeyType} and some other data that may be useful in further
+     * processing.
+     *
+     * @author Jeff Nelson
+     */
+    public static final class Key {
+
+        /**
+         * The {@link KeyType} of key.
+         */
+        private final KeyType type;
+
+        /**
+         * Data that may be useful in further processing.
+         */
+        private final Object data;
+
+        /**
+         * The original input
+         */
+        private final String value;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param type
+         * @param data
+         */
+        private Key(String value, KeyType type, Object data) {
+            this.value = value;
+            this.type = type;
+            this.data = data;
+        }
+
+        /**
+         * Return the data associated with this {@link Key}.
+         * <p>
+         * For example, if this is a {@link KeyType#NAVIGATION_KEY}, this will
+         * return a {@code String[]} containing all of the stops in the path.
+         * Or, if this is a {@link KeyType#FUNCTION_KEY}, this will return the
+         * result of {@link Keys#tryParseFunction(String)}.
+         * </p>
+         * 
+         * @return the associated data
+         */
+        @SuppressWarnings("unchecked")
+        public <T> T data() {
+            return (T) data;
+        }
+
+        /**
+         * Return the {@link KeyType}.
+         * 
+         * @return the type
+         */
+        public KeyType type() {
+            return type;
+        }
+
+        /**
+         * Return the value of this {@link Key}.
+         * 
+         * @return the value
+         */
+        public String value() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+
+    }
+
+    /**
+     * The various kinds of keys that can be {@link Keys#parse(String) parsed}.
+     *
+     * @author Jeff Nelson
+     */
+    public static enum KeyType {
+        /**
+         * A key that can be written and therefore read directly from a Store
+         */
+        WRITABLE_KEY,
+
+        /**
+         * A key that has multiple "stops" separated by a period (e.g.,
+         * friends.partner.name)
+         */
+        NAVIGATION_KEY,
+
+        /**
+         * A key that instructs that a function should be evaluated
+         */
+        FUNCTION_KEY,
+
+        /**
+         * A key that refers to a record identifier
+         */
+        IDENTIFIER_KEY,
+
+        /**
+         * A key that cannot be parsed
+         */
+        INVALID_KEY
+
+    }
 }
