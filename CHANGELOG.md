@@ -4,7 +4,7 @@
 * Improved the performance of commands that select multiple keys from a record by adding herustics to the storage engine to reduce the number of overall lookups required. As a result, commands that select multiple keys are **up to 96% faster**.
 * Fixed a bug that caused Concourse Server to not use the `Strategy` framework to determine the most efficient lookup source (e.g., field, record, or index) for navigation keys.
 * Added support for querying on the intrinsic `identifier` of Records, as both a selection and evaluation key. The record identifier can be refernced using the `$id$` key (NOTE: this must be properly escaped in `concourse shell` as `\$id\$`). 
-	* It is useful to include the Record identifier as a selection key for some navigation reads (e.g., `select(["partner.name", parner.\$id\$], 1)`)).
+	* It is useful to include the Record identifier as a selection key for some navigation reads (e.g., `select(["partner.name", partner.\$id\$], 1)`)).
 	* It is useful to include the Record identifier as an evaluation key in cases where you want to explictly exclude a record from matching a `Condition` (e.g., `select(["partner.name", parner.\$id\$], "\$id\$ != 2")`))
 
 #### Version 0.11.2 (March 18, 2022)
