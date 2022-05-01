@@ -1590,7 +1590,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             return AtomicOperations.supplyWithRetry(store, (atomic) -> {
                 SortableSet<Set<TObject>> records = SortableSet
                         .of(ast.accept(Finder.instance(), atomic));
-                records.sort(Sorting.byValues(Orders.from(order), store));
+                records.sort(Sorting.byValues(Orders.from(order), atomic));
                 return records;
             });
         }
@@ -1639,7 +1639,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             SortableSet<Set<TObject>> records = SortableSet
                     .of(ast.accept(Finder.instance(), atomic));
-            records.sort(Sorting.byValues(Orders.from(order), store));
+            records.sort(Sorting.byValues(Orders.from(order), atomic));
             return records;
         });
     }
@@ -1824,7 +1824,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         Function<Store, SortableSet<Set<TObject>>> function = $store -> {
             SortableSet<Set<TObject>> $records = SortableSet
                     .of(Stores.find($store, key, operator, tValues));
-            $records.sort(Sorting.byValues(Orders.from(order), store));
+            $records.sort(Sorting.byValues(Orders.from(order), $store));
             return $records;
         };
         SortableSet<Set<TObject>> records = null;
@@ -1892,7 +1892,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                     .of(Stores.find($store, timestamp, key, operator, tValues));
             // NOTE: The #timestamp is not considered when sorting because it is
             // a component of criteria evaluation and no data is being selected.
-            $records.sort(Sorting.byValues(Orders.from(order), store));
+            $records.sort(Sorting.byValues(Orders.from(order), $store));
             return $records;
         };
         SortableSet<Set<TObject>> records = null;
@@ -2846,13 +2846,34 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeyRecordsOptionalAtomic(key, records, timestamp, result,
-                null,
-                $result -> $result.sort(
-                        Sorting.byValue(Orders.from(order), store), timestamp),
-                store);
+        Function<Store, SortableColumn<TObject>> function = $store -> {
+            SortableColumn<TObject> result = SortableColumn.singleValued(key,
+                    TMaps.newLinkedHashMapWithCapacity(records.size()));
+            Operations.getKeyRecordsOptionalAtomic(key, records, timestamp,
+                    result, null,
+                    $result -> $result.sort(
+                            Sorting.byValue(Orders.from(order), $store),
+                            timestamp),
+                    $store);
+            return result;
+        };
+        SortableColumn<TObject> result = null;
+        boolean isAtomic = order != NO_ORDER;
+        while (result == null) {
+            try {
+                if(isAtomic) {
+                    result = AtomicOperations
+                            .<SortableColumn<TObject>> supplyWithRetry(store,
+                                    atomic -> function.apply(atomic));
+                }
+                else {
+                    result = function.apply(store);
+                }
+            }
+            catch (InsufficientAtomicityException e) {
+                isAtomic = true;
+            }
+        }
         return result;
     }
 
@@ -3401,13 +3422,34 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable.singleValued(
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, null,
-                $result -> $result.sort(
-                        Sorting.byValue(Orders.from(order), store), timestamp),
-                store);
+        Function<Store, SortableTable<TObject>> function = $store -> {
+            SortableTable<TObject> result = SortableTable.singleValued(
+                    TMaps.newLinkedHashMapWithCapacity(records.size()));
+            Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
+                    result, null,
+                    $result -> $result.sort(
+                            Sorting.byValue(Orders.from(order), $store),
+                            timestamp),
+                    $store);
+            return result;
+        };
+        SortableTable<TObject> result = null;
+        boolean isAtomic = order != NO_ORDER;
+        while (result == null) {
+            try {
+                if(isAtomic) {
+                    result = AtomicOperations
+                            .<SortableTable<TObject>> supplyWithRetry(store,
+                                    atomic -> function.apply(atomic));
+                }
+                else {
+                    result = function.apply(store);
+                }
+            }
+            catch (InsufficientAtomicityException e) {
+                isAtomic = true;
+            }
+        }
         return result;
     }
 
@@ -5641,13 +5683,34 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.selectKeyRecordsOptionalAtomic(key, records, timestamp,
-                result, null,
-                $result -> $result.sort(
-                        Sorting.byValues(Orders.from(order), store), timestamp),
-                store);
+        Function<Store, SortableColumn<Set<TObject>>> function = $store -> {
+            SortableColumn<Set<TObject>> result = SortableColumn.multiValued(
+                    key, TMaps.newLinkedHashMapWithCapacity(records.size()));
+            Operations
+                    .selectKeyRecordsOptionalAtomic(key, records, timestamp,
+                            result, null,
+                            $result -> $result.sort(Sorting.byValues(
+                                    Orders.from(order), $store), timestamp),
+                            $store);
+            return result;
+        };
+        SortableColumn<Set<TObject>> result = null;
+        boolean isAtomic = order != NO_ORDER;
+        while (result == null) {
+            try {
+                if(isAtomic) {
+                    result = AtomicOperations
+                            .<SortableColumn<Set<TObject>>> supplyWithRetry(
+                                    store, atomic -> function.apply(atomic));
+                }
+                else {
+                    result = function.apply(store);
+                }
+            }
+            catch (InsufficientAtomicityException e) {
+                isAtomic = true;
+            }
+        }
         return result;
     }
 
@@ -6202,13 +6265,34 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
-                records.size());
-        Operations.selectKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, null,
-                $result -> $result.sort(
-                        Sorting.byValues(Orders.from(order), store), timestamp),
-                store);
+        Function<Store, SortableTable<Set<TObject>>> function = $store -> {
+            SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
+                    records.size());
+            Operations
+                    .selectKeysRecordsOptionalAtomic(keys, records, timestamp,
+                            result, null,
+                            $result -> $result.sort(Sorting.byValues(
+                                    Orders.from(order), $store), timestamp),
+                            $store);
+            return result;
+        };
+        SortableTable<Set<TObject>> result = null;
+        boolean isAtomic = order != NO_ORDER;
+        while (result == null) {
+            try {
+                if(isAtomic) {
+                    result = AtomicOperations
+                            .<SortableTable<Set<TObject>>> supplyWithRetry(
+                                    store, atomic -> function.apply(atomic));
+                }
+                else {
+                    result = function.apply(store);
+                }
+            }
+            catch (InsufficientAtomicityException e) {
+                isAtomic = true;
+            }
+        }
         return result;
     }
 
@@ -6405,12 +6489,34 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
-                records.size());
-        Operations.selectRecordsOptionalAtomic(records, timestamp, result, null,
-                $result -> $result.sort(
-                        Sorting.byValues(Orders.from(order), store), timestamp),
-                store);
+        Function<Store, SortableTable<Set<TObject>>> function = $store -> {
+            SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
+                    records.size());
+            Operations
+                    .selectRecordsOptionalAtomic(records, timestamp, result,
+                            null,
+                            $result -> $result.sort(Sorting.byValues(
+                                    Orders.from(order), $store), timestamp),
+                            $store);
+            return result;
+        };
+        SortableTable<Set<TObject>> result = null;
+        boolean isAtomic = order != NO_ORDER;
+        while (result == null) {
+            try {
+                if(isAtomic) {
+                    result = AtomicOperations
+                            .<SortableTable<Set<TObject>>> supplyWithRetry(
+                                    store, atomic -> function.apply(atomic));
+                }
+                else {
+                    result = function.apply(store);
+                }
+            }
+            catch (InsufficientAtomicityException e) {
+                isAtomic = true;
+            }
+        }
         return result;
     }
 
