@@ -17,6 +17,7 @@ package com.cinchapi.concourse.data.sort;
 
 import java.util.Map;
 import java.util.Set;
+
 import com.cinchapi.concourse.EmptyOperationException;
 import com.cinchapi.concourse.data.Table;
 import com.google.common.collect.ForwardingMap;
