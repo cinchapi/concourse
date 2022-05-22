@@ -16,10 +16,9 @@
 package com.cinchapi.concourse.server.query.sort;
 
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -65,14 +64,14 @@ abstract class StoreSorter<V> implements Sorter<V> {
     }
 
     @Override
-    public final Map<Long, Map<String, V>> sort(
+    public final Stream<Entry<Long, Map<String, V>>> sort(
             Map<Long, Map<String, V>> data) {
         return sort(data, null);
     }
 
     @Override
-    public final Map<Long, Map<String, V>> sort(Map<Long, Map<String, V>> data,
-            @Nullable Long at) {
+    public final Stream<Entry<Long, Map<String, V>>> sort(
+            Map<Long, Map<String, V>> data, @Nullable Long at) {
         ArrayBuilder<Comparator<Entry<Long, Map<String, V>>>> comparators = ArrayBuilder
                 .builder();
         for (OrderComponent component : order.spec()) {
@@ -122,9 +121,7 @@ abstract class StoreSorter<V> implements Sorter<V> {
         comparators.add((e1, e2) -> e1.getKey().compareTo(e2.getKey()));
         Comparator<Entry<Long, Map<String, V>>> comparator = CompoundComparator
                 .of(comparators.build());
-        return data.entrySet().stream().sorted(comparator)
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                        (e1, e2) -> e2, LinkedHashMap::new));
+        return data.entrySet().stream().sorted(comparator);
     }
 
     /**

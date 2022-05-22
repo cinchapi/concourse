@@ -91,7 +91,7 @@ public class SortingTest {
         Store store = new Queue(1);
 
         Map<Long, Map<String, Set<TObject>>> result = Sorting
-                .byValues(order, store).sort(records);
+                .byValues(order, store).organize(records);
 
         List<Long> expectedSort = Lists.newArrayList();
         expectedSort.add(Integer.toUnsignedLong(4));
@@ -155,7 +155,7 @@ public class SortingTest {
         Store store = new Queue(1);
 
         Map<Long, Map<String, Set<TObject>>> result = Sorting
-                .byValues(order, store).sort(records);
+                .byValues(order, store).organize(records);
 
         List<Long> expectedSort = Lists.newArrayList();
         expectedSort.add(Integer.toUnsignedLong(2));
@@ -219,7 +219,7 @@ public class SortingTest {
         Store store = new Queue(1);
 
         Map<Long, Map<String, Set<TObject>>> result = Sorting
-                .byValues(order, store).sort(records);
+                .byValues(order, store).organize(records);
 
         List<Long> expectedSort = Lists.newArrayList();
         expectedSort.add(Integer.toUnsignedLong(3));
@@ -281,7 +281,7 @@ public class SortingTest {
         Store store = new Queue(1);
 
         Map<Long, Map<String, Set<TObject>>> result = Sorting
-                .byValues(order, store).sort(records);
+                .byValues(order, store).organize(records);
 
         List<Long> expectedSort = Lists.newArrayList();
         expectedSort.add(Integer.toUnsignedLong(1));
@@ -343,7 +343,7 @@ public class SortingTest {
         Store store = new Queue(1);
 
         Map<Long, Map<String, Set<TObject>>> result = Sorting
-                .byValues(order, store).sort(records);
+                .byValues(order, store).organize(records);
 
         List<Long> expectedSort = Lists.newArrayList();
         expectedSort.add(Integer.toUnsignedLong(2));
@@ -397,7 +397,7 @@ public class SortingTest {
         Store store = new Queue(1);
 
         Map<Long, Map<String, Set<TObject>>> result = Sorting
-                .byValues(order, store).sort(records);
+                .byValues(order, store).organize(records);
 
         List<Long> expectedSort = Lists.newArrayList();
         expectedSort.add(Integer.toUnsignedLong(2));
@@ -452,7 +452,7 @@ public class SortingTest {
         Store store = new Queue(1);
 
         Map<Long, Map<String, Set<TObject>>> result = Sorting
-                .byValues(order, store).sort(records);
+                .byValues(order, store).organize(records);
 
         List<Long> expectedSort = Lists.newArrayList();
         expectedSort.add(Integer.toUnsignedLong(1));
@@ -516,7 +516,7 @@ public class SortingTest {
         Store store = new Queue(1);
 
         Map<Long, Map<String, Set<TObject>>> result = Sorting
-                .byValues(order, store).sort(records);
+                .byValues(order, store).organize(records);
 
         List<Long> expectedSort = Lists.newArrayList();
         expectedSort.add(Integer.toUnsignedLong(4));
@@ -589,7 +589,7 @@ public class SortingTest {
         Store store = new Queue(1);
 
         Map<Long, Map<String, Set<TObject>>> result = Sorting
-                .byValues(order, store).sort(records);
+                .byValues(order, store).organize(records);
 
         long startTime = System.nanoTime();
         Lists.newArrayList(result.keySet());
