@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.data.sort;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -102,12 +101,10 @@ public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
     @Override
     public void sort(Sorter<V> sorter) {
         try {
-            delegate = sorter.sort(sortable()).map(entry -> {
-                Long key = entry.getKey();
-                V value = entry.getValue().get(this.key);
-                return new SimpleImmutableEntry<>(key, value);
-            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                    (e1, e2) -> e2, LinkedHashMap::new));
+            delegate = sorter.sort(sortable())
+                    .collect(Collectors.toMap(Entry::getKey,
+                            entry -> entry.getValue().get(this.key),
+                            (e1, e2) -> e2, LinkedHashMap::new));
         }
         catch (EmptyOperationException e) {}
     }
@@ -115,12 +112,10 @@ public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
     @Override
     public void sort(Sorter<V> sorter, long at) {
         try {
-            delegate = sorter.sort(sortable(), at).map(entry -> {
-                Long key = entry.getKey();
-                V value = entry.getValue().get(this.key);
-                return new SimpleImmutableEntry<>(key, value);
-            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                    (e1, e2) -> e2, LinkedHashMap::new));
+            delegate = sorter.sort(sortable(), at)
+                    .collect(Collectors.toMap(Entry::getKey,
+                            entry -> entry.getValue().get(this.key),
+                            (e1, e2) -> e2, LinkedHashMap::new));
         }
         catch (EmptyOperationException e) {}
     }
@@ -137,11 +132,9 @@ public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
      * @return a sortable view of the {@link #delegate}
      */
     private Map<Long, Map<String, V>> sortable() {
-        return delegate.entrySet().stream().map(entry -> {
-            Long key = entry.getKey();
-            Map<String, V> value = ImmutableMap.of(this.key, entry.getValue());
-            return new SimpleImmutableEntry<>(key, value);
-        }).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+        return delegate.entrySet().stream()
+                .collect(Collectors.toMap(Entry::getKey,
+                        entry -> ImmutableMap.of(this.key, entry.getValue())));
     }
 
 }

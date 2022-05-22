@@ -15,11 +15,8 @@
  */
 package com.cinchapi.concourse.data.sort;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.cinchapi.concourse.EmptyOperationException;
 import com.cinchapi.concourse.data.Table;
 import com.google.common.collect.ForwardingMap;
@@ -92,9 +89,7 @@ public interface SortableTable<V> extends Sortable<V>, Table<V> {
         @Override
         public void sort(Sorter<V> sorter) {
             try {
-                delegate = sorter.sort(delegate()).collect(
-                        Collectors.toMap(Entry::getKey, Entry::getValue,
-                                (e1, e2) -> e2, LinkedHashMap::new));
+                delegate = sorter.organize(delegate);
             }
             catch (EmptyOperationException e) {}
 
@@ -103,9 +98,7 @@ public interface SortableTable<V> extends Sortable<V>, Table<V> {
         @Override
         public void sort(Sorter<V> sorter, long at) {
             try {
-                delegate = sorter.sort(delegate(), at).collect(
-                        Collectors.toMap(Entry::getKey, Entry::getValue,
-                                (e1, e2) -> e2, LinkedHashMap::new));
+                delegate = sorter.organize(delegate, at);
             }
             catch (EmptyOperationException e) {}
         }

@@ -91,7 +91,7 @@ public class SortableSet<V> extends ForwardingSet<Long> implements Sortable<V> {
             @Override
             public Set<Entry<Long, Map<String, V>>> entrySet() {
                 if(entrySet == null) {
-                    entrySet = LazyTransformSet.of(delegate(), record -> {
+                    entrySet = LazyTransformSet.of(delegate, record -> {
                         return new SimpleImmutableEntry<>(record,
                                 ImmutableMap.of());
                     });
