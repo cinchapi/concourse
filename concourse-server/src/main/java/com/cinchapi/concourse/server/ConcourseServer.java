@@ -1859,9 +1859,17 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
-        Set<Long> records = Stores.find(store, key, operator, tValues);
+        Function<Store, Set<Long>> function = $store -> Stores.find($store, key,
+                operator, tValues);
+        Set<Long> records;
+        try {
+            records = function.apply(store);
+        }
+        catch (InsufficientAtomicityException e) {
+            records = AtomicOperations.supplyWithRetry(store,
+                    atomic -> function.apply(atomic));
+        }
         return Paging.page(records, Pages.from(page));
-
     }
 
     @Override
@@ -1880,15 +1888,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             Operator operator, List<TObject> values, long timestamp,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        try {
-            return findKeyOperatorValuesTimeOrderPage(key, operator, values,
-                    timestamp, order, NO_PAGE, creds, transaction, environment);
-        }
-        catch (InsufficientAtomicityException e) {
-            return findKeyOperatorValuesTimeOrderPage(key, operator, values,
-                    timestamp, NO_ORDER, NO_PAGE, creds, transaction,
-                    environment);
-        }
+        return findKeyOperatorValuesTimeOrderPage(key, operator, values,
+                timestamp, order, NO_PAGE, creds, transaction, environment);
     }
 
     @Override
@@ -1902,12 +1903,16 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
-        SortableSet<Set<TObject>> records = SortableSet
-                .of(Stores.find(store, timestamp, key, operator, tValues));
-        // NOTE: The #timestamp is not considered when sorting because it is
-        // a component of criteria evaluation and no data is being selected.
-        records.sort(Sorting.byValues(Orders.from(order), store));
-        return Paging.page(records, Pages.from(page));
+        return AtomicOperations.supplyWithRetry(store, atomic -> {
+            SortableSet<Set<TObject>> records = SortableSet
+                    .of(Stores.find(store, timestamp, key, operator, tValues));
+            // NOTE: The #timestamp is not considered when sorting because it is
+            // a component of criteria evaluation and no data is being selected.
+            // The presence of a present state Order also necessities this
+            // operation being performed atomically
+            records.sort(Sorting.byValues(Orders.from(order), store));
+            return Paging.page(records, Pages.from(page));
+        });
     }
 
     @Override
@@ -1920,8 +1925,16 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
-        Set<Long> records = Stores.find(store, timestamp, key, operator,
-                tValues);
+        Function<Store, Set<Long>> function = $store -> Stores.find($store,
+                timestamp, key, operator, tValues);
+        Set<Long> records;
+        try {
+            records = function.apply(store);
+        }
+        catch (InsufficientAtomicityException e) {
+            records = AtomicOperations.supplyWithRetry(store,
+                    atomic -> function.apply(atomic));
+        }
         return Paging.page(records, Pages.from(page));
     }
 
