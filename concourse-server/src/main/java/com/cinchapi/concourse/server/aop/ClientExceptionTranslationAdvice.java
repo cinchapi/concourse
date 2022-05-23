@@ -20,6 +20,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.apache.thrift.TException;
 
 import com.cinchapi.ccl.SyntaxException;
+import com.cinchapi.concourse.server.ops.Command;
 import com.cinchapi.concourse.server.plugin.PluginException;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.TransactionStateException;
@@ -56,7 +57,13 @@ public class ClientExceptionTranslationAdvice implements MethodInterceptor {
             throw new SecurityException(e.getMessage());
         }
         catch (UnsupportedOperationException e) {
-            throw new InvalidOperationException(e.getMessage());
+            if(Command.isSet() && Command.current()
+                    .conditionAbstractSyntaxTree() != null) {
+                throw new ParseException(e.getMessage());
+            }
+            else {
+                throw new InvalidOperationException(e.getMessage());
+            }
         }
         catch (IllegalStateException | JsonParseException | SyntaxException e) {
             // java.text.ParseException is checked, so internal server

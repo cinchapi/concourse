@@ -13,29 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.query.paginate;
-
-import com.cinchapi.concourse.lang.paginate.Page;
-import com.cinchapi.concourse.thrift.JavaThriftBridge;
-import com.cinchapi.concourse.thrift.TPage;
+package com.cinchapi.concourse;
 
 /**
- * Utilities for {@link Page Pages}.
+ * Thrown to indicate that an operation has no primary or side-effect on its
+ * input it's class's state or the state of anything else (e.g., the operation
+ * is a no-op).
  *
  * @author Jeff Nelson
  */
-public final class Pages {
+public class EmptyOperationException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
 
     /**
-     * Convert the {@link TPage} to its analogous {@link Page}.
-     * 
-     * @param tpage
-     * @return the corresponding {@link Page}
+     * Singleton.
      */
-    public static Page from(TPage tpage) {
-        return tpage == null ? Page.none() : JavaThriftBridge.convert(tpage);
-    }
-
-    private Pages() {/* no-init */}
+    public static EmptyOperationException INSTNACE = new EmptyOperationException();
 
 }

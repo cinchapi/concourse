@@ -140,7 +140,7 @@ public class LazyTrackingTObjectResultDataset extends TObjectResultDataset {
 
     @Override
     public void sort(Sorter<Set<TObject>> sorter) {
-        data = sorter.sort(data);
+        data = sorter.organize(data);
         if(tracking != null) {
             tracking();
         }
@@ -148,7 +148,7 @@ public class LazyTrackingTObjectResultDataset extends TObjectResultDataset {
 
     @Override
     public void sort(Sorter<Set<TObject>> sorter, long at) {
-        data = sorter.sort(data, at);
+        data = sorter.organize(data, at);
         if(tracking != null) {
             tracking();
         }

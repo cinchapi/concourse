@@ -3183,14 +3183,14 @@ public class ManagedConcourseServer {
                         }
                         else if(args[i] instanceof Page) {
                             Page obj = (Page) args[i];
-                            Field offsetField = Page.class
-                                    .getDeclaredField("offset");
+                            Method offsetField = Page.class
+                                    .getDeclaredMethod("offset");
                             offsetField.setAccessible(true);
-                            int offset = (Integer) offsetField.get(obj);
-                            Field limitField = Page.class
-                                    .getDeclaredField("limit");
+                            int offset = (Integer) offsetField.invoke(obj);
+                            Method limitField = Page.class
+                                    .getDeclaredMethod("limit");
                             limitField.setAccessible(true);
-                            int limit = (Integer) limitField.get(obj);
+                            int limit = (Integer) limitField.invoke(obj);
                             args[i] = loader
                                     .loadClass(
                                             packageBase + "lang.paginate.Page")
