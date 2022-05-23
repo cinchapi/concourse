@@ -2,10 +2,13 @@
 
 #### Version 0.11.3 (TBD)
 * Improved the performance of commands that select multiple keys from a record by adding herustics to the storage engine to reduce the number of overall lookups required. As a result, commands that select multiple keys are **up to 96% faster**.
+* Streamlined the logic for reads that have a combination of `time`, `order` and `page` parameters by adding more intelligent heuristics for determining the most efficient code path. For example, a read that only has `time` and `page` parameters (e.g., no `order`) does not need to be performed atomically. Previously, those reads converged into an atomic code path, but now a separate code path exists so those reads can be more performant. Additionally, the logic is more aware of when attempts to sort or paginate data don't actually have an effect and now avoids unnecessary data transformations of re-collection.
 * Fixed a bug that caused Concourse Server to not use the `Strategy` framework to determine the most efficient lookup source (e.g., field, record, or index) for navigation keys.
 * Added support for querying on the intrinsic `identifier` of Records, as both a selection and evaluation key. The record identifier can be refernced using the `$id$` key (NOTE: this must be properly escaped in `concourse shell` as `\$id\$`). 
 	* It is useful to include the Record identifier as a selection key for some navigation reads (e.g., `select(["partner.name", partner.\$id\$], 1)`)).
 	* It is useful to include the Record identifier as an evaluation key in cases where you want to explictly exclude a record from matching a `Condition` (e.g., `select(["partner.name", parner.\$id\$], "\$id\$ != 2")`))
+* Fixed a bug that caused historical reads with sorting to not be performed atomically; potentially violating ACID semantics.
+* Fixed a bug that caused commands to `find` data matching a `Condition` (e.g., `Criteria` or `CCL Statement`) to not be fully performed atomically; potentially violating ACID semantics.
 
 #### Version 0.11.2 (March 18, 2022)
 * Fixed a bug that caused Concourse Server to incorrectly detect when an attempt was made to atomically commit multiple Writes that toggle the state of a field (e.g. `ADD name as jeff in 1`, `REMOVE name as jeff in 1`, `ADD name as jeff in 1`) in user-defined `transactions`. As a result of this bug, all field toggling Writes were committed instead of the desired behaviour where there was a commit of at most one equal Write that was required to obtain the intended field state. Committing multiple writes that toggled the field state within the same transaction could cause failures, unexplained results or fatal inconsistencies when reconciling data.

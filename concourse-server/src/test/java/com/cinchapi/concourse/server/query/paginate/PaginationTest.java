@@ -69,8 +69,7 @@ public class PaginationTest {
                 .stream().skip(page.skip()).limit(page.limit())
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue,
                         (a, b) -> b, LinkedHashMap::new));
-        Map<Long, Map<String, Set<TObject>>> actual = Paging.paginate(table,
-                page);
+        Map<Long, Map<String, Set<TObject>>> actual = Paging.page(table, page);
         Assert.assertEquals(expected, actual);
     }
 
@@ -87,8 +86,7 @@ public class PaginationTest {
         Assert.assertEquals(
                 list.stream().skip(skip).limit(limit)
                         .collect(Collectors.toList()),
-                Lists.newArrayList(
-                        Paging.paginate(list, Page.of(skip, limit))));
+                Lists.newArrayList(Paging.page(list, Page.of(skip, limit))));
     }
 
     @Test
@@ -107,8 +105,7 @@ public class PaginationTest {
         Assert.assertEquals(
                 list.stream().skip(skip).limit(limit)
                         .collect(Collectors.toList()),
-                Lists.newArrayList(
-                        Paging.paginate(list, Page.of(skip, limit))));
+                Lists.newArrayList(Paging.page(list, Page.of(skip, limit))));
     }
 
     @Test
@@ -123,7 +120,6 @@ public class PaginationTest {
         Assert.assertEquals(
                 list.stream().skip(skip).limit(limit)
                         .collect(Collectors.toList()),
-                Lists.newArrayList(
-                        Paging.paginate(list, Page.of(skip, limit))));
+                Lists.newArrayList(Paging.page(list, Page.of(skip, limit))));
     }
 }

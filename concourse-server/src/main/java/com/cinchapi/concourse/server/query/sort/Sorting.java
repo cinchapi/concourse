@@ -16,8 +16,11 @@
 package com.cinchapi.concourse.server.query.sort;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import com.cinchapi.concourse.EmptyOperationException;
 import com.cinchapi.concourse.data.sort.Sorter;
 import com.cinchapi.concourse.lang.sort.NoOrder;
 import com.cinchapi.concourse.lang.sort.Order;
@@ -69,14 +72,15 @@ public final class Sorting {
     private static class NoOrderSorter<V> implements Sorter<V> {
 
         @Override
-        public Map<Long, Map<String, V>> sort(Map<Long, Map<String, V>> data) {
-            return data;
+        public Stream<Entry<Long, Map<String, V>>> sort(
+                Map<Long, Map<String, V>> data) {
+            throw EmptyOperationException.INSTNACE;
         }
 
         @Override
-        public Map<Long, Map<String, V>> sort(Map<Long, Map<String, V>> data,
-                Long at) {
-            return data;
+        public Stream<Entry<Long, Map<String, V>>> sort(
+                Map<Long, Map<String, V>> data, Long at) {
+            throw EmptyOperationException.INSTNACE;
         }
 
     }

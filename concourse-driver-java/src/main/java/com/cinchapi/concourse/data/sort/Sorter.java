@@ -15,7 +15,11 @@
  */
 package com.cinchapi.concourse.data.sort;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -29,23 +33,54 @@ import com.cinchapi.concourse.lang.sort.Order;
 public interface Sorter<V> {
 
     /**
-     * Sort the data.
+     * Sort {@code data}.
      * 
      * @param data
-     * @return the sorted data
+     * @return a {@link Stream} that contains each of the entries in
+     *         {@code data} in sorted order
      */
-    public Map<Long, Map<String, V>> sort(Map<Long, Map<String, V>> data);
+    public Stream<Entry<Long, Map<String, V>>> sort(
+            Map<Long, Map<String, V>> data);
 
     /**
-     * Sort the data using the {@code at} timestamp as temporal binding for
+     * Sort {@code data} using the {@code at} timestamp as temporal binding for
      * missing value lookups when an order component does not explicitly specify
      * a timestamp.
      * 
      * @param data
      * @param at
-     * @return the sorted data
+     * @return a {@link Stream} that contains each of the entries in
+     *         {@code data} in sorted order
      */
-    public Map<Long, Map<String, V>> sort(Map<Long, Map<String, V>> data,
-            @Nullable Long at);
+    public Stream<Entry<Long, Map<String, V>>> sort(
+            Map<Long, Map<String, V>> data, @Nullable Long at);
+
+    /**
+     * Sort and collect {@code data}.
+     * 
+     * @param data
+     * @return a collected {@link Map} that contains the {@code data} in sorted
+     *         order
+     */
+    default Map<Long, Map<String, V>> organize(Map<Long, Map<String, V>> data) {
+        return sort(data).collect(Collectors.toMap(Entry::getKey,
+                Entry::getValue, (a, b) -> b, LinkedHashMap::new));
+    }
+
+    /**
+     * Sort and collected {@code data} using the {@code at} timestamp as
+     * temporal binding for missing value lookups when an order component does
+     * not explicitly specify a timestamp.
+     * 
+     * @param data
+     * @param at
+     * @return a collected {@link Map} that contains the {@code data} in sorted
+     *         order
+     */
+    default Map<Long, Map<String, V>> organize(Map<Long, Map<String, V>> data,
+            @Nullable Long at) {
+        return sort(data, at).collect(Collectors.toMap(Entry::getKey,
+                Entry::getValue, (a, b) -> b, LinkedHashMap::new));
+    }
 
 }
