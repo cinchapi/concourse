@@ -38,7 +38,7 @@ public class CrossVersionSortPerformanceBenchmarkTest
     static List<Multimap<String, Object>> data;
     static {
         data = new ArrayList<>();
-        for (int i = 0; i < 5000; ++i) {
+        for (int i = 0; i < 2000; ++i) {
             Multimap<String, Object> row = ImmutableMultimap.of("name",
                     Random.getString(), "age", Random.getNumber(), "foo",
                     Random.getBoolean(), "bar", Random.getString(), "include", true);
@@ -58,12 +58,40 @@ public class CrossVersionSortPerformanceBenchmarkTest
 
             @Override
             public void action() {
-                client.select("name", "include = true", Order.by("name"));
+                client.select("name", "include = true", Order.by("name").then("age"));
             }
             
         };
         long elapsed = benchmark.run();
         record("column", elapsed);
+    }
+    
+    @Test
+    public void testSortSet() {
+        Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
+
+            @Override
+            public void action() {
+                client.find("include = true", Order.by("name").then("age"));
+            }
+            
+        };
+        long elapsed = benchmark.run();
+        record("set", elapsed);
+    }
+    
+    @Test
+    public void testSortTable() {
+        Benchmark benchmark = new Benchmark(TimeUnit.MILLISECONDS) {
+
+            @Override
+            public void action() {
+                client.select("include = true", Order.by("name").then("age"));
+            }
+            
+        };
+        long elapsed = benchmark.run();
+        record("table", elapsed);
     }
 
 }
