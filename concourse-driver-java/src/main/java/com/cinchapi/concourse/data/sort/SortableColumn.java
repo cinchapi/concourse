@@ -15,12 +15,10 @@
  */
 package com.cinchapi.concourse.data.sort;
 
-import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -133,10 +131,10 @@ public final class SortableColumn<V> extends ForwardingMap<Long, V> implements
      * 
      * @return a sortable view of the {@link #delegate}
      */
-    private Stream<Entry<Long, Map<String, V>>> sortable() {
+    private Map<Long, Map<String, V>> sortable() {
         return delegate.entrySet().stream()
-                .map(entry -> new SimpleImmutableEntry<>(entry.getKey(),
-                        ImmutableMap.of(this.key, entry.getValue())));
+                .collect(Collectors.toMap(Entry::getKey,
+                        entry -> ImmutableMap.of(this.key, entry.getValue())));
     }
 
 }

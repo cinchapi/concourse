@@ -65,13 +65,13 @@ abstract class StoreSorter<V> implements Sorter<V> {
 
     @Override
     public final Stream<Entry<Long, Map<String, V>>> sort(
-            Stream<Entry<Long, Map<String, V>>> stream) {
-        return sort(stream, null);
+            Map<Long, Map<String, V>> data) {
+        return sort(data, null);
     }
 
     @Override
     public final Stream<Entry<Long, Map<String, V>>> sort(
-            Stream<Entry<Long, Map<String, V>>> stream, @Nullable Long at) {
+            Map<Long, Map<String, V>> data, @Nullable Long at) {
         ArrayBuilder<Comparator<Entry<Long, Map<String, V>>>> comparators = ArrayBuilder
                 .builder();
         for (OrderComponent component : order.spec()) {
@@ -121,7 +121,7 @@ abstract class StoreSorter<V> implements Sorter<V> {
         comparators.add((e1, e2) -> e1.getKey().compareTo(e2.getKey()));
         Comparator<Entry<Long, Map<String, V>>> comparator = CompoundComparator
                 .of(comparators.build());
-        return stream.sorted(comparator);
+        return data.entrySet().stream().sorted(comparator);
     }
 
     /**
