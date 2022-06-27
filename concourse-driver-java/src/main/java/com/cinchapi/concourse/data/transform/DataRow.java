@@ -15,12 +15,9 @@
  */
 package com.cinchapi.concourse.data.transform;
 
-import java.util.AbstractMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
+import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.collect.lazy.LazyTransformSet;
@@ -37,7 +34,8 @@ import com.cinchapi.concourse.util.PrettyLinkedHashMap;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class DataRow<F, T> extends AbstractMap<String, T> implements
+public abstract class DataRow<F, T>
+        extends PrettyTransformMap<String, String, F, T> implements
         Row<T> {
 
     /**
@@ -67,21 +65,6 @@ public abstract class DataRow<F, T> extends AbstractMap<String, T> implements
     }
 
     /**
-     * The data that must be transformed.
-     */
-    private final Map<String, F> data;
-
-    /**
-     * A cache of the prettified results
-     */
-    private Map<String, T> pretty = null;
-
-    /**
-     * A cache of the transformed, but unpretty results.
-     */
-    private Map<String, T> transformed = null;
-
-    /**
      * The header to use for the column that contains the values.
      */
     private final String valueColumnHeader;
@@ -92,43 +75,19 @@ public abstract class DataRow<F, T> extends AbstractMap<String, T> implements
      * @param data
      */
     private DataRow(Map<String, F> data, String valueColumnHeader) {
-        this.data = data;
+        super(data);
         this.valueColumnHeader = valueColumnHeader;
     }
 
     @Override
-    public Set<Entry<String, T>> entrySet() {
-        if(transformed == null) {
-            transformed = data.entrySet().stream().map(entry -> {
-                String key = entry.getKey();
-                T value = transform(entry.getValue());
-                return new SimpleImmutableEntry<>(key, value);
-            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                    (e1, e2) -> e2, LinkedHashMap::new));
-        }
-        return transformed.entrySet();
+    protected Supplier<Map<String, T>> $prettyMapSupplier() {
+        return () -> PrettyLinkedHashMap.create("Key", valueColumnHeader);
     }
 
     @Override
-    public String toString() {
-        if(pretty == null) {
-            Map<String, T> $pretty = PrettyLinkedHashMap.create("Key",
-                    valueColumnHeader);
-            entrySet().forEach(
-                    entry -> $pretty.put(entry.getKey(), entry.getValue()));
-            pretty = $pretty;
-            transformed = pretty;
-        }
-        return pretty.toString();
+    protected String transformKey(String key) {
+        return key;
     }
-
-    /**
-     * Transform the {@code value} to the appropriate type.
-     * 
-     * @param value
-     * @return the transformed value.
-     */
-    protected abstract T transform(F value);
 
     /**
      * A {@link DataRow} for multi-valued cells.
@@ -148,7 +107,7 @@ public abstract class DataRow<F, T> extends AbstractMap<String, T> implements
         }
 
         @Override
-        protected Set<T> transform(Set<TObject> value) {
+        protected Set<T> transformValue(Set<TObject> value) {
             return LazyTransformSet.of(value, Conversions.thriftToJavaCasted());
         }
 
@@ -172,7 +131,7 @@ public abstract class DataRow<F, T> extends AbstractMap<String, T> implements
 
         @SuppressWarnings("unchecked")
         @Override
-        protected T transform(TObject value) {
+        protected T transformValue(TObject value) {
             return (T) Convert.thriftToJava(value);
         }
 

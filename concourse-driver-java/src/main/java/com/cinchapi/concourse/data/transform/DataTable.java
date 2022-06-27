@@ -15,10 +15,10 @@
  */
 package com.cinchapi.concourse.data.transform;
 
-import java.util.AbstractMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -37,7 +37,8 @@ import com.cinchapi.concourse.util.PrettyLinkedTableMap;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public abstract class DataTable<F, T> extends AbstractMap<Long, Map<String, T>>
+public abstract class DataTable<F, T>
+        extends PrettyTransformMap<Long, Long, Map<String, F>, Map<String, T>>
         implements
         Table<T> {
 
@@ -66,68 +67,23 @@ public abstract class DataTable<F, T> extends AbstractMap<Long, Map<String, T>>
     }
 
     /**
-     * The data that must be transformed.
-     */
-    private final Map<Long, Map<String, F>> data;
-
-    /**
-     * A cache of the transformed and prettified results
-     */
-    private Map<Long, Map<String, T>> pretty = null;
-
-    /**
-     * A cache of the transformed, but unpretty results.
-     */
-    private Map<Long, Map<String, T>> transformed = null;
-
-    /**
      * Construct a new instance.
      * 
      * @param data
      */
     protected DataTable(Map<Long, Map<String, F>> data) {
-        this.data = data;
+        super(data);
     }
 
     @Override
-    public Set<Entry<Long, Map<String, T>>> entrySet() {
-        if(transformed == null) {
-            transformed = data.entrySet().stream().map(entry -> {
-                Long key = entry.getKey();
-                Map<String, T> value = entry.getValue().entrySet().stream()
-                        .map(e -> {
-                            return new SimpleImmutableEntry<>(e.getKey(),
-                                    transform(e.getValue()));
-                        }).collect(
-                                Collectors.toMap(Entry::getKey, Entry::getValue,
-                                        (e1, e2) -> e2, LinkedHashMap::new));
-                return new SimpleImmutableEntry<>(key, value);
-            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                    (e1, e2) -> e2, LinkedHashMap::new));
-        }
-        return transformed.entrySet();
+    protected Supplier<Map<Long, Map<String, T>>> $prettyMapSupplier() {
+        return () -> PrettyLinkedTableMap.create("Record");
     }
 
     @Override
-    public String toString() {
-        if(pretty == null) {
-            Map<Long, Map<String, T>> $pretty = PrettyLinkedTableMap
-                    .create("Record");
-            entrySet().forEach(
-                    entry -> $pretty.put(entry.getKey(), entry.getValue()));
-            pretty = $pretty;
-            transformed = pretty;
-        }
-        return pretty.toString();
+    protected Long transformKey(Long key) {
+        return key;
     }
-
-    /**
-     * Transform the {@code value} to the appropriate type.
-     * 
-     * @param value
-     * @return the transformed value.
-     */
-    protected abstract T transform(F value);
 
     /**
      * A {@link DataTable} for multi-valued cells.
@@ -147,8 +103,14 @@ public abstract class DataTable<F, T> extends AbstractMap<Long, Map<String, T>>
         }
 
         @Override
-        protected Set<T> transform(Set<TObject> value) {
-            return LazyTransformSet.of(value, Conversions.thriftToJavaCasted());
+        protected Map<String, Set<T>> transformValue(
+                Map<String, Set<TObject>> value) {
+            return value.entrySet().stream()
+                    .collect(Collectors.toMap(Entry::getKey,
+                            entry -> LazyTransformSet.of(entry.getValue(),
+                                    Conversions.thriftToJavaCasted()),
+                            (a, b) -> b,
+                            () -> new LinkedHashMap<>(value.size())));
         }
 
     }
@@ -171,8 +133,12 @@ public abstract class DataTable<F, T> extends AbstractMap<Long, Map<String, T>>
 
         @SuppressWarnings("unchecked")
         @Override
-        protected T transform(TObject value) {
-            return (T) Convert.thriftToJava(value);
+        protected Map<String, T> transformValue(Map<String, TObject> value) {
+            return value.entrySet().stream()
+                    .collect(Collectors.toMap(Entry::getKey,
+                            entry -> (T) Convert.thriftToJava(entry.getValue()),
+                            (a, b) -> b,
+                            () -> new LinkedHashMap<>(value.size())));
         }
 
     }
