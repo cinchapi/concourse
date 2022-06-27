@@ -18,6 +18,7 @@ package com.cinchapi.concourse.data.transform;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.collect.lazy.LazyTransformSet;

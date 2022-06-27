@@ -18,6 +18,7 @@ package com.cinchapi.concourse.data.transform;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+
 import com.cinchapi.common.collect.lazy.LazyTransformSet;
 import com.cinchapi.concourse.data.Column;
 import com.cinchapi.concourse.data.Row;
@@ -32,7 +33,8 @@ import com.cinchapi.concourse.util.PrettyLinkedHashMap;
  *
  * @author Jeff Nelson
  */
-public abstract class DataColumn<F, T> extends PrettyTransformMap<Long, Long, F, T> implements
+public abstract class DataColumn<F, T>
+        extends PrettyTransformMap<Long, Long, F, T> implements
         Column<T> {
 
     /**
@@ -60,7 +62,7 @@ public abstract class DataColumn<F, T> extends PrettyTransformMap<Long, Long, F,
             Map<Long, TObject> data) {
         return new SingleValuedColumn<>(key, data);
     }
-    
+
     /**
      * The key to which values are implicitly associated.
      */
@@ -75,14 +77,12 @@ public abstract class DataColumn<F, T> extends PrettyTransformMap<Long, Long, F,
         super(data);
         this.key = key;
     }
-    
-    
 
     @Override
     protected Supplier<Map<Long, T>> $prettyMapSupplier() {
         return () -> PrettyLinkedHashMap.create("Record", key);
     }
-    
+
     @Override
     protected Long transformKey(Long key) {
         return key;

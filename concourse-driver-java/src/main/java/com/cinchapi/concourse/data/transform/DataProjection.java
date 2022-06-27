@@ -18,6 +18,7 @@ package com.cinchapi.concourse.data.transform;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+
 import com.cinchapi.concourse.data.Projection;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Convert;

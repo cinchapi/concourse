@@ -18,6 +18,7 @@ package com.cinchapi.concourse.data.transform;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+
 import com.cinchapi.concourse.data.Index;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.Conversions;
@@ -62,7 +63,6 @@ public final class DataIndex<T> extends
     protected Supplier<Map<String, Map<T, Set<Long>>>> $prettyMapSupplier() {
         return () -> PrettyLinkedTableMap.create("Key");
     }
-
 
     @Override
     protected String transformKey(String key) {

@@ -132,8 +132,9 @@ abstract class PrettyTransformMap<KF, KT, VF, VT>
         // approach relies on Map#merge, which does not hook into prettification
         // logic in PrettyLinkedHahMap and PrettyLinkedTableMap
         Map<KT, VT> transformed = supplier.get();
-        for(Entry<KF, VF> entry : data.entrySet()) {
-            transformed.put(transformKey(entry.getKey()), transformValue(entry.getValue()));
+        for (Entry<KF, VF> entry : data.entrySet()) {
+            transformed.put(transformKey(entry.getKey()),
+                    transformValue(entry.getValue()));
         }
         return transformed;
     }
