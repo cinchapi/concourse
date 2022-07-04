@@ -1,5 +1,8 @@
 ## Changelog
 
+#### Version 0.11.4 (TBD)
+* Improved random access performance for all result sets.
+
 #### Version 0.11.3 (June 4, 2022)
 * Improved the performance of commands that select multiple keys from a record by adding herustics to the storage engine to reduce the number of overall lookups required. As a result, commands that select multiple keys are **up to 96% faster**.
 * Streamlined the logic for reads that have a combination of `time`, `order` and `page` parameters by adding more intelligent heuristics for determining the most efficient code path. For example, a read that only has `time` and `page` parameters (e.g., no `order`) does not need to be performed atomically. Previously, those reads converged into an atomic code path, but now a separate code path exists so those reads can be more performant. Additionally, the logic is more aware of when attempts to sort or paginate data don't actually have an effect and now avoids unnecessary data transformations of re-collection.
