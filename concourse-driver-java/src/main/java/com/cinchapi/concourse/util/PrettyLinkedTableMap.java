@@ -307,7 +307,6 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>>
             pretty().clear();
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public V put(R row, C column, V value) {
             return ((PrettyTableMap<R, C, V>) pretty()).put(row, column, value);
@@ -334,7 +333,6 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>>
             return pretty().remove(object);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public PrettyTableMap<R, C, V> setIdentifierColumnHeader(
                 String header) {

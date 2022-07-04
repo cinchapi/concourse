@@ -2,6 +2,7 @@
 
 #### Version 0.11.4 (TBD)
 * Slightly improved the performance of result sorting by removing unnecessary intermediate data gathering.
+* Improved random access performance for all result sets.
 
 #### Version 0.11.3 (June 4, 2022)
 * Improved the performance of commands that select multiple keys from a record by adding herustics to the storage engine to reduce the number of overall lookups required. As a result, commands that select multiple keys are **up to 96% faster**.
