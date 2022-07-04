@@ -15,11 +15,9 @@
  */
 package com.cinchapi.concourse.data.transform;
 
-import java.util.AbstractMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 import com.cinchapi.concourse.data.Index;
 import com.cinchapi.concourse.thrift.TObject;
@@ -33,7 +31,8 @@ import com.cinchapi.concourse.util.Transformers;
  *
  * @author Jeff Nelson
  */
-public final class DataIndex<T> extends AbstractMap<String, Map<T, Set<Long>>>
+public final class DataIndex<T> extends
+        PrettyTransformMap<String, String, Map<TObject, Set<Long>>, Map<T, Set<Long>>>
         implements
         Index<T> {
 
@@ -52,55 +51,28 @@ public final class DataIndex<T> extends AbstractMap<String, Map<T, Set<Long>>>
     }
 
     /**
-     * The data that must be transformed.
-     */
-    private final Map<String, Map<TObject, Set<Long>>> data;
-
-    /**
-     * A cache of the prettified results
-     */
-    private Map<String, Map<T, Set<Long>>> pretty = null;
-
-    /**
-     * A cache of the transformed, but unpretty results.
-     */
-    private Map<String, Map<T, Set<Long>>> transformed = null;
-
-    /**
      * Construct a new instance.
      * 
      * @param data
      */
     private DataIndex(Map<String, Map<TObject, Set<Long>>> data) {
-        this.data = data;
+        super(data);
     }
 
     @Override
-    public Set<Entry<String, Map<T, Set<Long>>>> entrySet() {
-        if(transformed == null) {
-            transformed = data.entrySet().stream().map(entry -> {
-                return new SimpleImmutableEntry<>(entry.getKey(),
-                        Transformers.<TObject, T, Long, Long> transformMapSet(
-                                entry.getValue(),
-                                Conversions.thriftToJavaCasted(),
-                                Conversions.none()));
-            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                    (e1, e2) -> e2, LinkedHashMap::new));
-        }
-        return transformed.entrySet();
+    protected Supplier<Map<String, Map<T, Set<Long>>>> $prettyMapSupplier() {
+        return () -> PrettyLinkedTableMap.create("Key");
     }
 
     @Override
-    public String toString() {
-        if(pretty == null) {
-            Map<String, Map<T, Set<Long>>> $pretty = PrettyLinkedTableMap
-                    .create("Key");
-            entrySet().forEach(
-                    entry -> $pretty.put(entry.getKey(), entry.getValue()));
-            pretty = $pretty;
-            transformed = pretty;
-        }
-        return pretty.toString();
+    protected String transformKey(String key) {
+        return key;
+    }
+
+    @Override
+    protected Map<T, Set<Long>> transformValue(Map<TObject, Set<Long>> value) {
+        return Transformers.<TObject, T, Long, Long> transformMapSet(value,
+                Conversions.thriftToJavaCasted(), Conversions.none());
     }
 
 }
