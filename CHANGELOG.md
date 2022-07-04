@@ -1,6 +1,7 @@
 ## Changelog
 
 #### Version 0.11.4 (TBD)
+* Slightly improved the performance of result sorting by removing unnecessary intermediate data gathering.
 * Improved random access performance for all result sets.
 
 #### Version 0.11.3 (June 4, 2022)

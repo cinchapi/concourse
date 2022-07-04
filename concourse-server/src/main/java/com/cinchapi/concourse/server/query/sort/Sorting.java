@@ -73,13 +73,13 @@ public final class Sorting {
 
         @Override
         public Stream<Entry<Long, Map<String, V>>> sort(
-                Map<Long, Map<String, V>> data) {
+                Stream<Entry<Long, Map<String, V>>> data) {
             throw EmptyOperationException.INSTNACE;
         }
 
         @Override
         public Stream<Entry<Long, Map<String, V>>> sort(
-                Map<Long, Map<String, V>> data, Long at) {
+                Stream<Entry<Long, Map<String, V>>> data, Long at) {
             throw EmptyOperationException.INSTNACE;
         }
 
