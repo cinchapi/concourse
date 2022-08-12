@@ -42,7 +42,7 @@ while getopts "f:r:v:" arg; do
 done
 
 file="$(cd "$(dirname "$file")"; pwd -P)/$(basename "$file")"
-name=$(basename $file)
+name=$(basename $file | awk -F'-[0-9]' '{ print $1 }')
 if [ -z "$file" ]; then
   echo "Please specify a file"
   usage
