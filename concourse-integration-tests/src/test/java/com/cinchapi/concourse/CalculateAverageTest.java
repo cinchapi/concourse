@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Numbers;
+import com.cinchapi.concourse.util.Random;
 
 /**
  * Tests to check the functionality of average feature.
@@ -280,5 +281,14 @@ public class CalculateAverageTest extends ConcourseIntegrationTest {
         Number expected = Numbers.divide(1 + 2 + 17 + 17, 4);
         Number actual = client.calculate().average(key);
         Assert.assertTrue(Numbers.areEqual(expected, actual));
+    }
+
+    @Test
+    public void testAverageKeyRecordSingleValue() {
+        String key = "age";
+        Number value = Random.getFloat();
+        client.add(key, value, 1);
+        Number actual = client.calculate().average(key, 1);
+        Assert.assertEquals(value, actual);
     }
 }

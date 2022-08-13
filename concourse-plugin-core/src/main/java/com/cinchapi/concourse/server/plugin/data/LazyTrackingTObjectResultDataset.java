@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,11 +59,14 @@ public class LazyTrackingTObjectResultDataset extends TObjectResultDataset {
     public void deserialize(Buffer buffer) {
         while (buffer.hasRemaining()) {
             long entity = buffer.readLong();
-            String attribute = buffer.readUTF8();
-            int values = buffer.readInt();
-            for (int i = 0; i < values; ++i) {
-                TObject value = deserializeValue(buffer);
-                insert(entity, attribute, value);
+            int entries = buffer.readInt();
+            for (int h = 0; h < entries; ++h) {
+                String attribute = buffer.readUTF8();
+                int values = buffer.readInt();
+                for (int i = 0; i < values; ++i) {
+                    TObject value = deserializeValue(buffer);
+                    insert(entity, attribute, value);
+                }
             }
         }
     }
@@ -123,6 +126,7 @@ public class LazyTrackingTObjectResultDataset extends TObjectResultDataset {
     public void serialize(Buffer buffer) {
         for (Entry<Long, Map<String, Set<TObject>>> entry : data.entrySet()) {
             buffer.writeLong(entry.getKey());
+            buffer.writeInt(entry.getValue().size());
             for (Entry<String, Set<TObject>> data : entry.getValue()
                     .entrySet()) {
                 buffer.writeUTF8(data.getKey());
@@ -136,7 +140,7 @@ public class LazyTrackingTObjectResultDataset extends TObjectResultDataset {
 
     @Override
     public void sort(Sorter<Set<TObject>> sorter) {
-        data = sorter.sort(data);
+        data = sorter.organize(data);
         if(tracking != null) {
             tracking();
         }
@@ -144,7 +148,7 @@ public class LazyTrackingTObjectResultDataset extends TObjectResultDataset {
 
     @Override
     public void sort(Sorter<Set<TObject>> sorter, long at) {
-        data = sorter.sort(data, at);
+        data = sorter.organize(data, at);
         if(tracking != null) {
             tracking();
         }
@@ -153,6 +157,11 @@ public class LazyTrackingTObjectResultDataset extends TObjectResultDataset {
     @Override
     public String toString() {
         return data.toString();
+    }
+
+    @Override
+    protected Map<TObject, Set<Long>> invertNullSafe(String attribute) {
+        return tracking().invertNullSafe(attribute);
     }
 
     /**

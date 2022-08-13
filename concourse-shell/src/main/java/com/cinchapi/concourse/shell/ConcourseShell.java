@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -48,6 +50,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.PermissionException;
@@ -239,13 +242,10 @@ public final class ConcourseShell {
      */
     protected static String[] getAccessibleApiMethods() {
         if(ACCESSIBLE_API_METHODS == null) {
-            Set<String> banned = Sets.newHashSet("equals", "getClass",
-                    "hashCode", "notify", "notifyAll", "toString", "wait",
-                    "exit");
             Set<String> methods = Sets.newTreeSet();
             for (Method method : Concourse.class.getMethods()) {
                 if(!Modifier.isStatic(method.getModifiers())
-                        && !banned.contains(method.getName())) {
+                        && !BANNED_API_METHODS.contains(method.getName())) {
                     // NOTE: Even though the StringCompleter strips the
                     // "concourse." from these method names, we must add it here
                     // so that we can properly handle short syntax in
@@ -384,6 +384,23 @@ public final class ConcourseShell {
             + "because it contains an illegal character sequence"; // visible
                                                                    // for
                                                                    // testing
+
+    /**
+     * {@link Concourse} methods that cannot be called from the shell.
+     */
+    private static final Set<String> BANNED_API_METHODS = Sets.newHashSet(
+            "equals", "getClass", "hashCode", "notify", "notifyAll", "toString",
+            "wait", "exit", "copyConnection");
+
+    /**
+     * {@link Concourse} methods for which a {@link Closure} is defined within
+     * the shell to protect againist any short syntax corner cases.
+     */
+    private static final List<String> CLOSURE_ELIGIBLE_API_METHODS = Stream
+            .of(Reflection.getAllDeclaredMethods(Concourse.class))
+            .map(Method::getName).distinct()
+            .filter(method -> !BANNED_API_METHODS.contains(method))
+            .collect(Collectors.toList());
 
     /**
      * A list which contains all of the accessible API methods. This list is
@@ -570,6 +587,7 @@ public final class ConcourseShell {
      * @return the result of the evaluation
      * @throws IrregularEvaluationResult
      */
+    @SuppressWarnings("serial")
     public String evaluate(String input) throws IrregularEvaluationResult {
         input = SyntaxTools.handleShortSyntax(input, methods);
         String inputLowerCase = input.toLowerCase();
@@ -608,6 +626,19 @@ public final class ConcourseShell {
         if(script != null) {
             groovyBinding.setVariable(EXTERNAL_SCRIPT_NAME, script);
         }
+        // GH-463: Define each accessible Concourse API method as a Closure
+        // directly within Groovy to ensure that they can be called with short
+        // syntax.
+        CLOSURE_ELIGIBLE_API_METHODS.forEach(method -> {
+            groovyBinding.setVariable(method, new Closure<Object>(null) {
+
+                @Override
+                public Object call(Object... args) {
+                    return Reflection.call(concourse, method, args);
+                }
+
+            });
+        });
         if(inputLowerCase.equalsIgnoreCase("exit")) {
             throw new ExitRequest();
         }

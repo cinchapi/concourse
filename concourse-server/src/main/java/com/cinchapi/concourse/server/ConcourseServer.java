@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,16 @@ import java.lang.management.MemoryUsage;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -348,10 +349,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     private static final int MIN_HEAP_SIZE = 268435456; // 256 MB
 
     /**
-     * A placeholder to signfiy that no {@link Order} should be imposed on a
+     * A placeholder to signify that no {@link Order} should be imposed on a
      * result set.
      */
     private static final TOrder NO_ORDER = null;
+
+    /**
+     * A placeholder to signify that no pagination should be imposed on a result
+     * set.
+     */
+    private static final TPage NO_PAGE = null;
 
     /**
      * The number of worker threads that Concourse Server uses.
@@ -506,19 +513,15 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject averageKeyCcl(String key, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Number average = Operations.avgKeyRecordsAtomic(key, records,
-                        Time.NONE, atomic);
-                return Convert.javaToThrift(average);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Number average = Operations.avgKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
+            return Convert.javaToThrift(average);
+        });
+
     }
 
     @Override
@@ -528,19 +531,15 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject averageKeyCclTime(String key, String ccl, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Number average = Operations.avgKeyRecordsAtomic(key, records,
-                        timestamp, atomic);
-                return Convert.javaToThrift(average);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Number average = Operations.avgKeyRecordsAtomic(key, records,
+                    timestamp, atomic);
+            return Convert.javaToThrift(average);
+        });
+
     }
 
     @Override
@@ -1017,18 +1016,14 @@ public class ConcourseServer extends BaseConcourseServer implements
     public long countKeyCcl(String key, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                return Operations.countKeyRecordsAtomic(key, records, Time.NONE,
-                        atomic);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            return Operations.countKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+        });
+
     }
 
     @Override
@@ -1038,18 +1033,13 @@ public class ConcourseServer extends BaseConcourseServer implements
     public long countKeyCclTime(String key, String ccl, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                return Operations.countKeyRecordsAtomic(key, records, timestamp,
-                        atomic);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            return Operations.countKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+        });
     }
 
     @Override
@@ -1570,10 +1560,22 @@ public class ConcourseServer extends BaseConcourseServer implements
 
     @Override
     @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Set<Long> findCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return findCclOrder(ccl, NO_ORDER, creds, transaction, environment);
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Function<Store, Set<Long>> function = $store -> ast
+                .accept(Finder.instance(), $store);
+        try {
+            return function.apply(store);
+        }
+        catch (InsufficientAtomicityException e) {
+            return AtomicOperations.supplyWithRetry(store,
+                    atomic -> function.apply(atomic));
+        }
     }
 
     @Override
@@ -1583,46 +1585,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Set<Long> findCclOrder(String ccl, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                SortableSet<Set<TObject>> records = SortableSet
-                        .of(ast.accept(Finder.instance(), atomic));
-                records.sort(Sorting.byValues(Orders.from(order), store));
-                return records;
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Set<Long> findCclOrderPage(String ccl, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(
-                findCclOrder(ccl, order, creds, transaction, environment),
-                Pages.from(page));
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Set<Long> findCclPage(String ccl, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(findCcl(ccl, creds, transaction, environment),
-                Pages.from(page));
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return findCriteriaOrder(criteria, NO_ORDER, creds, transaction,
+        return findCclOrderPage(ccl, order, NO_PAGE, creds, transaction,
                 environment);
     }
 
@@ -1630,26 +1593,72 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Set<Long> findCriteriaOrder(TCriteria criteria, TOrder order,
+    public Set<Long> findCclOrderPage(String ccl, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AbstractSyntaxTree ast = compiler.parse(ccl);
         AtomicSupport store = getStore(transaction, environment);
-        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+        return AtomicOperations.supplyWithRetry(store, atomic -> {
             SortableSet<Set<TObject>> records = SortableSet
                     .of(ast.accept(Finder.instance(), atomic));
             records.sort(Sorting.byValues(Orders.from(order), store));
-            return records;
+            return Paging.page(records, Pages.from(page));
         });
     }
 
     @Override
     @TranslateClientExceptions
+    public Set<Long> findCclPage(String ccl, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        Set<Long> records = findCcl(ccl, creds, transaction, environment);
+        return Paging.page(records, Pages.from(page));
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
+    public Set<Long> findCriteria(TCriteria criteria, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Function<Store, Set<Long>> function = $store -> ast
+                .accept(Finder.instance(), $store);
+        try {
+            return function.apply(store);
+        }
+        catch (InsufficientAtomicityException e) {
+            return AtomicOperations.supplyWithRetry(store,
+                    atomic -> function.apply(atomic));
+        }
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Set<Long> findCriteriaOrder(TCriteria criteria, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return findCriteriaOrderPage(criteria, order, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Set<Long> findCriteriaOrderPage(TCriteria criteria, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(findCriteriaOrder(criteria, order, creds,
-                transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> {
+            SortableSet<Set<TObject>> records = SortableSet
+                    .of(ast.accept(Finder.instance(), atomic));
+            records.sort(Sorting.byValues(Orders.from(order), store));
+            return Paging.page(records, Pages.from(page));
+        });
     }
 
     @Override
@@ -1657,9 +1666,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Set<Long> findCriteriaPage(TCriteria criteria, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                findCriteria(criteria, creds, transaction, environment),
-                Pages.from(page));
+        Set<Long> records = findCriteria(criteria, creds, transaction,
+                environment);
+        return Paging.page(records, Pages.from(page));
     }
 
     @Override
@@ -1689,11 +1698,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             String operator, List<TObject> values, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging
-                .paginate(
-                        findKeyOperatorstrValuesOrder(key, operator, values,
-                                order, creds, transaction, environment),
-                        Pages.from(page));
+        return findKeyOperatorValuesOrderPage(key,
+                Convert.stringToOperator(operator), values, order, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -1702,8 +1709,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<TObject> values, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(findKeyOperatorstrValues(key, operator, values,
-                creds, transaction, environment), Pages.from(page));
+        return findKeyOperatorValuesPage(key,
+                Convert.stringToOperator(operator), values, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -1734,10 +1742,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             String operator, List<TObject> values, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(
-                findKeyOperatorstrValuesTimeOrder(key, operator, values,
-                        timestamp, order, creds, transaction, environment),
-                Pages.from(page));
+        return findKeyOperatorValuesTimeOrderPage(key,
+                Convert.stringToOperator(operator), values, timestamp, order,
+                page, creds, transaction, environment);
     }
 
     @Override
@@ -1746,11 +1753,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             String operator, List<TObject> values, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging
-                .paginate(
-                        findKeyOperatorstrValuesTime(key, operator, values,
-                                timestamp, creds, transaction, environment),
-                        Pages.from(page));
+        return findKeyOperatorValuesTimePage(key,
+                Convert.stringToOperator(operator), values, timestamp, page,
+                creds, transaction, environment);
     }
 
     @Override
@@ -1782,10 +1787,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                findKeyOperatorstrValuesTimestrOrder(key, operator, values,
-                        timestamp, order, creds, transaction, environment),
-                Pages.from(page));
+        return findKeyOperatorValuesTimeOrderPage(key,
+                Convert.stringToOperator(operator), values,
+                NaturalLanguage.parseMicros(timestamp), order, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -1794,10 +1799,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             String operator, List<TObject> values, String timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                findKeyOperatorstrValuesTimestr(key, operator, values,
-                        timestamp, creds, transaction, environment),
-                Pages.from(page));
+        return findKeyOperatorValuesTimePage(key,
+                Convert.stringToOperator(operator), values,
+                NaturalLanguage.parseMicros(timestamp), page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -1806,64 +1811,65 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<TObject> values, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return findKeyOperatorValuesOrder(key, operator, values, NO_ORDER,
-                creds, transaction, environment);
+        try {
+            return findKeyOperatorValuesPage(key, operator, values, NO_PAGE,
+                    creds, transaction, environment);
+        }
+        catch (InsufficientAtomicityException e) {
+            return findKeyOperatorValuesOrderPage(key, operator, values,
+                    NO_ORDER, NO_PAGE, creds, transaction, environment);
+        }
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Set<Long> findKeyOperatorValuesOrder(String key, Operator operator,
+            List<TObject> values, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return findKeyOperatorValuesOrderPage(key, operator, values, order,
+                NO_PAGE, creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Set<Long> findKeyOperatorValuesOrder(String key, Operator operator,
-            List<TObject> values, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        TObject[] tValues = values.toArray(Array.containing());
-        AtomicSupport store = getStore(transaction, environment);
-        Function<Store, SortableSet<Set<TObject>>> function = $store -> {
-            SortableSet<Set<TObject>> $records = SortableSet
-                    .of(Stores.find($store, key, operator, tValues));
-            $records.sort(Sorting.byValues(Orders.from(order), store));
-            return $records;
-        };
-        SortableSet<Set<TObject>> records = null;
-        boolean isAtomic = order != NO_ORDER;
-        while (records == null) {
-            try {
-                if(isAtomic) {
-                    records = AtomicOperations
-                            .<SortableSet<Set<TObject>>> supplyWithRetry(store,
-                                    atomic -> function.apply(atomic));
-                }
-                else {
-                    records = function.apply(store);
-                }
-            }
-            catch (InsufficientAtomicityException e) {
-                isAtomic = true;
-            }
-        }
-        return records;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesOrderPage(String key,
             Operator operator, List<TObject> values, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(findKeyOperatorValuesOrder(key, operator, values,
-                order, creds, transaction, environment), Pages.from(page));
+        TObject[] tValues = values.toArray(Array.containing());
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> {
+            SortableSet<Set<TObject>> records = SortableSet
+                    .of(Stores.find(atomic, key, operator, tValues));
+            records.sort(Sorting.byValues(Orders.from(order), atomic));
+            return Paging.page(records, Pages.from(page));
+        });
     }
 
     @Override
     @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Set<Long> findKeyOperatorValuesPage(String key, Operator operator,
             List<TObject> values, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(findKeyOperatorValues(key, operator, values,
-                creds, transaction, environment), Pages.from(page));
+        TObject[] tValues = values.toArray(Array.containing());
+        AtomicSupport store = getStore(transaction, environment);
+        Function<Store, Set<Long>> function = $store -> Stores.find($store, key,
+                operator, tValues);
+        Set<Long> records;
+        try {
+            records = function.apply(store);
+        }
+        catch (InsufficientAtomicityException e) {
+            records = AtomicOperations.supplyWithRetry(store,
+                    atomic -> function.apply(atomic));
+        }
+        return Paging.page(records, Pages.from(page));
     }
 
     @Override
@@ -1872,69 +1878,64 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<TObject> values, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return findKeyOperatorValuesTimeOrder(key, operator, values, timestamp,
-                NO_ORDER, creds, transaction, environment);
+        return findKeyOperatorValuesTimePage(key, operator, values, timestamp,
+                NO_PAGE, creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Set<Long> findKeyOperatorValuesTimeOrder(String key,
+            Operator operator, List<TObject> values, long timestamp,
+            TOrder order, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return findKeyOperatorValuesTimeOrderPage(key, operator, values,
+                timestamp, order, NO_PAGE, creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Set<Long> findKeyOperatorValuesTimeOrder(String key,
-            Operator operator, List<TObject> values, long timestamp,
-            TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        TObject[] tValues = values.toArray(Array.containing());
-        AtomicSupport store = getStore(transaction, environment);
-        Function<Store, SortableSet<Set<TObject>>> function = $store -> {
-            SortableSet<Set<TObject>> $records = SortableSet
-                    .of(Stores.find($store, timestamp, key, operator, tValues));
-            // NOTE: The #timestamp is not considered when sorting because it is
-            // a component of criteria evaluation and no data is being selected.
-            $records.sort(Sorting.byValues(Orders.from(order), store));
-            return $records;
-        };
-        SortableSet<Set<TObject>> records = null;
-        boolean isAtomic = order != NO_ORDER;
-        while (records == null) {
-            try {
-                if(isAtomic) {
-                    records = AtomicOperations
-                            .<SortableSet<Set<TObject>>> supplyWithRetry(store,
-                                    atomic -> function.apply(atomic));
-                }
-                else {
-                    records = function.apply(store);
-                }
-            }
-            catch (InsufficientAtomicityException e) {
-                isAtomic = true;
-            }
-        }
-        return records;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Set<Long> findKeyOperatorValuesTimeOrderPage(String key,
             Operator operator, List<TObject> values, long timestamp,
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                findKeyOperatorValuesTimeOrder(key, operator, values, timestamp,
-                        order, creds, transaction, environment),
-                Pages.from(page));
+        TObject[] tValues = values.toArray(Array.containing());
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, atomic -> {
+            SortableSet<Set<TObject>> records = SortableSet
+                    .of(Stores.find(store, timestamp, key, operator, tValues));
+            // NOTE: The #timestamp is not considered when sorting because it is
+            // a component of criteria evaluation and no data is being selected.
+            // The presence of a present state Order also necessities this
+            // operation being performed atomically
+            records.sort(Sorting.byValues(Orders.from(order), store));
+            return Paging.page(records, Pages.from(page));
+        });
     }
 
     @Override
     @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Set<Long> findKeyOperatorValuesTimePage(String key,
             Operator operator, List<TObject> values, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(findKeyOperatorValuesTime(key, operator, values,
-                timestamp, creds, transaction, environment), Pages.from(page));
+        TObject[] tValues = values.toArray(Array.containing());
+        AtomicSupport store = getStore(transaction, environment);
+        Function<Store, Set<Long>> function = $store -> Stores.find($store,
+                timestamp, key, operator, tValues);
+        Set<Long> records;
+        try {
+            records = function.apply(store);
+        }
+        catch (InsufficientAtomicityException e) {
+            records = AtomicOperations.supplyWithRetry(store,
+                    atomic -> function.apply(atomic));
+        }
+        return Paging.page(records, Pages.from(page));
     }
 
     @Override
@@ -1966,10 +1967,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                findKeyOperatorValuesTimestrOrder(key, operator, values,
-                        timestamp, order, creds, transaction, environment),
-                Pages.from(page));
+        Set<Long> records = findKeyOperatorValuesTimestrOrder(key, operator,
+                values, timestamp, order, creds, transaction, environment);
+        return Paging.page(records, Pages.from(page));
     }
 
     @Override
@@ -1978,11 +1978,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             Operator operator, List<TObject> values, String timestamp,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging
-                .paginate(
-                        findKeyOperatorValuesTimestr(key, operator, values,
-                                timestamp, creds, transaction, environment),
-                        Pages.from(page));
+        Set<Long> records = findKeyOperatorValuesTimestr(key, operator, values,
+                timestamp, creds, transaction, environment);
+        return Paging.page(records, Pages.from(page));
     }
 
     @Override
@@ -2076,75 +2074,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, TObject>> getCcl(String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return getCclOrder(ccl, NO_ORDER, creds, transaction, environment);
+        return getCclOrderPage(ccl, NO_ORDER, NO_PAGE, creds, transaction,
+                environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclOrder(String ccl, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<TObject> result = SortableTable
-                    .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getAstAtomic(ast, Time.NONE, result,
-                            null,
-                            $result -> $result.sort(Sorting
-                                    .byValue(Orders.from(order), atomic)),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, TObject>> getCclOrderPage(String ccl,
-            TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(
-                getCclOrder(ccl, order, creds, transaction, environment),
-                Pages.from(page));
-    }
-
-    @Override
-    @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, TObject>> getCclPage(String ccl, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<TObject> result = SortableTable
-                    .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getAstAtomic(
-                            ast, Time.NONE, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, TObject>> getCclTime(String ccl,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return getCclTimeOrder(ccl, timestamp, NO_ORDER, creds, transaction,
+        return getCclOrderPage(ccl, order, NO_PAGE, creds, transaction,
                 environment);
     }
 
@@ -2152,37 +2091,63 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, TObject>> getCclTimeOrder(String ccl,
-            long timestamp, TOrder order, AccessToken creds,
+    public Map<Long, Map<String, TObject>> getCclOrderPage(String ccl,
+            TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<TObject> result = SortableTable
-                    .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getAstAtomic(ast, timestamp, result,
-                            null,
-                            $result -> $result.sort(
-                                    Sorting.byValue(Orders.from(order), atomic),
-                                    timestamp),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getAstAtomic(atomic, ast,
+                        Orders.from(order), Pages.from(page), supplier));
     }
 
     @Override
     @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getCclPage(String ccl, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getCclOrderPage(ccl, NO_ORDER, page, creds, transaction,
+                environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getCclTime(String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getCclTimePage(ccl, timestamp, NO_PAGE, creds, transaction,
+                environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getCclTimeOrder(String ccl,
+            long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getCclTimeOrderPage(ccl, timestamp, order, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCclTimeOrderPage(String ccl,
             long timestamp, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getCclTimeOrder(ccl, timestamp, order, creds,
-                transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getAstOptionalAtomic(atomic, ast,
+                        timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -2193,21 +2158,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<TObject> result = SortableTable
-                    .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getAstAtomic(
-                            ast, timestamp, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return Operations.getAstOptionalAtomic(store, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -2254,63 +2210,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, TObject>> getCriteria(TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getCriteriaOrder(criteria, NO_ORDER, creds, transaction,
-                environment);
+        return getCriteriaOrderPage(criteria, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCriteriaOrder(TCriteria criteria,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getAstAtomic(ast, Time.NONE, result, null,
-                        $result -> $result.sort(
-                                Sorting.byValue(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, TObject>> getCriteriaOrderPage(
-            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(getCriteriaOrder(criteria, order, creds,
-                transaction, environment), Pages.from(page));
-    }
-
-    @Override
-    @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, TObject>> getCriteriaPage(TCriteria criteria,
-            TPage page, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getAstAtomic(ast, Time.NONE, result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, TObject>> getCriteriaTime(TCriteria criteria,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return getCriteriaTimeOrder(criteria, timestamp, NO_ORDER, creds,
+        return getCriteriaOrderPage(criteria, order, NO_PAGE, creds,
                 transaction, environment);
     }
 
@@ -2318,32 +2227,63 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, TObject>> getCriteriaTimeOrder(
-            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
+    public Map<Long, Map<String, TObject>> getCriteriaOrderPage(
+            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations
-                .executeWithRetry(store,
-                        atomic -> Operations.getAstAtomic(ast, timestamp,
-                                result, null,
-                                $result -> $result.sort(Sorting.byValue(
-                                        Orders.from(order), atomic), timestamp),
-                                atomic));
-        return result;
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getAstAtomic(atomic, ast,
+                        Orders.from(order), Pages.from(page), supplier));
     }
 
     @Override
     @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getCriteriaPage(TCriteria criteria,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getCriteriaOrderPage(criteria, NO_ORDER, page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getCriteriaTime(TCriteria criteria,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getCriteriaTimePage(criteria, timestamp, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getCriteriaTimeOrder(
+            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getCriteriaTimeOrderPage(criteria, timestamp, order, NO_PAGE,
+                creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getCriteriaTimeOrderPage(
             TCriteria criteria, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getCriteriaTimeOrder(criteria, timestamp, order,
-                creds, transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getAstOptionalAtomic(atomic, ast,
+                        timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -2356,13 +2296,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getAstAtomic(ast, timestamp, result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return Operations.getAstOptionalAtomic(store, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -2413,7 +2350,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, TObject> getKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getKeyCclOrder(key, ccl, NO_ORDER, creds, transaction,
+        return getKeyCclOrderPage(key, ccl, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, TObject> getKeyCclOrder(String key, String ccl,
+            TOrder order, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getKeyCclOrderPage(key, ccl, order, NO_PAGE, creds, transaction,
                 environment);
     }
 
@@ -2421,59 +2367,26 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, TObject> getKeyCclOrder(String key, String ccl,
-            TOrder order, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                    Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeyAstAtomic(key, ast, Time.NONE,
-                            result, null,
-                            $result -> $result.sort(Sorting
-                                    .byValue(Orders.from(order), atomic)),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCclOrderPage(String key, String ccl,
             TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeyCclOrder(key, ccl, order, creds,
-                transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<TObject>> supplier = () -> SortableColumn
+                .singleValued(key, new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeyAstAtomic(atomic, key, ast,
+                        Orders.from(order), Pages.from(page), supplier));
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, TObject> getKeyCclPage(String key, String ccl, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                    Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeyAstAtomic(
-                            key, ast, Time.NONE, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        return getKeyCclOrderPage(key, ccl, NO_ORDER, page, creds, transaction,
+                environment);
     }
 
     @Override
@@ -2481,45 +2394,36 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, TObject> getKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return getKeyCclTimeOrder(key, ccl, timestamp, NO_ORDER, creds,
+        return getKeyCclTimePage(key, ccl, timestamp, NO_PAGE, creds,
                 transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, TObject> getKeyCclTimeOrder(String key, String ccl,
+            long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getKeyCclTimeOrderPage(key, ccl, timestamp, order, NO_PAGE,
+                creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, TObject> getKeyCclTimeOrder(String key, String ccl,
-            long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                    Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeyAstAtomic(key, ast, timestamp,
-                            result, null,
-                            $result -> $result.sort(
-                                    Sorting.byValue(Orders.from(order), atomic),
-                                    timestamp),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCclTimeOrderPage(String key, String ccl,
             long timestamp, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeyCclTimeOrder(key, ccl, timestamp, order,
-                creds, transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<TObject>> supplier = () -> SortableColumn
+                .singleValued(key, new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeyAstOptionalAtomic(atomic, key, ast,
+                        timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -2530,21 +2434,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                    Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeyAstAtomic(
-                            key, ast, timestamp, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<TObject>> supplier = () -> SortableColumn
+                .singleValued(key, new LinkedHashMap<>());
+        return Operations.getKeyAstOptionalAtomic(store, key, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -2594,58 +2489,44 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, TObject> getKeyCriteria(String key, TCriteria criteria,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getKeyCriteriaOrder(key, criteria, NO_ORDER, creds, transaction,
-                environment);
+        return getKeyCriteriaOrderPage(key, criteria, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, TObject> getKeyCriteriaOrder(String key,
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeyAstAtomic(key, ast, Time.NONE,
-                        result, null,
-                        $result -> $result.sort(
-                                Sorting.byValue(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, TObject> getKeyCriteriaOrderPage(String key,
-            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(getKeyCriteriaOrder(key, criteria, order, creds,
-                transaction, environment), Pages.from(page));
+        return getKeyCriteriaOrderPage(key, criteria, order, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, TObject> getKeyCriteriaOrderPage(String key,
+            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<TObject>> supplier = () -> SortableColumn
+                .singleValued(key, new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeyAstAtomic(atomic, key, ast,
+                        Orders.from(order), Pages.from(page), supplier));
+    }
+
+    @Override
+    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteriaPage(String key, TCriteria criteria,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeyAstAtomic(key, ast, Time.NONE,
-                        result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        return getKeyCriteriaOrderPage(key, criteria, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -2653,40 +2534,36 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, TObject> getKeyCriteriaTime(String key, TCriteria criteria,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return getKeyCriteriaTimeOrder(key, criteria, timestamp, NO_ORDER,
-                creds, transaction, environment);
+        return getKeyCriteriaTimePage(key, criteria, timestamp, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, TObject> getKeyCriteriaTimeOrder(String key,
+            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getKeyCriteriaTimeOrderPage(key, criteria, timestamp, order,
+                NO_PAGE, creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, TObject> getKeyCriteriaTimeOrder(String key,
-            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                Maps.newLinkedHashMap());
-        AtomicOperations
-                .executeWithRetry(store,
-                        atomic -> Operations.getKeyAstAtomic(key, ast,
-                                timestamp, result, null,
-                                $result -> $result.sort(Sorting.byValue(
-                                        Orders.from(order), atomic), timestamp),
-                                atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, TObject> getKeyCriteriaTimeOrderPage(String key,
             TCriteria criteria, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeyCriteriaTimeOrder(key, criteria, timestamp,
-                order, creds, transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<TObject>> supplier = () -> SortableColumn
+                .singleValued(key, new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeyAstOptionalAtomic(atomic, key, ast,
+                        timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -2699,14 +2576,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeyAstAtomic(key, ast, timestamp,
-                        result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        Supplier<SortableColumn<TObject>> supplier = () -> SortableColumn
+                .singleValued(key, new LinkedHashMap<>());
+        return Operations.getKeyAstOptionalAtomic(store, key, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -2777,62 +2650,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, TObject> getKeyRecords(String key, List<Long> records,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getKeyRecordsOrder(key, records, NO_ORDER, creds, transaction,
-                environment);
+        return getKeyRecordsOrderPage(key, records, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsOrder(String key, List<Long> records,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeyRecordsAtomic(key, records, result,
-                        null,
-                        $result -> $result.sort(
-                                Sorting.byValue(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, TObject> getKeyRecordsOrderPage(String key,
-            List<Long> records, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(getKeyRecordsOrder(key, records, order, creds,
-                transaction, environment), Pages.from(page));
-    }
-
-    @Override
-    @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, TObject> getKeyRecordsPage(String key, List<Long> records,
-            TPage page, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeyRecordsAtomic(key, records, result,
-                        $records -> Paging.paginate($records, Pages.from(page)),
-                        null, atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, TObject> getKeyRecordsTime(String key, List<Long> records,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return getKeyRecordsTimeOrder(key, records, timestamp, NO_ORDER, creds,
+        return getKeyRecordsOrderPage(key, records, order, NO_PAGE, creds,
                 transaction, environment);
     }
 
@@ -2840,29 +2667,61 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, TObject> getKeyRecordsTimeOrder(String key,
-            List<Long> records, long timestamp, TOrder order, AccessToken creds,
+    public Map<Long, TObject> getKeyRecordsOrderPage(String key,
+            List<Long> records, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeyRecordsOptionalAtomic(key, records, timestamp, result,
-                null,
-                $result -> $result.sort(
-                        Sorting.byValue(Orders.from(order), store), timestamp),
-                store);
-        return result;
+        Supplier<SortableColumn<TObject>> supplier = () -> SortableColumn
+                .singleValued(key, new LinkedHashMap<>(records.size()));
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeyRecordsAtomic(atomic, key, records,
+                        Orders.from(order), Pages.from(page), supplier));
     }
 
     @Override
     @TranslateClientExceptions
+    public Map<Long, TObject> getKeyRecordsPage(String key, List<Long> records,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getKeyRecordsOrderPage(key, records, NO_ORDER, page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, TObject> getKeyRecordsTime(String key, List<Long> records,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return getKeyRecordsTimePage(key, records, timestamp, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, TObject> getKeyRecordsTimeOrder(String key,
+            List<Long> records, long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return getKeyRecordsTimeOrderPage(key, records, timestamp, order,
+                NO_PAGE, creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, TObject> getKeyRecordsTimeOrderPage(String key,
             List<Long> records, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeyRecordsTimeOrder(key, records, timestamp,
-                order, creds, transaction, environment), Pages.from(page));
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<TObject>> supplier = () -> SortableColumn
+                .singleValued(key, new LinkedHashMap<>(records.size()));
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeyRecordsOptionalAtomic(atomic, key,
+                        records, timestamp, Orders.from(order),
+                        Pages.from(page), supplier));
     }
 
     @Override
@@ -2874,12 +2733,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<TObject> result = SortableColumn.singleValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeyRecordsOptionalAtomic(key, records, timestamp, result,
-                $records -> Paging.paginate($records, Pages.from(page)), null,
-                store);
-        return result;
+        Supplier<SortableColumn<TObject>> supplier = () -> SortableColumn
+                .singleValued(key, new LinkedHashMap<>(records.size()));
+        return Operations.getKeyRecordsOptionalAtomic(store, key, records,
+                timestamp, Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -2932,9 +2789,9 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject getKeyRecordTime(String key, long record, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Iterables
-                .getLast(Stores.select(getStore(transaction, environment), key,
-                        record, timestamp), TObject.NULL);
+        AtomicSupport store = getStore(transaction, environment);
+        return Iterables.getLast(Stores.select(store, key, record, timestamp),
+                TObject.NULL);
     }
 
     @Override
@@ -2952,69 +2809,46 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, TObject>> getKeysCcl(List<String> keys,
             String ccl, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return getKeysCclOrder(keys, ccl, NO_ORDER, creds, transaction,
-                environment);
+        return getKeysCclOrderPage(keys, ccl, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCclOrder(List<String> keys,
             String ccl, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<TObject> result = SortableTable
-                    .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeysAstAtomic(keys, ast, Time.NONE,
-                            result, null,
-                            $result -> $result.sort(Sorting
-                                    .byValue(Orders.from(order), atomic)),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, TObject>> getKeysCclOrderPage(
-            List<String> keys, String ccl, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(getKeysCclOrder(keys, ccl, order, creds,
-                transaction, environment), Pages.from(page));
+        return getKeysCclOrderPage(keys, ccl, order, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getKeysCclOrderPage(
+            List<String> keys, String ccl, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeysAstAtomic(atomic, keys, ast,
+                        Orders.from(order), Pages.from(page), supplier));
+
+    }
+
+    @Override
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclPage(List<String> keys,
             String ccl, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<TObject> result = SortableTable
-                    .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeysAstAtomic(
-                            keys, ast, Time.NONE, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        return getKeysCclOrderPage(keys, ccl, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3023,45 +2857,36 @@ public class ConcourseServer extends BaseConcourseServer implements
             String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return getKeysCclTimeOrder(keys, ccl, timestamp, NO_ORDER, creds,
-                transaction, environment);
+        return getKeysCclTimeOrderPage(keys, ccl, timestamp, NO_ORDER, NO_PAGE,
+                creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getKeysCclTimeOrder(
+            List<String> keys, String ccl, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysCclTimeOrderPage(keys, ccl, timestamp, order, NO_PAGE,
+                creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, TObject>> getKeysCclTimeOrder(
-            List<String> keys, String ccl, long timestamp, TOrder order,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<TObject> result = SortableTable
-                    .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeysAstAtomic(keys, ast, timestamp,
-                            result, null,
-                            $result -> $result.sort(
-                                    Sorting.byValue(Orders.from(order), atomic),
-                                    timestamp),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCclTimeOrderPage(
             List<String> keys, String ccl, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(getKeysCclTimeOrder(keys, ccl, timestamp, order,
-                creds, transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeysAstOptionalAtomic(atomic, keys, ast,
+                        timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -3072,21 +2897,13 @@ public class ConcourseServer extends BaseConcourseServer implements
             String ccl, long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<TObject> result = SortableTable
-                    .singleValued(Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.getKeysAstAtomic(
-                            keys, ast, timestamp, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return Operations.getKeysAstOptionalAtomic(store, keys, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
+
     }
 
     @Override
@@ -3137,7 +2954,17 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, TObject>> getKeysCriteria(List<String> keys,
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return getKeysCriteriaOrder(keys, criteria, NO_ORDER, creds,
+        return getKeysCriteriaOrderPage(keys, criteria, NO_ORDER, NO_PAGE,
+                creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getKeysCriteriaOrder(
+            List<String> keys, TCriteria criteria, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysCriteriaOrderPage(keys, criteria, order, NO_PAGE, creds,
                 transaction, environment);
     }
 
@@ -3145,51 +2972,27 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, TObject>> getKeysCriteriaOrder(
-            List<String> keys, TCriteria criteria, TOrder order,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeysAstAtomic(keys, ast, Time.NONE,
-                        result, null,
-                        $result -> $result.sort(
-                                Sorting.byValue(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaOrderPage(
             List<String> keys, TCriteria criteria, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(getKeysCriteriaOrder(keys, criteria, order,
-                creds, transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeysAstAtomic(atomic, keys, ast,
+                        Orders.from(order), Pages.from(page), supplier));
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysCriteriaPage(
             List<String> keys, TCriteria criteria, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeysAstAtomic(keys, ast, Time.NONE,
-                        result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        return getKeysCriteriaOrderPage(keys, criteria, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3198,43 +3001,36 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return getKeysCriteriaTimeOrder(keys, criteria, timestamp, NO_ORDER,
+        return getKeysCriteriaTimePage(keys, criteria, timestamp, NO_PAGE,
                 creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getKeysCriteriaTimeOrder(
+            List<String> keys, TCriteria criteria, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysCriteriaTimeOrderPage(keys, criteria, timestamp, order,
+                NO_PAGE, creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, TObject>> getKeysCriteriaTimeOrder(
-            List<String> keys, TCriteria criteria, long timestamp, TOrder order,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations
-                .executeWithRetry(store,
-                        atomic -> Operations.getKeysAstAtomic(keys, ast,
-                                timestamp, result, null,
-                                $result -> $result.sort(Sorting.byValue(
-                                        Orders.from(order), atomic), timestamp),
-                                atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysCriteriaTimeOrderPage(
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging
-                .paginate(
-                        getKeysCriteriaTimeOrder(keys, criteria, timestamp,
-                                order, creds, transaction, environment),
-                        Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeysAstOptionalAtomic(atomic, keys, ast,
+                        timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -3247,14 +3043,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeysAstAtomic(keys, ast, timestamp,
-                        result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>());
+        return Operations.getKeysAstOptionalAtomic(store, keys, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -3310,19 +3102,18 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        Map<String, TObject> result = Maps.newLinkedHashMap();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (String key : keys) {
-                try {
-                    result.put(key, Iterables
-                            .getLast(Stores.select(atomic, key, record)));
-                }
-                catch (NoSuchElementException e) {
-                    continue;
+        return AtomicOperations.supplyWithRetry(store, atomic -> {
+            Map<String, Set<TObject>> selected = Stores.select(atomic, keys,
+                    record);
+            Map<String, TObject> data = new LinkedHashMap<>(selected.size());
+            for (Entry<String, Set<TObject>> entry : selected.entrySet()) {
+                Set<TObject> values = entry.getValue();
+                if(!values.isEmpty()) {
+                    data.put(entry.getKey(), Iterables.getLast(values));
                 }
             }
+            return data;
         });
-        return result;
     }
 
     @Override
@@ -3330,56 +3121,44 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, TObject>> getKeysRecords(List<String> keys,
             List<Long> records, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return getKeysRecordsOrder(keys, records, NO_ORDER, creds, transaction,
-                environment);
+        return getKeysRecordsOrderPage(keys, records, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, TObject>> getKeysRecordsOrder(
             List<String> keys, List<Long> records, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeysRecordsAtomic(keys, records, result,
-                        null,
-                        $result -> $result.sort(
-                                Sorting.byValue(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, TObject>> getKeysRecordsOrderPage(
-            List<String> keys, List<Long> records, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(getKeysRecordsOrder(keys, records, order, creds,
-                transaction, environment), Pages.from(page));
+        return getKeysRecordsOrderPage(keys, records, order, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, TObject>> getKeysRecordsOrderPage(
+            List<String> keys, List<Long> records, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>(records.size()));
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeysRecordsAtomic(atomic, keys, records,
+                        Orders.from(order), Pages.from(page), supplier));
+    }
+
+    @Override
+    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsPage(List<String> keys,
             List<Long> records, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable
-                .singleValued(Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.getKeysRecordsAtomic(keys, records, result,
-                        $records -> Paging.paginate($records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        return getKeysRecordsOrderPage(keys, records, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -3388,37 +3167,35 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return getKeysRecordsTimeOrder(keys, records, timestamp, NO_ORDER,
-                creds, transaction, environment);
+        return getKeysRecordsTimePage(keys, records, timestamp, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, TObject>> getKeysRecordsTimeOrder(
+            List<String> keys, List<Long> records, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return getKeysRecordsTimeOrderPage(keys, records, timestamp, order,
+                NO_PAGE, creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, TObject>> getKeysRecordsTimeOrder(
-            List<String> keys, List<Long> records, long timestamp, TOrder order,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable.singleValued(
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, null,
-                $result -> $result.sort(
-                        Sorting.byValue(Orders.from(order), store), timestamp),
-                store);
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, TObject>> getKeysRecordsTimeOrderPage(
             List<String> keys, List<Long> records, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(getKeysRecordsTimeOrder(keys, records, timestamp,
-                order, creds, transaction, environment), Pages.from(page));
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>(records.size()));
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.getKeysRecordsOptionalAtomic(atomic, keys,
+                        records, timestamp, Orders.from(order),
+                        Pages.from(page), supplier));
     }
 
     @Override
@@ -3430,12 +3207,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<TObject> result = SortableTable.singleValued(
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.getKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, $records -> Paging.paginate($records, Pages.from(page)),
-                null, store);
-        return result;
+        Supplier<SortableTable<TObject>> supplier = () -> SortableTable
+                .singleValued(new LinkedHashMap<>(records.size()));
+        return Operations.getKeysRecordsOptionalAtomic(store, keys, records,
+                timestamp, Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -3492,18 +3267,16 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        Map<String, TObject> result = TMaps
-                .newLinkedHashMapWithCapacity(keys.size());
-        for (String key : keys) {
-            try {
-                result.put(key, Iterables
-                        .getLast(Stores.select(store, key, record, timestamp)));
-            }
-            catch (NoSuchElementException e) {
-                continue;
+        Map<String, Set<TObject>> selected = Stores.select(store, keys, record,
+                timestamp);
+        Map<String, TObject> data = new LinkedHashMap<>(selected.size());
+        for (Entry<String, Set<TObject>> entry : selected.entrySet()) {
+            Set<TObject> values = entry.getValue();
+            if(!values.isEmpty()) {
+                data.put(entry.getKey(), Iterables.getLast(values));
             }
         }
-        return result;
+        return data;
     }
 
     @Override
@@ -3768,8 +3541,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Map<TObject, Set<Long>> data = atomic.browse(key);
-            return Iterables.getLast(data.keySet(), null);
+            Number min = Operations.maxKeyAtomic(key, Time.NONE, atomic);
+            return Convert.javaToThrift(min);
         });
     }
 
@@ -3780,19 +3553,14 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject maxKeyCcl(String key, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Number max = Operations.maxKeyRecordsAtomic(key, records,
-                        Time.NONE, atomic);
-                return Convert.javaToThrift(max);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Number max = Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(max);
+        });
     }
 
     @Override
@@ -3802,19 +3570,14 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject maxKeyCclTime(String key, String ccl, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Number max = Operations.maxKeyRecordsAtomic(key, records,
-                        timestamp, atomic);
-                return Convert.javaToThrift(max);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Number max = Operations.maxKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+            return Convert.javaToThrift(max);
+        });
     }
 
     @Override
@@ -3959,8 +3722,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws SecurityException, TransactionException, TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Map<TObject, Set<Long>> data = atomic.browse(key, timestamp);
-            return Iterables.getLast(data.keySet(), null);
+            Number min = Operations.maxKeyAtomic(key, timestamp, atomic);
+            return Convert.javaToThrift(min);
         });
     }
 
@@ -3982,8 +3745,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Map<TObject, Set<Long>> data = atomic.browse(key);
-            return Iterables.getFirst(data.keySet(), null);
+            Number min = Operations.minKeyAtomic(key, Time.NONE, atomic);
+            return Convert.javaToThrift(min);
         });
     }
 
@@ -3994,19 +3757,14 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject minKeyCcl(String key, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Number min = Operations.minKeyRecordsAtomic(key, records,
-                        Time.NONE, atomic);
-                return Convert.javaToThrift(min);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Number min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(min);
+        });
     }
 
     @Override
@@ -4016,19 +3774,14 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject minKeyCclTime(String key, String ccl, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Number min = Operations.minKeyRecordsAtomic(key, records,
-                        timestamp, atomic);
-                return Convert.javaToThrift(min);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Number min = Operations.minKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+            return Convert.javaToThrift(min);
+        });
     }
 
     @Override
@@ -4174,8 +3927,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Map<TObject, Set<Long>> data = atomic.browse(key, timestamp);
-            return Iterables.getFirst(data.keySet(), null);
+            Number min = Operations.minKeyAtomic(key, timestamp, atomic);
+            return Convert.javaToThrift(min);
         });
     }
 
@@ -4207,18 +3960,13 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Set<TObject>> navigateKeyCclTime(String key, String ccl,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                return Operations.navigateKeyRecordsAtomic(key, records,
-                        timestamp, atomic);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            return Operations.navigateKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+        });
     }
 
     @Override
@@ -4372,18 +4120,13 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                return Operations.navigateKeysRecordsAtomic(keys, records,
-                        timestamp, atomic);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            return Operations.navigateKeysRecordsAtomic(keys, records,
+                    timestamp, atomic);
+        });
     }
 
     @Override
@@ -4419,18 +4162,13 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(criteria);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                return Operations.navigateKeysRecordsAtomic(keys, records,
-                        timestamp, atomic);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            return Operations.navigateKeysRecordsAtomic(keys, records,
+                    timestamp, atomic);
+        });
     }
 
     @Override
@@ -4852,75 +4590,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, Set<TObject>>> selectCcl(String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return selectCclOrder(ccl, NO_ORDER, creds, transaction, environment);
+        return selectCclOrderPage(ccl, NO_ORDER, NO_PAGE, creds, transaction,
+                environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCclOrder(String ccl,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<Set<TObject>> result = emptySortableResultDataset();
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectAstAtomic(ast, Time.NONE, result,
-                            null,
-                            $result -> $result.sort(Sorting
-                                    .byValues(Orders.from(order), atomic)),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> selectCclOrderPage(String ccl,
-            TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(
-                selectCclOrder(ccl, order, creds, transaction, environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
-    }
-
-    @Override
-    @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectCclPage(String ccl,
-            TPage page, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<Set<TObject>> result = emptySortableResultDataset();
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectAstAtomic(
-                            ast, Time.NONE, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> selectCclTime(String ccl,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return selectCclTimeOrder(ccl, timestamp, NO_ORDER, creds, transaction,
+        return selectCclOrderPage(ccl, order, NO_PAGE, creds, transaction,
                 environment);
     }
 
@@ -4928,39 +4607,61 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectCclTimeOrder(String ccl,
-            long timestamp, TOrder order, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> selectCclOrderPage(String ccl,
+            TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<Set<TObject>> result = emptySortableResultDataset();
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectAstAtomic(ast, timestamp, result,
-                            null,
-                            $result -> $result.sort(Sorting.byValues(
-                                    Orders.from(order), atomic), timestamp),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectAstAtomic(atomic, ast,
+                        Orders.from(order), Pages.from(page), supplier));
     }
 
     @Override
     @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectCclPage(String ccl,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return selectCclOrderPage(ccl, NO_ORDER, page, creds, transaction,
+                environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectCclTime(String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return selectCclTimePage(ccl, timestamp, NO_PAGE, creds, transaction,
+                environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectCclTimeOrder(String ccl,
+            long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectCclTimeOrderPage(ccl, timestamp, order, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCclTimeOrderPage(
             String ccl, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                selectCclTimeOrder(ccl, timestamp, order, creds, transaction,
-                        environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectAstOptionalAtomic(atomic, ast,
+                        timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -4971,20 +4672,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<Set<TObject>> result = emptySortableResultDataset();
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectAstAtomic(
-                            ast, timestamp, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return Operations.selectAstOptionalAtomic(store, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -5032,60 +4724,44 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, Set<TObject>>> selectCriteria(
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return selectCriteriaOrder(criteria, NO_ORDER, creds, transaction,
-                environment);
+        return selectCriteriaOrderPage(criteria, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaOrder(
             TCriteria criteria, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDataset();
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectAstAtomic(ast, Time.NONE, result,
-                        null,
-                        $result -> $result.sort(
-                                Sorting.byValues(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> selectCriteriaOrderPage(
-            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(
-                selectCriteriaOrder(criteria, order, creds, transaction,
-                        environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        return selectCriteriaOrderPage(criteria, order, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectCriteriaPage(
-            TCriteria criteria, TPage page, AccessToken creds,
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaOrderPage(
+            TCriteria criteria, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDataset();
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectAstAtomic(ast, Time.NONE, result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectAstAtomic(atomic, ast,
+                        Orders.from(order), Pages.from(page), supplier));
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaPage(
+            TCriteria criteria, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectCriteriaOrderPage(criteria, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -5094,43 +4770,35 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return selectCriteriaTimeOrder(criteria, timestamp, NO_ORDER, creds,
+        return selectCriteriaTimePage(criteria, timestamp, NO_PAGE, creds,
                 transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimeOrder(
+            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectCriteriaTimeOrderPage(criteria, timestamp, order, NO_PAGE,
+                creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimeOrder(
-            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDataset();
-        AtomicOperations
-                .executeWithRetry(store,
-                        atomic -> Operations.selectAstAtomic(ast, timestamp,
-                                result, null,
-                                $result -> $result.sort(Sorting.byValues(
-                                        Orders.from(order), atomic), timestamp),
-                                atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectCriteriaTimeOrderPage(
             TCriteria criteria, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                selectCriteriaTimeOrder(criteria, timestamp, order, creds,
-                        transaction, environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectAstOptionalAtomic(atomic, ast,
+                        timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -5143,12 +4811,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDataset();
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectAstAtomic(ast, timestamp, result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return Operations.selectAstOptionalAtomic(store, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -5200,75 +4865,16 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Set<TObject>> selectKeyCcl(String key, String ccl,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return selectKeyCclOrder(key, ccl, NO_ORDER, creds, transaction,
-                environment);
+        return selectKeyCclOrderPage(key, ccl, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCclOrder(String key, String ccl,
             TOrder order, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableColumn<Set<TObject>> result = SortableColumn
-                    .multiValued(key, Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeyAstAtomic(key, ast, Time.NONE,
-                            result, null,
-                            $result -> $result.sort(Sorting
-                                    .byValues(Orders.from(order), atomic)),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Set<TObject>> selectKeyCclOrderPage(String key, String ccl,
-            TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(selectKeyCclOrder(key, ccl, order, creds,
-                transaction, environment), Pages.from(page));
-    }
-
-    @Override
-    @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
-    public Map<Long, Set<TObject>> selectKeyCclPage(String key, String ccl,
-            TPage page, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableColumn<Set<TObject>> result = SortableColumn
-                    .multiValued(key, Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeyAstAtomic(
-                            key, ast, Time.NONE, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Set<TObject>> selectKeyCclTime(String key, String ccl,
-            long timestamp, AccessToken creds, TransactionToken transaction,
-            String environment) throws TException {
-        return selectKeyCclTimeOrder(key, ccl, timestamp, NO_ORDER, creds,
+        return selectKeyCclOrderPage(key, ccl, order, NO_PAGE, creds,
                 transaction, environment);
     }
 
@@ -5276,36 +4882,63 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Set<TObject>> selectKeyCclTimeOrder(String key, String ccl,
-            long timestamp, TOrder order, AccessToken creds,
+    public Map<Long, Set<TObject>> selectKeyCclOrderPage(String key, String ccl,
+            TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableColumn<Set<TObject>> result = SortableColumn
-                    .multiValued(key, Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeyAstAtomic(key, ast, timestamp,
-                            result, null,
-                            $result -> $result.sort(Sorting.byValues(
-                                    Orders.from(order), atomic), timestamp),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<Set<TObject>>> supplier = () -> SortableColumn
+                .multiValued(key, new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeyAstAtomic(atomic, key, ast,
+                        Orders.from(order), Pages.from(page), supplier));
     }
 
     @Override
     @TranslateClientExceptions
+    public Map<Long, Set<TObject>> selectKeyCclPage(String key, String ccl,
+            TPage page, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return selectKeyCclOrderPage(key, ccl, NO_ORDER, page, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Set<TObject>> selectKeyCclTime(String key, String ccl,
+            long timestamp, AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return selectKeyCclTimePage(key, ccl, timestamp, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Set<TObject>> selectKeyCclTimeOrder(String key, String ccl,
+            long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeyCclTimeOrderPage(key, ccl, timestamp, order, NO_PAGE,
+                creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCclTimeOrderPage(String key,
             String ccl, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(selectKeyCclTimeOrder(key, ccl, timestamp, order,
-                creds, transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<Set<TObject>>> supplier = () -> SortableColumn
+                .multiValued(key, new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeyAstOptionalAtomic(atomic, key,
+                        ast, timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -5316,21 +4949,12 @@ public class ConcourseServer extends BaseConcourseServer implements
             long timestamp, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableColumn<Set<TObject>> result = SortableColumn
-                    .multiValued(key, Maps.newLinkedHashMap());
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeyAstAtomic(
-                            key, ast, timestamp, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<Set<TObject>>> supplier = () -> SortableColumn
+                .multiValued(key, new LinkedHashMap<>());
+        return Operations.selectKeyAstOptionalAtomic(store, key, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -5381,7 +5005,17 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Set<TObject>> selectKeyCriteria(String key,
             TCriteria criteria, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return selectKeyCriteriaOrder(key, criteria, NO_ORDER, creds,
+        return selectKeyCriteriaOrderPage(key, criteria, NO_ORDER, NO_PAGE,
+                creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Set<TObject>> selectKeyCriteriaOrder(String key,
+            TCriteria criteria, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeyCriteriaOrderPage(key, criteria, order, NO_PAGE, creds,
                 transaction, environment);
     }
 
@@ -5389,51 +5023,27 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Set<TObject>> selectKeyCriteriaOrder(String key,
-            TCriteria criteria, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
-                Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeyAstAtomic(key, ast, Time.NONE,
-                        result, null,
-                        $result -> $result.sort(
-                                Sorting.byValues(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaOrderPage(String key,
             TCriteria criteria, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(selectKeyCriteriaOrder(key, criteria, order,
-                creds, transaction, environment), Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<Set<TObject>>> supplier = () -> SortableColumn
+                .multiValued(key, new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeyAstAtomic(atomic, key, ast,
+                        Orders.from(order), Pages.from(page), supplier));
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyCriteriaPage(String key,
             TCriteria criteria, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
-                Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeyAstAtomic(key, ast, Time.NONE,
-                        result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        return selectKeyCriteriaOrderPage(key, criteria, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -5442,43 +5052,36 @@ public class ConcourseServer extends BaseConcourseServer implements
             TCriteria criteria, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return selectKeyCriteriaTimeOrder(key, criteria, timestamp, NO_ORDER,
+        return selectKeyCriteriaTimePage(key, criteria, timestamp, NO_PAGE,
                 creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Set<TObject>> selectKeyCriteriaTimeOrder(String key,
+            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeyCriteriaTimeOrderPage(key, criteria, timestamp, order,
+                NO_PAGE, creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Set<TObject>> selectKeyCriteriaTimeOrder(String key,
-            TCriteria criteria, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
-                Maps.newLinkedHashMap());
-        AtomicOperations
-                .executeWithRetry(store,
-                        atomic -> Operations.selectKeyAstAtomic(key, ast,
-                                timestamp, result, null,
-                                $result -> $result.sort(Sorting.byValues(
-                                        Orders.from(order), atomic), timestamp),
-                                atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyCriteriaTimeOrderPage(String key,
             TCriteria criteria, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging
-                .paginate(
-                        selectKeyCriteriaTimeOrder(key, criteria, timestamp,
-                                order, creds, transaction, environment),
-                        Pages.from(page));
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<Set<TObject>>> supplier = () -> SortableColumn
+                .multiValued(key, new LinkedHashMap<>());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeyAstOptionalAtomic(atomic, key,
+                        ast, timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -5491,14 +5094,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
-                Maps.newLinkedHashMap());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeyAstAtomic(key, ast, timestamp,
-                        result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        Supplier<SortableColumn<Set<TObject>>> supplier = () -> SortableColumn
+                .multiValued(key, new LinkedHashMap<>());
+        return Operations.selectKeyAstOptionalAtomic(store, key, ast, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -5569,57 +5168,45 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Set<TObject>> selectKeyRecords(String key,
             List<Long> records, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return selectKeyRecordsOrder(key, records, NO_ORDER, creds, transaction,
-                environment);
+        return selectKeyRecordsOrderPage(key, records, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Set<TObject>> selectKeyRecordsOrder(String key,
             List<Long> records, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeyRecordsAtomic(key, records,
-                        result, null,
-                        $result -> $result.sort(
-                                Sorting.byValues(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Set<TObject>> selectKeyRecordsOrderPage(String key,
-            List<Long> records, TOrder order, TPage page, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(selectKeyRecordsOrder(key, records, order, creds,
-                transaction, environment), Pages.from(page));
+        return selectKeyRecordsOrderPage(key, records, order, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Set<TObject>> selectKeyRecordsOrderPage(String key,
+            List<Long> records, TOrder order, TPage page, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<Set<TObject>>> supplier = () -> SortableColumn
+                .multiValued(key, new LinkedHashMap<>(records.size()));
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeyRecordsAtomic(atomic, key,
+                        records, Orders.from(order), Pages.from(page),
+                        supplier));
+    }
+
+    @Override
+    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsPage(String key,
             List<Long> records, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeyRecordsAtomic(key, records,
-                        result,
-                        $records -> Paging.paginate($records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        return selectKeyRecordsOrderPage(key, records, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -5628,40 +5215,35 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return selectKeyRecordsTimeOrder(key, records, timestamp, NO_ORDER,
-                creds, transaction, environment);
+        return selectKeyRecordsTimePage(key, records, timestamp, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Set<TObject>> selectKeyRecordsTimeOrder(String key,
+            List<Long> records, long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeyRecordsTimeOrderPage(key, records, timestamp, order,
+                NO_PAGE, creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Set<TObject>> selectKeyRecordsTimeOrder(String key,
-            List<Long> records, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.selectKeyRecordsOptionalAtomic(key, records, timestamp,
-                result, null,
-                $result -> $result.sort(
-                        Sorting.byValues(Orders.from(order), store), timestamp),
-                store);
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Set<TObject>> selectKeyRecordsTimeOrderPage(String key,
             List<Long> records, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging
-                .paginate(
-                        selectKeyRecordsTimeOrder(key, records, timestamp,
-                                order, creds, transaction, environment),
-                        Pages.from(page));
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableColumn<Set<TObject>>> supplier = () -> SortableColumn
+                .multiValued(key, new LinkedHashMap<>(records.size()));
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeyRecordsOptionalAtomic(atomic, key,
+                        records, timestamp, Orders.from(order),
+                        Pages.from(page), supplier));
     }
 
     @Override
@@ -5673,12 +5255,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableColumn<Set<TObject>> result = SortableColumn.multiValued(key,
-                TMaps.newLinkedHashMapWithCapacity(records.size()));
-        Operations.selectKeyRecordsOptionalAtomic(key, records, timestamp,
-                result, $records -> Paging.paginate($records, Pages.from(page)),
-                null, store);
-        return result;
+        Supplier<SortableColumn<Set<TObject>>> supplier = () -> SortableColumn
+                .multiValued(key, new LinkedHashMap<>(records.size()));
+        return Operations.selectKeyRecordsOptionalAtomic(store, key, records,
+                timestamp, Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -5732,8 +5312,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Set<TObject> selectKeyRecordTime(String key, long record,
             long timestamp, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Stores.select(getStore(transaction, environment), key, record,
-                timestamp);
+        AtomicSupport store = getStore(transaction, environment);
+        return Stores.select(store, key, record, timestamp);
     }
 
     @Override
@@ -5751,71 +5331,44 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, Set<TObject>>> selectKeysCcl(List<String> keys,
             String ccl, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return selectKeysCclOrder(keys, ccl, NO_ORDER, creds, transaction,
-                environment);
+        return selectKeysCclOrderPage(keys, ccl, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclOrder(
             List<String> keys, String ccl, TOrder order, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<Set<TObject>> result = emptySortableResultDataset();
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeysAstAtomic(keys, ast,
-                            Time.NONE, result, null,
-                            $result -> $result.sort(Sorting
-                                    .byValues(Orders.from(order), atomic)),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCclOrderPage(
-            List<String> keys, String ccl, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(
-                selectKeysCclOrder(keys, ccl, order, creds, transaction,
-                        environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        return selectKeysCclOrderPage(keys, ccl, order, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclOrderPage(
+            List<String> keys, String ccl, TOrder order, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeysAstAtomic(atomic, keys, ast,
+                        Orders.from(order), Pages.from(page), supplier));
+    }
+
+    @Override
+    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclPage(
             List<String> keys, String ccl, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<Set<TObject>> result = emptySortableResultDataset();
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeysAstAtomic(keys, ast,
-                            Time.NONE, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        return selectKeysCclOrderPage(keys, ccl, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -5824,47 +5377,35 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, String ccl, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return selectKeysCclTimeOrder(keys, ccl, timestamp, NO_ORDER, creds,
-                transaction, environment);
+        return selectKeysCclTimeOrderPage(keys, ccl, timestamp, NO_ORDER,
+                NO_PAGE, creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimeOrder(
+            List<String> keys, String ccl, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysCclTimeOrderPage(keys, ccl, timestamp, order, NO_PAGE,
+                creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimeOrder(
-            List<String> keys, String ccl, long timestamp, TOrder order,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<Set<TObject>> result = emptySortableResultDataset();
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeysAstAtomic(keys, ast,
-                            timestamp, result, null,
-                            $result -> $result.sort(Sorting.byValues(
-                                    Orders.from(order), atomic), timestamp),
-                            atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCclTimeOrderPage(
             List<String> keys, String ccl, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(
-                selectKeysCclTimeOrder(keys, ccl, timestamp, order, creds,
-                        transaction, environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeysAstOptionalAtomic(atomic, keys,
+                        ast, timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -5875,20 +5416,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, String ccl, long timestamp, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            SortableTable<Set<TObject>> result = emptySortableResultDataset();
-            AtomicOperations.executeWithRetry(store,
-                    atomic -> Operations.selectKeysAstAtomic(keys, ast,
-                            timestamp, result, records -> Paging
-                                    .paginate(records, Pages.from(page)),
-                            null, atomic));
-            return result;
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return Operations.selectKeysAstOptionalAtomic(store, keys, ast,
+                timestamp, Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -5941,61 +5473,44 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return selectKeysCriteriaOrder(keys, criteria, NO_ORDER, creds,
-                transaction, environment);
+        return selectKeysCriteriaOrderPage(keys, criteria, NO_ORDER, NO_PAGE,
+                creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrder(
             List<String> keys, TCriteria criteria, TOrder order,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDataset();
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeysAstAtomic(keys, ast, Time.NONE,
-                        result, null,
-                        $result -> $result.sort(
-                                Sorting.byValues(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrderPage(
-            List<String> keys, TCriteria criteria, TOrder order, TPage page,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        return Paging.paginate(
-                selectKeysCriteriaOrder(keys, criteria, order, creds,
-                        transaction, environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        return selectKeysCriteriaOrderPage(keys, criteria, order, NO_PAGE,
+                creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaPage(
-            List<String> keys, TCriteria criteria, TPage page,
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaOrderPage(
+            List<String> keys, TCriteria criteria, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDataset();
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeysAstAtomic(keys, ast, Time.NONE,
-                        result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeysAstAtomic(atomic, keys, ast,
+                        Orders.from(order), Pages.from(page), supplier));
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaPage(
+            List<String> keys, TCriteria criteria, TPage page,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysCriteriaOrderPage(keys, criteria, NO_ORDER, page,
+                creds, transaction, environment);
     }
 
     @Override
@@ -6004,43 +5519,35 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, TCriteria criteria, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return selectKeysCriteriaTimeOrder(keys, criteria, timestamp, NO_ORDER,
+        return selectKeysCriteriaTimePage(keys, criteria, timestamp, NO_PAGE,
                 creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrder(
+            List<String> keys, TCriteria criteria, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysCriteriaTimeOrderPage(keys, criteria, timestamp, order,
+                NO_PAGE, creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrder(
-            List<String> keys, TCriteria criteria, long timestamp, TOrder order,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        AbstractSyntaxTree ast = compiler.parse(criteria);
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDataset();
-        AtomicOperations
-                .executeWithRetry(store,
-                        atomic -> Operations.selectKeysAstAtomic(keys, ast,
-                                timestamp, result, null,
-                                $result -> $result.sort(Sorting.byValues(
-                                        Orders.from(order), atomic), timestamp),
-                                atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysCriteriaTimeOrderPage(
             List<String> keys, TCriteria criteria, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(
-                selectKeysCriteriaTimeOrder(keys, criteria, timestamp, order,
-                        creds, transaction, environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        AbstractSyntaxTree ast = compiler.parse(criteria);
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeysAstOptionalAtomic(atomic, keys,
+                        ast, timestamp, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
@@ -6053,13 +5560,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDataset();
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeysAstAtomic(keys, ast, timestamp,
-                        result,
-                        records -> Paging.paginate(records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return Operations.selectKeysAstOptionalAtomic(store, keys, ast,
+                timestamp, Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -6115,13 +5618,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             long record, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        Map<String, Set<TObject>> result = Maps.newLinkedHashMap();
-        AtomicOperations.executeWithRetry(store, (atomic) -> {
-            for (String key : keys) {
-                result.put(key, Stores.select(atomic, key, record));
-            }
+        return AtomicOperations.supplyWithRetry(store, atomic -> {
+            return Stores.select(atomic, keys, record);
         });
-        return result;
     }
 
     @Override
@@ -6130,7 +5629,17 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, List<Long> records, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return selectKeysRecordsOrder(keys, records, NO_ORDER, creds,
+        return selectKeysRecordsOrderPage(keys, records, NO_ORDER, NO_PAGE,
+                creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrder(
+            List<String> keys, List<Long> records, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysRecordsOrderPage(keys, records, order, NO_PAGE, creds,
                 transaction, environment);
     }
 
@@ -6138,53 +5647,26 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrder(
-            List<String> keys, List<Long> records, TOrder order,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
-                records.size());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeysRecordsAtomic(keys, records,
-                        result, null,
-                        $result -> $result.sort(
-                                Sorting.byValues(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOrderPage(
             List<String> keys, List<Long> records, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                selectKeysRecordsOrder(keys, records, order, creds, transaction,
-                        environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeysRecordsAtomic(atomic, keys,
+                        records, Orders.from(order), Pages.from(page),
+                        supplier));
     }
 
     @Override
     @TranslateClientExceptions
-    @VerifyAccessToken
-    @VerifyReadPermission
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsPage(
             List<String> keys, List<Long> records, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
-                records.size());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectKeysRecordsAtomic(keys, records,
-                        result,
-                        $records -> Paging.paginate($records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        return selectKeysRecordsOrderPage(keys, records, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -6193,41 +5675,34 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, List<Long> records, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return selectKeysRecordsTimeOrder(keys, records, timestamp, NO_ORDER,
+        return selectKeysRecordsTimePage(keys, records, timestamp, NO_PAGE,
                 creds, transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimeOrder(
+            List<String> keys, List<Long> records, long timestamp, TOrder order,
+            AccessToken creds, TransactionToken transaction, String environment)
+            throws TException {
+        return selectKeysRecordsTimeOrderPage(keys, records, timestamp, order,
+                NO_PAGE, creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimeOrder(
-            List<String> keys, List<Long> records, long timestamp, TOrder order,
-            AccessToken creds, TransactionToken transaction, String environment)
-            throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
-                records.size());
-        Operations.selectKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, null,
-                $result -> $result.sort(
-                        Sorting.byValues(Orders.from(order), store), timestamp),
-                store);
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectKeysRecordsTimeOrderPage(
             List<String> keys, List<Long> records, long timestamp, TOrder order,
             TPage page, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return Paging.paginate(
-                selectKeysRecordsTimeOrder(keys, records, timestamp, order,
-                        creds, transaction, environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectKeysRecordsOptionalAtomic(atomic,
+                        keys, records, timestamp, Orders.from(order),
+                        Pages.from(page), supplier));
     }
 
     @Override
@@ -6239,12 +5714,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
-                records.size());
-        Operations.selectKeysRecordsOptionalAtomic(keys, records, timestamp,
-                result, $records -> Paging.paginate($records, Pages.from(page)),
-                null, store);
-        return result;
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDataset();
+        return Operations.selectKeysRecordsOptionalAtomic(store, keys, records,
+                timestamp, Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -6301,12 +5773,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        Map<String, Set<TObject>> result = TMaps
-                .newLinkedHashMapWithCapacity(keys.size());
-        for (String key : keys) {
-            result.put(key, Stores.select(store, key, record, timestamp));
-        }
-        return result;
+        return Stores.select(store, keys, record, timestamp);
     }
 
     @Override
@@ -6335,41 +5802,34 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Map<String, Set<TObject>>> selectRecords(
             List<Long> records, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return selectRecordsOrder(records, NO_ORDER, creds, transaction,
-                environment);
+        return selectRecordsOrderPage(records, NO_ORDER, NO_PAGE, creds,
+                transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsOrder(
+            List<Long> records, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectRecordsOrderPage(records, order, NO_PAGE, creds,
+                transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectRecordsOrder(
-            List<Long> records, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
-                records.size());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectRecordsAtomic(records, result, null,
-                        $result -> $result.sort(
-                                Sorting.byValues(Orders.from(order), atomic)),
-                        atomic));
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsOrderPage(
             List<Long> records, TOrder order, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                selectRecordsOrder(records, order, creds, transaction,
-                        environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDatasetWithCapacity(
+                records.size());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectRecordsAtomic(atomic, records,
+                        Orders.from(order), Pages.from(page), supplier));
     }
 
     @Override
@@ -6380,14 +5840,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<Long> records, TPage page, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
-                records.size());
-        AtomicOperations.executeWithRetry(store,
-                atomic -> Operations.selectRecordsAtomic(records, result,
-                        $records -> Paging.paginate($records, Pages.from(page)),
-                        null, atomic));
-        return result;
+        return selectRecordsOrderPage(records, NO_ORDER, page, creds,
+                transaction, environment);
     }
 
     @Override
@@ -6396,40 +5850,35 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<Long> records, long timestamp, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return selectRecordsTimeOrder(records, timestamp, NO_ORDER, creds,
+        return selectRecordsTimePage(records, timestamp, NO_PAGE, creds,
                 transaction, environment);
+    }
+
+    @Override
+    @TranslateClientExceptions
+    public Map<Long, Map<String, Set<TObject>>> selectRecordsTimeOrder(
+            List<Long> records, long timestamp, TOrder order, AccessToken creds,
+            TransactionToken transaction, String environment)
+            throws TException {
+        return selectRecordsTimeOrderPage(records, timestamp, order, NO_PAGE,
+                creds, transaction, environment);
     }
 
     @Override
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
-    public Map<Long, Map<String, Set<TObject>>> selectRecordsTimeOrder(
-            List<Long> records, long timestamp, TOrder order, AccessToken creds,
-            TransactionToken transaction, String environment)
-            throws TException {
-        AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
-                records.size());
-        Operations.selectRecordsOptionalAtomic(records, timestamp, result, null,
-                $result -> $result.sort(
-                        Sorting.byValues(Orders.from(order), store), timestamp),
-                store);
-        return result;
-    }
-
-    @Override
-    @TranslateClientExceptions
     public Map<Long, Map<String, Set<TObject>>> selectRecordsTimeOrderPage(
             List<Long> records, long timestamp, TOrder order, TPage page,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return Paging.paginate(
-                selectRecordsTimeOrder(records, timestamp, order, creds,
-                        transaction, environment),
-                Pages.from(page), () -> emptySortableResultDataset(),
-                (map, entity) -> TMaps.putResultDatasetOptimized(map,
-                        entity.getKey(), entity.getValue()));
+        AtomicSupport store = getStore(transaction, environment);
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDatasetWithCapacity(
+                records.size());
+        return AtomicOperations.supplyWithRetry(store,
+                atomic -> Operations.selectRecordsOptionalAtomic(atomic,
+                        records, timestamp, Orders.from(order),
+                        Pages.from(page), supplier));
     }
 
     @Override
@@ -6441,12 +5890,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        SortableTable<Set<TObject>> result = emptySortableResultDatasetWithCapacity(
+        Supplier<SortableTable<Set<TObject>>> supplier = () -> emptySortableResultDatasetWithCapacity(
                 records.size());
-        Operations.selectRecordsOptionalAtomic(records, timestamp, result,
-                $records -> Paging.paginate($records, Pages.from(page)), null,
-                store);
-        return result;
+        return Operations.selectRecordsOptionalAtomic(store, records, timestamp,
+                Orders.from(NO_ORDER), Pages.from(page), supplier);
     }
 
     @Override
@@ -6619,19 +6066,14 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject sumKeyCcl(String key, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Number sum = Operations.sumKeyRecordsAtomic(key, records,
-                        Time.NONE, atomic);
-                return Convert.javaToThrift(sum);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Number sum = Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
+                    atomic);
+            return Convert.javaToThrift(sum);
+        });
     }
 
     @Override
@@ -6641,19 +6083,14 @@ public class ConcourseServer extends BaseConcourseServer implements
     public TObject sumKeyCclTime(String key, String ccl, long timestamp,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        try {
-            AbstractSyntaxTree ast = compiler.parse(ccl);
-            AtomicSupport store = getStore(transaction, environment);
-            return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-                Set<Long> records = ast.accept(Finder.instance(), atomic);
-                Number sum = Operations.sumKeyRecordsAtomic(key, records,
-                        timestamp, atomic);
-                return Convert.javaToThrift(sum);
-            });
-        }
-        catch (Exception e) {
-            throw new ParseException(e.getMessage());
-        }
+        AbstractSyntaxTree ast = compiler.parse(ccl);
+        AtomicSupport store = getStore(transaction, environment);
+        return AtomicOperations.supplyWithRetry(store, (atomic) -> {
+            Set<Long> records = ast.accept(Finder.instance(), atomic);
+            Number sum = Operations.sumKeyRecordsAtomic(key, records, timestamp,
+                    atomic);
+            return Convert.javaToThrift(sum);
+        });
     }
 
     @Override

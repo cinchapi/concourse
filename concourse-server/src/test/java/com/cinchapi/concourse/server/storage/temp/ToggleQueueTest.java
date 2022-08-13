@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,15 +48,20 @@ public class ToggleQueueTest extends QueueTest {
         Write add = Write.add("name", Convert.javaToThrift("jeff"), 1);
         Write remove = Write.remove("name", Convert.javaToThrift("jeff"), 1);
         ToggleQueue queue = (ToggleQueue) store;
+        List<Write> writes = queue.getWrites();
         long version = CommitVersions.next();
         queue.insert(remove.rewrite(version));
         Assert.assertEquals(1, Iterators.size(queue.iterator()));
+        Assert.assertEquals(1, Iterators.size(writes.iterator()));
         queue.insert(add.rewrite(version));
-        Assert.assertEquals(0, Iterators.size(queue.iterator()));
-        queue.insert(remove);
-        Assert.assertEquals(1, Iterators.size(queue.iterator()));
-        queue.insert(add);
         Assert.assertEquals(2, Iterators.size(queue.iterator()));
+        Assert.assertEquals(0, Iterators.size(writes.iterator()));
+        queue.insert(remove);
+        Assert.assertEquals(3, Iterators.size(queue.iterator()));
+        Assert.assertEquals(1, Iterators.size(writes.iterator()));
+        queue.insert(add);
+        Assert.assertEquals(4, Iterators.size(queue.iterator()));
+        Assert.assertEquals(0, Iterators.size(writes.iterator()));
     }
 
     @Test

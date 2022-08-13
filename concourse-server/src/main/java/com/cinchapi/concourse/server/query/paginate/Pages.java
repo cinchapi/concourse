@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public final class Pages {
      * @return the corresponding {@link Page}
      */
     public static Page from(TPage tpage) {
-        return JavaThriftBridge.convert(tpage);
+        return tpage == null ? Page.none() : JavaThriftBridge.convert(tpage);
     }
 
     private Pages() {/* no-init */}

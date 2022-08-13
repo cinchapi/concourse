@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,17 @@ import java.util.AbstractMap.SimpleEntry;
  * @author Jeff Nelson
  */
 public class KeyValue<K, V> extends SimpleEntry<K, V> {
+
+    /**
+     * Return a new {@link KeyValue} mapping {@code key} to {@code value}.
+     * 
+     * @param key
+     * @param value
+     * @return the {@link KeyValue}.
+     */
+    public static <K, V> KeyValue<K, V> of(K key, V value) {
+        return new KeyValue<>(key, value);
+    }
 
     private static final long serialVersionUID = 1L;
 

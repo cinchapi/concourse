@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,8 +100,8 @@ public final class Value implements Byteable, Comparable<Value> {
      */
     public static Value fromByteBuffer(ByteBuffer bytes) {
         Type type = Type.values()[bytes.get()];
-        TObject data = extractTObjectAndCache(bytes, type);
-        return new Value(data, bytes);
+        TObject data = createTObject(bytes, type);
+        return new Value(data);
     }
 
     /**
@@ -162,7 +162,7 @@ public final class Value implements Byteable, Comparable<Value> {
      * @param type
      * @return the TObject
      */
-    private static TObject extractTObjectAndCache(ByteBuffer bytes, Type type) {
+    private static TObject createTObject(ByteBuffer bytes, Type type) {
         // Must allocate a heap buffer because TObject assumes it has a
         // backing array and because of THRIFT-2104 that buffer must wrap a
         // byte array in order to assume that the TObject does not lose data
@@ -189,13 +189,6 @@ public final class Value implements Byteable, Comparable<Value> {
 
     /**
      * A cached copy of the binary representation that is returned from
-     * {@link #getBytes()}.
-     */
-    @Nullable
-    private transient ByteBuffer bytes = null;
-
-    /**
-     * A cached copy of the binary representation that is returned from
      * {@link #getCanonicalBytes()}.
      */
     @Nullable
@@ -219,20 +212,10 @@ public final class Value implements Byteable, Comparable<Value> {
      * Construct a new instance.
      * 
      * @param data
-     */
-    private Value(TObject data) {
-        this(data, null);
-    }
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param data
      * @param bytes
      */
-    private Value(TObject data, @Nullable ByteBuffer bytes) {
+    private Value(TObject data) {
         this.data = data;
-        this.bytes = bytes;
     }
 
     @Override
@@ -295,8 +278,8 @@ public final class Value implements Byteable, Comparable<Value> {
 
     @Override
     public void copyTo(ByteSink sink) {
-        sink.put((byte) data.getType().ordinal());
-        sink.put(data.bufferForData());
+        sink.put((byte) data.getType().ordinal()); // type
+        sink.put(data.bufferForData()); // data
     }
 
     @Override
@@ -332,24 +315,6 @@ public final class Value implements Byteable, Comparable<Value> {
         else {
             return equals(obj);
         }
-    }
-
-    /**
-     * Return a byte buffer that represents this Value with the following order:
-     * <ol>
-     * <li><strong>type</strong> - position 0</li>
-     * <li><strong>data</strong> - position 1</li>
-     * </ol>
-     * 
-     * @return the ByteBuffer representation
-     */
-    @Override
-    public ByteBuffer getBytes() {
-        if(bytes == null) {
-            bytes = Byteable.super.getBytes();
-            bytes.rewind();
-        }
-        return ByteBuffers.asReadOnlyBuffer(bytes);
     }
 
     @Override

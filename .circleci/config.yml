@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2021 Cinchapi Inc.
+# Copyright (c) 2013-2022 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@
 
 version: 2.1
 orbs:
-  ruby: circleci/ruby@1.1.4
+  ruby: circleci/ruby@1.8.0
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:8-jdk-browsers
+      - image: cimg/openjdk:8.0.322
     resource_class: xlarge
     environment:
       GRADLE_OPTS: "-Djenkins=true -Xmx8192m"

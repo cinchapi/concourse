@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
@@ -24,6 +26,8 @@ import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Numbers;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Strings;
 
@@ -504,6 +508,48 @@ public class TransactionWorkflowTest extends ConcourseIntegrationTest {
         t1.join();
         Assert.assertFalse(committed.get());
         Assert.assertFalse(client.select("name", 1).contains("Ron"));
+    }
+
+    @Test
+    public void testToggledWriteConsolidation() {
+        int number = Random.getScaleCount();
+        int even;
+        int odd;
+        if(Numbers.isEven(number)) {
+            even = number;
+            odd = number + 1;
+        }
+        else {
+            even = number + 1;
+            odd = number;
+        }
+        client.stage();
+        boolean add = true;
+        for (int i = 0; i < even; ++i) {
+            if(add) {
+                client.add("name", "jeff", 1);
+            }
+            else {
+                client.remove("name", "jeff", 1);
+            }
+            add = !add;
+        }
+        add = true;
+        for (int i = 0; i < odd; ++i) {
+            if(add) {
+                client.add("age", 34, 1);
+            }
+            else {
+                client.remove("age", 34, 1);
+            }
+            add = !add;
+        }
+        Assert.assertTrue(client.commit());
+        Map<Timestamp, List<String>> nameReview = client.review("name", 1);
+        Map<Timestamp, List<String>> ageReview = client.review("age", 1);
+        Assert.assertEquals(0, nameReview.size());
+        Assert.assertEquals(1, ageReview.size());
+        Assert.assertEquals(1, ageReview.values().iterator().next().size());
     }
 
 }

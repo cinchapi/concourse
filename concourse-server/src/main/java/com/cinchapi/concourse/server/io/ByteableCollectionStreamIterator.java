@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.collect.CloseableIterator;
+import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.Preconditions;
 
 /**
@@ -218,13 +219,53 @@ class ByteableCollectionStreamIterator implements
      */
     private void read(int size) {
         try {
-            buffer = channel.map(MapMode.READ_ONLY, position, size);
-            slice = buffer.duplicate();
-            position += buffer.capacity();
+            buffer = readMemoryMapped(size);
+        }
+        catch (IOException e) {
+            Logger.warn(
+                    "An error occurred when trying to stream a byteable collection using a memory mapped file",
+                    e);
+            buffer = readFromDisk(size);
+        }
+        position += buffer.remaining();
+        slice = buffer.duplicate();
+    }
+
+    /**
+     * Read {@code size} bytes into a new {@link ByteBuffer} from
+     * {@link #position} in {@code channel} using disk-based IO. The
+     * {@link #position} of this stream is unchanged.
+     * 
+     * @param size
+     * @return a {@link ByteBuffer} with the read content
+     * @throws IOException
+     */
+    private ByteBuffer readFromDisk(int size) {
+        try {
+            ByteBuffer buffer = ByteBuffer.allocate(size);
+            while (buffer.hasRemaining() && channel.read(buffer,
+                    position + buffer.position()) >= 0) {
+                continue;
+            }
+            buffer.flip();
+            return buffer;
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
+    }
+
+    /**
+     * Read {@code size} bytes into a new {@link ByteBuffer} from
+     * {@link #position} in {@code channel} by memory-mapping the file. The
+     * {@link #position} of this stream is unchanged.
+     * 
+     * @param size
+     * @return a {@link ByteBuffer} with the read content
+     * @throws IOException
+     */
+    private ByteBuffer readMemoryMapped(int size) throws IOException {
+        return channel.map(MapMode.READ_ONLY, position, size);
     }
 
 }

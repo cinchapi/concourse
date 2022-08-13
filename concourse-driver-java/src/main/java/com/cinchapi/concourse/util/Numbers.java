@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,17 @@ public abstract class Numbers {
      * @return the sum of {@code a} and {@code b}.
      */
     public static Number add(Number a, Number b) {
-        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
+        boolean floatingPointA = Numbers.isFloatingPoint(a);
+        boolean floatingPointB = Numbers.isFloatingPoint(b);
+        if((!floatingPointA && a.longValue() == 0)
+                || (floatingPointA && a.doubleValue() == (double) 0)) {
+            return b;
+        }
+        else if((!floatingPointB && b.longValue() == 0)
+                || (floatingPointB && b.doubleValue() == (double) 0)) {
+            return a;
+        }
+        else if(floatingPointA || floatingPointB) {
             BigDecimal a0 = Numbers.toBigDecimal(a);
             BigDecimal b0 = Numbers.toBigDecimal(b);
             return a0.add(b0);
@@ -127,10 +137,15 @@ public abstract class Numbers {
      * @return the division result of {@code a} by {@code b}.
      */
     public static Number divide(Number a, Number b) {
-        BigDecimal a0 = Numbers.toBigDecimal(a);
-        BigDecimal b0 = Numbers.toBigDecimal(b);
-        return a0.divide(b0, DIVISION_NUMBER_DECIMAL_PLACES,
-                RoundingMode.HALF_UP);
+        if(b.longValue() == 1 || b.doubleValue() == (double) 1) {
+            return a;
+        }
+        else {
+            BigDecimal a0 = Numbers.toBigDecimal(a);
+            BigDecimal b0 = Numbers.toBigDecimal(b);
+            return a0.divide(b0, DIVISION_NUMBER_DECIMAL_PLACES,
+                    RoundingMode.HALF_UP);
+        }
     }
 
     /**
@@ -336,7 +351,17 @@ public abstract class Numbers {
      * @return the product of {@code a} and {@code b}.
      */
     public static Number multiply(Number a, Number b) {
-        if(Numbers.isFloatingPoint(a) || Numbers.isFloatingPoint(b)) {
+        boolean floatingPointA = Numbers.isFloatingPoint(a);
+        boolean floatingPointB = Numbers.isFloatingPoint(b);
+        if((!floatingPointA && a.longValue() == 1)
+                || (floatingPointA && a.doubleValue() == (double) 1)) {
+            return b;
+        }
+        else if((!floatingPointB && b.longValue() == 1)
+                || (floatingPointB && b.doubleValue() == (double) 1)) {
+            return a;
+        }
+        else if(floatingPointA || floatingPointB) {
             BigDecimal a0 = Numbers.toBigDecimal(a);
             BigDecimal b0 = Numbers.toBigDecimal(b);
             return a0.multiply(b0);
