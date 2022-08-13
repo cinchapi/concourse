@@ -1,5 +1,20 @@
 ## Changelog
 
+#### Version 0.12.0 (TBD)
+
+##### YAML Configuration
+* Concourse now supports YAML configuration files. Going forward, YAML files are preferred over preferences files for configuration.
+	* Concourse Server can be configured with `concourse.yaml` and `concourse.yaml.dev` files.
+	* Concourse Shell and other Java Driver based clients can be configured with a `concourse_client.yaml` file.
+	* Usage of `concourse.prefs`, `concourse.prefs.dev` and `concourse_client.prefs` is now deprecated.
+* Existing configuration defined in `.prefs` files is still recognized and backwards compatability is fully preserved.
+* Configuration that is defined in `.yaml` files take precedence over configuration defined in `.prefs` files, with the exception that `concourse.prefs.dev` takes precedence over `concourse.yaml` to honor the convention of prioritizing dev configuration.
+* The stock `concourse.prefs` file will no longer be updated when new configuration options are available. All new configuration templates will be defined in the stock `concourse.yaml` file.
+* Concourse Server will not automatically migrate custom configuration from `.prefs` files to the corresponding `.yaml` files. While `.prefs` files are still functional, users are encouraged to manually copy custom configuration to the new format in case support for `.prefs` files goes away at a future date.
+
+##### API Breaks and Deprecations
+* Usage of `concourse.prefs`, `concourse.prefs.dev` and `concourse_client.prefs` is deprecated in favor of `concourse.yaml`, `concourse.yaml.dev` and `concourse_client.yaml` respectively.
+
 #### Version 0.11.4 (July 4, 2022)
 * Slightly improved the performance of result sorting by removing unnecessary intermediate data gathering.
 * Improved random access performance for all result sets.
