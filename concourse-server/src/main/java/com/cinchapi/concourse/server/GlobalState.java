@@ -331,7 +331,9 @@ public final class GlobalState extends Constants {
     static {
         List<String> files = ImmutableList.of(
                 "conf" + File.separator + "concourse.prefs",
-                "conf" + File.separator + "concourse.prefs.dev");
+                "conf" + File.separator + "concourse.yaml",
+                "conf" + File.separator + "concourse.prefs.dev",
+                "conf" + File.separator + "concourse.yaml.dev");
         ConcourseServerPreferences config = ConcourseServerPreferences
                 .from(files.stream()
                         .map(file -> Paths.get(FileSystem.expandPath(file)))
