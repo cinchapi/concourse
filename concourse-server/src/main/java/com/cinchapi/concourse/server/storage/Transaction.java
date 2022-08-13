@@ -42,6 +42,9 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.ensemble.Ensemble;
+import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
+import com.cinchapi.ensemble.core.LocalProcess;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -57,7 +60,8 @@ import com.google.common.collect.Multimap;
  * @author Jeff Nelson
  */
 public final class Transaction extends AtomicOperation implements
-        AtomicSupport {
+        AtomicSupport,
+        Ensemble {
     // NOTE: Because Transaction's rely on JIT locking, the unsafe methods call
     // the safe counterparts in the super class (AtomicOperation) because those
     // have logic to tell the BufferedStore class to perform unsafe reads.
@@ -141,6 +145,40 @@ public final class Transaction extends AtomicOperation implements
         this(destination);
         deserialize(bytes);
         open.set(false);
+    }
+
+    @Override
+    public void $ensembleAbortAtomic(EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
+        atomic.abort();
+    }
+
+    @Override
+    public void $ensembleFinishCommitAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
+        atomic.finish();
+    }
+
+    @Override
+    public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
+        return EnsembleInstanceIdentifier.of(id);
+    }
+
+    @Override
+    public boolean $ensemblePrepareCommitAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
+        return atomic.commit();
+    }
+
+    @Override
+    public EnsembleInstanceIdentifier $ensembleStartAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = new TwoPhaseCommit(identifier, this,
+                ((Engine) durable).lockService,
+                ((Engine) durable).rangeLockService);
+        return atomic.$ensembleInstanceIdentifier();
     }
 
     @Override

@@ -17,6 +17,8 @@ package com.cinchapi.concourse.server.storage;
 
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
+import com.cinchapi.ensemble.Ensemble;
+import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 
 /**
  * An {@link AtomicOperation} that implements the
@@ -36,10 +38,20 @@ import com.cinchapi.concourse.server.concurrent.RangeLockService;
  * transaction as "finished" (in lieu of instructing participants to rollback
  * changes).
  * </p>
+ * <p>
+ * This construct is necessary to support distributed atomic operations using
+ * the {@link Ensemble} framework.
+ * </p>
  *
  * @author Jeff Nelson
  */
-public class TwoPhaseCommit extends AtomicOperation {
+class TwoPhaseCommit extends AtomicOperation implements Ensemble {
+
+    /**
+     * The {@link EnsembleInstanceIdentifier} that is assigned when
+     * {@link Engine#$ensembleStartAtomic(EnsembleInstanceIdentifier)}.
+     */
+    private final EnsembleInstanceIdentifier identifier;
 
     /**
      * Construct a new instance.
@@ -48,9 +60,11 @@ public class TwoPhaseCommit extends AtomicOperation {
      * @param lockService
      * @param rangeLockService
      */
-    protected TwoPhaseCommit(AtomicSupport destination, LockService lockService,
+    protected TwoPhaseCommit(EnsembleInstanceIdentifier identifier,
+            AtomicSupport destination, LockService lockService,
             RangeLockService rangeLockService) {
         super(destination, lockService, rangeLockService);
+        this.identifier = identifier;
     }
 
     @Override
@@ -81,5 +95,10 @@ public class TwoPhaseCommit extends AtomicOperation {
 
     @Override
     protected void releaseLocks() {/* no-op */}
+
+    @Override
+    public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
+        return identifier;
+    }
 
 }

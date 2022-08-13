@@ -60,6 +60,9 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.ensemble.Ensemble;
+import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
+import com.cinchapi.ensemble.core.LocalProcess;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -84,7 +87,8 @@ import com.google.common.collect.TreeRangeSet;
 @ThreadSafe
 public final class Engine extends BufferedStore implements
         TransactionSupport,
-        AtomicSupport {
+        AtomicSupport,
+        Ensemble {
 
     //
     // NOTES ON LOCKING:
@@ -328,6 +332,39 @@ public final class Engine extends BufferedStore implements
         buffer.setThreadNamePrefix(environment + "-buffer");
         buffer.setEnvironment(environment);
         database.tag(environment);
+    }
+
+    @Override
+    public void $ensembleAbortAtomic(EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
+        atomic.abort();
+    }
+
+    @Override
+    public void $ensembleFinishCommitAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
+        atomic.finish();
+    }
+
+    @Override
+    public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
+        return EnsembleInstanceIdentifier.of(environment);
+    }
+
+    @Override
+    public boolean $ensemblePrepareCommitAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
+        return atomic.commit();
+    }
+
+    @Override
+    public EnsembleInstanceIdentifier $ensembleStartAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = new TwoPhaseCommit(identifier, this,
+                lockService, rangeLockService);
+        return atomic.$ensembleInstanceIdentifier();
     }
 
     @Override
@@ -1174,4 +1211,5 @@ public final class Engine extends BufferedStore implements
 
         }
     }
+
 }
