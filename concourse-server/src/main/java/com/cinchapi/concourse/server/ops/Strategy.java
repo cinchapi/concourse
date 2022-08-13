@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,12 +62,16 @@ public class Strategy {
         // TODO: The notion of a "wide" operation should be extended to case
         // when the majority (or significant number) of, but not all keys are
         // involved with an operation.
+        boolean isHistoricalOperation = command.operationTimestamp() != null;
         boolean isWideOperation = command.operationKeys().isEmpty()
                 && !command.operation().startsWith("find");
         boolean isConditionKey = command.conditionKeys().contains(key);
         boolean isOrderKey = command.orderKeys().contains(key);
+        boolean isKeyRequiringTimestampRetrieval = command
+                .keysRequiringTimestampRetrieval().containsKey(key)
+                || (isOrderKey && isHistoricalOperation);
         Source source;
-        if((isConditionKey || isOrderKey)
+        if((isConditionKey || isOrderKey) && !isKeyRequiringTimestampRetrieval
                 && command.operationRecords().size() != 1) {
             // The IndexRecord must be loaded to evaluate the condition, so
             // leverage it to gather the values for key/record

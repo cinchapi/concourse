@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.bugrepro;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -38,8 +39,12 @@ public class CON473 extends ConcourseIntegrationTest {
             int incremented = i + 1;
             client.verifyAndSwap("count", i, 1, incremented);
         }
-        Map<Timestamp, String> audit = client.audit(1);
-        Assert.assertEquals((target * 2) + 1, audit.size());
+        Map<Timestamp, List<String>> review = client.review(1);
+        int actual = 0;
+        for (List<String> writes : review.values()) {
+            actual += writes.size();
+        }
+        Assert.assertEquals((target * 2) + 1, actual);
     }
 
 }

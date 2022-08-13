@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
  */
 package com.cinchapi.concourse.data.transform;
 
-import java.util.AbstractMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
 import com.cinchapi.concourse.data.Projection;
 import com.cinchapi.concourse.thrift.TObject;
@@ -32,7 +30,8 @@ import com.cinchapi.concourse.util.PrettyLinkedHashMap;
  *
  * @author Jeff Nelson
  */
-public class DataProjection<T> extends AbstractMap<T, Set<Long>> implements
+public class DataProjection<T>
+        extends PrettyTransformMap<TObject, T, Set<Long>, Set<Long>> implements
         Projection<T> {
 
     /**
@@ -49,54 +48,28 @@ public class DataProjection<T> extends AbstractMap<T, Set<Long>> implements
     }
 
     /**
-     * The data that must be transformed.
-     */
-    private final Map<TObject, Set<Long>> data;
-
-    /**
-     * A cache of the prettified results
-     */
-    private Map<T, Set<Long>> pretty = null;
-
-    /**
-     * A cache of the transformed, but unpretty results.
-     */
-    private Map<T, Set<Long>> transformed = null;
-
-    /**
      * Construct a new instance.
      * 
      * @param data
      */
     private DataProjection(Map<TObject, Set<Long>> data) {
-        this.data = data;
+        super(data);
+    }
+
+    @Override
+    protected Supplier<Map<T, Set<Long>>> $prettyMapSupplier() {
+        return () -> PrettyLinkedHashMap.create("Value", "Records");
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Set<Entry<T, Set<Long>>> entrySet() {
-        if(transformed == null) {
-            transformed = data.entrySet().stream().map(entry -> {
-                return new SimpleImmutableEntry<>(
-                        (T) Convert.thriftToJava(entry.getKey()),
-                        entry.getValue());
-            }).collect(Collectors.toMap(Entry::getKey, Entry::getValue,
-                    (e1, e2) -> e2, LinkedHashMap::new));
-        }
-        return transformed.entrySet();
+    protected T transformKey(TObject key) {
+        return (T) Convert.thriftToJava(key);
     }
 
     @Override
-    public String toString() {
-        if(pretty == null) {
-            Map<T, Set<Long>> $pretty = PrettyLinkedHashMap.create("Value",
-                    "Records");
-            entrySet().forEach(
-                    entry -> $pretty.put(entry.getKey(), entry.getValue()));
-            pretty = $pretty;
-            transformed = pretty;
-        }
-        return pretty.toString();
+    protected Set<Long> transformValue(Set<Long> value) {
+        return value;
     }
 
 }

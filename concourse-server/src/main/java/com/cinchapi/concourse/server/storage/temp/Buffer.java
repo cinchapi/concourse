@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,10 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -376,38 +378,6 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public Map<Long, String> audit(long record) {
-        Iterator<Write> it = iterator(record, Time.NONE);
-        try {
-            Map<Long, String> audit = Maps.newTreeMap();
-            while (it.hasNext()) {
-                Write write = it.next();
-                audit.put(write.getVersion(), write.toString());
-            }
-            return audit;
-        }
-        finally {
-            Iterators.close(it);
-        }
-    }
-
-    @Override
-    public Map<Long, String> audit(String key, long record) {
-        Iterator<Write> it = iterator(key, record, Time.NONE);
-        try {
-            Map<Long, String> audit = Maps.newTreeMap();
-            while (it.hasNext()) {
-                Write write = it.next();
-                audit.put(write.getVersion(), write.toString());
-            }
-            return audit;
-        }
-        finally {
-            Iterators.close(it);
-        }
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browse(String key, long timestamp,
             Map<TObject, Set<Long>> context) {
         Iterator<Write> it = iterator(key, timestamp);
@@ -441,7 +411,7 @@ public final class Buffer extends Limbo {
                 Sets.<TObject> newLinkedHashSet());
         if(snapshot.isEmpty() && !context.isEmpty()) {
             // CON-474: Empty set is placed in the context if it was the last
-            // snapshot know to the database
+            // snapshot known to the database
             context.remove(Time.NONE);
         }
         Iterator<Write> it = iterator(key, record, end - 1);
@@ -449,25 +419,24 @@ public final class Buffer extends Limbo {
             while (it.hasNext()) {
                 Write write = it.next();
                 long timestamp = write.getVersion();
-                Text writtenKey = write.getKey();
-                long writtenRecordId = write.getRecord().longValue();
+                Text $key = write.getKey();
+                long $record = write.getRecord().longValue();
                 Action action = write.getType();
-                if(writtenKey.toString().equals(key)
-                        && writtenRecordId == record) {
+                if($key.toString().equals(key) && $record == record) {
                     snapshot = Sets.newLinkedHashSet(snapshot);
-                    Value newValue = write.getValue();
+                    Value value = write.getValue();
                     if(action == Action.ADD) {
-                        snapshot.add(newValue.getTObject());
+                        snapshot.add(value.getTObject());
                     }
                     else if(action == Action.REMOVE) {
-                        snapshot.remove(newValue.getTObject());
+                        snapshot.remove(value.getTObject());
                     }
-                    if(timestamp >= start && !snapshot.isEmpty()) {
+                    if(timestamp >= start) {
                         context.put(timestamp, snapshot);
                     }
                 }
             }
-            return context;
+            return Maps.filterValues(context, emptySetFilter);
         }
         finally {
             Iterators.close(it);
@@ -617,6 +586,40 @@ public final class Buffer extends Limbo {
     }
 
     @Override
+    public Map<Long, List<String>> review(long record) {
+        Iterator<Write> it = iterator(record, Time.NONE);
+        try {
+            Map<Long, List<String>> review = new LinkedHashMap<>();
+            while (it.hasNext()) {
+                Write write = it.next();
+                review.computeIfAbsent(write.getVersion(),
+                        $ -> new ArrayList<>()).add(write.toString());
+            }
+            return review;
+        }
+        finally {
+            Iterators.close(it);
+        }
+    }
+
+    @Override
+    public Map<Long, List<String>> review(String key, long record) {
+        Iterator<Write> it = iterator(key, record, Time.NONE);
+        try {
+            Map<Long, List<String>> review = new LinkedHashMap<>();
+            while (it.hasNext()) {
+                Write write = it.next();
+                review.computeIfAbsent(write.getVersion(),
+                        $ -> new ArrayList<>()).add(write.toString());
+            }
+            return review;
+        }
+        finally {
+            Iterators.close(it);
+        }
+    }
+
+    @Override
     public Map<String, Set<TObject>> select(long record, long timestamp,
             Map<String, Set<TObject>> context) {
         Iterator<Write> it = iterator(record, timestamp);
@@ -725,6 +728,7 @@ public final class Buffer extends Limbo {
                     Logger.info("Loading Buffer content from {}...", page);
                 }
             }
+            pages.clear();
             pages.addAll(pageSorter.values());
             if(pages.isEmpty()) {
                 addPage(false);

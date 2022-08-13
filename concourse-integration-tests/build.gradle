@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ dependencies {
 
     testCompile project(':concourse-shell')
     testCompile 'junit:junit:4.11'
-    testCompile 'org.xerial:sqlite-jdbc:3.7.2'
+    testCompile 'org.xerial:sqlite-jdbc:3.36.0.3'
     testCompile 'com.squareup.okhttp:okhttp:2.3.0'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'
     testCompile project(':concourse-unit-test-core')

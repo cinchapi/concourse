@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.ops;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 
 /**
  * A collection of wrapper functions for executing an {@link AtomicOperation}
@@ -58,7 +59,7 @@ public final class AtomicOperations {
             AtomicSupplier<T> supplier) {
         AtomicOperation atomic = null;
         T value = null;
-        while (atomic == null || !atomic.commit()) {
+        while (atomic == null || !atomic.commit(CommitVersions.next())) {
             atomic = store.startAtomicOperation();
             try {
                 value = supplier.supply(atomic);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,14 @@
  */
 package com.cinchapi.concourse.server.storage.db.compaction;
 
+import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.cinchapi.concourse.server.storage.db.SegmentStorageSystem;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
+import com.google.common.collect.ImmutableList;
 
 /**
  * A {@link Compactor} that doesn't do anything.
@@ -30,7 +34,36 @@ public final class NoOpCompactor extends Compactor {
     /**
      * Singleton.
      */
-    private static NoOpCompactor INSTANCE;
+    private static NoOpCompactor INSTANCE = new NoOpCompactor(
+            new SegmentStorageSystem() {
+
+                @Override
+                public long availableDiskSpace() {
+                    return 0;
+                }
+
+                @Override
+                public Lock lock() {
+                    return new ReentrantLock();
+                }
+
+                @Override
+                public Path save(Segment segment) {
+                    throw new UnsupportedOperationException(
+                            "Cannot save " + segment);
+                }
+
+                @Override
+                public List<Segment> segments() {
+                    return ImmutableList.of();
+                }
+
+                @Override
+                public long totalDiskSpace() {
+                    return 0;
+                }
+
+            });
 
     /**
      * Return a {@link NoOpCompactor}

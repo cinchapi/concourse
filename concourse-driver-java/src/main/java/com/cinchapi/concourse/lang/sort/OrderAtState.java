@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class OrderAtState extends BuildableOrderState implements
      */
     protected OrderAtState(BuiltOrder order, String key, Timestamp timestamp) {
         super(order);
-        order.set(key, timestamp);
+        order.append(timestamp);
     }
 
     @Override

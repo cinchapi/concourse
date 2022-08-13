@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.cinchapi.concourse.data.sort;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.EmptyOperationException;
 import com.cinchapi.concourse.data.Table;
 import com.google.common.collect.ForwardingMap;
 
@@ -88,13 +89,19 @@ public interface SortableTable<V> extends Sortable<V>, Table<V> {
 
         @Override
         public void sort(Sorter<V> sorter) {
-            delegate = sorter.sort(delegate());
+            try {
+                delegate = sorter.organize(delegate);
+            }
+            catch (EmptyOperationException e) {}
 
         }
 
         @Override
         public void sort(Sorter<V> sorter, long at) {
-            delegate = sorter.sort(delegate(), at);
+            try {
+                delegate = sorter.organize(delegate, at);
+            }
+            catch (EmptyOperationException e) {}
         }
 
         @Override

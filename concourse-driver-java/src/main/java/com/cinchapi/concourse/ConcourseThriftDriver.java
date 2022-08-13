@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -284,111 +284,6 @@ class ConcourseThriftDriver extends Concourse {
         return execute(
                 () -> core.addKeyValueRecord(key, Convert.javaToThrift(value),
                         record, creds, transaction, environment));
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(long record) {
-        return execute(() -> {
-            Map<Long, String> audit = core.auditRecord(record, creds,
-                    transaction, environment);
-            return PrettyLinkedHashMap.of(
-                    Transformers.transformMap(audit,
-                            Conversions.timestampToMicros()),
-                    "DateTime", "Revision");
-        });
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(long record, Timestamp start) {
-        return execute(() -> {
-            Map<Long, String> audit;
-            if(start.isString()) {
-                audit = core.auditRecordStartstr(record, start.toString(),
-                        creds, transaction, environment);
-            }
-            else {
-                audit = core.auditRecordStart(record, start.getMicros(), creds,
-                        transaction, environment);
-            }
-            return PrettyLinkedHashMap.of(
-                    Transformers.transformMap(audit,
-                            Conversions.timestampToMicros()),
-                    "DateTime", "Revision");
-        });
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(long record, Timestamp start,
-            Timestamp end) {
-        return execute(() -> {
-            Map<Long, String> audit;
-            if(start.isString()) {
-                audit = core.auditRecordStartstrEndstr(record, start.toString(),
-                        end.toString(), creds, transaction, environment);
-            }
-            else {
-                audit = core.auditRecordStartEnd(record, start.getMicros(),
-                        end.getMicros(), creds, transaction, environment);
-            }
-            return PrettyLinkedHashMap.of(
-                    Transformers.transformMap(audit,
-                            Conversions.timestampToMicros()),
-                    "DateTime", "Revision");
-        });
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(String key, long record) {
-        return execute(() -> {
-            Map<Long, String> audit = core.auditKeyRecord(key, record, creds,
-                    transaction, environment);
-            return PrettyLinkedHashMap.of(
-                    Transformers.transformMap(audit,
-                            Conversions.timestampToMicros()),
-                    "DateTime", "Revision");
-        });
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(String key, long record,
-            Timestamp start) {
-        return execute(() -> {
-            Map<Long, String> audit;
-            if(start.isString()) {
-                audit = core.auditKeyRecordStartstr(key, record,
-                        start.toString(), creds, transaction, environment);
-            }
-            else {
-                audit = core.auditKeyRecordStart(key, record, start.getMicros(),
-                        creds, transaction, environment);
-            }
-            return PrettyLinkedHashMap.of(
-                    Transformers.transformMap(audit,
-                            Conversions.timestampToMicros()),
-                    "DateTime", "Revision");
-        });
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(String key, long record,
-            Timestamp start, Timestamp end) {
-        return execute(() -> {
-            Map<Long, String> audit;
-            if(start.isString()) {
-                audit = core.auditKeyRecordStartstrEndstr(key, record,
-                        start.toString(), end.toString(), creds, transaction,
-                        environment);
-            }
-            else {
-                audit = core.auditKeyRecordStartEnd(key, record,
-                        start.getMicros(), end.getMicros(), creds, transaction,
-                        environment);
-            }
-            return PrettyLinkedHashMap.of(
-                    Transformers.transformMap(audit,
-                            Conversions.timestampToMicros()),
-                    "DateTime", "Revision");
-        });
     }
 
     @Override
@@ -2683,6 +2578,112 @@ class ConcourseThriftDriver extends Concourse {
                         creds, transaction, environment);
             }
             return null;
+        });
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(long record) {
+        return execute(() -> {
+            Map<Long, List<String>> review = core.reviewRecord(record, creds,
+                    transaction, environment);
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(review,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
+        });
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(long record, Timestamp start) {
+        return execute(() -> {
+            Map<Long, List<String>> review;
+            if(start.isString()) {
+                review = core.reviewRecordStartstr(record, start.toString(),
+                        creds, transaction, environment);
+            }
+            else {
+                review = core.reviewRecordStart(record, start.getMicros(),
+                        creds, transaction, environment);
+            }
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(review,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
+        });
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(long record, Timestamp start,
+            Timestamp end) {
+        return execute(() -> {
+            Map<Long, List<String>> review;
+            if(start.isString()) {
+                review = core.reviewRecordStartstrEndstr(record,
+                        start.toString(), end.toString(), creds, transaction,
+                        environment);
+            }
+            else {
+                review = core.reviewRecordStartEnd(record, start.getMicros(),
+                        end.getMicros(), creds, transaction, environment);
+            }
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(review,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
+        });
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(String key, long record) {
+        return execute(() -> {
+            Map<Long, List<String>> review = core.reviewKeyRecord(key, record,
+                    creds, transaction, environment);
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(review,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
+        });
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(String key, long record,
+            Timestamp start) {
+        return execute(() -> {
+            Map<Long, List<String>> review;
+            if(start.isString()) {
+                review = core.reviewKeyRecordStartstr(key, record,
+                        start.toString(), creds, transaction, environment);
+            }
+            else {
+                review = core.reviewKeyRecordStart(key, record,
+                        start.getMicros(), creds, transaction, environment);
+            }
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(review,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
+        });
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(String key, long record,
+            Timestamp start, Timestamp end) {
+        return execute(() -> {
+            Map<Long, List<String>> review;
+            if(start.isString()) {
+                review = core.reviewKeyRecordStartstrEndstr(key, record,
+                        start.toString(), end.toString(), creds, transaction,
+                        environment);
+            }
+            else {
+                review = core.reviewKeyRecordStartEnd(key, record,
+                        start.getMicros(), end.getMicros(), creds, transaction,
+                        environment);
+            }
+            return PrettyLinkedHashMap.of(
+                    Transformers.transformMap(review,
+                            Conversions.timestampToMicros()),
+                    "DateTime", "Revision");
         });
     }
 

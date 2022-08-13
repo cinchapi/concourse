@@ -1,6 +1,50 @@
 ## Changelog
 
-#### Version 0.11.0 (TBD) 
+#### Version 0.11.4 (July 4, 2022)
+* Slightly improved the performance of result sorting by removing unnecessary intermediate data gathering.
+* Improved random access performance for all result sets.
+
+#### Version 0.11.3 (June 4, 2022)
+* Improved the performance of commands that select multiple keys from a record by adding herustics to the storage engine to reduce the number of overall lookups required. As a result, commands that select multiple keys are **up to 96% faster**.
+* Streamlined the logic for reads that have a combination of `time`, `order` and `page` parameters by adding more intelligent heuristics for determining the most efficient code path. For example, a read that only has `time` and `page` parameters (e.g., no `order`) does not need to be performed atomically. Previously, those reads converged into an atomic code path, but now a separate code path exists so those reads can be more performant. Additionally, the logic is more aware of when attempts to sort or paginate data don't actually have an effect and now avoids unnecessary data transformations of re-collection.
+* Fixed a bug that caused Concourse Server to not use the `Strategy` framework to determine the most efficient lookup source (e.g., field, record, or index) for navigation keys.
+* Added support for querying on the intrinsic `identifier` of Records, as both a selection and evaluation key. The record identifier can be refernced using the `$id$` key (NOTE: this must be properly escaped in `concourse shell` as `\$id\$`). 
+	* It is useful to include the Record identifier as a selection key for some navigation reads (e.g., `select(["partner.name", partner.\$id\$], 1)`)).
+	* It is useful to include the Record identifier as an evaluation key in cases where you want to explictly exclude a record from matching a `Condition` (e.g., `select(["partner.name", parner.\$id\$], "\$id\$ != 2")`))
+* Fixed a bug that caused historical reads with sorting to not be performed atomically; potentially violating ACID semantics.
+* Fixed a bug that caused commands to `find` data matching a `Condition` (e.g., `Criteria` or `CCL Statement`) to not be fully performed atomically; potentially violating ACID semantics.
+
+#### Version 0.11.2 (March 18, 2022)
+* Fixed a bug that caused Concourse Server to incorrectly detect when an attempt was made to atomically commit multiple Writes that toggle the state of a field (e.g. `ADD name as jeff in 1`, `REMOVE name as jeff in 1`, `ADD name as jeff in 1`) in user-defined `transactions`. As a result of this bug, all field toggling Writes were committed instead of the desired behaviour where there was a commit of at most one equal Write that was required to obtain the intended field state. Committing multiple writes that toggled the field state within the same transaction could cause failures, unexplained results or fatal inconsistencies when reconciling data.
+* Added a fallback to automatically switch to reading data from Segment files using traditional IO in the event that Concourse Server ever exceedes the maximum number of open memory mapped files allowed (as specified by the `vm.max_map_count` property on some Linux systems).
+* Removed the `DEBUG` logging (added in `0.11.1`) that provides details on the execution path chosen for each lookup because it is too noisy and drastically degrades performance.
+* Fixed a bug in the way that Concourse Server determined if duplicate data existed in the v3 storage files, which caused the `concourse data repair` CLI to no longer work properly (compared to how it worked on the v2 storage files).
+* Fixed a regression that caused a memory leak when data values were read from disk. The nature of the memory leak caused a degradation in performance because Concourse Server was forced to evict cached records from memory more frequently than in previous versions.
+
+#### Version 0.11.1 (March 9, 2022)
+* Upgraded to CCL version `3.1.2` to fix a regression that caused parenthetical expressions within a Condition containing `LIKE` `REGEX`, `NOT_LIKE` and `NOT_REGEX` operators to mistakenly throw a `SyntaxException` when being parsed.
+* Added the `ConcourseCompiler#evaluate(ConditionTree, Multimap)` method that uses the `Operators#evaluate` static method to perform local evaluation.
+* Fixed a bug that, in some cases, caused the wrong default environment to be used when invoking server-side data CLIs (e.g., `concourse data <action>`). When a data CLI was invoked without specifying the environment using the `-e <environment>` flag, the `default` environment was always used instead of the `default_environment` that was specified in the Concourse Server configuration.
+* Fixed a bug that caused the `concourse data compact` CLI to inexplicably die when invoked while `enable_compaction` was set to `false` in the Concourse Server configuration.
+* Fixed the usage message description of the `concourse export` and `concourse import` CLIs.
+* Fixed a bug that caused Concourse Shell to fail to parse short syntax within statements containing an open parenthesis as described in [GH-463](https://github.com/cinchapi/concourse/issues/463) and [GH-139](https://github.com/cinchapi/concourse/issues/139).
+* Fixed a bug that caused the `Strategy` framework to select the wrong execution path when looking up historical values for order keys. This caused a regression in the performance for relevant commands.
+* Added `DEBUG` logging that provides details on the execution path chosen for each lookup.
+* Fixed a bug that caused `Order`/`Sort` instructions that contain multiple clauses referencing the same key to drop all but the last clause for that key.
+* Fixed a bug that caused the `concourse export` CLI to not process some combinations of command line arguments properly.
+* Fixed a bug tha caused an error to be thrown when using the `max` or `min` function over an entire index as an operation value in a CCL statement.
+* Fixed several corner case bugs with Concourse's arithmetic engine that caused the `calculate` functions to 1) return inaccurate results when aggregating numbers of different types and 2) inexplicably throw an error when a calculation was performed on data containing `null` values.
+
+#### Version 0.11.0 (March 4, 2022)
+
+##### BREAKING CHANGES
+There is only **PARTIAL COMPATIBILITY** between 
+* an `0.11.0+` client and an older server, and 
+* a `0.11.0+` server and an older client.
+
+Due to changes in Concourse's internal APIs,
+* An older client will receive an error when trying to invoke any `audit` methods on a `0.11.0+` server.
+* An older server will throw an error message when any `audit` or `review` methods are invoked from an `0.11.0+` client. 
 
 ##### Storage Format Version 3
 * This version introduces a new, more concise storage format where Database files are now stored as **Segments** instead of Blocks. In a segment file (`.seg`), all views of indexed data (primary, secondary, and search) are stored in the same file whereas a separate block file (`.blk`) was used to store each view of data in the v2 storage format. The process of transporting writes from the `Buffer` to the `Database` remains unchanged. When a Buffer page is fully transported, its data is durably synced in a new Segment file on disk.
@@ -9,9 +53,13 @@
 	* The upgrade task will not delete v2 data files, so be mindful that **you will need twice the amount of data space available on disk to upgrade**. You can safely manually delete the v2 files after the upgrade. If the v2 files remain, a future version of Concourse may automatically delete them for you.
 * In addition to improved data integrity, the v3 storage format brings performance improvements to all operations because of more efficient memory management and smarter usage of asynchronous work queues.
 
+##### Atomic Commit Timestamps
+All the writes in a committed `atomic operation` (e.g. anything from primitive atomics to user-defined `transactions`) will now have the **same** version/timestamp. Previously, when an atomic operation was committed, each write was assigned a distinct version. But, because each atomic write was applied as a distinct state change, it was possible to violate ACID semantics after the fact by performing a partial undo or partial historical read. Now, the version associated with each write is known as the **commit version**. For non-atomic operations, autocommit is in effect, so each write continues to have a distinct commit version. For atomic operations, the commit version is assigned when the operation is committed and assigned to each atomic write. As a result, all historical reads will either see all or see none of the committed atomic state and undo operations (e.g. `clear`, `revert`) will either affect all or affect none of the commited atomic state.
+
 ##### Optimizations
 * The storage engine has been optimized to use less memory when indexing by de-duplicating and reusing equal data components. This drastically reduces the amount of time that the JVM must dedicate to Garbage Collection. Previously, when indexing, the storage engine would allocate new objects to represent data even if equal objects were already buffered in memory.
 * We switched to a more compact in-memory representation of the `Inventory`, resulting in a reduction of its heap space usage by up to **97.9%**. This has an indirect benefit to overall performance and throughput by reducing memory contention that could lead to frequence JVM garbage collection cycles.
+* Improved user-defined `transactions` by detecting when an attempt is made to atomically commit multiple Writes that toggle the state of a field (e.g. `ADD name as jeff in 1`, `REMOVE name as jeff in 1`, `ADD name as jeff in 1`) and only committing at most one equal Write that is required to obtain the intended state. For example, in the previous example, only 1 write for `ADD name as jeff in 1` would be committed.
 
 ##### Performance
 * We improved the performance of commands that sort data by an average of **38.7%**. These performance improvements are the result of an new `Strategy` framework that allows Concourse Server to dynamically choose the most opitmal path for data lookups depending upon the entire context of the command and the state of storage engine. For example, when sorting a result set on `key1`, Concourse Server will now intelligently decide to lookup the values across `key1` using the relevant secondary index if `key1` is also a condition key. Alternatively, Concourse Server will decide to lookup the values across `key1` using the primary key for each impacted record if `key1` is also a being explicitly selected as part of the operation.
@@ -48,18 +96,21 @@
   * Verify by Lookup can be enabled by setting the `enable_verify_by_lookup` preference to `true`.
 
 ##### API Breaks and Deprecations
-* Upgraded to CCL version `3.1.0`. Internally, the database engine has switched to using a `Compiler` instead of a `Parser`. As a result, the Concourse-specific `Parser` has been deprecated.
-* It it only possible to upgrade to this version from Concourse `0.10.6+`. Previously, it was possible to upgrade to a new version of Concourse from any prior version.
+* Upgraded to CCL version `3.1.1`. Internally, the database engine has switched to using a `Compiler` instead of a `Parser`. As a result, the Concourse-specific `Parser` has been deprecated.
+* **It it only possible to upgrade to this version from Concourse `0.10.6+`. Previously, it was possible to upgrade to a new version of Concourse from any prior version.**
 * Deprecated the `ByteBuffers` utility class in favor of the same in the `accent4j` library.
 * Deprecated `PrettyLinkedHashMap.newPrettyLinkedHashMap` factory methods in favor of `PrettyLinkedHashMap.create`.
 * Deprecated `PrettyLinkedHashMap.setKeyName` in favor of `PrettyLinkedHashMap.setKeyColumnHeader`
 * Deprecated `PrettyLinkedHashMap.setValueName` in favor of `PrettyLinkedHashMap.setValueColumnHeader`
 * Deprecated `PrettyLinkedTableMap.setRowName` in favor of `PrettyLinkedHashMap.setIdentifierColumnHeader`
 * Deprecated `PrettyLinkedTableMap.newPrettyLinkedTableMap` factory methods in favor of `PrettyLinkedTableMap.create`
+* Deprecated the `Concourse#audit` methods in favor of `Concourse#review` ones that take similar parameters. A `review` returns a `Map<Timestamp, List<String>>` instead of a `Map<Timestamp, String>` (as is the case with an `audit`) to account for the fact that a single commit timestamp/version may contain multiple changes.
 
 ##### Bug Fixes
 * Fixed a bug that caused the system version to be set incorrectly when a newly installed instance of Concourse Server (e.g. not upgraded) utilized data directories containing data from an older system version. This bug caused some upgrade tasks to be skipped, placing the system in an unstable state.
 * Fixed a bug that made it possible for Database operations to unexpectedly fail in the rare cases due to a locator mismatch resulting from faulty indexing logic.
+* Fixed a bug in the serialization/deserialization logic for datasets passed between Concourse Server and plugins. This bug caused plugins to fail when performing operations that included non-trivial datasets.
+* Fixed a bug that caused datasets returned from Concourse Server to a plugin to have incorrect missing data when `invert`ed.
 
 #### Version 0.10.6 (September 9, 2021)
 

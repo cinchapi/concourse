@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -902,11 +902,15 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
          */
         @Override
         public int compare(Revision o1, Revision o2) {
+            // @formatter:off
             return ComparisonChain.start()
                     .compare(o1.getLocator(), o2.getLocator())
                     .compare(o1.getKey(), o2.getKey())
                     .compare(o1.getVersion(), o2.getVersion())
-                    .compare(o1.getValue(), o2.getValue()).result();
+                    .compare(o1.getValue(), o2.getValue())
+                    .compare(o1.stamp(), o2.stamp())
+                    .result();
+            // @formatter:on
         }
 
     }

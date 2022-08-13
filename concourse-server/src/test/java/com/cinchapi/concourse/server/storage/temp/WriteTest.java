@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.server.io.ByteableTest;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.TestData;
 
@@ -79,6 +80,38 @@ public class WriteTest extends ByteableTest {
                 Write.remove(key, value, record));
         Assert.assertEquals(Write.notStorable(key, value, record),
                 Write.notStorable(key, value, record));
+    }
+
+    @Test
+    public void testHashSameType() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        long version = CommitVersions.next();
+        Write w1 = Write.add(key, value, record).rewrite(version);
+        Write w2 = Write.add(key, value, record).rewrite(version);
+        Assert.assertEquals(w1.hash(), w2.hash());
+    }
+
+    @Test
+    public void testHashDiffType() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        long version = CommitVersions.next();
+        Write w1 = Write.add(key, value, record).rewrite(version);
+        Write w2 = Write.remove(key, value, record).rewrite(version);
+        Assert.assertEquals(w1.hash(), w2.hash());
+    }
+
+    @Test
+    public void testHashDiffVersions() {
+        String key = TestData.getString();
+        TObject value = TestData.getTObject();
+        long record = TestData.getLong();
+        Write w1 = Write.add(key, value, record);
+        Write w2 = Write.add(key, value, record);
+        Assert.assertNotEquals(w1.hash(), w2.hash());
     }
 
     @Override

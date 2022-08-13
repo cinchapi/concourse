@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  */
 package com.cinchapi.concourse.lang.sort;
 
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,6 +28,7 @@ import com.cinchapi.ccl.grammar.OrderSymbol;
 import com.cinchapi.ccl.grammar.TimestampSymbol;
 import com.cinchapi.ccl.syntax.OrderTree;
 import com.cinchapi.concourse.Timestamp;
+import com.google.common.collect.Lists;
 
 /**
  * {@link Order} encapsulates the semantics of a result set sorting. Any given
@@ -98,6 +102,24 @@ public interface Order {
     public default Set<String> keys() {
         return spec().stream().map(OrderComponent::key)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Return any of the {@link #keys()} referenced by this {@link Order} that
+     * have a {@link Timestamp} as a mapping from the key to a collection of all
+     * of its associated timestamps.
+     * 
+     * @return a mapping from order keys to their timestamps (if applicable)
+     */
+    public default Map<String, Collection<Timestamp>> keysWithTimestamps() {
+        return spec().stream()
+                .filter(component -> component.timestamp() != null)
+                .collect(Collectors.toMap(component -> component.key(),
+                        component -> Lists.newArrayList(component.timestamp()),
+                        (a, b) -> {
+                            a.addAll(b);
+                            return a;
+                        }, LinkedHashMap::new));
     }
 
     /**

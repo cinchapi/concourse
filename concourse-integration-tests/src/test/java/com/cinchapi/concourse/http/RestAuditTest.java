@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.squareup.okhttp.Response;
  * 
  * @author Jeff Nelson
  */
+@SuppressWarnings("deprecation")
 public class RestAuditTest extends RestTest {
 
     @Test

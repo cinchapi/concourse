@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -489,9 +490,9 @@ public class EngineTest extends BufferedStoreTest {
             @Override
             public void run() {
                 go.set(true);
-                Map<Long, String> data = engine.audit(1);
+                Map<Long, List<String>> data = engine.review(1);
                 done.set(true);
-                Map<Long, String> data1 = engine.audit(1);
+                Map<Long, List<String>> data1 = engine.review(1);
                 Variables.register("data_size", data.size());
                 Variables.register("data1_size", data1.size());
                 succeeded.set(data.size() == data1.size()
@@ -570,6 +571,113 @@ public class EngineTest extends BufferedStoreTest {
             throw e;
         }
         Assert.assertNull(e);
+    }
+
+    @Test
+    public void testCommitVersionSplitBetweenBufferAndDatabase() {
+        Engine engine = (Engine) store;
+        Buffer buffer = (Buffer) engine.limbo;
+        Database db = (Database) engine.durable;
+        engine.bufferTransportThreadSleepInMs = Integer.MAX_VALUE;
+        AtomicOperation atomic = engine.startAtomicOperation();
+        atomic.add("name", Convert.javaToThrift("jeff"), 1);
+        atomic.remove("name", Convert.javaToThrift("jeff"), 1);
+        long before = Time.now();
+        atomic.commit();
+        long after = Time.now();
+        while (!Reflection.<Boolean> call(buffer, "canTransport")) {
+            engine.add("foo", Convert.javaToThrift("bar"), Time.now());
+        }
+        buffer.transport(db);
+        db.sync();
+        Iterator<Write> it = db.iterator();
+        long version = 0;
+        while (it.hasNext()) {
+            Write write = it.next();
+            version = write.getVersion();
+        }
+        Assert.assertEquals(ImmutableSet.of(), store.find("name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(before, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(after, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(version, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        engine.stop();
+        engine.bufferTransportThreadSleepInMs = Integer.MAX_VALUE;
+        engine.start();
+        it = db.iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            System.out.println(write);
+        }
+        Assert.assertEquals(ImmutableSet.of(), store.find("name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(before, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(after, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+        Assert.assertEquals(ImmutableSet.of(), store.find(version, "name",
+                Operator.EQUALS, Convert.javaToThrift("jeff")));
+    }
+
+    @Test
+    public void testSameWriteVersionDatabaseIntersectionDetection() {
+        Engine engine = (Engine) store;
+        Buffer buffer = (Buffer) engine.limbo;
+        Database db = (Database) engine.durable;
+        int count = TestData.getScaleCount();
+        AtomicLong commits = new AtomicLong();
+        AtomicLong expected = new AtomicLong();
+        for (int i = 0; i < count; ++i) {
+            AtomicOperation atomic = engine.startAtomicOperation();
+            int writes = TestData.getScaleCount();
+            for (int j = 0; j < writes; ++j) {
+                atomic.add("name", Convert.javaToThrift("jeff" + i),
+                        Math.abs(TestData.getInt()) % 2 == 0 ? Time.now() : j);
+                expected.incrementAndGet();
+            }
+            atomic.commit();
+            commits.incrementAndGet();
+        }
+        while (Reflection.<Boolean> call(buffer, "canTransport")) {
+            buffer.transport(db);
+        }
+        Set<Long> versions = new HashSet<>();
+        AtomicLong actual = new AtomicLong();
+        Iterator<Write> it = db.iterator();
+        while (it.hasNext()) {
+            versions.add(it.next().getVersion());
+            actual.incrementAndGet();
+        }
+        it = buffer.iterator();
+        while (it.hasNext()) {
+            versions.add(it.next().getVersion());
+            actual.incrementAndGet();
+        }
+        Assert.assertEquals(commits.get(), versions.size());
+        Assert.assertEquals(expected.get(), actual.get());
+        engine.stop();
+        engine.start();
+        buffer = (Buffer) engine.limbo;
+        db = (Database) engine.durable;
+        versions.clear();
+        actual = new AtomicLong(0);
+        it = db.iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            versions.add(write.getVersion());
+            actual.incrementAndGet();
+        }
+        it = buffer.iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            versions.add(write.getVersion());
+            actual.incrementAndGet();
+        }
+        Assert.assertEquals(commits.get(), versions.size());
+        Assert.assertEquals(expected.get(), actual.get());
     }
 
     // @Test

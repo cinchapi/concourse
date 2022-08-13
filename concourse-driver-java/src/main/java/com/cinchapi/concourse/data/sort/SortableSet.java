@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,15 @@
  */
 package com.cinchapi.concourse.data.sort;
 
-import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import com.cinchapi.common.collect.lazy.LazyTransformSet;
+import com.cinchapi.concourse.EmptyOperationException;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableMap;
 
@@ -59,19 +61,20 @@ public class SortableSet<V> extends ForwardingSet<Long> implements Sortable<V> {
 
     @Override
     public void sort(Sorter<V> sorter) {
-        Map<Long, Map<String, V>> sorted = sorter.sort(sortable());
-        delegate = sorted.entrySet().stream().map(entry -> {
-            return entry.getKey();
-        }).collect(Collectors.toCollection(LinkedHashSet::new));
+        try {
+            delegate = sorter.sort(sortable()).map(Entry::getKey)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        }
+        catch (EmptyOperationException e) {}
     }
 
     @Override
     public void sort(Sorter<V> sorter, long at) {
-        Map<Long, Map<String, V>> sorted = sorter.sort(sortable(), at);
-        delegate = sorted.entrySet().stream().map(entry -> {
-            return entry.getKey();
-        }).collect(Collectors.toCollection(LinkedHashSet::new));
-
+        try {
+            delegate = sorter.sort(sortable(), at).map(Entry::getKey)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        }
+        catch (EmptyOperationException e) {}
     }
 
     /**
@@ -80,23 +83,11 @@ public class SortableSet<V> extends ForwardingSet<Long> implements Sortable<V> {
      * 
      * @return a sortable view of the {@link #delegate}
      */
-    private Map<Long, Map<String, V>> sortable() {
-        return new AbstractMap<Long, Map<String, V>>() {
+    private Stream<Entry<Long, Map<String, V>>> sortable() {
+        Map<String, V> value = ImmutableMap.of();
+        return delegate.stream()
+                .map(record -> new SimpleImmutableEntry<>(record, value));
 
-            Set<Entry<Long, Map<String, V>>> entrySet = null;
-
-            @Override
-            public Set<Entry<Long, Map<String, V>>> entrySet() {
-                if(entrySet == null) {
-                    entrySet = LazyTransformSet.of(delegate, record -> {
-                        return new SimpleImmutableEntry<>(record,
-                                ImmutableMap.of());
-                    });
-                }
-                return entrySet;
-            }
-
-        };
     }
 
     @Override

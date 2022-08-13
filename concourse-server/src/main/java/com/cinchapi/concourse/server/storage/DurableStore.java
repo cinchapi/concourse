@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import java.util.Set;
 
 import com.cinchapi.concourse.server.storage.temp.Write;
+import com.google.common.hash.HashCode;
 
 /**
  * A {@link Store} that {@link #accept(Write) accepts} {@link Write Writes} and
@@ -55,17 +56,17 @@ public interface DurableStore extends Store {
     /**
      * If necessary, reconcile the state of this {@link Store} and prepare it to
      * {@link #accept(Write) accept} all the {@link Write writes} represented by
-     * each of the {@code versions}.
+     * each of the {@code hashes}.
      * <p>
      * This exact behaviour of this method is undefined, but the implementing
      * class is expected to prepare itself in such a way that inserting
-     * a {@link Write Writes} at each of the {@code versions} does not alter
+     * a {@link Write Writes} with each of the {@code hashes} does not alter
      * overall data consistency or durability.
      * </p>
      * 
-     * @param versions
+     * @param hashes
      */
-    public default void reconcile(Set<Long> versions) {/* no-op */}
+    public default void reconcile(Set<HashCode> hashes) {/* no-op */}
 
     /**
      * Force this {@link Store} to guarantee that all the {@link Write Writes}

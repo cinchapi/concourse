@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,10 +81,16 @@ public final class MultimapViews {
     public static <K extends Comparable<K>, V> boolean remove(
             Map<K, Set<V>> map, K key, V value) {
         Set<V> set = map.get(key);
-        if(set != null && set.size() == 1) {
-            map.remove(key);
+        if(set != null) {
+            boolean removed = set.remove(value);
+            if(set.isEmpty()) {
+                map.remove(key);
+            }
+            return removed;
         }
-        return set.remove(value);
+        else {
+            return false;
+        }
     }
 
     /**

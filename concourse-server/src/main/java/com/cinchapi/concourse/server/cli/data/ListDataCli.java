@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.cli.data;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 
@@ -46,13 +47,12 @@ public class ListDataCli extends DataCli {
         DataOptions opts = (DataOptions) options;
         try {
             String list = client.getDumpList(opts.environment, token);
-            System.out.println("These are the storage units "
-                    + "that are currently dumpable in the '" + opts.environment
-                    + "' environment, sorted in reverse chronological "
-                    + "order such that units holding newer data appear "
-                    + "first. Call this CLI with the `dump` command "
-                    + "followed by the id of the storage unit you want "
-                    + "to dump.");
+            System.out.println(AnyStrings.format(
+                    "These are the storage units that are currently dumpable in {}, "
+                            + "sorted in reverse chronological order such that units holding "
+                            + "newer data appear first. Call this CLI with the `dump` command "
+                            + "followed by the id of the storage unit you want to dump.",
+                    opts.environmentDescription()));
             System.out.println(list);
         }
         catch (Exception e) {

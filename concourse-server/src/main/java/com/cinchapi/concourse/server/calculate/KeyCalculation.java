@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package com.cinchapi.concourse.server.calculate;
 
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * A calculation across an entire field.
  * 
@@ -27,13 +30,31 @@ public interface KeyCalculation {
 
     /**
      * Perform the calculation, given the {@code running} result and the latest
-     * {@code value}, which is stored in each of the {@code records}.
+     * {@code value}, which is stored in each of the {@code records} or return
+     * the calculated value using the latest {@code value} as stored in each of
+     * the {@code records} if the {@code running} value is {@code null}
      * 
      * @param running the current running result
      * @param value the value to use for the calculation
      * @param records all the records in which the {@code value} is stored
      * @return the new running result
      */
-    public Number calculate(Number running, Number value, Set<Long> records);
+    public default Number calculate(@Nullable Number running, Number value,
+            Set<Long> records) {
+        return running != null ? aggregate(running, value, records)
+                : aggregate(0, value, records);
+    }
+
+    /**
+     * Aggregate the latest {@code value} stored in each of the {@code records}
+     * with the {@code running} value.
+     * 
+     * @param running the current running result
+     * @param value the value to use for the calculation
+     * @param records all the records in which the {@code value} is stored
+     * @return the new running result
+     */
+    public Number aggregate(@Nonnull Number running, Number value,
+            Set<Long> records);
 
 }

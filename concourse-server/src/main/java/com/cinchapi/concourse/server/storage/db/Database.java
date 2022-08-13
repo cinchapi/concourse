@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
+import com.google.common.hash.HashCode;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -130,17 +131,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 @ThreadSafe
 public final class Database implements DurableStore {
-
-    /**
-     * Return a cache for records of type {@code T}.
-     * 
-     * @return the cache
-     */
-    private <T> Cache<Composite, T> buildCache() {
-        Cache<Composite, T> cache = CacheBuilder.newBuilder()
-                .maximumSize(100000).softValues().build();
-        return new RunningAwareCache<>(cache);
-    }
 
     /**
      * Return a {@link ThreadFactory} that produces threads to run compaction
@@ -187,34 +177,9 @@ public final class Database implements DurableStore {
     }
 
     /**
-     * The number of seconds to wait in between full compactions.
+     * Return if {@link #corpusCaches} does not contain a cache for a key.
      */
-    private static long FULL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = TimeUnit.SECONDS
-            .convert(7, TimeUnit.DAYS);
-
-    /**
-     * The initial number of seconds to wait, after the {@link Database}
-     * {@link #start() starts} to run a full compaction.
-     */
-    private static long FULL_COMPACTION_INITIAL_DELAY_IN_SECONDS = TimeUnit.SECONDS
-            .convert(1, TimeUnit.DAYS);
-
-    /**
-     * The number of seconds to wait in between incremental compactions.
-     */
-    private static long INCREMENTAL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = 2;
-
-    /**
-     * The initial number of seconds to wait, after the {@link Database}
-     * {@link #start() starts} to run an incremental compaction.
-     */
-    private static long INCREMENTAL_COMPACTION_INITIAL_DELAY_IN_SECONDS = 30;
-
-    /**
-     * The subdirectory of {@link #directory} where the {@link Segment} files
-     * are stored.
-     */
-    private static final String SEGMENTS_SUBDIRECTORY = "segments";
+    private static final Cache<Composite, CorpusRecord> DISABLED_CORPUS_CACHE = new NoOpCache<>();
 
     /**
      * Global flag that indicates if compaction is enabled.
@@ -236,28 +201,43 @@ public final class Database implements DurableStore {
     private static final boolean ENABLE_VERIFY_BY_LOOKUP = GlobalState.ENABLE_VERIFY_BY_LOOKUP;
 
     /**
-     * Return if {@link #corpusCaches} does not contain a cache for a key.
+     * The initial number of seconds to wait, after the {@link Database}
+     * {@link #start() starts} to run a full compaction.
      */
-    private static final Cache<Composite, CorpusRecord> DISABLED_CORPUS_CACHE = new NoOpCache<>();
-
-    /*
-     * RECORD CACHES
-     * -------------
-     * Records are cached in memory to reduce the number of seeks required. When
-     * writing new revisions, we check the appropriate caches for relevant
-     * records and append the new revision so that the cached data doesn't grow
-     * stale.
-     * 
-     * The caches are only populated if the Database is #running (see
-     * #accept(Write)). Attempts to get a Record when the Database is not
-     * running will ignore the cache by virtue of an internal wrapper that has
-     * the appropriate detection.
-     */
-    private final Cache<Composite, TableRecord> tableCache = buildCache();
-    private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
-    private final Cache<Composite, IndexRecord> indexCache = buildCache();
+    private static long FULL_COMPACTION_INITIAL_DELAY_IN_SECONDS = TimeUnit.SECONDS
+            .convert(1, TimeUnit.DAYS);
 
     /**
+     * The number of seconds to wait in between full compactions.
+     */
+    private static long FULL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = TimeUnit.SECONDS
+            .convert(7, TimeUnit.DAYS);
+
+    /**
+     * The initial number of seconds to wait, after the {@link Database}
+     * {@link #start() starts} to run an incremental compaction.
+     */
+    private static long INCREMENTAL_COMPACTION_INITIAL_DELAY_IN_SECONDS = 30;
+
+    /**
+     * The number of seconds to wait in between incremental compactions.
+     */
+    private static long INCREMENTAL_COMPACTION_RUN_FREQUENCY_IN_SECONDS = 2;
+
+    /**
+     * The subdirectory of {@link #directory} where the {@link Segment} files
+     * are stored.
+     */
+    private static final String SEGMENTS_SUBDIRECTORY = "segments";
+
+    /**
+     * The {@link Compactor} that performs compaction.
+     */
+    private transient Compactor compactor;
+
+    /**
+     * Corpus Cache
+     * ------------
      * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
      * is done in an attempt to avoid attempting cache updates for every infix
      * of a value when it is known that no search caches exist for the key from
@@ -267,11 +247,6 @@ public final class Database implements DurableStore {
     private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
             ? new ConcurrentHashMap<>()
             : ImmutableMap.of();
-
-    /**
-     * The {@link Compactor} that performs compaction.
-     */
-    private transient Compactor compactor;
 
     /**
      * The location where the Database stores data.
@@ -289,6 +264,21 @@ public final class Database implements DurableStore {
     private transient ScheduledExecutorService incrementalCompaction;
 
     /**
+     * Index Cache
+     * -----------
+     * Records are cached in memory to reduce the number of seeks required. When
+     * writing new revisions, we check the appropriate caches for relevant
+     * records and append the new revision so that the cached data doesn't grow
+     * stale.
+     * 
+     * The caches are only populated if the Database is #running (see
+     * #accept(Write)). Attempts to get a Record when the Database is not
+     * running will ignore the cache by virtue of an internal wrapper that has
+     * the appropriate detection.
+     */
+    private final Cache<Composite, IndexRecord> indexCache = buildCache();
+
+    /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
      * to a masterLock.readLock()() and masterLock.writeLock()().
      */
@@ -303,7 +293,6 @@ public final class Database implements DurableStore {
      * A flag to indicate if the Buffer is running or not.
      */
     private transient boolean running = false;
-
     /**
      * We hold direct references to the current Segment. This pointer changes
      * whenever the database triggers a sync operation.
@@ -330,6 +319,36 @@ public final class Database implements DurableStore {
      * The underlying {@link Storage}.
      */
     private final transient Storage storage;
+
+    /**
+     * Table Cache
+     * -----------
+     * Records are cached in memory to reduce the number of seeks required. When
+     * writing new revisions, we check the appropriate caches for relevant
+     * records and append the new revision so that the cached data doesn't grow
+     * stale.
+     * 
+     * The caches are only populated if the Database is #running (see
+     * #accept(Write)). Attempts to get a Record when the Database is not
+     * running will ignore the cache by virtue of an internal wrapper that has
+     * the appropriate detection.
+     */
+    private final Cache<Composite, TableRecord> tableCache = buildCache();
+
+    /**
+     * Partial Table Cache
+     * -------------------
+     * Records are cached in memory to reduce the number of seeks required. When
+     * writing new revisions, we check the appropriate caches for relevant
+     * records and append the new revision so that the cached data doesn't grow
+     * stale.
+     * 
+     * The caches are only populated if the Database is #running (see
+     * #accept(Write)). Attempts to get a Record when the Database is not
+     * running will ignore the cache by virtue of an internal wrapper that has
+     * the appropriate detection.
+     */
+    private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
 
     /**
      * A "tag" used to identify the Database's affiliations (e.g. environment).
@@ -442,21 +461,6 @@ public final class Database implements DurableStore {
     }
 
     @Override
-    public Map<Long, String> audit(long record) {
-        Identifier L = Identifier.of(record);
-        TableRecord table = getTableRecord(L);
-        return table.audit();
-    }
-
-    @Override
-    public Map<Long, String> audit(String key, long record) {
-        Identifier L = Identifier.of(record);
-        Text K = Text.wrapCached(key);
-        TableRecord table = getTableRecord(L, K);
-        return table.audit(K);
-    }
-
-    @Override
     public Map<TObject, Set<Long>> browse(String key) {
         Text L = Text.wrapCached(key);
         IndexRecord index = getIndexRecord(L);
@@ -517,6 +521,18 @@ public final class Database implements DurableStore {
     }
 
     @Override
+    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
+        Text L = Text.wrapCached(key);
+        IndexRecord index = getIndexRecord(L);
+        Value[] Ks = Transformers.transformArray(aliases.values(), Value::wrap,
+                Value.class);
+        Map<Identifier, Set<Value>> map = index.findAndGet(aliases.operator(),
+                Ks);
+        return Transformers.transformTreeMapSet(map, Identifier::longValue,
+                Value::getTObject, Long::compare);
+    }
+
+    @Override
     public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
             long timestamp) {
         Text L = Text.wrapCached(key);
@@ -525,18 +541,6 @@ public final class Database implements DurableStore {
                 Value.class);
         Map<Identifier, Set<Value>> map = index.findAndGet(timestamp,
                 aliases.operator(), Ks);
-        return Transformers.transformTreeMapSet(map, Identifier::longValue,
-                Value::getTObject, Long::compare);
-    }
-
-    @Override
-    public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
-        Text L = Text.wrapCached(key);
-        IndexRecord index = getIndexRecord(L);
-        Value[] Ks = Transformers.transformArray(aliases.values(), Value::wrap,
-                Value.class);
-        Map<Identifier, Set<Value>> map = index.findAndGet(aliases.operator(),
-                Ks);
         return Transformers.transformTreeMapSet(map, Identifier::longValue,
                 Value::getTObject, Long::compare);
     }
@@ -598,15 +602,15 @@ public final class Database implements DurableStore {
     }
 
     @Override
-    public void reconcile(Set<Long> versions) {
-        Logger.debug("Reconciling the states of the Database and Buffer...");
+    public void reconcile(Set<HashCode> hashes) {
+        Logger.info("Reconciling the states of the Database and Buffer...");
         // CON-83, GH-441, GH-442: Check for premature shutdown or crash that
         // regenerated Segment files based on Write versions that are all still
         // in the buffer.
         if(segments.size() > 1) {
             int index = segments.size() - 2;
             Segment seg1 = segments.get(index);
-            if(versions.containsAll(seg1.verions())) {
+            if(hashes.containsAll(seg1.hashes())) {
                 Logger.warn(
                         "The data in {} is still completely in the BUFFER so it is being discarded",
                         seg1);
@@ -644,6 +648,21 @@ public final class Database implements DurableStore {
             masterLock.writeLock().unlock();
         }
 
+    }
+
+    @Override
+    public Map<Long, List<String>> review(long record) {
+        Identifier L = Identifier.of(record);
+        TableRecord table = getTableRecord(L);
+        return table.review();
+    }
+
+    @Override
+    public Map<Long, List<String>> review(String key, long record) {
+        Identifier L = Identifier.of(record);
+        Text K = Text.wrapCached(key);
+        TableRecord table = getTableRecord(L, K);
+        return table.review(K);
     }
 
     @Override
@@ -926,6 +945,131 @@ public final class Database implements DurableStore {
     }
 
     /**
+     * Return a cache for records of type {@code T}.
+     * 
+     * @return the cache
+     */
+    private <T> Cache<Composite, T> buildCache() {
+        Cache<Composite, T> cache = CacheBuilder.newBuilder()
+                .maximumSize(100000).softValues().build();
+        return new RunningAwareCache<>(cache);
+    }
+
+    /**
+     * Return the CorpusRecord identified by {@code key}.
+     * 
+     * @param key
+     * @param query
+     * @param toks {@code query} split by whitespace
+     * @return the CorpusRecord
+     */
+    private CorpusRecord getCorpusRecord(Text key, Text infix) {
+        masterLock.readLock().lock();
+        try {
+            Composite composite = Composite.create(key, infix);
+            Cache<Composite, CorpusRecord> cache = ENABLE_SEARCH_CACHE
+                    ? corpusCaches.computeIfAbsent(key, $ -> buildCache())
+                    : DISABLED_CORPUS_CACHE;
+            return cache.get(composite, () -> {
+                CorpusRecord $ = CorpusRecord.createPartial(key, infix);
+                for (Segment segment : segments) {
+                    segment.corpus().seek(composite, $);
+                }
+                return $;
+            });
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Return the IndexRecord identified by {@code key}.
+     * 
+     * @param key
+     * @return the IndexRecord
+     */
+    private IndexRecord getIndexRecord(Text key) {
+        masterLock.readLock().lock();
+        try {
+            Composite composite = Composite.create(key);
+            return indexCache.get(composite, () -> {
+                IndexRecord $ = IndexRecord.create(key);
+                for (Segment segment : segments) {
+                    segment.index().seek(composite, $);
+                }
+                return $;
+            });
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Return a {@link Record} that is guaranteed to have the present state for
+     * whether {@code value} is contained for {@code key} in {@code record}. The
+     * truth of this query can be obtained using the
+     * {@link Record#contains(com.cinchapi.concourse.server.io.Byteable, com.cinchapi.concourse.server.io.Byteable)}
+     * method on the returned {@link Record}.
+     * <p>
+     * The query answered by this {@link Record} can also be answered by that
+     * returned from {@link #getTableRecord(Identifier)}
+     * and {@link #getTableRecord(Identifier, Text)}, but this method will
+     * attempt to short circuit by not loading {@link Revisions} that don't
+     * involve {@code record}, {@code key} and {@code value}. As a result, the
+     * returned {@link Record} is not cached and cannot be reliably used for
+     * other queries.
+     * </p>
+     * 
+     * @param record
+     * @param key
+     * @param value
+     * @return the {@link Record}
+     */
+    private Record<Identifier, Text, Value> getLookupRecord(Identifier record,
+            Text key, Value value) {
+        masterLock.readLock().lock();
+        try {
+            // First, see if there is a cached full or partial Record that can
+            // allow a lookup to be performed.
+            Composite c1 = Composite.create(record);
+            Composite c2 = null;
+            Composite c3 = null;
+            Record<Identifier, Text, Value> lookup = tableCache
+                    .getIfPresent(c1);
+            if(lookup == null) {
+                c2 = Composite.create(record, key);
+                lookup = tablePartialCache.getIfPresent(c2);
+            }
+            if(lookup == null) {
+                // Create a LookupRecord to handle this, but DO NOT cache it
+                // since it has no other utility.
+                c3 = Composite.create(record, key, value);
+                lookup = new LookupRecord(record, key, value);
+                for (Segment segment : segments) {
+                    if(segment.table().mightContain(c3)) {
+                        // Whenever it is possible that the LKV exists, we must
+                        // gather Revisions for LK within a Record so the
+                        // current state of LKV can be determined.
+                        segment.table().seek(c2, lookup);
+                    }
+                }
+            }
+            return lookup;
+        }
+        finally {
+            masterLock.readLock().unlock();
+        }
+    }
+
+    /**
      * Return the TableRecord identifier by {@code identifier}.
      * 
      * @param identifier
@@ -994,120 +1138,6 @@ public final class Database implements DurableStore {
     }
 
     /**
-     * Return a {@link Record} that is guaranteed to have the present state for
-     * whether {@code value} is contained for {@code key} in {@code record}. The
-     * truth of this query can be obtained using the
-     * {@link Record#contains(com.cinchapi.concourse.server.io.Byteable, com.cinchapi.concourse.server.io.Byteable)}
-     * method on the returned {@link Record}.
-     * <p>
-     * The query answered by this {@link Record} can also be answered by that
-     * returned from {@link #getTableRecord(Identifier)}
-     * and {@link #getTableRecord(Identifier, Text)}, but this method will
-     * attempt to short circuit by not loading {@link Revisions} that don't
-     * involve {@code record}, {@code key} and {@code value}. As a result, the
-     * returned {@link Record} is not cached and cannot be reliably used for
-     * other queries.
-     * </p>
-     * 
-     * @param record
-     * @param key
-     * @param value
-     * @return the {@link Record}
-     */
-    private Record<Identifier, Text, Value> getLookupRecord(Identifier record,
-            Text key, Value value) {
-        masterLock.readLock().lock();
-        try {
-            // First, see if there is a cached full or partial Record that can
-            // allow a lookup to be performed.
-            Composite c1 = Composite.create(record);
-            Composite c2 = null;
-            Composite c3 = null;
-            Record<Identifier, Text, Value> lookup = tableCache
-                    .getIfPresent(c1);
-            if(lookup == null) {
-                c2 = Composite.create(record, key);
-                lookup = tablePartialCache.getIfPresent(c2);
-            }
-            if(lookup == null) {
-                // Create a LookupRecord to handle this, but DO NOT cache it
-                // since it has no other utility.
-                c3 = Composite.create(record, key, value);
-                lookup = new LookupRecord(record, key, value);
-                for (Segment segment : segments) {
-                    if(segment.table().mightContain(c3)) {
-                        // Whenever it is possible that the LKV exists, we must
-                        // gather Revisions for LK within a Record so the
-                        // current state of LKV can be determined.
-                        segment.table().seek(c2, lookup);
-                    }
-                }
-            }
-            return lookup;
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
-    }
-
-    /**
-     * Return the CorpusRecord identified by {@code key}.
-     * 
-     * @param key
-     * @param query
-     * @param toks {@code query} split by whitespace
-     * @return the CorpusRecord
-     */
-    private CorpusRecord getCorpusRecord(Text key, Text infix) {
-        masterLock.readLock().lock();
-        try {
-            Composite composite = Composite.create(key, infix);
-            Cache<Composite, CorpusRecord> cache = ENABLE_SEARCH_CACHE
-                    ? corpusCaches.computeIfAbsent(key, $ -> buildCache())
-                    : DISABLED_CORPUS_CACHE;
-            return cache.get(composite, () -> {
-                CorpusRecord $ = CorpusRecord.createPartial(key, infix);
-                for (Segment segment : segments) {
-                    segment.corpus().seek(composite, $);
-                }
-                return $;
-            });
-        }
-        catch (ExecutionException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
-    }
-
-    /**
-     * Return the IndexRecord identified by {@code key}.
-     * 
-     * @param key
-     * @return the IndexRecord
-     */
-    private IndexRecord getIndexRecord(Text key) {
-        masterLock.readLock().lock();
-        try {
-            Composite composite = Composite.create(key);
-            return indexCache.get(composite, () -> {
-                IndexRecord $ = IndexRecord.create(key);
-                for (Segment segment : segments) {
-                    segment.index().seek(composite, $);
-                }
-                return $;
-            });
-        }
-        catch (ExecutionException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-        finally {
-            masterLock.readLock().unlock();
-        }
-    }
-
-    /**
      * Create new mutable blocks and sync the current blocks to disk if
      * {@code doSync} is {@code true}.
      * 
@@ -1156,11 +1186,6 @@ public final class Database implements DurableStore {
     private final class AcceptedWriteIterator implements Iterator<Write> {
 
         /**
-         * Iterator over a snapshot of the {@link #segments}.
-         */
-        private final Iterator<Segment> segIt;
-
-        /**
          * Current {@link Segment} {@link Segment#writes() write} iterator.
          */
         private Iterator<Write> it;
@@ -1169,6 +1194,11 @@ public final class Database implements DurableStore {
          * The next {@link Write} to return from {@link #next()}.
          */
         private Write next;
+
+        /**
+         * Iterator over a snapshot of the {@link #segments}.
+         */
+        private final Iterator<Segment> segIt;
 
         /**
          * Construct a new instance.
@@ -1215,109 +1245,6 @@ public final class Database implements DurableStore {
     }
 
     /**
-     * {@link Cache} wrapper that is aware of whether the {@link Database} is
-     * running and behaves accordingly.
-     *
-     * @author Jeff Nelson
-     */
-    private class RunningAwareCache<K, V> implements Cache<K, V> {
-
-        /**
-         * The underlying {@link Cache}.
-         */
-        private final Cache<K, V> cache;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param cache
-         */
-        RunningAwareCache(Cache<K, V> cache) {
-            this.cache = cache;
-        }
-
-        @Override
-        public @org.checkerframework.checker.nullness.qual.Nullable V getIfPresent(
-                Object key) {
-            return running ? cache.getIfPresent(key) : null;
-        }
-
-        @Override
-        public V get(K key, Callable<? extends V> loader)
-                throws ExecutionException {
-            try {
-                return running ? cache.get(key, loader) : loader.call();
-            }
-            catch (Exception e) {
-                throw new ExecutionException(e.getMessage(), e);
-            }
-        }
-
-        @Override
-        public ImmutableMap<K, V> getAllPresent(Iterable<?> keys) {
-            return running ? cache.getAllPresent(keys) : ImmutableMap.of();
-        }
-
-        @Override
-        public void put(K key, V value) {
-            if(running) {
-                cache.put(key, value);
-            }
-        }
-
-        @Override
-        public void putAll(Map<? extends K, ? extends V> m) {
-            if(running) {
-                cache.putAll(m);
-            }
-        }
-
-        @Override
-        public void invalidate(Object key) {
-            if(running) {
-                cache.invalidate(key);
-            }
-        }
-
-        @Override
-        public void invalidateAll(Iterable<?> keys) {
-            if(running) {
-                cache.invalidateAll(keys);
-            }
-        }
-
-        @Override
-        public void invalidateAll() {
-            if(running) {
-                cache.invalidateAll();
-            }
-        }
-
-        @Override
-        public long size() {
-            return running ? cache.size() : 0;
-        }
-
-        @Override
-        public CacheStats stats() {
-            return running ? cache.stats() : new CacheStats(0, 0, 0, 0, 0, 0);
-        }
-
-        @Override
-        public ConcurrentMap<K, V> asMap() {
-            return running ? cache.asMap() : Maps.newConcurrentMap();
-        }
-
-        @Override
-        public void cleanUp() {
-            if(running) {
-                cache.cleanUp();
-            }
-        }
-
-    }
-
-    /**
      * View into the {@link Memory} of the {@link Database}.
      *
      * @author Jeff Nelson
@@ -1349,6 +1276,109 @@ public final class Database implements DurableStore {
     }
 
     /**
+     * {@link Cache} wrapper that is aware of whether the {@link Database} is
+     * running and behaves accordingly.
+     *
+     * @author Jeff Nelson
+     */
+    private class RunningAwareCache<K, V> implements Cache<K, V> {
+
+        /**
+         * The underlying {@link Cache}.
+         */
+        private final Cache<K, V> cache;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param cache
+         */
+        RunningAwareCache(Cache<K, V> cache) {
+            this.cache = cache;
+        }
+
+        @Override
+        public ConcurrentMap<K, V> asMap() {
+            return running ? cache.asMap() : Maps.newConcurrentMap();
+        }
+
+        @Override
+        public void cleanUp() {
+            if(running) {
+                cache.cleanUp();
+            }
+        }
+
+        @Override
+        public V get(K key, Callable<? extends V> loader)
+                throws ExecutionException {
+            try {
+                return running ? cache.get(key, loader) : loader.call();
+            }
+            catch (Exception e) {
+                throw new ExecutionException(e.getMessage(), e);
+            }
+        }
+
+        @Override
+        public ImmutableMap<K, V> getAllPresent(Iterable<?> keys) {
+            return running ? cache.getAllPresent(keys) : ImmutableMap.of();
+        }
+
+        @Override
+        public @org.checkerframework.checker.nullness.qual.Nullable V getIfPresent(
+                Object key) {
+            return running ? cache.getIfPresent(key) : null;
+        }
+
+        @Override
+        public void invalidate(Object key) {
+            if(running) {
+                cache.invalidate(key);
+            }
+        }
+
+        @Override
+        public void invalidateAll() {
+            if(running) {
+                cache.invalidateAll();
+            }
+        }
+
+        @Override
+        public void invalidateAll(Iterable<?> keys) {
+            if(running) {
+                cache.invalidateAll(keys);
+            }
+        }
+
+        @Override
+        public void put(K key, V value) {
+            if(running) {
+                cache.put(key, value);
+            }
+        }
+
+        @Override
+        public void putAll(Map<? extends K, ? extends V> m) {
+            if(running) {
+                cache.putAll(m);
+            }
+        }
+
+        @Override
+        public long size() {
+            return running ? cache.size() : 0;
+        }
+
+        @Override
+        public CacheStats stats() {
+            return running ? cache.stats() : new CacheStats(0, 0, 0, 0, 0, 0);
+        }
+
+    }
+
+    /**
      * The {@link SegmentStorageSystem} for a {@link Database}.
      *
      * @author Jeff Nelson
@@ -1358,15 +1388,15 @@ public final class Database implements DurableStore {
         private static String FILESYSTEM_HOOK_FILE_NAME = ".fs";
 
         /**
+         * The directory where .{@link Segment seg} files are stored.
+         */
+        private final Path directory;
+
+        /**
          * Used to hook into disk space APIs needed for conformity with
          * {@link SegmentStorageSystem} interface.
          */
         private final transient File fs;
-
-        /**
-         * The directory where .{@link Segment seg} files are stored.
-         */
-        private final Path directory;
 
         /**
          * Controls concurrent access to modify the {@link #segments()}.
@@ -1425,6 +1455,11 @@ public final class Database implements DurableStore {
         }
 
         @Override
+        public Lock lock() {
+            return lock;
+        }
+
+        @Override
         public Path save(Segment segment) {
             Path file = directory.resolve(UUID.randomUUID() + ".seg");
             segment.transfer(file);
@@ -1439,11 +1474,6 @@ public final class Database implements DurableStore {
         @Override
         public long totalDiskSpace() {
             return fs.getTotalSpace();
-        }
-
-        @Override
-        public Lock lock() {
-            return lock;
         }
     }
 

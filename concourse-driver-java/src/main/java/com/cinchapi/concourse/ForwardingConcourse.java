@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.cinchapi.concourse;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,39 +75,6 @@ public abstract class ForwardingConcourse extends Concourse {
     @Override
     public <T> boolean add(String key, T value, long record) {
         return concourse.add(key, value, record);
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(long record) {
-        return concourse.audit(record);
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(long record, Timestamp start) {
-        return concourse.audit(record, start);
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(long record, Timestamp start,
-            Timestamp end) {
-        return concourse.audit(record, start, end);
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(String key, long record) {
-        return concourse.audit(key, record);
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(String key, long record,
-            Timestamp start) {
-        return concourse.audit(key, record, start);
-    }
-
-    @Override
-    public Map<Timestamp, String> audit(String key, long record,
-            Timestamp start, Timestamp end) {
-        return concourse.audit(key, record, start, end);
     }
 
     @Override
@@ -1170,6 +1138,39 @@ public abstract class ForwardingConcourse extends Concourse {
     @Override
     public void revert(String key, long record, Timestamp timestamp) {
         concourse.revert(key, record, timestamp);
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(long record) {
+        return concourse.review(record);
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(long record, Timestamp start) {
+        return concourse.review(record, start);
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(long record, Timestamp start,
+            Timestamp end) {
+        return concourse.review(record, start, end);
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(String key, long record) {
+        return concourse.review(key, record);
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(String key, long record,
+            Timestamp start) {
+        return concourse.review(key, record, start);
+    }
+
+    @Override
+    public Map<Timestamp, List<String>> review(String key, long record,
+            Timestamp start, Timestamp end) {
+        return concourse.review(key, record, start, end);
     }
 
     @Override

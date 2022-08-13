@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class VerifyOrSetTest extends ConcourseIntegrationTest {
         client.add(key, value, record);
         client.verifyOrSet(key, value, record);
         Assert.assertEquals(value, client.get(key, record));
-        Assert.assertEquals(1, client.audit(key, record).size());
+        Assert.assertEquals(1, client.review(key, record).size());
     }
 
     @Test

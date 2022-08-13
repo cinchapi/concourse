@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -307,7 +307,6 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>>
             pretty().clear();
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public V put(R row, C column, V value) {
             return ((PrettyTableMap<R, C, V>) pretty()).put(row, column, value);
@@ -334,7 +333,6 @@ public class PrettyLinkedTableMap<R, C, V> extends LinkedHashMap<R, Map<C, V>>
             return pretty().remove(object);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public PrettyTableMap<R, C, V> setIdentifierColumnHeader(
                 String header) {

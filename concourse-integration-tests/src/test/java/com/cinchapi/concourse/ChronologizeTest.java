@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,11 +149,13 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
                 .getLast((Iterable<Set<Object>>) result.values());
         assertEquals(expectedLastSetSize, lastValueSet.size());
 
-        // clear all values
-        expectedMapSize += expectedLastSetSize - 1; // last empty set filtered
-                                                    // out
-        expectedLastSetSize = 1;
+        // clear all values and add a new one
+        // NOTE: clear is an atomic operation that happens at the same commit
+        // timestamp
         client.clear(key, record);
+        client.add(key, "Jeff", record);
+        expectedMapSize += 1;
+        expectedLastSetSize = 1;
         result = client.chronologize(key, record);
         assertEquals(expectedMapSize, result.size());
         lastValueSet = Iterables
@@ -189,7 +191,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
         client.set(key, listOfValues.get(3), record);
         result = client.chronologize(key, record);
         Variables.register("result", result);
-        Variables.register("audit", client.audit(key, record));
+        Variables.register("review", client.review(key, record));
         assertEquals(17, result.size());
         assertEquals(5, Iterables.get(result.entrySet(), 4).getValue().size());
         assertEquals(4, Iterables.get(result.entrySet(), 5).getValue().size());

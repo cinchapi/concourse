@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 package com.cinchapi.concourse.server.query;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.cinchapi.ccl.ConditionTreeVisitor;
 import com.cinchapi.ccl.grammar.ConjunctionSymbol;
@@ -112,9 +114,10 @@ public class Finder extends ConditionTreeVisitor<Set<Long>> {
                         value -> ids.add(((Number) value).longValue()));
             }
             else if(operator == Operator.NOT_EQUALS) {
-                ids = store.getAllRecords();
-                expression.raw().values().forEach(
-                        value -> ids.remove(((Number) value).longValue()));
+                Set<Long> exclude = expression.raw().values().stream()
+                        .map(value -> ((Number) value).longValue())
+                        .collect(Collectors.toCollection(HashSet::new));
+                ids = Sets.difference(store.getAllRecords(), exclude);
             }
             else {
                 throw new IllegalArgumentException(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -499,7 +499,7 @@ public final class GlobalState extends Constants {
      */
     @NonPreference
     public static final int DISK_READ_BUFFER_SIZE = (int) Math.pow(2, 20); // 1048567
-                                                                           // (1MiB)
+                                                                           // (~1MiB)
 
     /**
      * The path to the underlying file from which the preferences are extracted.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,33 @@
 package com.cinchapi.concourse.server.ops;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
 
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.common.base.StringSplitter;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.Link;
+import com.cinchapi.concourse.data.sort.Sortable;
 import com.cinchapi.concourse.lang.ConcourseCompiler;
+import com.cinchapi.concourse.lang.paginate.NoPage;
+import com.cinchapi.concourse.lang.paginate.Page;
+import com.cinchapi.concourse.lang.sort.NoOrder;
+import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.server.ConcourseServer.DeferredWrite;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.calculate.Calculations;
 import com.cinchapi.concourse.server.calculate.KeyCalculation;
 import com.cinchapi.concourse.server.calculate.KeyRecordCalculation;
 import com.cinchapi.concourse.server.query.Finder;
+import com.cinchapi.concourse.server.query.paginate.Paging;
+import com.cinchapi.concourse.server.query.sort.Sorting;
 import com.cinchapi.concourse.server.storage.AtomicOperation;
 import com.cinchapi.concourse.server.storage.AtomicStateException;
 import com.cinchapi.concourse.server.storage.Store;
@@ -108,7 +113,7 @@ public final class Operations {
     public static Number avgKeyAtomic(String key, long timestamp, Store store) {
         checkAtomicity(store, timestamp);
         Map<TObject, Set<Long>> data = Stores.browse(store, key, timestamp);
-        Number avg = 0;
+        Number average = null;
         int count = 0;
         for (Entry<TObject, Set<Long>> entry : data.entrySet()) {
             TObject tobject = entry.getKey();
@@ -118,10 +123,11 @@ public final class Operations {
             Number number = (Number) value;
             for (int i = 0; i < records.size(); ++i) {
                 count++;
-                avg = Numbers.incrementalAverage(avg, number, count);
+                average = average == null ? Numbers.divide(number, count)
+                        : Numbers.incrementalAverage(average, number, count);
             }
         }
-        return avg;
+        return average;
     }
 
     /**
@@ -146,7 +152,7 @@ public final class Operations {
             Number number = (Number) object;
             sum = Numbers.add(sum, number);
         }
-        return Numbers.divide(sum, values.size());
+        return values.isEmpty() ? null : Numbers.divide(sum, values.size());
     }
 
     /**
@@ -350,263 +356,427 @@ public final class Operations {
     }
 
     /**
-     * Get the most recently stored value for every key in each of the records
-     * that are resolved by the {@code ast}.
+     * From {@code store}, get the most recently stored value for each key in
+     * each of the records that are resolved by the {@code ast}.
      * 
-     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
-     *            resolves to a set of records from which data can be retrieved
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param ast
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         records to a {@link Map} of each of that record's keys
+     *         associated with the most recently stored value for that key
      */
-    public static <M extends Map<Long, Map<String, TObject>>> void getAstAtomic(
-            AbstractSyntaxTree ast, long timestamp, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        Set<Long> records = ast.accept(Finder.instance(), atomic);
-        getRecordsOptionalAtomic(records, timestamp, result, streamer, consumer,
-                atomic);
+    public static <M extends Map<Long, Map<String, TObject>> & Sortable<TObject>> Map<Long, Map<String, TObject>> getAstAtomic(
+            AtomicOperation store, AbstractSyntaxTree ast, Order order,
+            Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return getRecordsOptionalAtomic(store, records, Time.NONE, order, page,
+                supplier);
     }
 
     /**
-     * Get the most recently stored value for {@code key} in each of the records
-     * that are resolved by the {@code ast}.
+     * From {@code store}, get the most recently stored value at
+     * {@code timestamp} for each key in each of the records that are resolved
+     * by the {@code ast}.
      * 
-     * @param key they key to lookup
-     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
-     *            resolves to a set of records from which data can be retrieved
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param ast
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         records to a {@link Map} of each of that record's keys
+     *         associated with the most recently stored value for that key
      */
-    public static <M extends Map<Long, TObject>> void getKeyAstAtomic(
-            String key, AbstractSyntaxTree ast, long timestamp, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        Set<Long> records = ast.accept(Finder.instance(), atomic);
-        getKeyRecordsOptionalAtomic(key, records, timestamp, result, streamer,
-                consumer, atomic);
+    public static <M extends Map<Long, Map<String, TObject>> & Sortable<TObject>> Map<Long, Map<String, TObject>> getAstOptionalAtomic(
+            Store store, AbstractSyntaxTree ast, long timestamp, Order order,
+            Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return getRecordsOptionalAtomic(store, records, timestamp, order, page,
+                supplier);
     }
 
     /**
-     * Get the most recently stored value for {@code key} in each of the
-     * provided records.
+     * From {@code store}, get the most recently stored value for {@code key} in
+     * each of the records that are resolved by the {@code ast}.
      * 
-     * @param key the lookup key
-     * @param records the lookup records
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param key
+     * @param ast
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier
+     * @return the result set - a {@link Map} from each of the matching records
+     *         to the most recently stored value for {@code key}
      */
-    public static <M extends Map<Long, TObject>> void getKeyRecordsAtomic(
-            String key, Collection<Long> records, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        getKeyRecordsOptionalAtomic(key, records, Time.NONE, result, streamer,
-                consumer, atomic);
+    public static <M extends Map<Long, TObject> & Sortable<TObject>> Map<Long, TObject> getKeyAstAtomic(
+            AtomicOperation store, String key, AbstractSyntaxTree ast,
+            Order order, Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return getKeyRecordsAtomic(store, key, records, order, page, supplier);
     }
 
     /**
-     * Get the most recently stored value for {@code key} in each of the
-     * provided records.
+     * From {@code store}, get the most recently stored value at
+     * {@code timestamp} for {@code key} in each of the records that are
+     * resolved by the {@code ast}.
      * 
-     * @param key the lookup key
-     * @param records the lookup records
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param store the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param key
+     * @param ast
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier
+     * @return the result set - a {@link Map} from each of the matching records
+     *         to the most recently stored value for {@code key}
      */
-    public static <M extends Map<Long, TObject>> void getKeyRecordsOptionalAtomic(
-            String key, Collection<Long> records, long timestamp, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, Store store) {
-        result.clear();
-        for (long record : streamer != null ? streamer.apply(records)
-                : records) {
+    public static <M extends Map<Long, TObject> & Sortable<TObject>> Map<Long, TObject> getKeyAstOptionalAtomic(
+            Store store, String key, AbstractSyntaxTree ast, long timestamp,
+            Order order, Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return getKeyRecordsOptionalAtomic(store, key, records, timestamp,
+                order, page, supplier);
+    }
+
+    /**
+     * From {@code store}, get the most recently stored value for {@code key} in
+     * each of the {@code records}.
+     * 
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param key
+     * @param records
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to the most recently stored value for {@code key}
+     */
+    public static <M extends Map<Long, TObject> & Sortable<TObject>> Map<Long, TObject> getKeyRecordsAtomic(
+            AtomicOperation store, String key, Iterable<Long> records,
+            Order order, Page page, Supplier<M> supplier) {
+        return getKeyRecordsOptionalAtomic(store, key, records, Time.NONE,
+                order, page, supplier);
+    }
+
+    /**
+     * From {@code store}, get the most recently stored value at
+     * {@code timestamp} for {@code key} in each of the {@code records}.
+     * 
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param key
+     * @param records
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to the most recently stored value for {@code key}
+     */
+    public static <M extends Map<Long, TObject> & Sortable<TObject>> Map<Long, TObject> getKeyRecordsOptionalAtomic(
+            Store store, String key, Iterable<Long> records, long timestamp,
+            Order order, Page page, Supplier<M> supplier) {
+        M data = supplier.get();
+        if(order instanceof NoOrder) {
+            // If page == NoPage, this is a no-op; otherwise, apply the
+            // pagination directly to the input records so that we don't fetch
+            // more data than required.
+            records = Paging.page(records, page);
+            page = NoPage.INSTANCE;
+        }
+        for (long record : records) {
             try {
-                result.put(record, Iterables
-                        .getLast(Stores.select(store, key, record, timestamp)));
+                Set<TObject> values = timestamp == Time.NONE
+                        ? Stores.select(store, key, record)
+                        : Stores.select(store, key, record, timestamp);
+                TObject value = Iterables.getLast(values);
+                data.put(record, value);
             }
             catch (NoSuchElementException e) {
                 continue;
             }
         }
-        if(consumer != null) {
-            consumer.accept(result);
+        if(timestamp == Time.NONE) {
+            data.sort(Sorting.byValue(order, store));
         }
+        else {
+            data.sort(Sorting.byValue(order, store), timestamp);
+        }
+
+        // Assuming page != NoPage and pagination was not applied to the
+        // input records (e.g., the data was actually sorted); otherwise this is
+        // a no-op
+        return Paging.page(data, page);
     }
 
     /**
-     * Get the most recently stored value for each of the provided {@code keys}
-     * in each of the records that are resolved by the {@code ast}.
+     * From {@code store}, and for each of the records resolved by the
+     * {@code ast}, get the most recently stored value for each of the
+     * {@code keys}.
      * 
-     * @param keys the lookup keys
-     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
-     *            resolves to a set of records from which data can be retrieved
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param keys
+     * @param ast
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         records to a {@link Map} of the {@code keys} in that
+     *         record that are non-empty, associated with the most recently
+     *         stored value for that key
      */
-    public static <M extends Map<Long, Map<String, TObject>>> void getKeysAstAtomic(
-            Collection<String> keys, AbstractSyntaxTree ast, long timestamp,
-            M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        Set<Long> records = ast.accept(Finder.instance(), atomic);
-        getKeysRecordsOptionalAtomic(keys, records, timestamp, result, streamer,
-                consumer, atomic);
+    public static <M extends Map<Long, Map<String, TObject>> & Sortable<TObject>> Map<Long, Map<String, TObject>> getKeysAstAtomic(
+            AtomicOperation store, Collection<String> keys,
+            AbstractSyntaxTree ast, Order order, Page page,
+            Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return getKeysRecordsOptionalAtomic(store, keys, records, Time.NONE,
+                order, page, supplier);
     }
 
     /**
-     * Get the most recently stored value for each of the provided {@code keys}
-     * in each of the specified {@code records}.
+     * From {@code store}, and for each of the records resolved by the
+     * {@code ast}, get the most recently stored value for each of the
+     * {@code keys}.
      * 
-     * @param keys the lookup keys
-     * @param ast the lookup records
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param keys
+     * @param ast
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         records to a {@link Map} of the {@code keys} in that
+     *         record that are non-empty, associated with the most recently
+     *         stored value for that key
      */
-    public static <M extends Map<Long, Map<String, TObject>>> void getKeysRecordsAtomic(
-            Collection<String> keys, Collection<Long> records, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        getKeysRecordsOptionalAtomic(keys, records, Time.NONE, result, streamer,
-                consumer, atomic);
+    public static <M extends Map<Long, Map<String, TObject>> & Sortable<TObject>> Map<Long, Map<String, TObject>> getKeysAstOptionalAtomic(
+            Store store, Collection<String> keys, AbstractSyntaxTree ast,
+            long timestamp, Order order, Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return getKeysRecordsOptionalAtomic(store, keys, records, timestamp,
+                order, page, supplier);
     }
 
     /**
-     * Get the most recently stored value for each of the provided {@code keys}
-     * in each of the specified {@code records}.
+     * From {@code store}, and for each of the {@code records}, get the most
+     * recently stored value for each of the {@code keys}.
      * 
-     * @param keys the lookup keys
-     * @param ast the lookup records
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param store the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param keys
+     * @param records
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a {@link Map} of the {@code keys} in that
+     *         record that are non-empty, associated with the most recently
+     *         stored value for that key
      */
-    public static <M extends Map<Long, Map<String, TObject>>> void getKeysRecordsOptionalAtomic(
-            Collection<String> keys, Collection<Long> records, long timestamp,
-            M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, Store store) {
-        result.clear();
-        for (long record : streamer != null ? streamer.apply(records)
-                : records) {
-            Map<String, TObject> entry = TMaps
-                    .newLinkedHashMapWithCapacity(keys.size());
-            for (String key : keys) {
-                try {
-                    entry.put(key, Iterables.getLast(
-                            Stores.select(store, key, record, timestamp)));
-                }
-                catch (NoSuchElementException e) {
-                    continue;
-                }
+    public static <M extends Map<Long, Map<String, TObject>> & Sortable<TObject>> Map<Long, Map<String, TObject>> getKeysRecordsAtomic(
+            AtomicOperation store, Collection<String> keys,
+            Iterable<Long> records, Order order, Page page,
+            Supplier<M> supplier) {
+        return getKeysRecordsOptionalAtomic(store, keys, records, Time.NONE,
+                order, page, supplier);
+    }
+
+    /**
+     * From {@code store}, and for each of the {@code records}, get the most
+     * recently stored value at {@code timestamp} for each of the {@code keys}.
+     * 
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param keys
+     * @param records
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a {@link Map} of the {@code keys} in that
+     *         record that are non-empty, associated with the most recently
+     *         stored value for that key
+     */
+    public static <M extends Map<Long, Map<String, TObject>> & Sortable<TObject>> Map<Long, Map<String, TObject>> getKeysRecordsOptionalAtomic(
+            Store store, Collection<String> keys, Iterable<Long> records,
+            long timestamp, Order order, Page page, Supplier<M> supplier) {
+        M data = supplier.get();
+        if(order instanceof NoOrder) {
+            // If page == NoPage, this is a no-op; otherwise, apply the
+            // pagination directly to the input records so that we don't fetch
+            // more data than required.
+            records = Paging.page(records, page);
+            page = NoPage.INSTANCE;
+        }
+        for (long record : records) {
+            Map<String, TObject> row = (timestamp == Time.NONE
+                    ? Stores.select(store, keys, record)
+                    : Stores.select(store, keys, record, timestamp)).entrySet()
+                            .stream()
+                            .filter(entry -> !entry.getValue().isEmpty())
+                            .collect(Collectors.toMap(Entry::getKey,
+                                    entry -> Iterables
+                                            .getLast(entry.getValue()),
+                                    (a, b) -> b, LinkedHashMap::new));
+            if(!row.isEmpty()) {
+                data.put(record, row);
             }
-            if(!entry.isEmpty()) {
-                result.put(record, entry);
-            }
         }
-        if(consumer != null) {
-            consumer.accept(result);
+        if(timestamp == Time.NONE) {
+            data.sort(Sorting.byValue(order, store));
         }
+        else {
+            data.sort(Sorting.byValue(order, store), timestamp);
+        }
+
+        // Assuming page != NoPage and pagination was not applied to the
+        // input records (e.g., the data was actually sorted); otherwise this is
+        // a no-op
+        return Paging.page(data, page);
     }
 
     /**
-     * Get the most recently stored value for each key in each of the provided
-     * {@code records}.
+     * From {@code store}, get the most recently stored value for each key in
+     * the provided {@code records}.
      * 
-     * @param records the lookup records
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param records
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a {@link Map} of each of that record's keys
+     *         associated with the most recently stored value for that key
      */
-    public static <M extends Map<Long, Map<String, TObject>>> void getRecordsAtomic(
-            Set<Long> records, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        getRecordsOptionalAtomic(records, Time.NONE, result, streamer, consumer,
-                atomic);
+    public static <M extends Map<Long, Map<String, TObject>> & Sortable<TObject>> Map<Long, Map<String, TObject>> getRecordsAtomic(
+            AtomicOperation store, Iterable<Long> records, Order order,
+            Page page, Supplier<M> supplier) {
+        return getRecordsOptionalAtomic(store, records, Time.NONE, order, page,
+                supplier);
     }
 
     /**
-     * Get the most recently stored value for each key in each of the provided
-     * {@code records}.
+     * From {@code store}, get the most recently stored value at
+     * {@code timestamp} for each key in the provided {@code records}.
      * 
-     * @param records the lookup records
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param store the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param records
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a {@link Map} of each of that record's keys
+     *         associated with the most recently stored value for that key
      */
-    public static <M extends Map<Long, Map<String, TObject>>> void getRecordsOptionalAtomic(
-            Set<Long> records, long timestamp, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, Store store) {
-        result.clear();
-        for (long record : streamer != null ? streamer.apply(records)
-                : records) {
-            Map<String, TObject> data = (timestamp == Time.NONE
+    public static <M extends Map<Long, Map<String, TObject>> & Sortable<TObject>> Map<Long, Map<String, TObject>> getRecordsOptionalAtomic(
+            Store store, Iterable<Long> records, long timestamp, Order order,
+            Page page, Supplier<M> supplier) {
+        M data = supplier.get();
+        if(order instanceof NoOrder) {
+            // If page == NoPage, this is a no-op; otherwise, apply the
+            // pagination directly to the input records so that we don't fetch
+            // more data than required.
+            records = Paging.page(records, page);
+            page = NoPage.INSTANCE;
+        }
+        for (long record : records) {
+            Map<String, TObject> row = (timestamp == Time.NONE
                     ? store.select(record)
                     : store.select(record, timestamp)).entrySet().stream()
                             .filter(e -> !e.getValue().isEmpty())
                             .collect(Collectors.toMap(Entry::getKey,
                                     e -> Iterables.getLast(e.getValue())));
-            if(!data.isEmpty()) {
-                result.put(record, data);
+            if(!row.isEmpty()) {
+                data.put(record, row);
             }
         }
-        if(consumer != null) {
-            consumer.accept(result);
+        if(timestamp == Time.NONE) {
+            data.sort(Sorting.byValue(order, store));
         }
+        else {
+            data.sort(Sorting.byValue(order, store), timestamp);
+        }
+
+        // Assuming page != NoPage and pagination was not applied to the
+        // input records (e.g., the data was actually sorted); otherwise this is
+        // a no-op
+        return Paging.page(data, page);
     }
 
     /**
@@ -712,6 +882,27 @@ public final class Operations {
 
     /**
      * Use the {@code store} to atomically compute the max across all the values
+     * stored for {@code key} across all records at {@code timestamp}.
+     * 
+     * @param key
+     * @param timestamp
+     * @param store
+     * @return the max
+     */
+    public static Number maxKeyAtomic(String key, long timestamp, Store store) {
+        checkAtomicity(store, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(store, key, timestamp);
+        TObject max = Iterables.getLast(data.keySet(), null);
+        if(max != null) {
+            return (Number) Convert.thriftToJava(max);
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Use the {@code store} to atomically compute the max across all the values
      * stored for {@code key} in {@code record} at {@code timestamp}.
      * 
      * @param key the field name
@@ -722,8 +913,8 @@ public final class Operations {
      */
     public static Number maxKeyRecordAtomic(String key, long record,
             long timestamp, Store store) {
-        return calculateKeyRecordAtomic(key, record, timestamp, Long.MIN_VALUE,
-                store, Calculations.maxKeyRecord());
+        return calculateKeyRecordAtomic(key, record, timestamp, null, store,
+                Calculations.maxKeyRecord());
     }
 
     /**
@@ -739,12 +930,33 @@ public final class Operations {
      */
     public static Number maxKeyRecordsAtomic(String key,
             Collection<Long> records, long timestamp, Store store) {
-        Number max = Long.MIN_VALUE;
+        Number max = null;
         for (long record : records) {
             max = calculateKeyRecordAtomic(key, record, timestamp, max, store,
                     Calculations.maxKeyRecord());
         }
         return max;
+    }
+
+    /**
+     * Use the {@code store} to atomically compute the min across all the values
+     * stored for {@code key} across all records at {@code timestamp}.
+     * 
+     * @param key
+     * @param timestamp
+     * @param store
+     * @return the max
+     */
+    public static Number minKeyAtomic(String key, long timestamp, Store store) {
+        checkAtomicity(store, timestamp);
+        Map<TObject, Set<Long>> data = Stores.browse(store, key, timestamp);
+        TObject min = Iterables.getFirst(data.keySet(), null);
+        if(min != null) {
+            return (Number) Convert.thriftToJava(min);
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -759,8 +971,8 @@ public final class Operations {
      */
     public static Number minKeyRecordAtomic(String key, long record,
             long timestamp, Store store) {
-        return calculateKeyRecordAtomic(key, record, timestamp, Long.MAX_VALUE,
-                store, Calculations.minKeyRecord());
+        return calculateKeyRecordAtomic(key, record, timestamp, null, store,
+                Calculations.minKeyRecord());
     }
 
     /**
@@ -776,7 +988,7 @@ public final class Operations {
      */
     public static Number minKeyRecordsAtomic(String key,
             Collection<Long> records, long timestamp, Store store) {
-        Number min = Long.MAX_VALUE;
+        Number min = null;
         for (long record : records) {
             min = calculateKeyRecordAtomic(key, record, timestamp, min, store,
                     Calculations.minKeyRecord());
@@ -965,256 +1177,416 @@ public final class Operations {
     }
 
     /**
-     * Select all the values for every key in each of the records that are
-     * resolved by the {@code ast}.
+     * From {@code store}, select the values for each key in each of the records
+     * that are resolved by the {@code ast}.
      * 
-     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
-     *            resolves to a set of records from which data can be retrieved
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param ast
+     * @param order
+     * @param page
+     * @param supplier
+     * @return the result set - a {@link Map} from each of the relevant
+     *         records to a {@link Map} of each of that record's keys
+     *         associated with the values stored for that key
      */
-    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectAstAtomic(
-            AbstractSyntaxTree ast, long timestamp, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        Set<Long> records = ast.accept(Finder.instance(), atomic);
-        selectRecordsOptionalAtomic(records, timestamp, result, streamer,
-                consumer, atomic);
+    public static <M extends Map<Long, Map<String, Set<TObject>>> & Sortable<Set<TObject>>> Map<Long, Map<String, Set<TObject>>> selectAstAtomic(
+            AtomicOperation store, AbstractSyntaxTree ast, Order order,
+            Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return selectRecordsOptionalAtomic(store, records, Time.NONE, order,
+                page, supplier);
     }
 
     /**
-     * Select all the values for {@code key} in each of the records that are
-     * resolved by the {@code ast}.
+     * From {@code store}, select the values for each key in each of the records
+     * that are resolved by the {@code ast}.
      * 
-     * @param key they key to lookup
-     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
-     *            resolves to a set of records from which data can be retrieved
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param ast
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier
+     * @return the result set - a {@link Map} from each of the relevant
+     *         records to a {@link Map} of each of that record's keys
+     *         associated with the values stored for that key
      */
-    public static <M extends Map<Long, Set<TObject>>> void selectKeyAstAtomic(
-            String key, AbstractSyntaxTree ast, long timestamp, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        Set<Long> records = ast.accept(Finder.instance(), atomic);
-        selectKeyRecordsOptionalAtomic(key, records, timestamp, result,
-                streamer, consumer, atomic);
+    public static <M extends Map<Long, Map<String, Set<TObject>>> & Sortable<Set<TObject>>> Map<Long, Map<String, Set<TObject>>> selectAstOptionalAtomic(
+            Store store, AbstractSyntaxTree ast, long timestamp, Order order,
+            Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return selectRecordsOptionalAtomic(store, records, timestamp, order,
+                page, supplier);
     }
 
     /**
-     * Select all the values for {@code key} in each of the provided records.
+     * From {@code store}, and for each of the records that are resolved by
+     * {@code ast}, select the values stored for {@code key}.
      * 
-     * @param key the lookup key
-     * @param records the lookup records
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param key
+     * @param ast
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a non-empty {@link Set} containing all of the
+     *         values store for {@code key} in that record
      */
-    public static <M extends Map<Long, Set<TObject>>> void selectKeyRecordsAtomic(
-            String key, Collection<Long> records, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        selectKeyRecordsOptionalAtomic(key, records, Time.NONE, result,
-                streamer, consumer, atomic);
+    public static <M extends Map<Long, Set<TObject>> & Sortable<Set<TObject>>> Map<Long, Set<TObject>> selectKeyAstAtomic(
+            AtomicOperation store, String key, AbstractSyntaxTree ast,
+            Order order, Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return selectKeyRecordsOptionalAtomic(store, key, records, Time.NONE,
+                order, page, supplier);
     }
 
     /**
-     * Select all the values for {@code key} in each of the provided records.
+     * From {@code store}, and for each of the records that are resolved by
+     * {@code ast}, select the values stored for {@code key} at
+     * {@code timestamp}.
      * 
-     * @param key the lookup key
-     * @param records the lookup records
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param store the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param key
+     * @param ast
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a non-empty {@link Set} containing all of the
+     *         values store for {@code key} in that record
      */
-    public static <M extends Map<Long, Set<TObject>>> void selectKeyRecordsOptionalAtomic(
-            String key, Collection<Long> records, long timestamp, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, Store store) {
-        result.clear();
-        for (long record : streamer != null ? streamer.apply(records)
-                : records) {
+    public static <M extends Map<Long, Set<TObject>> & Sortable<Set<TObject>>> Map<Long, Set<TObject>> selectKeyAstOptionalAtomic(
+            Store store, String key, AbstractSyntaxTree ast, long timestamp,
+            Order order, Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return selectKeyRecordsOptionalAtomic(store, key, records, timestamp,
+                order, page, supplier);
+    }
+
+    /**
+     * From {@code store}, and for each of the {@code records}, select the
+     * values stored for {@code key}.
+     * 
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param key
+     * @param records
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a non-empty {@link Set} containing all of the
+     *         values store for {@code key} in that record
+     */
+    public static <M extends Map<Long, Set<TObject>> & Sortable<Set<TObject>>> Map<Long, Set<TObject>> selectKeyRecordsAtomic(
+            AtomicOperation store, String key, Iterable<Long> records,
+            Order order, Page page, Supplier<M> supplier) {
+        return selectKeyRecordsOptionalAtomic(store, key, records, Time.NONE,
+                order, page, supplier);
+    }
+
+    /**
+     * From {@code store}, and for each of the {@code records}, select the
+     * values stored at {@code timestamp} for {@code key}.
+     * 
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param key
+     * @param records
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a non-empty {@link Set} containing all of the
+     *         values store for {@code key} in that record
+     */
+    public static <M extends Map<Long, Set<TObject>> & Sortable<Set<TObject>>> Map<Long, Set<TObject>> selectKeyRecordsOptionalAtomic(
+            Store store, String key, Iterable<Long> records, long timestamp,
+            Order order, Page page, Supplier<M> supplier) {
+        M data = supplier.get();
+        if(order instanceof NoOrder) {
+            // If page == NoPage, this is a no-op; otherwise, apply the
+            // pagination directly to the input records so that we don't fetch
+            // more data than required.
+            records = Paging.page(records, page);
+            page = NoPage.INSTANCE;
+        }
+        for (long record : records) {
             try {
-                result.put(record,
-                        Stores.select(store, key, record, timestamp));
+                Set<TObject> values = timestamp == Time.NONE
+                        ? Stores.select(store, key, record)
+                        : Stores.select(store, key, record, timestamp);
+                data.put(record, values);
             }
             catch (NoSuchElementException e) {
                 continue;
             }
         }
-        if(consumer != null) {
-            consumer.accept(result);
+        if(timestamp == Time.NONE) {
+            data.sort(Sorting.byValues(order, store));
         }
+        else {
+            data.sort(Sorting.byValues(order, store), timestamp);
+        }
+
+        // Assuming page != NoPage and pagination was not applied to the
+        // input records (e.g., the data was actually sorted); otherwise this is
+        // a no-op
+        return Paging.page(data, page);
     }
 
     /**
-     * Select all the values for each of the provided {@code keys} in each of
-     * the records that are resolved by the {@code ast}.
+     * From {@code store}, and for each of the records resolved by the
+     * {@code ast}, get the values stored for each of the {@code keys}.
      * 
-     * @param keys the lookup keys
-     * @param ast an {@link AbstractSyntaxTree} that represents a statement that
-     *            resolves to a set of records from which data can be retrieved
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param keys
+     * @param ast
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         records to a {@link Map} of the {@code keys} in that
+     *         record that are non-empty, associated with the values stored
+     *         value for that key
      */
-    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysAstAtomic(
-            Collection<String> keys, AbstractSyntaxTree ast, long timestamp,
-            M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        Set<Long> records = ast.accept(Finder.instance(), atomic);
-        selectKeysRecordsOptionalAtomic(keys, records, timestamp, result,
-                streamer, consumer, atomic);
+    public static <M extends Map<Long, Map<String, Set<TObject>>> & Sortable<Set<TObject>>> Map<Long, Map<String, Set<TObject>>> selectKeysAstAtomic(
+            AtomicOperation store, Collection<String> keys,
+            AbstractSyntaxTree ast, Order order, Page page,
+            Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return selectKeysRecordsOptionalAtomic(store, keys, records, Time.NONE,
+                order, page, supplier);
     }
 
     /**
-     * Select all the values for each of the provided {@code keys} in each of
-     * the specified {@code records}.
+     * From {@code store}, and for each of the records resolved by the
+     * {@code ast}, get the values stored for each of the {@code keys}.
      * 
-     * @param keys the lookup keys
-     * @param ast the lookup records
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param keys
+     * @param ast
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         records to a {@link Map} of the {@code keys} in that
+     *         record that are non-empty, associated with the values stored
+     *         value for that key
      */
-    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysRecordsAtomic(
-            Collection<String> keys, Collection<Long> records, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        selectKeysRecordsOptionalAtomic(keys, records, Time.NONE, result,
-                streamer, consumer, atomic);
+    public static <M extends Map<Long, Map<String, Set<TObject>>> & Sortable<Set<TObject>>> Map<Long, Map<String, Set<TObject>>> selectKeysAstOptionalAtomic(
+            Store store, Collection<String> keys, AbstractSyntaxTree ast,
+            long timestamp, Order order, Page page, Supplier<M> supplier) {
+        Set<Long> records = ast.accept(Finder.instance(), store);
+        return selectKeysRecordsOptionalAtomic(store, keys, records, timestamp,
+                order, page, supplier);
     }
 
     /**
-     * Select all the values for each of the provided {@code keys} in each of
-     * the specified {@code records}.
+     * From {@code store}, and for each of the {@code records}, get the values
+     * stored for each of the {@code keys}.
      * 
-     * @param keys the lookup keys
-     * @param ast the lookup records
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param store the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param keys
+     * @param records
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a {@link Map} of the {@code keys} in that
+     *         record that are non-empty, associated with the values stored
+     *         value for that key
      */
-    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectKeysRecordsOptionalAtomic(
-            Collection<String> keys, Collection<Long> records, long timestamp,
-            M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, Store store) {
-        result.clear();
-        for (long record : streamer != null ? streamer.apply(records)
-                : records) {
-            Map<String, Set<TObject>> entry = TMaps
-                    .newLinkedHashMapWithCapacity(keys.size());
-            for (String key : keys) {
-                try {
-                    entry.put(key,
-                            Stores.select(store, key, record, timestamp));
-                }
-                catch (NoSuchElementException e) {
-                    continue;
-                }
+    public static <M extends Map<Long, Map<String, Set<TObject>>> & Sortable<Set<TObject>>> Map<Long, Map<String, Set<TObject>>> selectKeysRecordsAtomic(
+            AtomicOperation store, Collection<String> keys,
+            Iterable<Long> records, Order order, Page page,
+            Supplier<M> supplier) {
+        return selectKeysRecordsOptionalAtomic(store, keys, records, Time.NONE,
+                order, page, supplier);
+    }
+
+    /**
+     * From {@code store}, and for each of the {@code records}, get the values
+     * stored at {@code timestamp} for each of the {@code keys}.
+     * 
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param keys
+     * @param records
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a {@link Map} of the {@code keys} in that
+     *         record that are non-empty, associated with the values stored
+     *         value for that key
+     */
+    public static <M extends Map<Long, Map<String, Set<TObject>>> & Sortable<Set<TObject>>> Map<Long, Map<String, Set<TObject>>> selectKeysRecordsOptionalAtomic(
+            Store store, Collection<String> keys, Iterable<Long> records,
+            long timestamp, Order order, Page page, Supplier<M> supplier) {
+        M data = supplier.get();
+        if(order instanceof NoOrder) {
+            // If page == NoPage, this is a no-op; otherwise, apply the
+            // pagination directly to the input records so that we don't fetch
+            // more data than required.
+            records = Paging.page(records, page);
+            page = NoPage.INSTANCE;
+        }
+        for (long record : records) {
+            Map<String, Set<TObject>> row = timestamp == Time.NONE
+                    ? Stores.select(store, keys, record)
+                    : Stores.select(store, keys, record, timestamp);
+            if(!row.isEmpty()) {
+                TMaps.putResultDatasetOptimized(data, record, row);
             }
-            if(!entry.isEmpty()) {
-                TMaps.putResultDatasetOptimized(result, record, entry);
-            }
         }
-        if(consumer != null) {
-            consumer.accept(result);
+        if(timestamp == Time.NONE) {
+            data.sort(Sorting.byValues(order, store));
         }
+        else {
+            data.sort(Sorting.byValues(order, store), timestamp);
+        }
+
+        // Assuming page != NoPage and pagination was not applied to the
+        // input records (e.g., the data was actually sorted); otherwise this is
+        // a no-op
+        return Paging.page(data, page);
     }
 
     /**
-     * Select all the values for each key in each of the provided
+     * From {@code store}, select the values for each key in the provided
      * {@code records}.
      * 
-     * @param records the lookup records
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param atomic the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param records
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a {@link Map} of each of that record's keys
+     *         associated with the values stored for that key
      */
-    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectRecordsAtomic(
-            Collection<Long> records, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, AtomicOperation atomic) {
-        selectRecordsOptionalAtomic(records, Time.NONE, result, streamer,
-                consumer, atomic);
+    public static <M extends Map<Long, Map<String, Set<TObject>>> & Sortable<Set<TObject>>> Map<Long, Map<String, Set<TObject>>> selectRecordsAtomic(
+            AtomicOperation store, Iterable<Long> records, Order order,
+            Page page, Supplier<M> supplier) {
+        return selectRecordsOptionalAtomic(store, records, Time.NONE, order,
+                page, supplier);
     }
 
     /**
-     * Select all the values for each key in each of the provided
-     * {@code records}.
+     * From {@code store}, select the values at {@code timestamp} for each key
+     * in the provided {@code records}.
      * 
-     * @param records the lookup records
-     * @param timestamp the data retrieval timestamp; use {@link Time#NONE} to
-     *            retrieve from the current state
-     * @param result a {@link Map} in which the results can be gathered
-     * @param streamer an optional {@link Function} that reduces a stream of all
-     *            the records resolved by processing the {@code ast} to those
-     *            for which data should be retrieved (i.e. pagination)
-     * @param consumer an optional {@link Consumer} for the populated
-     *            {@code result}
-     * @param store the store from which data is retrieved
+     * <p>
+     * If possible, apply the {@code order} and {@code page} parameters to the
+     * result set.
+     * </p>
+     * 
+     * @param store
+     * @param records
+     * @param timestamp
+     * @param order
+     * @param page
+     * @param supplier a {@link Supplier} of a {@link Sortable} in which the
+     *            results can be gathered
+     * @return the result set - a {@link Map} from each of the relevant
+     *         {@code records} to a {@link Map} of each of that record's keys
+     *         associated with the values stored for that key
      */
-    public static <M extends Map<Long, Map<String, Set<TObject>>>> void selectRecordsOptionalAtomic(
-            Collection<Long> records, long timestamp, M result,
-            @Nullable Function<Iterable<Long>, Iterable<Long>> streamer,
-            @Nullable Consumer<M> consumer, Store store) {
-        result.clear();
-        for (long record : streamer != null ? streamer.apply(records)
-                : records) {
-            Map<String, Set<TObject>> data = timestamp == Time.NONE
+    public static <M extends Map<Long, Map<String, Set<TObject>>> & Sortable<Set<TObject>>> Map<Long, Map<String, Set<TObject>>> selectRecordsOptionalAtomic(
+            Store store, Iterable<Long> records, long timestamp, Order order,
+            Page page, Supplier<M> supplier) {
+        M data = supplier.get();
+        if(order instanceof NoOrder) {
+            // If page == NoPage, this is a no-op; otherwise, apply the
+            // pagination directly to the input records so that we don't fetch
+            // more data than required.
+            records = Paging.page(records, page);
+            page = NoPage.INSTANCE;
+        }
+        for (long record : records) {
+            Map<String, Set<TObject>> row = timestamp == Time.NONE
                     ? store.select(record)
                     : store.select(record, timestamp);
-            TMaps.putResultDatasetOptimized(result, record, data);
-        } ;
-        if(consumer != null) {
-            consumer.accept(result);
+            TMaps.putResultDatasetOptimized(data, record, row);
         }
+        if(timestamp == Time.NONE) {
+            data.sort(Sorting.byValues(order, store));
+        }
+        else {
+            data.sort(Sorting.byValues(order, store), timestamp);
+        }
+
+        // Assuming page != NoPage and pagination was not applied to the
+        // input records (e.g., the data was actually sorted); otherwise this is
+        // a no-op
+        return Paging.page(data, page);
     }
 
     /**
@@ -1227,7 +1599,7 @@ public final class Operations {
      * @return the sum
      */
     public static Number sumKeyAtomic(String key, long timestamp, Store store) {
-        return calculateKeyAtomic(key, timestamp, 0, store,
+        return calculateKeyAtomic(key, timestamp, null, store,
                 Calculations.sumKey());
     }
 
@@ -1243,7 +1615,7 @@ public final class Operations {
      */
     public static Number sumKeyRecordAtomic(String key, long record,
             long timestamp, Store store) {
-        return calculateKeyRecordAtomic(key, record, timestamp, 0, store,
+        return calculateKeyRecordAtomic(key, record, timestamp, null, store,
                 Calculations.sumKeyRecord());
     }
 
@@ -1260,7 +1632,7 @@ public final class Operations {
      */
     public static Number sumKeyRecordsAtomic(String key,
             Collection<Long> records, long timestamp, Store store) {
-        Number sum = 0;
+        Number sum = null;
         for (long record : records) {
             sum = calculateKeyRecordAtomic(key, record, timestamp, sum, store,
                     Calculations.sumKeyRecord());
@@ -1356,8 +1728,8 @@ public final class Operations {
             Set<Long> descendents = Sets.newLinkedHashSet();
             for (long node : nodes) {
                 Set<TObject> $values = timestamp == Time.NONE
-                        ? store.select(key, node)
-                        : store.select(key, node, timestamp);
+                        ? Stores.select(store, key, node)
+                        : Stores.select(store, key, node, timestamp);
                 if(i == toks.length - 1) {
                     values.addAll($values);
                 }

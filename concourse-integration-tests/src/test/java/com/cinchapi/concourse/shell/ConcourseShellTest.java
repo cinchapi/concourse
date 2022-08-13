@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
 
     @Test(expected = ProgramCrash.class)
     public void testSecurityChangeCausesCrash() throws Throwable {
-        createUser("admin", "admin2", "admin");
+        setUserPassword("admin", "admin2");
         cash.evaluate("add \"name\", \"jeff\", 1");
     }
 
@@ -90,7 +90,8 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
     public void testImportedClasssesAreAccessible() throws Throwable {
         for (Class<?> clazz : ConcourseShell.IMPORTED_CLASSES) {
             String variable = clazz.getSimpleName();
-            String expected = AnyStrings.format("Returned 'class {}'",
+            String type = clazz.isInterface() ? "interface" : "class";
+            String expected = AnyStrings.format("Returned '{} {}'", type,
                     clazz.getName());
             String actual = cash.evaluate(variable);
             actual = actual.split(" in ")[0];
@@ -171,10 +172,9 @@ public class ConcourseShellTest extends ConcourseIntegrationTest {
                                                   // exception
     }
 
-    @Test(expected = EvaluationException.class)
+    @Test
     public void testNestedApiMethodWithoutParensDoesNotInfiniteLoop()
             throws IrregularEvaluationResult {
-        // NOTE: EvaluationException is valid exit state until GH-139 is fixed.
         long record = client.add("foo", "2");
         cash.evaluate("diff \"" + record + "\", time(\"last week\")");
         Assert.assertTrue(true); // test passes if it does not throw an

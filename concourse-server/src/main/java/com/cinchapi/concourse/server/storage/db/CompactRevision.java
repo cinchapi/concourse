@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.db;
 import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.concourse.server.storage.Action;
+import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.Versioned;
 
 /**
@@ -36,6 +37,14 @@ import com.cinchapi.concourse.server.storage.Versioned;
 class CompactRevision<V extends Comparable<V>> implements Versioned {
 
     /**
+     * Tracks when the {@link CompactRevision} was
+     * {@link #CompactRevision(Comparable, long, Action)}. Helps to disambiguate
+     * and sequence {@link CompactRevision CompactRevisions} with the same
+     * {@link #version version}.
+     */
+    private final transient long stamp;
+
+    /**
      * A field indicating the action performed to generate this Revision. This
      * information is recorded so that we can efficiently purge history while
      * maintaining consistent state.
@@ -49,8 +58,9 @@ class CompactRevision<V extends Comparable<V>> implements Versioned {
     private final V value;
 
     /**
-     * The unique version that identifies this Revision. Versions are assumed to
-     * be an atomically increasing values (i.e. timestamps).
+     * The version of this Revision. Revisions within the same
+     * commit may have the same version. Across commits, versions are
+     * assumed to be an atomically increasing value (e.g. timestamps).
      */
     private final long version;
 
@@ -65,6 +75,7 @@ class CompactRevision<V extends Comparable<V>> implements Versioned {
         this.value = value;
         this.version = version;
         this.type = type;
+        this.stamp = CommitVersions.next();
     }
 
     @SuppressWarnings("unchecked")
@@ -109,6 +120,11 @@ class CompactRevision<V extends Comparable<V>> implements Versioned {
     @Override
     public boolean isStorable() {
         return false;
+    }
+
+    @Override
+    public long stamp() {
+        return stamp;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package com.cinchapi.concourse.lang.paginate;
-
-import java.util.Objects;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -34,7 +32,27 @@ import com.cinchapi.ccl.syntax.PageTree;
  * @author Jeff Nelson
  */
 @Immutable
-public final class Page {
+public interface Page {
+
+    /**
+     * The default number of items to include on a Page.
+     */
+    static final int DEFAULT_LIMIT = 20;
+
+    /**
+     * The default number of items to skip before adding items to a Page.
+     */
+    static final int DEFAULT_OFFSET = 0;
+
+    /**
+     * Return a {@link Page} that specifies no specific Page and implies that
+     * all items in a result set should be included.
+     * 
+     * @return a no-op {@link Page}
+     */
+    public static Page none() {
+        return NoPage.INSTANCE;
+    }
 
     /**
      * Return the first {@link Page}
@@ -42,7 +60,7 @@ public final class Page {
      * @return the first {@link Page}
      */
     public static Page first() {
-        return new Page(DEFAULT_OFFSET, DEFAULT_LIMIT);
+        return new SkipLimit(DEFAULT_OFFSET, DEFAULT_LIMIT);
     }
 
     /**
@@ -76,7 +94,7 @@ public final class Page {
      * @return the Page
      */
     public static Page of(int skip, int limit) {
-        return new Page(skip, limit);
+        return new SkipLimit(skip, limit);
     }
 
     /**
@@ -90,61 +108,12 @@ public final class Page {
     }
 
     /**
-     * The default number of items to include on a Page.
-     */
-    static final int DEFAULT_LIMIT = 20;
-
-    /**
-     * The default number of items to skip before adding items to a Page.
-     */
-    static final int DEFAULT_OFFSET = 0;
-
-    /**
-     * The page limit
-     */
-    private final int limit;
-
-    /**
-     * The page offset.
-     */
-    private final int offset;
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param offset
-     * @param limit
-     */
-    private Page(int offset, int limit) {
-        this.offset = offset;
-        this.limit = limit;
-    }
-
-    /**
      * Return the "previous" {@link Page}, if possible. If this is already the
      * first {@link Page}, it is returned from this method.
      * 
      * @return the previous page
      */
-    public Page back() {
-        if(offset > 0) {
-            return new Page(Math.max(0, offset - limit), limit);
-        }
-        else {
-            return this;
-        }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if(obj instanceof Page) {
-            return ((Page) obj).limit() == limit()
-                    && ((Page) obj).skip() == skip();
-        }
-        else {
-            return false;
-        }
-    }
+    public Page back();
 
     /**
      * Jump to {@code page} {@link Page} while keeping the same limit.
@@ -152,14 +121,7 @@ public final class Page {
      * @param page
      * @return the specified page
      */
-    public Page go(int page) {
-        return new Page((page - 1) * limit, limit);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(limit(), skip());
-    }
+    public Page go(int page);
 
     /**
      * Return the maximum number of items on the page. The number of items
@@ -168,9 +130,7 @@ public final class Page {
      * 
      * @return the limit
      */
-    public int limit() {
-        return limit;
-    }
+    public int limit();
 
     /**
      * Return the "next" {@link Page}.
@@ -181,9 +141,7 @@ public final class Page {
      * 
      * @return the next Page
      */
-    public Page next() {
-        return new Page(offset + limit, limit);
-    }
+    public Page next();
 
     /**
      * Return the number of items to "skip" (inclusive) before adding items to
@@ -191,9 +149,7 @@ public final class Page {
      * 
      * @return the offset
      */
-    public int offset() {
-        return offset;
-    }
+    public int offset();
 
     /**
      * Set this {@link Page} to include up to {@code size} items with the
@@ -208,17 +164,14 @@ public final class Page {
      * @param size
      * @return the configured Page
      */
-    public Page resize(int size) {
-        int page = offset / limit;
-        return new Page(page * size, size);
-    }
+    public Page resize(int size);
 
     /**
      * Set this {@link Page} to include up to {@code size} items.
      * <p>
      * NOTE: This method only modifies the current page size (e.g. adds/removes)
      * items instead of recalculating all the items on the current page as if
-     * all preceeding pages also had {@code size} items. If you want to modify
+     * all preceding pages also had {@code size} items. If you want to modify
      * this page to include {@code size} items in a manner that assumes
      * preceding pages also contained {@code size} items, use the
      * {@link #resize(int)} method.
@@ -227,16 +180,14 @@ public final class Page {
      * @param size
      * @return the configured Page
      */
-    public Page size(int size) {
-        return new Page(offset, size);
-    }
+    public Page size(int size);
 
     /**
      * An alias for {@link #offset()}.
      * 
      * @return the offset
      */
-    public int skip() {
+    public default int skip() {
         return offset();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.cinchapi.concourse.demo;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,7 +27,6 @@ import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -86,7 +86,8 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
         }
 
         // Audit
-        Iterator<String> it = client.audit(1).values().iterator();
+        Iterator<String> it = client.review(1).values().stream()
+                .flatMap(List::stream).iterator();
         Assert.assertTrue(
                 it.next().startsWith("ADD name AS John Doe (STRING) IN 1"));
         Assert.assertTrue(
@@ -121,8 +122,10 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
         Assert.assertTrue(
                 it.next().startsWith("ADD count AS 1 (INTEGER) IN 1"));
 
-        List<String> audit = Lists.newArrayList(client.audit(1).values());
-        it = client.audit("age", 1).values().iterator();
+        List<String> audit = client.review(1).values().stream()
+                .flatMap(List::stream).collect(Collectors.toList());
+        it = client.review("age", 1).values().stream().flatMap(List::stream)
+                .iterator();
         Assert.assertEquals(it.next(), audit.get(4));
         Assert.assertEquals(it.next(), audit.get(5));
         Assert.assertEquals(it.next(), audit.get(6));
@@ -130,7 +133,7 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
         Assert.assertEquals(it.next(), audit.get(8));
 
         // Revert
-        Iterator<Timestamp> it2 = client.audit(1).keySet().iterator();
+        Iterator<Timestamp> it2 = client.review(1).keySet().iterator();
         for (int i = 0; i < 11; i++) {
             it2.next();
         } ;
@@ -144,7 +147,7 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
                 .describe(1, Timestamp.fromMicros(Time.now() - 86400000000L))
                 .isEmpty());
 
-        it2 = client.audit(1).keySet().iterator();
+        it2 = client.review(1).keySet().iterator();
         for (int i = 0; i < 8; i++) {
             it2.next();
         } ;
@@ -153,7 +156,7 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
                 client.describe(1, t1));
 
         // Historical Fetch
-        it2 = client.audit(1).keySet().iterator();
+        it2 = client.review(1).keySet().iterator();
         for (int i = 0; i < 1; i++) {
             it2.next();
         } ;
@@ -162,18 +165,18 @@ public class GettingStartedTest extends ConcourseIntegrationTest {
                 client.select("name", 1, t1));
 
         // Historical Find
-        t1 = client.audit(50).keySet().iterator().next();
+        t1 = client.review(50).keySet().iterator().next();
         Assert.assertTrue(
                 client.find("count", Operator.GREATER_THAN, 50, t1).isEmpty());
 
-        t1 = client.audit(500).keySet().iterator().next();
+        t1 = client.review(500).keySet().iterator().next();
         set = client.find("count", Operator.GREATER_THAN, 50, t1);
         for (long i = 51; i <= 500; i++) {
             Assert.assertTrue(set.contains(i));
         }
 
         // Historical Verify
-        it2 = client.audit("age", 1).keySet().iterator();
+        it2 = client.review("age", 1).keySet().iterator();
         for (int i = 0; i < 3; i++) {
             it2.next();
         } ;

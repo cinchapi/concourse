@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@ package com.cinchapi.concourse.lang;
 
 import com.cinchapi.ccl.Compiler;
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
+import com.cinchapi.ccl.syntax.ConditionTree;
+import com.cinchapi.concourse.thrift.Operators;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.util.Convert;
 import com.google.common.collect.Multimap;
@@ -54,6 +56,20 @@ public final class ConcourseCompiler extends Compiler {
         super(Convert::stringToJava, Convert::stringToOperator);
         this.delegate = ConcourseCompiler.create(Convert::stringToJava,
                 Convert::stringToOperator);
+    }
+
+    /**
+     * Return {@code true} if the {@code data} is described by the condition
+     * encapsulated in the {@code tree}.
+     * 
+     * @param tree the {@link ConditionTree} that represents the condition
+     * @param data the data to test for adherences to the condition
+     * @return {@code true} if the data is described by the criteria that has
+     *         been parsed
+     */
+    public final boolean evaluate(ConditionTree tree,
+            Multimap<String, Object> data) {
+        return evaluate(tree, data, Operators::evaluate);
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,16 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,6 +50,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
 
 /**
  * {@link Limbo} is a lightweight in-memory proxy store that is a suitable cache
@@ -112,33 +117,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
         }
 
     };
-
-    @Override
-    public Map<Long, String> audit(long record) {
-        Map<Long, String> audit = Maps.newTreeMap();
-        for (Iterator<Write> it = iterator(); it.hasNext();) {
-            Write write = it.next();
-            if(write.getRecord().longValue() == record) {
-                audit.put(write.getVersion(), write.toString());
-            }
-        }
-        return audit;
-
-    }
-
-    @Override
-    public Map<Long, String> audit(String key, long record) {
-        Map<Long, String> audit = Maps.newTreeMap();
-        for (Iterator<Write> it = iterator(); it.hasNext();) {
-            Write write = it.next();
-            if(write.getKey().toString().equals(key)
-                    && write.getRecord().longValue() == record) {
-                audit.put(write.getVersion(), write.toString());
-            }
-        }
-        return audit;
-
-    }
 
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
@@ -232,7 +210,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 Sets.<TObject> newLinkedHashSet());
         if(snapshot.isEmpty() && !context.isEmpty()) {
             // CON-474: Empty set is placed in the context if it was the last
-            // snapshot know to the database
+            // snapshot known to the database
             context.remove(Time.NONE);
         }
         for (Iterator<Write> it = iterator(); it.hasNext();) {
@@ -242,25 +220,25 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 break;
             }
             else {
-                Text writeKey = write.getKey();
-                long writeRecord = write.getRecord().longValue();
+                Text $key = write.getKey();
+                long $record = write.getRecord().longValue();
                 Action action = write.getType();
-                if(writeKey.toString().equals(key) && writeRecord == record) {
+                if($key.toString().equals(key) && $record == record) {
                     snapshot = Sets.newLinkedHashSet(snapshot);
-                    Value writeValue = write.getValue();
+                    Value value = write.getValue();
                     if(action == Action.ADD) {
-                        snapshot.add(writeValue.getTObject());
+                        snapshot.add(value.getTObject());
                     }
                     else if(action == Action.REMOVE) {
-                        snapshot.remove(writeValue.getTObject());
+                        snapshot.remove(value.getTObject());
                     }
-                    if(timestamp >= start && !snapshot.isEmpty()) {
+                    if(timestamp >= start) {
                         context.put(timestamp, snapshot);
                     }
                 }
             }
         }
-        return context;
+        return Maps.filterValues(context, emptySetFilter);
     }
 
     @Override
@@ -441,6 +419,27 @@ public abstract class Limbo implements Store, Iterable<Write> {
     }
 
     /**
+     * Return a snapshot {@link Iterable} that contains the
+     * {@link Write#hash() hash} of every {@link Write} in the
+     * {@link Store}.
+     * 
+     * @return all the contained {@link Write} {@link Write#hash() hashes}
+     */
+    public Set<HashCode> hashes() {
+        Set<HashCode> hashes = new HashSet<>();
+        Iterator<Write> it = iterator();
+        try {
+            while (it.hasNext()) {
+                hashes.add(it.next().hash());
+            }
+        }
+        finally {
+            Iterators.close(it);
+        }
+        return hashes;
+    }
+
+    /**
      * Insert {@code write} into the store <strong>without performing any
      * validity checks</strong>.
      * <p>
@@ -487,6 +486,35 @@ public abstract class Limbo implements Store, Iterable<Write> {
     @Override
     public Memory memory() {
         return memory;
+    }
+
+    @Override
+    public Map<Long, List<String>> review(long record) {
+        Map<Long, List<String>> review = new LinkedHashMap<>();
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            if(write.getRecord().longValue() == record) {
+                review.computeIfAbsent(write.getVersion(),
+                        $ -> new ArrayList<>()).add(write.toString());
+            }
+        }
+        return review;
+
+    }
+
+    @Override
+    public Map<Long, List<String>> review(String key, long record) {
+        Map<Long, List<String>> review = new LinkedHashMap<>();
+        for (Iterator<Write> it = iterator(); it.hasNext();) {
+            Write write = it.next();
+            if(write.getKey().toString().equals(key)
+                    && write.getRecord().longValue() == record) {
+                review.computeIfAbsent(write.getVersion(),
+                        $ -> new ArrayList<>()).add(write.toString());
+            }
+        }
+        return review;
+
     }
 
     @Override
@@ -678,6 +706,16 @@ public abstract class Limbo implements Store, Iterable<Write> {
     public void sync() {/* noop */}
 
     /**
+     * If supported, eagerly apply a transformation {@link Function} to every
+     * contained {@link Write}.
+     * 
+     * @param transformer
+     */
+    public void transform(Function<Write, Write> transformer) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Transport the content of this store to {@code destination}.
      * 
      * @param destination
@@ -810,28 +848,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
         else {
             return TernaryTruth.UNSURE;
         }
-    }
-
-    /**
-     * Return a snapshot {@link Iterable} that contains the
-     * {@link Write#getVersion() version} of every {@link Write} in the
-     * {@link Store}.
-     * 
-     * @return all the contained {@link Write} {@link Write#getVersion()
-     *         versions}
-     */
-    public Set<Long> versions() {
-        Set<Long> versions = new HashSet<>();
-        Iterator<Write> it = iterator();
-        try {
-            while (it.hasNext()) {
-                versions.add(it.next().getVersion());
-            }
-        }
-        finally {
-            Iterators.close(it);
-        }
-        return versions;
     }
 
     /**

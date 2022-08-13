@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2021 Cinchapi Inc.
+ * Copyright (c) 2013-2022 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
@@ -26,7 +28,6 @@ import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.EagerProducer;
-import com.google.common.collect.Lists;
 
 /**
  * A {@link Queue} is a very simple form of {@link Limbo} that represents
@@ -44,12 +45,6 @@ public class Queue extends Limbo {
     private static final int BLOOM_FILTER_CREATION_THRESHOLD = 10;
 
     /**
-     * An empty array of writes that is used to specify type conversion in the
-     * {@link ArrayList#toArray(Object[])} method.
-     */
-    private static final Write[] EMPTY_WRITES_ARRAY = new Write[0];
-
-    /**
      * A global producer that provides BloomFilters to instances that need them.
      * To some extent, this producer will queue up bloom filters so that the
      * overhead of creating them is not incurred directly by the caller.
@@ -63,10 +58,10 @@ public class Queue extends Limbo {
             });
 
     /**
-     * Revisions are stored as a sequential list of {@link Write} objects, which
-     * means most reads are <em>at least</em> an O(n) scan.
+     * An empty array of writes that is used to specify type conversion in the
+     * {@link ArrayList#toArray(Object[])} method.
      */
-    protected final List<Write> writes;
+    private static final Write[] EMPTY_WRITES_ARRAY = new Write[0];
 
     /**
      * The bloom filter used to speed up verifies.
@@ -81,13 +76,28 @@ public class Queue extends Limbo {
     private long oldestWriteTimestampCache = 0;
 
     /**
+     * Revisions are stored as a sequential list of {@link Write} objects, which
+     * means most reads are <em>at least</em> an O(n) scan.
+     */
+    private final List<Write> writes;
+
+    /**
      * Construct a Limbo with enough capacity for {@code initialSize}. If
      * necessary, the structure will grow to accommodate more data.
      * 
      * @param initialSize
      */
     public Queue(int initialSize) {
-        writes = Lists.newArrayListWithCapacity(initialSize);
+        this(new ArrayList<>(initialSize));
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param writes
+     */
+    protected Queue(List<Write> writes) {
+        this.writes = writes;
     }
 
     /**
@@ -139,6 +149,14 @@ public class Queue extends Limbo {
     @Override
     public void stop() {
         // do nothing
+    }
+
+    @Override
+    public void transform(Function<Write, Write> transformer) {
+        for (int i = 0; i < writes.size(); ++i) {
+            Write write = writes.get(i);
+            writes.set(i, transformer.apply(write));
+        }
     }
 
     @Override
