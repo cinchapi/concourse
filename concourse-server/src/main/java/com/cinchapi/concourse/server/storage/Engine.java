@@ -37,7 +37,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
@@ -66,7 +65,6 @@ import com.cinchapi.ensemble.Ensemble;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 import com.cinchapi.ensemble.Locator;
 import com.cinchapi.ensemble.Read;
-import com.cinchapi.ensemble.Reduce;
 import com.cinchapi.ensemble.WeakRead;
 import com.cinchapi.ensemble.core.LocalProcess;
 import com.google.common.base.MoreObjects;
@@ -440,7 +438,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     @com.cinchapi.ensemble.Write
-    public boolean add(@Locator String key, TObject value, @Locator long record) {
+    public boolean add(@Locator String key, TObject value,
+            @Locator long record) {
         Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
@@ -540,8 +539,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     @WeakRead
-    public Map<Long, Set<TObject>> chronologize(@Locator String key, @Locator long record,
-            long start, long end) {
+    public Map<Long, Set<TObject>> chronologize(@Locator String key,
+            @Locator long record, long start, long end) {
         transportLock.readLock().lock();
         Lock read = lockService.getReadLock(record);
         read.lock();
@@ -595,7 +594,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     @Read
-    public Map<Long, Set<TObject>> explore(@Locator String key, Aliases aliases) {
+    public Map<Long, Set<TObject>> explore(@Locator String key,
+            Aliases aliases) {
         transportLock.readLock().lock();
         Lock range = rangeLockService.getReadLock(key, aliases.operator(),
                 aliases.values());
@@ -651,7 +651,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     @WeakRead
-    public Set<TObject> gather(@Locator String key, @Locator long record, long timestamp) {
+    public Set<TObject> gather(@Locator String key, @Locator long record,
+            long timestamp) {
         transportLock.readLock().lock();
         try {
             return super.gather(key, record, timestamp);
@@ -675,7 +676,7 @@ public final class Engine extends BufferedStore implements
     @Override
     @Read
     @Broadcast
-//    @Reduce(null) // TODO: need to define a reducer
+    // @Reduce(null) // TODO: need to define a reducer
     public Set<Long> getAllRecords() {
         return inventory.getAll();
     }
@@ -737,7 +738,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     @com.cinchapi.ensemble.Write
-    public boolean remove(@Locator String key, TObject value, @Locator long record) {
+    public boolean remove(@Locator String key, TObject value,
+            @Locator long record) {
         Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
@@ -798,7 +800,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     @WeakRead
-    public Map<Long, List<String>> review(@Locator String key, @Locator long record) {
+    public Map<Long, List<String>> review(@Locator String key,
+            @Locator long record) {
         transportLock.readLock().lock();
         Lock read = lockService.getReadLock(key, record);
         read.lock();
@@ -866,7 +869,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     @WeakRead
-    public Map<String, Set<TObject>> select(@Locator long record, long timestamp) {
+    public Map<String, Set<TObject>> select(@Locator long record,
+            long timestamp) {
         transportLock.readLock().lock();
         try {
             return super.select(record, timestamp);
@@ -893,7 +897,8 @@ public final class Engine extends BufferedStore implements
 
     @Override
     @WeakRead
-    public Set<TObject> select(@Locator String key, @Locator long record, long timestamp) {
+    public Set<TObject> select(@Locator String key, @Locator long record,
+            long timestamp) {
         transportLock.readLock().lock();
         try {
             return super.select(key, record, timestamp);

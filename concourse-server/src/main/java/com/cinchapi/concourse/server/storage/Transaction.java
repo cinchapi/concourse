@@ -123,7 +123,7 @@ public final class Transaction extends AtomicOperation implements
      */
     private Multimap<AtomicOperation, Token> managedVersionChangeListeners = HashMultimap
             .create();
-    
+
     /**
      * Construct a new instance.
      */
