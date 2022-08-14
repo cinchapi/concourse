@@ -67,6 +67,7 @@ import com.google.common.collect.TreeRangeSet;
  * 
  * @author Jeff Nelson
  */
+//TODO: need to implement Ensemble
 public class AtomicOperation extends BufferedStore implements
         VersionChangeListener {
 
