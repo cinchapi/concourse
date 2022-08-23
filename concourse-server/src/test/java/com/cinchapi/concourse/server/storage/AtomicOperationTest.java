@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.concourse.server.storage.AtomicOperation.Status;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -440,6 +441,20 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
                         Operator.EQUALS, Convert.javaToThrift("jeff")),
                 destination.find(after, "name", Operator.EQUALS,
                         Convert.javaToThrift("jeff")));
+    }
+
+    @Test
+    public void testRangeReadInterruptedByWrite() {
+        AtomicOperation atomic = (AtomicOperation) store;
+        atomic.find("age", Operator.GREATER_THAN, Convert.javaToThrift(1));
+        destination.accept(Write.add("age", Convert.javaToThrift(34), 1));
+        Assert.assertEquals(Status.INTERRUPTED, atomic.status.get());
+        try {
+            Assert.assertFalse(atomic.commit());
+        }
+        catch (AtomicStateException e) {
+            Assert.assertTrue(true);
+        }
     }
 
     @Override
