@@ -113,7 +113,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         TObject valueA = Convert.javaToThrift("valueA");
         String keyB = "keyB";
         TObject valueB = Convert.javaToThrift("valueB");
-        add(keyA, valueA, 1);
+        add(keyA, valueA, record);
         AtomicOperation other = destination.startAtomicOperation();
         other.add(keyB, valueB, record);
         Assert.assertTrue(other.commit());
@@ -440,6 +440,20 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
                         Operator.EQUALS, Convert.javaToThrift("jeff")),
                 destination.find(after, "name", Operator.EQUALS,
                         Convert.javaToThrift("jeff")));
+    }
+
+    @Test
+    public void testRangeReadInterruptedByWrite() {
+        AtomicOperation atomic = (AtomicOperation) store;
+        atomic.find("age", Operator.GREATER_THAN, Convert.javaToThrift(1));
+        destination.accept(Write.add("age", Convert.javaToThrift(34), 1));
+        Assert.assertTrue(atomic.open.get());
+        try {
+            Assert.assertFalse(atomic.commit());
+        }
+        catch (AtomicStateException e) {
+            Assert.assertTrue(true);
+        }
     }
 
     @Override
