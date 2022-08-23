@@ -113,7 +113,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         TObject valueA = Convert.javaToThrift("valueA");
         String keyB = "keyB";
         TObject valueB = Convert.javaToThrift("valueB");
-        add(keyA, valueA, 1);
+        add(keyA, valueA, record);
         AtomicOperation other = destination.startAtomicOperation();
         other.add(keyB, valueB, record);
         Assert.assertTrue(other.commit());
