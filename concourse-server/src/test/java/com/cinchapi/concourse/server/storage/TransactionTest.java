@@ -197,6 +197,8 @@ public class TransactionTest extends AtomicOperationTest {
             }).start();
         }
         latch.await(count);
+        Assert.assertTrue(
+                transaction.locks == null || transaction.locks.isEmpty());
         Assert.assertFalse(failed.get());
     }
 
@@ -208,6 +210,17 @@ public class TransactionTest extends AtomicOperationTest {
         atomic.find("age", Operator.GREATER_THAN, Convert.javaToThrift(30));
         engine.accept(Write.add("age", Convert.javaToThrift(45), 1));
         Assert.assertFalse(atomic.commit());
+    }
+
+    @Test
+    public void testTransactionAtomicOperationFailsOnRangeVersionChangeButTransactionCanCommit() {
+        Transaction transaction = (Transaction) store;
+        AtomicOperation atomic = transaction.startAtomicOperation();
+        Engine engine = (Engine) this.destination;
+        atomic.find("age", Operator.GREATER_THAN, Convert.javaToThrift(30));
+        engine.accept(Write.add("age", Convert.javaToThrift(45), 1));
+        Assert.assertFalse(atomic.commit());
+        Assert.assertTrue(transaction.commit());
     }
 
     @Test
