@@ -98,7 +98,8 @@ public class AtomicOperation extends BufferedStore implements
     protected static final int INITIAL_CAPACITY = 10;
 
     /**
-     * {@link Status Statuses} that can be {@link #interrupts(Token, TokenEvent)
+     * {@link Status Statuses} that can be
+     * {@link #preemptedBy(Token, TokenEvent)
      * interrupted} by a {@link TokenEvent}.
      */
     private static final Set<Status> INTERRUPTIBLE_STATUSES = ImmutableSet
@@ -163,7 +164,7 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * The {@link Tokens} for which locks must be grabbed, but don't cause any
-     * conflicts that necessitate {@link Status#INTERRUPTED interruption} if
+     * conflicts that necessitate {@link Status#PREEMPTED interruption} if
      * there is a version change. These {@link Token} are usually shared and
      * wide write {@link Token tokens}.
      */
@@ -203,7 +204,7 @@ public class AtomicOperation extends BufferedStore implements
      */
     public void abort() {
         if(status.compareAndSet(Status.OPEN, Status.FINALIZING)
-                || status.compareAndSet(Status.INTERRUPTED, Status.FINALIZING)
+                || status.compareAndSet(Status.PREEMPTED, Status.FINALIZING)
                 || status.compareAndSet(Status.PENDING, Status.FINALIZING)) {
             source.unsubscribe(this);
             if(locks != null && !locks.isEmpty()) {
@@ -370,9 +371,9 @@ public class AtomicOperation extends BufferedStore implements
     @Restricted
     public boolean observe(TokenEvent event, Token token) {
         try {
-            return interrupts(token, event)
-                    && (status.compareAndSet(Status.OPEN, Status.INTERRUPTED))
-                    || status.compareAndSet(Status.PENDING, Status.INTERRUPTED);
+            return preemptedBy(token, event)
+                    && (status.compareAndSet(Status.OPEN, Status.PREEMPTED))
+                    || status.compareAndSet(Status.PENDING, Status.PREEMPTED);
         }
         catch (ConcurrentModificationException e) {
             // Another asynchronous write or announcement was received while
@@ -623,7 +624,7 @@ public class AtomicOperation extends BufferedStore implements
      * @throws AtomicStateException
      */
     protected void checkState() throws AtomicStateException {
-        if(status.get() == Status.INTERRUPTED) {
+        if(status.get() == Status.PREEMPTED) {
             abort();
         }
         if(status.get() != Status.OPEN) {
@@ -684,18 +685,28 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Return {@code true} if {@code event} for {@code token} interrupts this
+     * Return {@code true} if this Atomic Operation has 0 writes.
+     * 
+     * @return {@code true} if this atomic operation is considered
+     *         <em>read-only</em>
+     */
+    protected boolean isReadOnly() {
+        return ((Queue) limbo).size() == 0;
+    }
+
+    /**
+     * Return {@code true} if {@code event} for {@code token} preempts this
      * {@link AtomicOperation operation}.
      * 
      * @param token
      * @param event
      * @return {@code true} if this {@link AtomicOperation} is
-     *         {@link Status#INTERRUPTED interrupted} when
+     *         {@link Status#PREEMPTED interrupted} when
      *         {@link #observe(TokenEvent, Token) observing} an
      *         announcement of {@code event} for {@code token}
      */
     @Restricted
-    protected boolean interrupts(Token token, TokenEvent event) {
+    protected boolean preemptedBy(Token token, TokenEvent event) {
         if(event == TokenEvent.VERSION_CHANGE) {
             if(INTERRUPTIBLE_STATUSES.contains(status.get())) {
                 if(token instanceof RangeToken) {
@@ -723,16 +734,6 @@ public class AtomicOperation extends BufferedStore implements
             }
         }
         return false;
-    }
-
-    /**
-     * Return {@code true} if this Atomic Operation has 0 writes.
-     * 
-     * @return {@code true} if this atomic operation is considered
-     *         <em>read-only</em>
-     */
-    protected boolean isReadOnly() {
-        return ((Queue) limbo).size() == 0;
     }
 
     @Override
@@ -802,7 +803,7 @@ public class AtomicOperation extends BufferedStore implements
                 // Grab write locks and remove any covered read or range read
                 // intentions
                 for (Token token : writes2Lock) {
-                    if(status.get() == Status.INTERRUPTED) {
+                    if(status.get() == Status.PREEMPTED) {
                         return false;
                     }
                     LockType type;
@@ -844,7 +845,7 @@ public class AtomicOperation extends BufferedStore implements
                 // intentions are not covered by any of the write locks we
                 // grabbed previously.
                 for (Token token : reads2Lock) {
-                    if(status.get() == Status.INTERRUPTED) {
+                    if(status.get() == Status.PREEMPTED) {
                         return false;
                     }
                     LockDescription lock = LockDescription.forToken(token,
@@ -861,7 +862,7 @@ public class AtomicOperation extends BufferedStore implements
                 // grabbed previously.
                 for (Entry<Text, RangeSet<Value>> entry : rangeReads2Lock.ranges
                         .entrySet()) { /* (Authorized) */
-                    if(status.get() == Status.INTERRUPTED) {
+                    if(status.get() == Status.PREEMPTED) {
                         return false;
                     }
                     Text key = entry.getKey();
@@ -1112,9 +1113,9 @@ public class AtomicOperation extends BufferedStore implements
         FINALIZING,
 
         /**
-         * The operation was interrupted and cannot become {@link #COMMITTED}.
+         * The operation was preempted and cannot become {@link #COMMITTED}.
          */
-        INTERRUPTED
+        PREEMPTED
     }
 
     /**
