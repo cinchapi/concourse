@@ -448,7 +448,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         AtomicOperation atomic = (AtomicOperation) store;
         atomic.find("age", Operator.GREATER_THAN, Convert.javaToThrift(1));
         destination.accept(Write.add("age", Convert.javaToThrift(34), 1));
-        Assert.assertEquals(Status.INTERRUPTED, atomic.status.get());
+        Assert.assertEquals(Status.PREEMPTED, atomic.status.get());
         try {
             Assert.assertFalse(atomic.commit());
         }
