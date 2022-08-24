@@ -370,6 +370,10 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     @Restricted
     public boolean observe(TokenEvent event, Token token) {
+        // NOTE: If the AtomicOperation is preempted by #event, an explicit call
+        // to source.unsubscribe() isn't made here, because the Engine will
+        // automatically remove this AtomicOperation from its list of known
+        // observers.
         try {
             return preemptedBy(event, token)
                     && (status.compareAndSet(Status.OPEN, Status.PREEMPTED))

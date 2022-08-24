@@ -19,20 +19,19 @@ import static com.google.common.base.Preconditions.*;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.StampedLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -234,12 +233,7 @@ public final class Engine extends BufferedStore implements
      * {@link TokenEvent token events}.
      */
     private final Set<TokenEventObserver> observers = Collections
-            .newSetFromMap(new WeakHashMap<>());
-
-    /**
-     * A lock that controls concurrent access to the {@link #observers}.
-     */
-    private final StampedLock observerLock = new StampedLock();
+            .newSetFromMap(new IdentityHashMap<>());
 
     /**
      * A flag to indicate if the Engine is running or not.
@@ -410,35 +404,18 @@ public final class Engine extends BufferedStore implements
     @Override
     @Restricted
     public void announce(TokenEvent event, Token... tokens) {
-        long stamp = observerLock.tryOptimisticRead();
-        Set<TokenEventObserver> observed = new HashSet<>(observers.size());
-        for (TokenEventObserver observer : observers) {
-            observed.add(observer);
-            for (Token token : tokens) {
-                if(observer.observe(event, token)) {
-                    if(event == TokenEvent.VERSION_CHANGE) {
-                        break;
-                    }
-                }
-            }
-        }
-        if(!observerLock.validate(stamp)) {
-            stamp = observerLock.readLock();
-            try {
-                for (TokenEventObserver observer : observers) {
-                    if(!observed.contains(observer)) {
-                        for (Token token : tokens) {
-                            if(observer.observe(event, token)) {
-                                if(event == TokenEvent.VERSION_CHANGE) {
-                                    break;
-                                }
-                            }
+        synchronized (observers) {
+            Iterator<TokenEventObserver> it = observers.iterator();
+            while (it.hasNext()) {
+                TokenEventObserver observer = it.next();
+                for (Token token : tokens) {
+                    if(observer.observe(event, token)) {
+                        if(event == TokenEvent.VERSION_CHANGE) {
+                            it.remove();
+                            break;
                         }
                     }
                 }
-            }
-            finally {
-                observerLock.unlockRead(stamp);
             }
         }
     }
@@ -892,12 +869,8 @@ public final class Engine extends BufferedStore implements
     @Override
     @Restricted
     public void subscribe(TokenEventObserver observer) {
-        long stamp = observerLock.writeLock();
-        try {
+        synchronized (observers) {
             observers.add(observer);
-        }
-        finally {
-            observerLock.unlockWrite(stamp);
         }
     }
 
@@ -909,8 +882,9 @@ public final class Engine extends BufferedStore implements
     @Override
     @Restricted
     public void unsubscribe(TokenEventObserver observer) {
-        // NOTE: #observers uses weak references, so removal is handled
-        // automatically by the GC.
+        synchronized (observers) {
+            observers.remove(observer);
+        }
     }
 
     @Override
