@@ -713,7 +713,7 @@ public class AtomicOperation extends BufferedStore implements
                 if(token instanceof RangeToken) {
                     // NOTE: RangeTokens intended for writes (held in
                     // writes2Lock) should never cause the AtomicOperation to be
-                    // interrupted because they are infinitely wide.
+                    // preempted because they are infinitely wide.
                     RangeToken rangeToken = (RangeToken) token;
                     RangeSet<Value> covered = rangeReads2Lock.ranges
                             .get(rangeToken.getKey());

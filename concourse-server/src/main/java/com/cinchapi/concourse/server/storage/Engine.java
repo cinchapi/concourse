@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.*;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.StampedLock;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -235,6 +237,11 @@ public final class Engine extends BufferedStore implements
             .newSetFromMap(new WeakHashMap<>());
 
     /**
+     * A lock that controls concurrent access to the {@link #observers}.
+     */
+    private final StampedLock observerLock = new StampedLock();
+
+    /**
      * A flag to indicate if the Engine is running or not.
      */
     private volatile boolean running = false;
@@ -403,15 +410,35 @@ public final class Engine extends BufferedStore implements
     @Override
     @Restricted
     public void announce(TokenEvent event, Token... tokens) {
-        synchronized (observers) {
-            for (TokenEventObserver observer : observers) {
-                for (Token token : tokens) {
-                    if(observer.observe(event, token)) {
-                        if(event == TokenEvent.VERSION_CHANGE) {
-                            break;
+        long stamp = observerLock.tryOptimisticRead();
+        Set<TokenEventObserver> observed = new HashSet<>(observers.size());
+        for (TokenEventObserver observer : observers) {
+            observed.add(observer);
+            for (Token token : tokens) {
+                if(observer.observe(event, token)) {
+                    if(event == TokenEvent.VERSION_CHANGE) {
+                        break;
+                    }
+                }
+            }
+        }
+        if(!observerLock.validate(stamp)) {
+            stamp = observerLock.readLock();
+            try {
+                for (TokenEventObserver observer : observers) {
+                    if(!observed.contains(observer)) {
+                        for (Token token : tokens) {
+                            if(observer.observe(event, token)) {
+                                if(event == TokenEvent.VERSION_CHANGE) {
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
+            }
+            finally {
+                observerLock.unlockRead(stamp);
             }
         }
     }
@@ -865,8 +892,12 @@ public final class Engine extends BufferedStore implements
     @Override
     @Restricted
     public void subscribe(TokenEventObserver observer) {
-        synchronized (observers) {
+        long stamp = observerLock.writeLock();
+        try {
             observers.add(observer);
+        }
+        finally {
+            observerLock.unlockWrite(stamp);
         }
     }
 
