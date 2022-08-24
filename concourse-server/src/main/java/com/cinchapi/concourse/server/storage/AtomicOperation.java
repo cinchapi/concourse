@@ -49,6 +49,7 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -95,6 +96,13 @@ public class AtomicOperation extends BufferedStore implements
      * The initial capacity
      */
     protected static final int INITIAL_CAPACITY = 10;
+
+    /**
+     * {@link Status Statuses} that can be {@link #interrupts(Token, TokenEvent)
+     * interrupted} by a {@link TokenEvent}.
+     */
+    private static final Set<Status> INTERRUPTIBLE_STATUSES = ImmutableSet
+            .of(Status.OPEN, Status.PENDING);
 
     /**
      * The collection of {@link LockDescription} objects that are grabbed in the
@@ -203,7 +211,7 @@ public class AtomicOperation extends BufferedStore implements
             }
             status.compareAndSet(Status.FINALIZING, Status.ABORTED);
         }
-        else if(!status.compareAndSet(Status.ABORTED, Status.ABORTED)) {
+        else if(status.get() != Status.ABORTED) {
             throw new IllegalStateException(
                     "Cannot abort from status: " + status);
         }
@@ -689,8 +697,7 @@ public class AtomicOperation extends BufferedStore implements
     @Restricted
     protected boolean interrupts(Token token, TokenEvent event) {
         if(event == TokenEvent.VERSION_CHANGE) {
-            if(status.compareAndSet(Status.OPEN, Status.OPEN)
-                    || status.compareAndSet(Status.PENDING, Status.PENDING)) {
+            if(INTERRUPTIBLE_STATUSES.contains(status.get())) {
                 if(token instanceof RangeToken) {
                     // NOTE: RangeTokens intended for writes (held in
                     // writes2Lock) should never cause the AtomicOperation to be
