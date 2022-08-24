@@ -240,7 +240,7 @@ public final class Transaction extends AtomicOperation implements
         try {
             for (TokenEventObserver observer : observers) {
                 AtomicOperation atomic = (AtomicOperation) observer;
-                if(atomic.preemptedBy(token, event)) {
+                if(atomic.preemptedBy(event, token)) {
                     atomic.abort();
                     intercepted = true;
                 }
@@ -362,13 +362,13 @@ public final class Transaction extends AtomicOperation implements
 
     @Override
     @Restricted
-    protected boolean preemptedBy(Token token, TokenEvent event) {
+    protected boolean preemptedBy(TokenEvent event, Token token) {
         for (TokenEventObserver observer : observers) {
-            if(((AtomicOperation) observer).preemptedBy(token, event)) {
+            if(((AtomicOperation) observer).preemptedBy(event, token)) {
                 return true;
             }
         }
-        return super.preemptedBy(token, event);
+        return super.preemptedBy(event, token);
     }
 
     /**

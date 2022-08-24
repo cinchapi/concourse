@@ -17,6 +17,7 @@ package com.cinchapi.concourse.server.storage;
 
 import java.nio.ByteBuffer;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +54,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
-import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeSet;
 
 /**
@@ -99,10 +99,10 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * {@link Status Statuses} that can be
-     * {@link #preemptedBy(Token, TokenEvent)
-     * interrupted} by a {@link TokenEvent}.
+     * {@link #preemptedBy(TokenEvent, Token) preempted} by a
+     * {@link TokenEvent}.
      */
-    private static final Set<Status> INTERRUPTIBLE_STATUSES = ImmutableSet
+    private static final Set<Status> PREEMPTIBLE_STATUSES = ImmutableSet
             .of(Status.OPEN, Status.PENDING);
 
     /**
@@ -139,7 +139,7 @@ public class AtomicOperation extends BufferedStore implements
      * The read {@link Token tokens} that represent any record based reads in
      * this operation that we must grab locks for at commit time.
      */
-    private final Set<Token> reads2Lock = Sets.newHashSet();
+    private final Set<Token> reads2Lock = new HashSet<>();
 
     /**
      * A casted pointer to the destination store, which is the source from which
@@ -152,7 +152,7 @@ public class AtomicOperation extends BufferedStore implements
      * that touches every field in the record) was performed. This data is used
      * to determine if lock coarsening can be performed at commit time.
      */
-    private final Map<Long, Token> wideReads = Maps.newHashMap();
+    private final Map<Long, Token> wideReads = new HashMap<>();
 
     /**
      * The write {@link Token tokens} or {@link RangeToken range write tokens}
@@ -160,15 +160,15 @@ public class AtomicOperation extends BufferedStore implements
      * at commit time. Both write and range write tokens are stored in the same
      * collection for efficiency reasons.
      */
-    private final Set<Token> writes2Lock = Sets.newHashSet();
+    private final Set<Token> writes2Lock = new HashSet<>();
 
     /**
      * The {@link Tokens} for which locks must be grabbed, but don't cause any
-     * conflicts that necessitate {@link Status#PREEMPTED interruption} if
+     * conflicts that necessitate {@link Status#PREEMPTED preemption} if
      * there is a version change. These {@link Token} are usually shared and
      * wide write {@link Token tokens}.
      */
-    private final Set<Token> conflictFreeTokens = new HashSet<>();
+    private final Set<Token> exemptions = new HashSet<>();
 
     /**
      * Construct a new instance.
@@ -371,7 +371,7 @@ public class AtomicOperation extends BufferedStore implements
     @Restricted
     public boolean observe(TokenEvent event, Token token) {
         try {
-            return preemptedBy(token, event)
+            return preemptedBy(event, token)
                     && (status.compareAndSet(Status.OPEN, Status.PREEMPTED))
                     || status.compareAndSet(Status.PENDING, Status.PREEMPTED);
         }
@@ -478,7 +478,7 @@ public class AtomicOperation extends BufferedStore implements
             // wide version change
             Token shared = Token.shareable(record);
             writes2Lock.add(shared);
-            conflictFreeTokens.add(shared);
+            exemptions.add(shared);
         }
         writes2Lock.add(rangeToken);
         super.set(key, value, record);
@@ -578,7 +578,7 @@ public class AtomicOperation extends BufferedStore implements
                 reads2Lock.addAll(atomic.reads2Lock);
                 wideReads.putAll(atomic.wideReads);
                 writes2Lock.addAll(atomic.writes2Lock);
-                conflictFreeTokens.addAll(atomic.conflictFreeTokens);
+                exemptions.addAll(atomic.exemptions);
             }
             else {
                 throw new IllegalStateException(
@@ -611,7 +611,7 @@ public class AtomicOperation extends BufferedStore implements
             // wide version change
             Token shared = Token.shareable(record);
             writes2Lock.add(shared);
-            conflictFreeTokens.add(shared);
+            exemptions.add(shared);
         }
         writes2Lock.add(rangeToken);
         return super.add(write, sync, verify);
@@ -698,17 +698,18 @@ public class AtomicOperation extends BufferedStore implements
      * Return {@code true} if {@code event} for {@code token} preempts this
      * {@link AtomicOperation operation}.
      * 
-     * @param token
      * @param event
+     * @param token
+     * 
      * @return {@code true} if this {@link AtomicOperation} is
      *         {@link Status#PREEMPTED interrupted} when
      *         {@link #observe(TokenEvent, Token) observing} an
      *         announcement of {@code event} for {@code token}
      */
     @Restricted
-    protected boolean preemptedBy(Token token, TokenEvent event) {
+    protected boolean preemptedBy(TokenEvent event, Token token) {
         if(event == TokenEvent.VERSION_CHANGE) {
-            if(INTERRUPTIBLE_STATUSES.contains(status.get())) {
+            if(PREEMPTIBLE_STATUSES.contains(status.get())) {
                 if(token instanceof RangeToken) {
                     // NOTE: RangeTokens intended for writes (held in
                     // writes2Lock) should never cause the AtomicOperation to be
@@ -728,7 +729,7 @@ public class AtomicOperation extends BufferedStore implements
                 }
                 else if((reads2Lock.contains(token)
                         || writes2Lock.contains(token))
-                        && !conflictFreeTokens.contains(token)) {
+                        && !exemptions.contains(token)) {
                     return true;
                 }
             }
@@ -756,7 +757,7 @@ public class AtomicOperation extends BufferedStore implements
             // wide version change
             Token shared = Token.shareable(record);
             writes2Lock.add(shared);
-            conflictFreeTokens.add(shared);
+            exemptions.add(shared);
         }
         writes2Lock.add(rangeToken);
         return super.remove(write, sync, verify);
