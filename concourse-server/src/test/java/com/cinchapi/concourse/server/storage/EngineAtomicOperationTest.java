@@ -128,7 +128,7 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
             Variables.register("operation_" + i, operation);
             // ensure that all the atomic operations were notified about the
             // version change
-            Assert.assertEquals(operation.status.get(), Status.PREEMPTED);
+            Assert.assertEquals(operation.status.get(), Status.INTERRUPTED);
             i++;
         }
         destination.stop();

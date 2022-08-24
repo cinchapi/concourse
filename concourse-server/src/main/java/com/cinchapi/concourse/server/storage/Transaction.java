@@ -240,7 +240,7 @@ public final class Transaction extends AtomicOperation implements
         try {
             for (TokenEventObserver observer : observers) {
                 AtomicOperation atomic = (AtomicOperation) observer;
-                if(atomic.preemptedBy(token, event)) {
+                if(atomic.interrupts(token, event)) {
                     atomic.abort();
                     intercepted = true;
                 }
@@ -335,6 +335,17 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
+    @Restricted
+    protected boolean interrupts(Token token, TokenEvent event) {
+        for (TokenEventObserver observer : observers) {
+            if(((AtomicOperation) observer).interrupts(token, event)) {
+                return true;
+            }
+        }
+        return super.interrupts(token, event);
+    }
+
+    @Override
     protected void doCommit() {
         if(isReadOnly()) {
             invokeSuperDoCommit(false);
@@ -358,17 +369,6 @@ public final class Transaction extends AtomicOperation implements
                 FileSystem.closeFileChannel(channel);
             }
         }
-    }
-
-    @Override
-    @Restricted
-    protected boolean preemptedBy(Token token, TokenEvent event) {
-        for (TokenEventObserver observer : observers) {
-            if(((AtomicOperation) observer).preemptedBy(token, event)) {
-                return true;
-            }
-        }
-        return super.preemptedBy(token, event);
     }
 
     /**
