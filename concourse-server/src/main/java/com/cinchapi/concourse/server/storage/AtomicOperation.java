@@ -204,8 +204,8 @@ public class AtomicOperation extends BufferedStore implements
      */
     public void abort() {
         if(status.compareAndSet(Status.OPEN, Status.FINALIZING)
-                || status.compareAndSet(Status.PREEMPTED, Status.FINALIZING)
-                || status.compareAndSet(Status.PENDING, Status.FINALIZING)) {
+                || status.compareAndSet(Status.PENDING, Status.FINALIZING)
+                || status.compareAndSet(Status.PREEMPTED, Status.FINALIZING)) {
             source.unsubscribe(this);
             if(locks != null && !locks.isEmpty()) {
                 releaseLocks();
@@ -376,8 +376,8 @@ public class AtomicOperation extends BufferedStore implements
         // observers.
         try {
             return preemptedBy(event, token)
-                    && (status.compareAndSet(Status.OPEN, Status.PREEMPTED))
-                    || status.compareAndSet(Status.PENDING, Status.PREEMPTED);
+                    && (status.compareAndSet(Status.OPEN, Status.PREEMPTED)
+                    || status.compareAndSet(Status.PENDING, Status.PREEMPTED));
         }
         catch (ConcurrentModificationException e) {
             // Another asynchronous write or announcement was received while
