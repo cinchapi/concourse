@@ -39,6 +39,8 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
+import com.cinchapi.concourse.collect.Iterators;
+import com.cinchapi.concourse.collect.ShardedHashSet;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
@@ -232,8 +234,8 @@ public final class Engine extends BufferedStore implements
      * receive {@link #announce(TokenEvent, Token) announcements} about
      * {@link TokenEvent token events}.
      */
-    private final Set<TokenEventObserver> observers = Collections
-            .newSetFromMap(new IdentityHashMap<>());
+    private final Set<TokenEventObserver> observers = new ShardedHashSet<>(
+            () -> Collections.newSetFromMap(new IdentityHashMap<>()));
 
     /**
      * A flag to indicate if the Engine is running or not.
@@ -404,8 +406,8 @@ public final class Engine extends BufferedStore implements
     @Override
     @Restricted
     public void announce(TokenEvent event, Token... tokens) {
-        synchronized (observers) {
-            Iterator<TokenEventObserver> it = observers.iterator();
+        Iterator<TokenEventObserver> it = observers.iterator();
+        try {
             while (it.hasNext()) {
                 TokenEventObserver observer = it.next();
                 for (Token token : tokens) {
@@ -417,6 +419,9 @@ public final class Engine extends BufferedStore implements
                     }
                 }
             }
+        }
+        finally {
+            Iterators.close(it);
         }
     }
 
@@ -869,9 +874,7 @@ public final class Engine extends BufferedStore implements
     @Override
     @Restricted
     public void subscribe(TokenEventObserver observer) {
-        synchronized (observers) {
-            observers.add(observer);
-        }
+        observers.add(observer);
     }
 
     @Override
@@ -882,9 +885,7 @@ public final class Engine extends BufferedStore implements
     @Override
     @Restricted
     public void unsubscribe(TokenEventObserver observer) {
-        synchronized (observers) {
-            observers.remove(observer);
-        }
+        observers.remove(observer);
     }
 
     @Override
