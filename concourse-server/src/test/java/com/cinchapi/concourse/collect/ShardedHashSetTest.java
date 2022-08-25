@@ -38,7 +38,7 @@ public class ShardedHashSetTest {
     @Test
     public void testIterator() {
         Set<Integer> expected = new HashSet<>();
-        Set<Integer> data = new ShardedHashSet<>(HashSet::new);
+        Set<Integer> data = new ShardedHashSet<>();
         for (int i = 0; i < TestData.getScaleCount(); ++i) {
             int value = TestData.getInt();
             expected.add(value);
@@ -60,7 +60,7 @@ public class ShardedHashSetTest {
     @Test
     public void testConcurrentIteratorReadOnly() throws InterruptedException {
         Set<Integer> expected = new HashSet<>();
-        ShardedHashSet<Integer> data = new ShardedHashSet<>(HashSet::new);
+        ShardedHashSet<Integer> data = new ShardedHashSet<>();
         for (int i = 0; i < TestData.getScaleCount() * 5; ++i) {
             int value = TestData.getInt();
             expected.add(value);
@@ -92,7 +92,7 @@ public class ShardedHashSetTest {
     @Test
     public void testConcurrentIteratorWithAdds() throws InterruptedException {
         Set<Integer> expected = new HashSet<>();
-        ShardedHashSet<Integer> data = new ShardedHashSet<>(HashSet::new);
+        ShardedHashSet<Integer> data = new ShardedHashSet<>();
         for (int i = 0; i < TestData.getScaleCount() * 5; ++i) {
             int value = TestData.getInt();
             expected.add(value);
@@ -115,7 +115,7 @@ public class ShardedHashSetTest {
                     while (it.hasNext()) {
                         actual.add(it.next());
                     }
-                    for(int value : expected) {
+                    for (int value : expected) {
                         Assert.assertTrue(actual.contains(value));
                     }
                     latch.countUp();
@@ -141,13 +141,34 @@ public class ShardedHashSetTest {
     @Test
     public void testEquals() {
         Set<Integer> expected = new HashSet<>();
-        Set<Integer> data = new ShardedHashSet<>(HashSet::new);
+        Set<Integer> data = new ShardedHashSet<>();
         for (int i = 0; i < TestData.getScaleCount(); ++i) {
             int value = TestData.getInt();
             expected.add(value);
             data.add(value);
         }
         Assert.assertEquals(expected, data);
+    }
+
+    @Test
+    public void testSize() {
+        // Based on
+        // https://www.cs.cornell.edu/courses/cs2110/2016sp/recitations/recitation07/HashSetTester.java
+        Set<String> set = new ShardedHashSet<>();
+        Assert.assertTrue(set.add("abc"));
+        Assert.assertEquals(1, set.size());
+        Assert.assertTrue(set.contains("abc"));
+        Assert.assertFalse(set.contains("abcd"));
+
+        Assert.assertFalse(set.add("abc"));
+        Assert.assertEquals(1, set.size());
+        Assert.assertTrue(set.contains("abc"));
+        Assert.assertFalse(set.contains("abcd"));
+
+        set.add("abcd");
+        Assert.assertEquals(2, set.size());
+        Assert.assertTrue(set.contains("abc"));
+        Assert.assertTrue(set.contains("abcd"));
     }
 
 }

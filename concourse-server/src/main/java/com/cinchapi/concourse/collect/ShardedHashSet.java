@@ -18,6 +18,7 @@ package com.cinchapi.concourse.collect;
 import java.io.IOException;
 import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -92,6 +93,13 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
         for (int i = 0; i < shards; ++i) {
             this.shards.add(new Shard(factory.get()));
         }
+    }
+
+    /**
+     * Construct a new instance.
+     */
+    public ShardedHashSet() {
+        this(HashSet::new);
     }
 
     @Override
@@ -186,9 +194,16 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
 
             @Override
             public void remove() {
-                // Since only the read lock has been grabbed, it is possible for
+                // NOTE: This implementation violates strong consistency. Since
+                // only the read lock has been grabbed, it is possible for
                 // an iterator to remove an element that was previously seen by
                 // another still in-process iterator.
+                //
+                // This is acceptable for the TokenEventAnnouncer use case of
+                // the storage Engine because there is no harm in a committing
+                // write from one client causing the concurrent removal of a
+                // TokenEventObserver that previously observed a write from
+                // another committing client.
                 it.remove();
             }
 
@@ -214,23 +229,14 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
 
     @Override
     public boolean contains(Object o) {
-        Iterator<Shard> it = shards.iterator();
-        List<ReadWriteLock> locks = new ArrayList<>(shards.size());
+        int index = Math.abs(o.hashCode() % shards.size());
+        Shard shard = shards.get(index);
+        shard.lock.readLock().lock();
         try {
-            while (it.hasNext()) {
-                Shard shard = it.next();
-                shard.lock.readLock().lock();
-                locks.add(shard.lock);
-                if(shard.data.contains(locks)) {
-                    return true;
-                }
-            }
-            return false;
+            return shard.data.contains(o);
         }
         finally {
-            for (ReadWriteLock lock : locks) {
-                lock.readLock().unlock();
-            }
+            shard.lock.readLock().unlock();
         }
     }
 
@@ -340,7 +346,7 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
          * The stored data.
          */
         final Set<V> data;
-        
+
         /**
          * The shard's lock
          */
@@ -348,6 +354,7 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
 
         /**
          * Construct a new instance.
+         * 
          * @param data
          */
         Shard(Set<V> data) {

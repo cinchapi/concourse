@@ -375,8 +375,8 @@ public class AtomicOperation extends BufferedStore implements
         // automatically remove this AtomicOperation from its list of known
         // observers.
         try {
-            return preemptedBy(event, token)
-                    && (status.compareAndSet(Status.OPEN, Status.PREEMPTED)
+            return preemptedBy(event, token) && (status
+                    .compareAndSet(Status.OPEN, Status.PREEMPTED)
                     || status.compareAndSet(Status.PENDING, Status.PREEMPTED));
         }
         catch (ConcurrentModificationException e) {
@@ -712,30 +712,27 @@ public class AtomicOperation extends BufferedStore implements
      */
     @Restricted
     protected boolean preemptedBy(TokenEvent event, Token token) {
-        if(event == TokenEvent.VERSION_CHANGE) {
-            if(PREEMPTIBLE_STATUSES.contains(status.get())) {
-                if(token instanceof RangeToken) {
-                    // NOTE: RangeTokens intended for writes (held in
-                    // writes2Lock) should never cause the AtomicOperation to be
-                    // preempted because they are infinitely wide.
-                    RangeToken rangeToken = (RangeToken) token;
-                    RangeSet<Value> covered = rangeReads2Lock.ranges
-                            .get(rangeToken.getKey());
-                    if(covered != null) {
-                        Iterable<Range<Value>> ranges = RangeTokens
-                                .convertToRange(rangeToken);
-                        for (Range<Value> range : ranges) {
-                            if(!covered.subRangeSet(range).isEmpty()) {
-                                return true;
-                            }
+        if(event == TokenEvent.VERSION_CHANGE && isPreemptible()) {
+            if(token instanceof RangeToken) {
+                // NOTE: RangeTokens intended for writes (held in
+                // writes2Lock) should never cause the AtomicOperation to be
+                // preempted because they are infinitely wide.
+                RangeToken rangeToken = (RangeToken) token;
+                RangeSet<Value> covered = rangeReads2Lock.ranges
+                        .get(rangeToken.getKey());
+                if(covered != null) {
+                    Iterable<Range<Value>> ranges = RangeTokens
+                            .convertToRange(rangeToken);
+                    for (Range<Value> range : ranges) {
+                        if(!covered.subRangeSet(range).isEmpty()) {
+                            return true;
                         }
                     }
                 }
-                else if((reads2Lock.contains(token)
-                        || writes2Lock.contains(token))
-                        && !exemptions.contains(token)) {
-                    return true;
-                }
+            }
+            else if((reads2Lock.contains(token) || writes2Lock.contains(token))
+                    && !exemptions.contains(token)) {
+                return true;
             }
         }
         return false;
@@ -893,6 +890,22 @@ public class AtomicOperation extends BufferedStore implements
             }
             return true;
         }
+    }
+
+    /**
+     * Return {@code true} if the {@link #status} of this
+     * {@link AtomicOperation} means that it can be
+     * {@link #preemptedBy(TokenEvent, Token) preempted}.
+     * 
+     * @return {@code true} if this is preemptible
+     */
+    private boolean isPreemptible() {
+        for (Status status : PREEMPTIBLE_STATUSES) {
+            if(this.status.compareAndSet(status, status)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
