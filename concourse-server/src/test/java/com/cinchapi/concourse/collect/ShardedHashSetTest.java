@@ -30,7 +30,7 @@ import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.concourse.util.TestData;
 
 /**
- *
+ * Unit tests for {@link SharedHashSet}.
  *
  * @author Jeff Nelson
  */
@@ -134,11 +134,7 @@ public class ShardedHashSetTest {
             t.join();
         }
         done.set(true);
-    }
-
-    @Test
-    public void testConcurrentModification() {
-
+        thread.join();
     }
 
     @Test
