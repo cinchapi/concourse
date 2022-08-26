@@ -34,7 +34,6 @@ import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.LockType;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.concurrent.RangeToken;
-import com.cinchapi.concourse.server.concurrent.RangeTokens;
 import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
@@ -231,7 +230,7 @@ public class AtomicOperation extends BufferedStore implements
         Text key0 = Text.wrapCached(key);
         RangeToken rangeToken = RangeToken.forReading(key0, Operator.BETWEEN,
                 Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY);
-        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(rangeToken);
+        Iterable<Range<Value>> ranges = rangeToken.ranges();
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
@@ -327,7 +326,7 @@ public class AtomicOperation extends BufferedStore implements
         Text key0 = Text.wrapCached(key);
         RangeToken rangeToken = RangeToken.forReading(key0, operator,
                 Transformers.transformArray(values, Value::wrap, Value.class));
-        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(rangeToken);
+        Iterable<Range<Value>> ranges = rangeToken.ranges();
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
@@ -721,8 +720,7 @@ public class AtomicOperation extends BufferedStore implements
                 RangeSet<Value> covered = rangeReads2Lock.ranges
                         .get(rangeToken.getKey());
                 if(covered != null) {
-                    Iterable<Range<Value>> ranges = RangeTokens
-                            .convertToRange(rangeToken);
+                    Iterable<Range<Value>> ranges = rangeToken.ranges();
                     for (Range<Value> range : ranges) {
                         if(!covered.subRangeSet(range).isEmpty()) {
                             return true;

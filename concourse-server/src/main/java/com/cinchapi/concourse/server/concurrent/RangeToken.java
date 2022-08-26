@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.concurrent;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -24,6 +24,8 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.thrift.Operator;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Range;
 
 /**
  * A specialized {@link Token} that is used to define the scope of a lock
@@ -52,18 +54,7 @@ public class RangeToken extends Token {
             Value... values) {
         // Check to see what, if any, additional range values must be added to
         // properly block writers that may interfere with our read.
-        int length = values.length;
-        if(operator == Operator.GREATER_THAN
-                || operator == Operator.GREATER_THAN_OR_EQUALS) {
-            values = Arrays.copyOf(values, length + 1);
-            values[length] = Value.POSITIVE_INFINITY;
-        }
-        else if(operator == Operator.LESS_THAN
-                || operator == Operator.LESS_THAN_OR_EQUALS) {
-            values = Arrays.copyOf(values, length + 1);
-            values[length] = Value.NEGATIVE_INFINITY;
-        }
-        else if(operator == Operator.REGEX || operator == Operator.NOT_REGEX) {
+        if(operator == Operator.REGEX || operator == Operator.NOT_REGEX) {
             // NOTE: This will block any writers on the #key whenever there is a
             // REGEX or NOT_REGEX read, which isn't the most efficient approach,
             // but is the least burdensome, which is okay for now...
@@ -97,6 +88,69 @@ public class RangeToken extends Token {
      */
     public static RangeToken fromByteBuffer(ByteBuffer bytes) {
         return new RangeToken(bytes);
+    }
+
+    /**
+     * Convert the specified range {@code token} to one or more {@link Range
+     * ranges} that provide the appropriate coverage.
+     * 
+     * @param token
+     * @return the Ranges
+     */
+    private static Iterable<Range<Value>> getValueRanges(Operator operator,
+            Value... values) {
+        List<Range<Value>> ranges = Lists.newArrayListWithCapacity(1);
+        if(operator == Operator.EQUALS || operator == null) { // null operator
+                                                              // means
+                                                              // the range token
+                                                              // is for
+                                                              // writing
+            ranges.add(Range.singleton(values[0]));
+        }
+        else if(operator == Operator.NOT_EQUALS) {
+            ranges.add(Range.lessThan(values[0]));
+            ranges.add(Range.greaterThan(values[0]));
+        }
+        else if(operator == Operator.GREATER_THAN) {
+            ranges.add(Range.greaterThan(values[0]));
+        }
+        else if(operator == Operator.GREATER_THAN_OR_EQUALS) {
+            ranges.add(Range.atLeast(values[0]));
+        }
+        else if(operator == Operator.LESS_THAN) {
+            ranges.add(Range.lessThan(values[0]));
+        }
+        else if(operator == Operator.LESS_THAN_OR_EQUALS) {
+            ranges.add(Range.atMost(values[0]));
+        }
+        else if(operator == Operator.BETWEEN) {
+            // See Ranges#convertToRangeToken for the logic that determines how
+            // the length of #values determines the endpoint types.
+            Value a = values[0];
+            Value b = values[1];
+            if(a == Value.NEGATIVE_INFINITY && b == Value.POSITIVE_INFINITY) {
+                ranges.add(Range.<Value> all());
+            }
+            else if(values.length == 3) {
+                ranges.add(Range.open(a, b));
+            }
+            else if(values.length == 4) {
+                ranges.add(Range.closed(a, b));
+            }
+            else if(values.length == 5) {
+                ranges.add(Range.openClosed(a, b));
+            }
+            else {
+                ranges.add(Range.closedOpen(a, b));
+            }
+        }
+        else if(operator == Operator.REGEX || operator == Operator.NOT_REGEX) {
+            ranges.add(Range.<Value> all());
+        }
+        else {
+            throw new UnsupportedOperationException();
+        }
+        return ranges;
     }
 
     /**
@@ -153,6 +207,12 @@ public class RangeToken extends Token {
     private ByteBuffer bytes;
 
     /**
+     * Lazily set cache of this {@link RangeToken token's}
+     * {@link #getValueRanges(Operator, Value...) value ranges}.
+     */
+    private transient Iterable<Range<Value>> ranges;
+
+    /**
      * Construct a new instance.
      * 
      * @param bytes
@@ -183,6 +243,22 @@ public class RangeToken extends Token {
         this.key = key;
         this.operator = operator;
         this.values = values;
+    }
+
+    @Override
+    public void copyTo(ByteBuffer buffer) {
+        if(bytes == null) {
+            bytes = serialize(key, operator, values);
+        }
+        ByteBuffers.copyAndRewindSource(bytes, buffer);
+    }
+
+    @Override
+    public ByteBuffer getBytes() {
+        if(bytes == null) {
+            bytes = serialize(key, operator, values);
+        }
+        return ByteBuffers.asReadOnlyBuffer(bytes);
     }
 
     /**
@@ -305,8 +381,8 @@ public class RangeToken extends Token {
                 return true;
             case BETWEEN:
                 return other.values[1].compareTo(myValue) > 0; // end of range
-                                                               // not
-            // included for BETWEEN
+                                                               // not included
+                                                               // for BETWEEN
             case REGEX:
             case NOT_REGEX:
                 return true;
@@ -383,23 +459,18 @@ public class RangeToken extends Token {
         }
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(key);
-        sb.append(operator != null ? " " + operator : " AS");
-        for (Value value : values) {
-            sb.append(" " + value);
+    /**
+     * Return one or more {@link Range Ranges} that provide the appropriate
+     * coverage for the {@link #getValues() values} included in this
+     * {@link RangeToken}.
+     * 
+     * @return the covered {@link Range Ranges} of {@link #getValues() values}
+     */
+    public Iterable<Range<Value>> ranges() {
+        if(ranges == null) {
+            ranges = getValueRanges(operator, values);
         }
-        return sb.toString();
-    }
-
-    @Override
-    public ByteBuffer getBytes() {
-        if(bytes == null) {
-            bytes = serialize(key, operator, values);
-        }
-        return ByteBuffers.asReadOnlyBuffer(bytes);
+        return ranges;
     }
 
     @Override
@@ -411,11 +482,14 @@ public class RangeToken extends Token {
     }
 
     @Override
-    public void copyTo(ByteBuffer buffer) {
-        if(bytes == null) {
-            bytes = serialize(key, operator, values);
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(key);
+        sb.append(operator != null ? " " + operator : " AS");
+        for (Value value : values) {
+            sb.append(" " + value);
         }
-        ByteBuffers.copyAndRewindSource(bytes, buffer);
+        return sb.toString();
     }
 
 }
