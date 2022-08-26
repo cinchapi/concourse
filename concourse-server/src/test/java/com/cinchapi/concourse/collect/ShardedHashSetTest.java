@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -100,8 +101,9 @@ public class ShardedHashSetTest {
         }
         CountUpLatch latch = new CountUpLatch();
         List<Thread> threads = new ArrayList<>();
+        AtomicBoolean done = new AtomicBoolean(false);
         Thread thread = new Thread(() -> {
-            while (true) {
+            while (!done.get()) {
                 data.add(TestData.getInt());
             }
         });
@@ -131,6 +133,7 @@ public class ShardedHashSetTest {
         for (Thread t : threads) {
             t.join();
         }
+        done.set(true);
     }
 
     @Test
