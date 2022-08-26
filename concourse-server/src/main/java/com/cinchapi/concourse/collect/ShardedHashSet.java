@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -149,6 +150,7 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
             private Iterator<V> it;
             private final List<ReadWriteLock> locks = new ArrayList<>(
                     shards.size());
+            private AtomicBoolean closed = new AtomicBoolean(false);
 
             {
                 rotate();
@@ -156,10 +158,12 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
 
             @Override
             public void close() throws IOException {
-                Iterator<ReadWriteLock> it = locks.iterator();
-                while (it.hasNext()) {
-                    it.next().readLock().unlock();
-                    it.remove();
+                if(closed.compareAndSet(false, true)) {
+                    Iterator<ReadWriteLock> it = locks.iterator();
+                    while (it.hasNext()) {
+                        it.next().readLock().unlock();
+                        it.remove();
+                    }
                 }
             }
 
