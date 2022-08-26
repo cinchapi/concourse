@@ -15,7 +15,6 @@
  */
 package com.cinchapi.concourse.server.storage.temp;
 
-import static com.cinchapi.concourse.server.GlobalState.BINARY_QUEUE;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_DIRECTORY;
 import static com.cinchapi.concourse.server.GlobalState.BUFFER_PAGE_SIZE;
 
@@ -26,6 +25,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -147,9 +147,17 @@ public final class Buffer extends Limbo {
             / 10;
 
     /**
+     * The place where the {@link Buffer} logs every {@link WriteEvent} it
+     * accepts.
+     */
+    @VisibleForTesting
+    protected Collection<WriteEvent> eventLog = GlobalState.BINARY_QUEUE;
+
+    /**
      * The multiplier that is used when increasing the rate of transport.
      */
-    protected int transportRateMultiplier = 2; // visible for testing
+    @VisibleForTesting
+    protected int transportRateMultiplier = 2;
 
     /**
      * A pointer to the current Page.
@@ -1590,7 +1598,7 @@ public final class Buffer extends Limbo {
                             write.getRecord().longValue(), write.getVersion(),
                             WriteEvent.Type.valueOf(write.getType().name()),
                             environment);
-                    BINARY_QUEUE.add(event);
+                    eventLog.add(event);
                 }
             });
         }
