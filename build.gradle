@@ -129,7 +129,7 @@ subprojects {
 
     test {
         testLogging {
-            events 'standard_error'
+            events 'standard_error', "standard_out", "failed"
         }
     }
 
