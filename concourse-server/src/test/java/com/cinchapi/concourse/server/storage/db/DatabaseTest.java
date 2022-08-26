@@ -289,8 +289,6 @@ public class DatabaseTest extends StoreTest {
         double gatherTime = gather.run(1);
         System.out.println("Select took " + selectTime + " ms and gather took "
                 + gatherTime + " ms");
-        System.err.println("Select took " + selectTime + " ms and gather took "
-                + gatherTime + " ms");
         Assert.assertTrue(gatherTime <= selectTime);
     }
 
