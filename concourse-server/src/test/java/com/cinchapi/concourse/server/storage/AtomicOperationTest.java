@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.concourse.server.storage.AtomicOperation.Status;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
@@ -457,6 +458,38 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         }
     }
 
+    @Test
+    public void testAllAtomicOperationsEventuallyTerminate()
+            throws InterruptedException {
+        int numThread = 50;
+        String key = TestData.getSimpleString();
+        long record = 1;
+        CountUpLatch latch = new CountUpLatch();
+        for (int i = 1; i <= numThread; ++i) {
+            TObject value = Convert.javaToThrift(i);
+            Thread thread = new Thread(() -> {
+                AtomicBoolean committed = new AtomicBoolean(false);
+                while (!committed.get()) {
+                    AtomicOperation atomic = getStore(destination);
+                    try {
+                        atomic.select(key, record);
+                        atomic.add(key, value, record);
+                        atomic.find(key, Operator.EQUALS, value);
+                        if(atomic.commit()) {
+                            committed.set(true);
+                            latch.countUp();
+                        }
+
+                    }
+                    catch (AtomicStateException e) {}
+
+                }
+            });
+            thread.start();
+        }
+        latch.await(numThread);
+    }
+
     @Override
     protected void add(String key, TObject value, long record) {
         ((AtomicOperation) store).add(key, value, record);
@@ -467,6 +500,10 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     @Override
     protected AtomicOperation getStore() {
         destination = getDestination();
+        return getStore(destination);
+    }
+
+    protected AtomicOperation getStore(AtomicSupport destination) {
         return destination.startAtomicOperation();
     }
 
