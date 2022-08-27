@@ -28,6 +28,7 @@ import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy;
+import ch.qos.logback.core.util.FileSize;
 
 import com.cinchapi.concourse.server.GlobalState;
 
@@ -190,7 +191,7 @@ public final class Logger {
 
         // Configure Triggering Policy
         SizeBasedTriggeringPolicy<ILoggingEvent> triggering = new SizeBasedTriggeringPolicy<ILoggingEvent>();
-        triggering.setMaxFileSize(MAX_LOG_FILE_SIZE);
+        triggering.setMaxFileSize(FileSize.valueOf(MAX_LOG_FILE_SIZE));
         triggering.start();
 
         // Configure File Appender
