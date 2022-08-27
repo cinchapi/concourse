@@ -251,6 +251,12 @@ public final class Transaction extends AtomicOperation implements
             // observing the token event, so a retry is necessary.
             return observe(event, token);
         }
+        catch (NullPointerException e) {
+            // Account for a race condition where the Transaction (via
+            // AtomicOperation) subscribes for TokenEvents before the #observers
+            // collection is set during Transaction construction
+            return observe(event, token);
+        }
         if(intercepted) {
             return true;
         }
