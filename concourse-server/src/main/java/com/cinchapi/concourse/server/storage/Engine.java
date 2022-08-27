@@ -18,8 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import static com.google.common.base.Preconditions.*;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.IdentityHashMap;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -27,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,7 +40,6 @@ import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.collect.Iterators;
-import com.cinchapi.concourse.collect.ShardedHashSet;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
@@ -234,8 +233,8 @@ public final class Engine extends BufferedStore implements
      * receive {@link #announce(TokenEvent, Token) announcements} about
      * {@link TokenEvent token events}.
      */
-    private final Set<TokenEventObserver> observers = new ShardedHashSet<>(
-            () -> Collections.newSetFromMap(new IdentityHashMap<>()));
+    private final Collection<TokenEventObserver> observers = ConcurrentHashMap
+            .newKeySet();
 
     /**
      * A flag to indicate if the Engine is running or not.
