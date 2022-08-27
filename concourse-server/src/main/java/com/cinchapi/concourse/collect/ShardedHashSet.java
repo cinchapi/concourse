@@ -20,12 +20,12 @@ import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.StampedLock;
 import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -76,6 +76,13 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
 
     /**
      * Construct a new instance.
+     */
+    public ShardedHashSet() {
+        this(HashSet::new);
+    }
+
+    /**
+     * Construct a new instance.
      * 
      * @param factory
      */
@@ -96,41 +103,34 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
         }
     }
 
-    /**
-     * Construct a new instance.
-     */
-    public ShardedHashSet() {
-        this(HashSet::new);
-    }
-
     @Override
     public boolean add(V e) {
         int index = Math.abs(e.hashCode() % shards.size());
         Shard shard = shards.get(index);
-        shard.lock.writeLock().lock();;
+        long stamp = shard.lock.writeLock();
         try {
             return shard.data.add(e);
         }
         finally {
-            shard.lock.writeLock().unlock();
+            shard.lock.unlockWrite(stamp);
         }
     }
 
     @Override
     public void clear() {
         Iterator<Shard> it = shards.iterator();
-        List<ReadWriteLock> locks = new ArrayList<>(shards.size());
+        List<Barrier> barriers = new ArrayList<>(shards.size());
         try {
             while (it.hasNext()) {
                 Shard shard = it.next();
-                shard.lock.writeLock().lock();
-                locks.add(shard.lock);
+                long stamp = shard.lock.writeLock();
+                barriers.add(new Barrier(shard.lock, stamp));
                 shard.data.clear();
             }
         }
         finally {
-            for (ReadWriteLock lock : locks) {
-                lock.writeLock().unlock();
+            for (Barrier barrier : barriers) {
+                barrier.lock.unlockWrite(barrier.stamp);
             }
         }
     }
@@ -148,7 +148,7 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
 
             private boolean verified = false;
             private Iterator<V> it;
-            private final List<ReadWriteLock> locks = new ArrayList<>(
+            private final List<Barrier> barriers = new ArrayList<>(
                     shards.size());
             private AtomicBoolean closed = new AtomicBoolean(false);
 
@@ -159,9 +159,10 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
             @Override
             public void close() throws IOException {
                 if(closed.compareAndSet(false, true)) {
-                    Iterator<ReadWriteLock> it = locks.iterator();
+                    Iterator<Barrier> it = barriers.iterator();
                     while (it.hasNext()) {
-                        it.next().readLock().unlock();
+                        Barrier barrier = it.next();
+                        barrier.lock.unlockRead(barrier.stamp);
                         it.remove();
                     }
                 }
@@ -219,8 +220,8 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
             private final void rotate() {
                 if(shardIt.hasNext()) {
                     Shard shard = shardIt.next();
-                    shard.lock.readLock().lock();
-                    locks.add(shard.lock);
+                    long stamp = shard.lock.readLock();
+                    barriers.add(new Barrier(shard.lock, stamp));
                     it = shard.data.iterator();
                 }
                 else {
@@ -235,49 +236,39 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
     public boolean contains(Object o) {
         int index = Math.abs(o.hashCode() % shards.size());
         Shard shard = shards.get(index);
-        shard.lock.readLock().lock();
+        long stamp = shard.lock.readLock();
         try {
             return shard.data.contains(o);
         }
         finally {
-            shard.lock.readLock().unlock();
+            shard.lock.unlockRead(stamp);
         }
     }
 
     @Override
     public boolean equals(Object o) {
-        try {
-            return super.equals(o);
+        if(o instanceof Set) {
+            return snapshot().equals(o);
         }
-        finally {
-            for (Shard shard : shards) {
-                shard.lock.readLock().unlock();
-            }
+        else {
+            return false;
         }
-
     }
 
     @Override
     public int hashCode() {
-        try {
-            return super.hashCode();
-        }
-        finally {
-            for (Shard shard : shards) {
-                shard.lock.readLock().unlock();
-            }
-        }
+        return snapshot().hashCode();
     }
 
     @Override
     public boolean isEmpty() {
         Iterator<Shard> it = shards.iterator();
-        List<ReadWriteLock> locks = new ArrayList<>(shards.size());
+        List<Barrier> barriers = new ArrayList<>(shards.size());
         try {
             while (it.hasNext()) {
                 Shard shard = it.next();
-                shard.lock.readLock().lock();
-                locks.add(shard.lock);
+                long stamp = shard.lock.readLock();
+                barriers.add(new Barrier(shard.lock, stamp));
                 if(!shard.data.isEmpty()) {
                     return false;
                 }
@@ -285,8 +276,8 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
             return true;
         }
         finally {
-            for (ReadWriteLock lock : locks) {
-                lock.readLock().unlock();
+            for (Barrier barrier : barriers) {
+                barrier.lock.unlockRead(barrier.stamp);
             }
         }
     }
@@ -300,12 +291,12 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
     public boolean remove(Object o) {
         int index = o.hashCode() % shards.size();
         Shard shard = shards.get(index);
-        shard.lock.writeLock().lock();;
+        long stamp = shard.lock.writeLock();
         try {
             return shard.data.remove(o);
         }
         finally {
-            shard.lock.writeLock().unlock();
+            shard.lock.unlockWrite(stamp);
         }
     }
 
@@ -328,15 +319,62 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
 
     @Override
     public String toString() {
+        return snapshot().toString();
+    }
+
+    /**
+     * Return a {@link Set} that contains all of the data in this
+     * {@link ShardedHashSet} at the current point in time.
+     * <p>
+     * The snapshot is not a live view. Changes made to the snapshot or to this
+     * underlying {@link ShardedHashSet} are not reflected in each other.
+     * </p>
+     * 
+     * @return a snapshot
+     */
+    private Set<V> snapshot() {
+        Set<V> snapshot = new LinkedHashSet<>();
+        CloseableIterator<V> it = concurrentIterator();
         try {
-            return super.toString();
+            while (it.hasNext()) {
+                snapshot.add(it.next());
+            }
+            return snapshot;
         }
         finally {
-            for (Shard shard : shards) {
-                shard.lock.readLock().unlock();
-            }
+            Iterators.close(it);
         }
+    }
 
+    /**
+     * A {@link Barrier} captures the state when a {@link Shard} is
+     * {@link Shard#lock locked}.
+     *
+     *
+     * @author Jeff Nelson
+     */
+    private class Barrier {
+
+        /**
+         * The {@link Shard Shard's} lock.
+         */
+        final StampedLock lock;
+
+        /**
+         * The lock stamp.
+         */
+        long stamp;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param lock
+         * @param stamp
+         */
+        Barrier(StampedLock lock, long stamp) {
+            this.lock = lock;
+            this.stamp = stamp;
+        }
     }
 
     /**
@@ -354,7 +392,7 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
         /**
          * The shard's lock
          */
-        final ReadWriteLock lock;
+        final StampedLock lock;
 
         /**
          * Construct a new instance.
@@ -363,7 +401,7 @@ public final class ShardedHashSet<V> extends AbstractSet<V> {
          */
         Shard(Set<V> data) {
             this.data = data;
-            this.lock = new ReentrantReadWriteLock();
+            this.lock = new StampedLock();
         }
 
     }
