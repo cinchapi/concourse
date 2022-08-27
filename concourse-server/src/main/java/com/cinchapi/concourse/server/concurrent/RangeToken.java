@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.concurrent;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -24,7 +25,7 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.thrift.Operator;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 
 /**
@@ -64,6 +65,23 @@ public class RangeToken extends Token {
     }
 
     /**
+     * Return a {@link RangeToken} that represents {@code range} and wraps
+     * {@code key} {@code operator} {@code values} for the purpose of reading.
+     * 
+     * @param range
+     * @param key
+     * @param operator
+     * @param values
+     * @return the RangeToken
+     */
+    public static RangeToken forReading(Range<Value> range, Text key,
+            Operator operator, Value... values) {
+        RangeToken token = forReading(key, operator, values);
+        token.ranges = ImmutableList.of(range); // (authorized)
+        return token;
+    }
+
+    /**
      * Return a {@link RangeToken} that wraps {@code key} as {@code value} for
      * the purpose of writing.
      * 
@@ -99,7 +117,7 @@ public class RangeToken extends Token {
      */
     private static Iterable<Range<Value>> getValueRanges(Operator operator,
             Value... values) {
-        List<Range<Value>> ranges = Lists.newArrayListWithCapacity(1);
+        List<Range<Value>> ranges = new ArrayList<>(1);
         if(operator == Operator.EQUALS || operator == null) { // null operator
                                                               // means
                                                               // the range token

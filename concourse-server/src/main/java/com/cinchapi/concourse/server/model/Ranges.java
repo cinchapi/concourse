@@ -102,7 +102,7 @@ public final class Ranges {
         for (int i = 2; i < values.length; i++) {
             values[i] = Value.NEGATIVE_INFINITY;
         }
-        return RangeToken.forReading(key, Operator.BETWEEN, values);
+        return RangeToken.forReading(range, key, Operator.BETWEEN, values);
     }
 
     /**
