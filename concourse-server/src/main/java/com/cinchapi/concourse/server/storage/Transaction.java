@@ -236,6 +236,15 @@ public final class Transaction extends AtomicOperation implements
         // causes that particular operation to fail prior to commit. The logic
         // in this method will simply cause the invocation of verifyAndSwap to
         // return false while this transaction would stay alive.
+        while (observers == null) {
+            // Account for a race condition where the Transaction (via
+            // AtomicOperation) subscribes for TokenEvents before the #observers
+            // collection is set during Transaction construction
+            Logger.warn("A Transaction handled by {} received a Token "
+                    + "Event announcement before it was fully initialized",
+                    Thread.currentThread());
+            Thread.yield();
+        }
         boolean intercepted = false;
         try {
             for (TokenEventObserver observer : observers) {
@@ -249,12 +258,6 @@ public final class Transaction extends AtomicOperation implements
         catch (ConcurrentModificationException e) {
             // Another asynchronous write or announcement was received while
             // observing the token event, so a retry is necessary.
-            return observe(event, token);
-        }
-        catch (NullPointerException e) {
-            // Account for a race condition where the Transaction (via
-            // AtomicOperation) subscribes for TokenEvents before the #observers
-            // collection is set during Transaction construction
             return observe(event, token);
         }
         if(intercepted) {
