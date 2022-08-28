@@ -153,22 +153,26 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
     public void testGCAfterFailure() {
         Transaction a = engine.startTransaction();
         Transaction b = engine.startTransaction();
+
         a.select(1);
-        a.add("foo", TestData.getTObject(), 1);
-        a.browse("foo");
-        a.find("foo", Operator.GREATER_THAN, TestData.getTObject());
-        a.commit();
         b.select(1);
+
         b.add("foo", TestData.getTObject(), 1);
+        a.add("foo", TestData.getTObject(), 1);
+
+        a.browse("foo");
         b.browse("foo");
+
         b.find("foo", Operator.GREATER_THAN, TestData.getTObject());
+        a.find("foo", Operator.GREATER_THAN, TestData.getTObject());
+
         String aLabel = a.toString();
         String bLabel = b.toString();
         Assert.assertTrue(
                 containsVersionChangeListenerWithLabel(engine, aLabel));
         Assert.assertTrue(
                 containsVersionChangeListenerWithLabel(engine, bLabel));
-        b.commit();
+        a.commit();
         a = null;
         b = null;
         System.gc();
