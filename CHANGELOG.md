@@ -1,5 +1,10 @@
 ## Changelog
 
+#### Version 0.12.0 (TBD)
+
+##### Optimizations
+* Improved the scalability and memory efficiency of the Just-in-Time (JIT) locking protocol by eliminating redundant logic and localizing the determination of when an Atomic Operation or Transaction becomes preempted by another commit. Previously that determination was managed globally in the Engine and relied on the JVM garbage collector (GC) to remove terminated operations from listening for data conflicts. Under contention, If many terminated operations accumulated between GC cycles, write performance could become degraded for hot data topics.
+
 #### Version 0.11.5 (TBD)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).
 * Fixed a bug that allowed a Transaction's atomic operations (e.g., `verifyAndSwap`) to ignore range conflicts stemming from writes committed in other operations. As a result, the atomic operation would successfully commit to its a Transaction, but the Transaction would inevitably fail due to the aforementioned conflict. The correct (and now current) behaviour is that the atomic operation fails (so it can be retried) without dooming the entire Transaction to failure.
