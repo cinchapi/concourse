@@ -16,16 +16,25 @@
 package com.cinchapi.concourse.server.storage;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.model.Text;
+import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.cache.Cache;
+import com.google.common.collect.RangeSet;
 
 /**
  * Unit tests to ensure that
@@ -36,8 +45,67 @@ import com.cinchapi.concourse.util.TestData;
  */
 public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
 
+    /**
+     * Return {@code true} if {@code engine} has a {@link VersionChangeListener}
+     * with a {@link Object#toString() toString} value matching {@code label}.
+     * 
+     * @param engine
+     * @param label
+     * @return {@code true} if ant aptly labeled {@link VersionChangeListener}
+     *         is contained in the {@code engine}
+     */
+    private static boolean containsVersionChangeListenerWithLabel(Engine engine,
+            String label) {
+        for (VersionChangeListener listener : getRangeVersionChangeListeners(
+                engine).asMap().keySet()) {
+            if(listener.toString().equals(label)) {
+                return true;
+            }
+        }
+        for (Entry<Token, WeakHashMap<VersionChangeListener, Boolean>> entry : getVersionChangeListeners(
+                engine).entrySet()) {
+            for (VersionChangeListener listener : entry.getValue().keySet()) {
+                if(listener.toString().equals(label)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Return the collection of range {@link VersionChangeListener
+     * VersionChangeListeners} from {@code engine}.
+     * 
+     * @param engine
+     * @return the range {@link VersionChangeListener VersionChangeListeners}
+     */
+    private static Cache<VersionChangeListener, Map<Text, RangeSet<Value>>> getRangeVersionChangeListeners(
+            Engine engine) {
+        return Reflection.get("rangeVersionChangeListeners", engine);
+    }
+
+    /**
+     * Return the collection of non-range {@link VersionChangeListener
+     * VersionChangeListeners} from {@code engine}.
+     * 
+     * @param engine
+     * @return the non-range {@link VersionChangeListener
+     *         VersionChangeListeners}
+     */
+    private static ConcurrentMap<Token, WeakHashMap<VersionChangeListener, Boolean>> getVersionChangeListeners(
+            Engine engine) {
+        return Reflection.get("versionChangeListeners", engine);
+    }
+
     private Engine engine;
+
     private String directory;
+
+    @Override
+    public void afterEachTest() {
+        FileSystem.deleteDirectory(directory);
+    }
 
     @Override
     public void beforeEachTest() {
@@ -47,9 +115,21 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
         engine.start();
     }
 
-    @Override
-    public void afterEachTest() {
-        FileSystem.deleteDirectory(directory);
+    @Test
+    public void testGCAfterAbort() {
+        Transaction transaction = engine.startTransaction();
+        transaction.select(1);
+        transaction.add("foo", TestData.getTObject(), 1);
+        transaction.browse("foo");
+        transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());
+        String label = transaction.toString();
+        Assert.assertTrue(
+                containsVersionChangeListenerWithLabel(engine, label));
+        transaction.abort();
+        transaction = null;
+        System.gc();
+        Assert.assertFalse(
+                containsVersionChangeListenerWithLabel(engine, label));
     }
 
     @Test
@@ -60,12 +140,13 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
         transaction.browse("foo");
         transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());
         transaction.commit();
-        WeakReference<Transaction> reference = new WeakReference<Transaction>(
-                transaction);
-        Assert.assertNotNull(reference.get());
+        String label = transaction.toString();
+        Assert.assertTrue(
+                containsVersionChangeListenerWithLabel(engine, label));
         transaction = null;
         System.gc();
-        Assert.assertNull(reference.get());
+        Assert.assertFalse(
+                containsVersionChangeListenerWithLabel(engine, label));
     }
 
     @Test
@@ -81,32 +162,20 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
         b.add("foo", TestData.getTObject(), 1);
         b.browse("foo");
         b.find("foo", Operator.GREATER_THAN, TestData.getTObject());
-        WeakReference<Transaction> aa = new WeakReference<Transaction>(a);
-        WeakReference<Transaction> bb = new WeakReference<Transaction>(b);
-        Assert.assertNotNull(aa.get());
-        Assert.assertNotNull(bb.get());
+        String aLabel = a.toString();
+        String bLabel = b.toString();
+        Assert.assertTrue(
+                containsVersionChangeListenerWithLabel(engine, aLabel));
+        Assert.assertTrue(
+                containsVersionChangeListenerWithLabel(engine, bLabel));
         b.commit();
         a = null;
         b = null;
         System.gc();
-        Assert.assertNull(aa.get());
-        Assert.assertNull(bb.get());
-    }
-
-    @Test
-    public void testGCAfterAbort() {
-        Transaction transaction = engine.startTransaction();
-        transaction.select(1);
-        transaction.add("foo", TestData.getTObject(), 1);
-        transaction.browse("foo");
-        transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());
-        WeakReference<Transaction> reference = new WeakReference<Transaction>(
-                transaction);
-        Assert.assertNotNull(reference.get());
-        transaction.abort();
-        transaction = null;
-        System.gc();
-        Assert.assertNull(reference.get());
+        Assert.assertFalse(
+                containsVersionChangeListenerWithLabel(engine, aLabel));
+        Assert.assertFalse(
+                containsVersionChangeListenerWithLabel(engine, bLabel));
     }
 
     @Test
@@ -115,13 +184,14 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
         TObject value = TestData.getTObject();
         transaction.find("foo", Operator.EQUALS, value);
         transaction.add("foo", value, 1);
-        WeakReference<Transaction> reference = new WeakReference<Transaction>(
-                transaction);
-        Assert.assertNotNull(reference.get());
+        String label = transaction.toString();
+        Assert.assertTrue(
+                containsVersionChangeListenerWithLabel(engine, label));
         transaction.commit();
         transaction = null;
         System.gc();
-        Assert.assertNull(reference.get());
+        Assert.assertFalse(
+                containsVersionChangeListenerWithLabel(engine, label));;
     }
 
 }
