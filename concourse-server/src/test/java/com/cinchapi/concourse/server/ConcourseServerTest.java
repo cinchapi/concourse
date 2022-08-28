@@ -193,16 +193,10 @@ public class ConcourseServerTest extends ConcourseBaseTest {
             CountDownLatch latch = new CountDownLatch(threads);
             for (int i = 0; i < threads; ++i) {
                 Thread t = new Thread(() -> {
-                    try {
-                        Concourse client = Concourse.at().port(port)
-                                .environment(env).connect();
-                        client.exit();
-                        latch.countDown();
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                        throw e;
-                    }
+                    Concourse client = Concourse.at().port(port)
+                            .environment(env).connect();
+                    client.exit();
+                    latch.countDown();
                 });
                 t.start();
             }
