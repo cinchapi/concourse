@@ -67,13 +67,13 @@ public class TransactionTest extends AtomicOperationTest {
     }
 
     @Override
-    protected AtomicOperation getStore() {
+    protected Transaction getStore() {
         destination = getDestination();
         return getStore(destination);
     }
 
     @Override
-    protected AtomicOperation getStore(AtomicSupport destination) {
+    protected Transaction getStore(AtomicSupport destination) {
         return Transaction.start((Engine) destination);
     }
 
