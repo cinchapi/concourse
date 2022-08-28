@@ -15,18 +15,18 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-import com.cinchapi.concourse.server.concurrent.Token;
-
 /**
- * An object that listens for version changes and responds accordingly.
- * 
+ * The event types that can be
+ * {@link TokenEventBroker#publish(Token, TokenEvent) published} by a
+ * {@link TokenEvenBroker}.
+ *
  * @author Jeff Nelson
  */
-public interface VersionChangeListener {
+enum TokenEvent {
 
     /**
-     * Handle a version change that occurs for {@code token}.
+     * A write concerning a {@link Token} has occurred and the version
+     * associated with it has changed.
      */
-    public void onVersionChange(Token token);
-
+    VERSION_CHANGE;
 }

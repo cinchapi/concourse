@@ -65,14 +65,14 @@ final class RangeReadWriteLock extends ReferenceCountingLock {
 
     @Override
     public void afterReadLock() {
-        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(token);
+        Iterable<Range<Value>> ranges = token.ranges();
         rangeLockService.info.add(token.getKey(), ranges);
     }
 
     @Override
     public void afterReadUnlock(ReentrantReadWriteLock instance) {
         if(instance.getReadLockCount() == 0) {
-            Iterable<Range<Value>> ranges = RangeTokens.convertToRange(token);
+            Iterable<Range<Value>> ranges = token.ranges();
             rangeLockService.info.remove(token.getKey(), ranges);
         }
     }

@@ -18,17 +18,15 @@ package com.cinchapi.concourse.server.storage;
 import static com.google.common.base.Preconditions.*;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -46,7 +44,6 @@ import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.concurrent.RangeToken;
-import com.cinchapi.concourse.server.concurrent.RangeTokens;
 import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -60,13 +57,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
-import com.google.common.base.MoreObjects;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Range;
-import com.google.common.collect.RangeSet;
-import com.google.common.collect.TreeRangeSet;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -238,11 +229,12 @@ public final class Engine extends BufferedStore implements
     private final String environment;
 
     /**
-     * A collection of listeners that should be notified of a version change for
-     * a given range token.
+     * Those that have {@link #subscribe(TokenEventObserver) subscribed} to
+     * receive {@link #announce(TokenEvent, Token) announcements} about
+     * {@link TokenEvent token events}.
      */
-    private final Cache<VersionChangeListener, Map<Text, RangeSet<Value>>> rangeVersionChangeListeners = CacheBuilder
-            .newBuilder().weakKeys().build();
+    private final Collection<TokenEventObserver> observers = ConcurrentHashMap
+            .newKeySet();
 
     /**
      * A flag to indicate if the Engine is running or not.
@@ -264,12 +256,6 @@ public final class Engine extends BufferedStore implements
      */
     private final ReentrantReadWriteLock transportLock = PriorityReadWriteLock
             .prioritizeReads();
-
-    /**
-     * A collection of listeners that should be notified of a version change for
-     * a given token.
-     */
-    private final ConcurrentMap<Token, WeakHashMap<VersionChangeListener, Boolean>> versionChangeListeners = new ConcurrentHashMap<Token, WeakHashMap<VersionChangeListener, Boolean>>();
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -418,36 +404,17 @@ public final class Engine extends BufferedStore implements
 
     @Override
     @Restricted
-    public void addVersionChangeListener(Token token,
-            VersionChangeListener listener) {
-        if(token instanceof RangeToken) {
-            Iterable<Range<Value>> ranges = RangeTokens
-                    .convertToRange((RangeToken) token);
-            for (Range<Value> range : ranges) {
-                Map<Text, RangeSet<Value>> map = rangeVersionChangeListeners
-                        .getIfPresent(listener);
-                if(map == null) {
-                    map = Maps.newHashMap();
-                    rangeVersionChangeListeners.put(listener, map);
+    public void announce(TokenEvent event, Token... tokens) {
+        Iterator<TokenEventObserver> it = observers.iterator();
+        while (it.hasNext()) {
+            TokenEventObserver observer = it.next();
+            for (Token token : tokens) {
+                if(observer.observe(event, token)) {
+                    if(event == TokenEvent.VERSION_CHANGE) {
+                        it.remove();
+                        break;
+                    }
                 }
-                RangeSet<Value> set = map.get(((RangeToken) token).getKey());
-                if(set == null) {
-                    set = TreeRangeSet.create();
-                    map.put(((RangeToken) token).getKey(), set);
-                }
-                set.add(range);
-            }
-        }
-        else {
-            WeakHashMap<VersionChangeListener, Boolean> existing = versionChangeListeners
-                    .get(token);
-            if(existing == null) {
-                WeakHashMap<VersionChangeListener, Boolean> created = new WeakHashMap<VersionChangeListener, Boolean>();
-                existing = versionChangeListeners.putIfAbsent(token, created);
-                existing = MoreObjects.firstNonNull(existing, created);
-            }
-            synchronized (existing) {
-                existing.put(listener, Boolean.TRUE);
             }
         }
     }
@@ -644,41 +611,6 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    @Restricted
-    public void notifyVersionChange(Token token) {
-        if(token instanceof RangeToken) {
-            Iterable<Range<Value>> ranges = RangeTokens
-                    .convertToRange((RangeToken) token);
-            for (Entry<VersionChangeListener, Map<Text, RangeSet<Value>>> entry : rangeVersionChangeListeners
-                    .asMap().entrySet()) {
-                VersionChangeListener listener = entry.getKey();
-                RangeSet<Value> set = entry.getValue()
-                        .get(((RangeToken) token).getKey());
-                for (Range<Value> range : ranges) {
-                    if(set != null && !set.subRangeSet(range).isEmpty()) {
-                        listener.onVersionChange(token);
-                    }
-                }
-            }
-        }
-        else {
-            WeakHashMap<VersionChangeListener, Boolean> existing = versionChangeListeners
-                    .get(token);
-            if(existing != null) {
-                synchronized (existing) {
-                    Iterator<VersionChangeListener> it = existing.keySet()
-                            .iterator();
-                    while (it.hasNext()) {
-                        VersionChangeListener listener = it.next();
-                        listener.onVersionChange(token);
-                        it.remove();
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
     public boolean remove(String key, TObject value, long record) {
         Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
@@ -699,14 +631,6 @@ public final class Engine extends BufferedStore implements
             write.unlock();
             range.unlock();
         }
-    }
-
-    @Override
-    @Restricted
-    public void removeVersionChangeListener(Token token,
-            VersionChangeListener listener) {
-        // NOTE: Since we use weak references listeners, we don't have to do
-        // manual cleanup because the GC will take care of it.
     }
 
     @Override
@@ -874,9 +798,7 @@ public final class Engine extends BufferedStore implements
         range.lock();
         try {
             super.set(key, value, record);
-            notifyVersionChange(writeToken);
-            notifyVersionChange(sharedToken);
-            notifyVersionChange(rangeToken);
+            announce(writeToken, sharedToken, rangeToken);
         }
         finally {
             shared.unlock();
@@ -939,12 +861,25 @@ public final class Engine extends BufferedStore implements
             durable.stop();
             lockService.shutdown();
             rangeLockService.shutdown();
+            observers.clear();
         }
+    }
+
+    @Override
+    @Restricted
+    public void subscribe(TokenEventObserver observer) {
+        observers.add(observer);
     }
 
     @Override
     public void sync() {
         limbo.sync();
+    }
+
+    @Override
+    @Restricted
+    public void unsubscribe(TokenEventObserver observer) {
+        observers.remove(observer);
     }
 
     @Override
@@ -990,6 +925,21 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
+     * Returns {@code true} if this {@link Engine}
+     * {@link #announce(TokenEvent, Token...) announces} {@link TokenEvent token
+     * events} to {@code observer}.
+     * 
+     * @param observer
+     * @return {@code true} if {@code observer} is
+     *         {@link #subscribe(TokenEventObserver) subscribed} to this
+     *         {@link Engine}
+     */
+    @VisibleForTesting
+    boolean containsTokenEventObserver(TokenEventObserver observer) {
+        return observers.contains(observer);
+    }
+
+    /**
      * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
      * locks. This method is ONLY appropriate to call from the
      * {@link #accept(Write)} method that processes transaction commits since,
@@ -1012,9 +962,7 @@ public final class Engine extends BufferedStore implements
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
         if(super.add(write, sync, verify)) {
-            notifyVersionChange(writeToken);
-            notifyVersionChange(sharedToken);
-            notifyVersionChange(rangeToken);
+            announce(writeToken, sharedToken, rangeToken);
             return true;
         }
         return false;
@@ -1069,9 +1017,7 @@ public final class Engine extends BufferedStore implements
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
         if(super.remove(write, sync, verify)) {
-            notifyVersionChange(writeToken);
-            notifyVersionChange(sharedToken);
-            notifyVersionChange(rangeToken);
+            announce(writeToken, sharedToken, rangeToken);
             return true;
         }
         return false;
