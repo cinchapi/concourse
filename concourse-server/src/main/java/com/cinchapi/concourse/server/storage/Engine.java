@@ -58,6 +58,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -927,6 +928,21 @@ public final class Engine extends BufferedStore implements
     @Override
     protected boolean verifyWithReentrancy(Write write) {
         return super.verify(write);
+    }
+
+    /**
+     * Returns {@code true} if this {@link Engine}
+     * {@link #announce(TokenEvent, Token...) announces} {@link TokenEvent token
+     * events} to {@code observer}.
+     * 
+     * @param observer
+     * @return {@code true} if {@code observer} is
+     *         {@link #subscribe(TokenEventObserver) subscribed} to this
+     *         {@link Engine}
+     */
+    @VisibleForTesting
+    boolean containsTokenEventObserver(TokenEventObserver observer) {
+        return observers.contains(observer);
     }
 
     /**
