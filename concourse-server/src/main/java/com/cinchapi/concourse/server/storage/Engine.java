@@ -39,7 +39,6 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
-import com.cinchapi.concourse.collect.Iterators;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
@@ -407,21 +406,16 @@ public final class Engine extends BufferedStore implements
     @Restricted
     public void announce(TokenEvent event, Token... tokens) {
         Iterator<TokenEventObserver> it = observers.iterator();
-        try {
-            while (it.hasNext()) {
-                TokenEventObserver observer = it.next();
-                for (Token token : tokens) {
-                    if(observer.observe(event, token)) {
-                        if(event == TokenEvent.VERSION_CHANGE) {
-                            it.remove();
-                            break;
-                        }
+        while (it.hasNext()) {
+            TokenEventObserver observer = it.next();
+            for (Token token : tokens) {
+                if(observer.observe(event, token)) {
+                    if(event == TokenEvent.VERSION_CHANGE) {
+                        it.remove();
+                        break;
                     }
                 }
             }
-        }
-        finally {
-            Iterators.close(it);
         }
     }
 
