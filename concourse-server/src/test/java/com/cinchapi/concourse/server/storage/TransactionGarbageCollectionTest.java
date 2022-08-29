@@ -16,7 +16,6 @@
 package com.cinchapi.concourse.server.storage;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,7 +36,13 @@ import com.cinchapi.concourse.util.TestData;
 public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
 
     private Engine engine;
+
     private String directory;
+
+    @Override
+    public void afterEachTest() {
+        FileSystem.deleteDirectory(directory);
+    }
 
     @Override
     public void beforeEachTest() {
@@ -47,9 +52,16 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
         engine.start();
     }
 
-    @Override
-    public void afterEachTest() {
-        FileSystem.deleteDirectory(directory);
+    @Test
+    public void testGCAfterAbort() {
+        Transaction transaction = engine.startTransaction();
+        transaction.select(1);
+        transaction.add("foo", TestData.getTObject(), 1);
+        transaction.browse("foo");
+        transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());
+        Assert.assertTrue(engine.containsTokenEventObserver(transaction));
+        transaction.abort();
+        Assert.assertFalse(engine.containsTokenEventObserver(transaction));
     }
 
     @Test
@@ -60,53 +72,33 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
         transaction.browse("foo");
         transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());
         transaction.commit();
-        WeakReference<Transaction> reference = new WeakReference<Transaction>(
-                transaction);
-        Assert.assertNotNull(reference.get());
-        transaction = null;
-        System.gc();
-        Assert.assertNull(reference.get());
+        Assert.assertFalse(engine.containsTokenEventObserver(transaction));
     }
 
     @Test
     public void testGCAfterFailure() {
         Transaction a = engine.startTransaction();
         Transaction b = engine.startTransaction();
-        a.select(1);
-        a.add("foo", TestData.getTObject(), 1);
-        a.browse("foo");
-        a.find("foo", Operator.GREATER_THAN, TestData.getTObject());
-        a.commit();
-        b.select(1);
-        b.add("foo", TestData.getTObject(), 1);
-        b.browse("foo");
-        b.find("foo", Operator.GREATER_THAN, TestData.getTObject());
-        WeakReference<Transaction> aa = new WeakReference<Transaction>(a);
-        WeakReference<Transaction> bb = new WeakReference<Transaction>(b);
-        Assert.assertNotNull(aa.get());
-        Assert.assertNotNull(bb.get());
-        b.commit();
-        a = null;
-        b = null;
-        System.gc();
-        Assert.assertNull(aa.get());
-        Assert.assertNull(bb.get());
-    }
 
-    @Test
-    public void testGCAfterAbort() {
-        Transaction transaction = engine.startTransaction();
-        transaction.select(1);
-        transaction.add("foo", TestData.getTObject(), 1);
-        transaction.browse("foo");
-        transaction.find("foo", Operator.GREATER_THAN, TestData.getTObject());
-        WeakReference<Transaction> reference = new WeakReference<Transaction>(
-                transaction);
-        Assert.assertNotNull(reference.get());
-        transaction.abort();
-        transaction = null;
-        System.gc();
-        Assert.assertNull(reference.get());
+        a.select(1);
+        b.select(1);
+
+        b.add("foo", TestData.getTObject(), 1);
+        a.add("foo", TestData.getTObject(), 1);
+
+        a.browse("foo");
+        b.browse("foo");
+
+        b.find("foo", Operator.GREATER_THAN, TestData.getTObject());
+        a.find("foo", Operator.GREATER_THAN, TestData.getTObject());
+
+        Assert.assertTrue(engine.containsTokenEventObserver(a));
+        Assert.assertTrue(engine.containsTokenEventObserver(b));
+
+        a.commit();
+
+        Assert.assertFalse(engine.containsTokenEventObserver(a));
+        Assert.assertFalse(engine.containsTokenEventObserver(b));
     }
 
     @Test
@@ -115,13 +107,9 @@ public class TransactionGarbageCollectionTest extends ConcourseBaseTest {
         TObject value = TestData.getTObject();
         transaction.find("foo", Operator.EQUALS, value);
         transaction.add("foo", value, 1);
-        WeakReference<Transaction> reference = new WeakReference<Transaction>(
-                transaction);
-        Assert.assertNotNull(reference.get());
+        Assert.assertTrue(engine.containsTokenEventObserver(transaction));
         transaction.commit();
-        transaction = null;
-        System.gc();
-        Assert.assertNull(reference.get());
+        Assert.assertFalse(engine.containsTokenEventObserver(transaction));
     }
 
 }

@@ -26,6 +26,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.storage.AtomicOperation.Status;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -125,10 +126,9 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
         Variables.register("size", operations.size());
         for (AtomicOperation operation : operations) {
             Variables.register("operation_" + i, operation);
-            Assert.assertFalse(operation.open.get()); // ensure that all the
-                                                      // atomic operations were
-                                                      // notified about the
-                                                      // version change
+            // ensure that all the atomic operations were notified about the
+            // version change
+            Assert.assertEquals(operation.status.get(), Status.PREEMPTED);
             i++;
         }
         destination.stop();

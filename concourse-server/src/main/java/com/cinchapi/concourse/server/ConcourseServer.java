@@ -50,7 +50,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.cliffc.high_scale_lib.NonBlockingHashMap;
+import org.jctools.maps.NonBlockingHashMap;
 
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.ccl.util.NaturalLanguage;

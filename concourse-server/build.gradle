@@ -22,7 +22,7 @@ dependencies {
     compile project(':concourse-import')
     compile project(':concourse-export')
     compile 'com.beust:jcommander:1.32'
-    compile 'com.github.stephenc.high-scale-lib:high-scale-lib:1.1.4'
+    compile 'org.jctools:jctools-core:3.3.0'
     compile ('org.reflections:reflections:0.9.9-RC2'){
         exclude group: 'org.javassist', module:'javassist'
     }
@@ -110,7 +110,7 @@ task cloudsmithUpload(dependsOn: installer) {
       include "**/*.bin"
     }.each { file ->
       exec {
-        commandLine 'bash', '../cloudsmith-upload', '-f', file, '-v', mavenVersion, '-r', mavenVersion.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+){0,1}$') ? 'open-source' : 'open-source-snapshots'
+        commandLine 'bash', '../cloudsmith-upload', '-f', file, '-v', version, '-r', mavenVersion.matches('^[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+){0,1}$') ? 'open-source' : 'open-source-snapshots'
       }
     }
   }
