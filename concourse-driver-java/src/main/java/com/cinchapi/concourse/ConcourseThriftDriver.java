@@ -218,8 +218,8 @@ class ConcourseThriftDriver extends Concourse {
         this.username = ClientSecurity.encrypt(username);
         this.password = ClientSecurity.encrypt(password);
         this.environment = environment;
-        final TTransport transport = new TSocket(host, port);
         try {
+            final TTransport transport = new TSocket(host, port);
             transport.open();
             this.protocol = new TBinaryProtocol(transport);
             this.core = new ConcourseService.Client(
