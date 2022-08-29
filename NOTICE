@@ -363,6 +363,13 @@
       https://zeroturnaround.com/
       Copyright 2012 ZeroTurnaround LLC.
 
+      JCTools
+      ------------------------------
+      Java Concurrency Tools for the JVM. This project aims to offer some concurrent data structures currently missing from the JDK.
+
+      https://github.com/JCTools/JCTools
+      Copyright JCTools
+
   3. Includes software released under the MIT License, which is compatible with
      the Apache License, Version 2.0:
 
@@ -436,15 +443,6 @@
 
       http://jline.github.io/jline2/
       Copyright 2002-2012 the original author or authors
-
-      High Scale Lib (Public Domain)
-      ------------------------------
-      The High Scale Lib is a collection of concurrent and highly scalable
-      utilities.This library has been released into the public domain and is
-      included with this project.
-
-      http://stephenc.github.io/high-scale-lib/
-      Copyright 2010-2015
 
       Dom4J (BSD Inspired License)
       ----------------------------

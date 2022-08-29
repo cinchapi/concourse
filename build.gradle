@@ -117,7 +117,7 @@ subprojects {
         compile 'commons-codec:commons-codec:1.8'
         compile 'com.google.code.findbugs:jsr305:2.0.1'
         compile 'org.slf4j:slf4j-api:1.7.5'
-        compile 'ch.qos.logback:logback-classic:1.0.13'
+        compile 'ch.qos.logback:logback-classic:1.2.11'
         compile 'joda-time:joda-time:2.2'
         compile 'org.apache.thrift:libthrift:0.16.0'
         compile 'commons-configuration:commons-configuration:1.9'

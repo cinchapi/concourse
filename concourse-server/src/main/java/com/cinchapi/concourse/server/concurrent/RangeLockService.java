@@ -204,8 +204,7 @@ public class RangeLockService
             default:
                 Iterator<Value> it = info.writes(token.getKey()).iterator();
                 while (it.hasNext()) {
-                    Iterable<Range<Value>> ranges = RangeTokens
-                            .convertToRange(token);
+                    Iterable<Range<Value>> ranges = token.ranges();
                     Value current = it.next();
                     Range<Value> point = Range.singleton(current);
                     for (Range<Value> range : ranges) {

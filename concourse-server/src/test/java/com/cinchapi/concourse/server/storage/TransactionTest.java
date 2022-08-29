@@ -16,6 +16,8 @@
 package com.cinchapi.concourse.server.storage;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -23,8 +25,10 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.temp.Write;
+import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TestData;
@@ -65,6 +69,11 @@ public class TransactionTest extends AtomicOperationTest {
     @Override
     protected Transaction getStore() {
         destination = getDestination();
+        return getStore(destination);
+    }
+
+    @Override
+    protected Transaction getStore(AtomicSupport destination) {
         return Transaction.start((Engine) destination);
     }
 
@@ -158,6 +167,85 @@ public class TransactionTest extends AtomicOperationTest {
             transaction.durable
                     .accept(Write.add("foo", Convert.javaToThrift(i), 1));
         }
+        Assert.assertTrue(transaction.commit());
+    }
+
+    @Test
+    public void testTransactionAtomicOperationConcurrentDistinctVersionChangeNotification()
+            throws InterruptedException { // GH-483
+        Transaction transaction = (Transaction) store;
+        AtomicOperation atomic = transaction.startAtomicOperation();
+        Engine engine = (Engine) this.destination;
+        int count = 300;
+        for (int i = 1; i <= count; ++i) {
+            atomic.select(i);
+        }
+        AtomicBoolean failed = new AtomicBoolean(false);
+        AtomicInteger j = new AtomicInteger(0);
+        CountUpLatch latch = new CountUpLatch();
+        new Thread(() -> {
+            atomic.commit();
+        }).start();
+        for (int i = 1; i <= count; ++i) {
+            new Thread(() -> {
+                try {
+                    engine.accept(Write.add("a", Convert.javaToThrift(true),
+                            j.incrementAndGet()));
+                }
+                catch (Exception e) {
+                    failed.set(true);
+                    throw e;
+                }
+                finally {
+                    latch.countUp();
+                }
+            }).start();
+        }
+        latch.await(count);
+        Assert.assertTrue(
+                transaction.locks == null || transaction.locks.isEmpty());
+        Assert.assertFalse(failed.get());
+    }
+
+    @Test
+    public void testTransactionAtomicOperationFailsOnRangeVersionChange() {
+        Transaction transaction = (Transaction) store;
+        AtomicOperation atomic = transaction.startAtomicOperation();
+        Engine engine = (Engine) this.destination;
+        atomic.find("age", Operator.GREATER_THAN, Convert.javaToThrift(30));
+        engine.accept(Write.add("age", Convert.javaToThrift(45), 1));
+        Assert.assertFalse(atomic.commit());
+    }
+
+    @Test
+    public void testTransactionAtomicOperationFailsOnRangeVersionChangeButTransactionCanCommit() {
+        Transaction transaction = (Transaction) store;
+        AtomicOperation atomic = transaction.startAtomicOperation();
+        Engine engine = (Engine) this.destination;
+        atomic.find("age", Operator.GREATER_THAN, Convert.javaToThrift(30));
+        engine.accept(Write.add("age", Convert.javaToThrift(45), 1));
+        Assert.assertFalse(atomic.commit());
+        Assert.assertTrue(transaction.commit());
+    }
+
+    @Test
+    public void testTransactionAtomicOperationFailsOnVersionChange() {
+        Transaction transaction = (Transaction) store;
+        AtomicOperation atomic = transaction.startAtomicOperation();
+        Engine engine = (Engine) this.destination;
+        atomic.select(1);
+        engine.accept(Write.add("age", Convert.javaToThrift(45), 1));
+        Assert.assertFalse(atomic.commit());
+    }
+
+    @Test
+    public void testTransactionAtomicOperationSucceedsWhenNoRangeVersionChange() {
+        Transaction transaction = (Transaction) store;
+        AtomicOperation atomic = transaction.startAtomicOperation();
+        Engine engine = (Engine) this.destination;
+        atomic.find("age", Operator.GREATER_THAN, Convert.javaToThrift(30));
+        engine.accept(Write.add("age", Convert.javaToThrift(12), 1));
+        Assert.assertTrue(atomic.commit());
         Assert.assertTrue(transaction.commit());
     }
 

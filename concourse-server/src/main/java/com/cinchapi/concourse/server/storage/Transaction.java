@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.ConcurrentModificationException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,9 +44,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
@@ -111,14 +111,32 @@ public final class Transaction extends AtomicOperation implements
     private final String id;
 
     /**
-     * The Transaction "manages" the version change listeners for each of its
-     * Atomic Operations. Since the Transaction is registered with the Engine
-     * for version change notifications for each action of each of its atomic
-     * operations, the Transaction must intercept any notifications that would
-     * affect an atomic operation that has not committed.
+     * Whenever an {@link AtomicOperation} is {@link #startAtomicOperation()
+     * started}, it, by virtue of being a {@link TokenEventObserver},
+     * {@link #subscribe(TokenEventObserver) subscribes} for announcements about
+     * token events from this {@link Transaction}. The {@link Transaction}
+     * {@link #observe(TokenEvent, Token) observes} on behalf of the
+     * {@link AtomicOperation}, intercepting announcements from its own
+     * destination store (e.g., the {@link Engine}) and
+     * {@link AtomicOperation#abort() aborting} the {@link AtomicOperation} if
+     * it {@link AtomicOperation#interrupts(Token, TokenEvent) concerns} an
+     * {@link #observe(TokenEvent, Token) observed} {@link TokenEvent event} for
+     * a {@link Token}
+     * <p>
+     * This collection is non thread-safe because it is assumed that only one
+     * {@link AtomicOperation} will live at a time, so there will ever only be
+     * one {@link #observers observer}.
+     * </p>
      */
-    private Multimap<AtomicOperation, Token> managedVersionChangeListeners = HashMultimap
-            .create();
+    private final Set<TokenEventObserver> observers = new HashSet<>(1);
+
+    /**
+     * A handler that bypasses the parent {@link AtomicOperation} logic and
+     * hooks into the "unlocked" logic of {@link BufferedStore} for read
+     * methods. This handler facilitates the methods that are defined in
+     * {@link LockFreeStore}.
+     */
+    private final BufferedStore unlocked;
 
     /**
      * Construct a new instance.
@@ -129,6 +147,20 @@ public final class Transaction extends AtomicOperation implements
         super(new ToggleQueue(INITIAL_CAPACITY), destination,
                 destination.lockService, destination.rangeLockService);
         this.id = Long.toString(Time.now());
+        this.unlocked = new BufferedStore(limbo, durable) {
+
+            @Override
+            public void start() {}
+
+            @Override
+            public void stop() {}
+
+            @Override
+            protected boolean verifyWithReentrancy(Write write) {
+                return super.verify(write);
+            }
+
+        };
     }
 
     /**
@@ -140,7 +172,8 @@ public final class Transaction extends AtomicOperation implements
     private Transaction(Engine destination, ByteBuffer bytes) {
         this(destination);
         deserialize(bytes);
-        open.set(false);
+        status.set(Status.COMMITTED);
+
     }
 
     @Override
@@ -170,132 +203,94 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    @Restricted
-    public void addVersionChangeListener(Token token,
-            VersionChangeListener listener) {
-        // The Transaction is added as a version change listener for each of its
-        // atomic operation reads/writes by virtue of the fact that the atomic
-        // operations (via BufferedStore) call the analogous read/write methods
-        // in the Transaction, which registers the Transaction with
-        // the Engine as a version change listener.
-        managedVersionChangeListeners.put((AtomicOperation) listener, token);
-    }
+    public void announce(TokenEvent event, Token... tokens) {}
 
     @Override
     public Map<TObject, Set<Long>> browseUnlocked(String key) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return browse(key);
+        return unlocked.browse(key);
     }
 
     @Override
     public Map<Long, Set<TObject>> chronologizeUnlocked(String key, long record,
             long start, long end) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return chronologize(key, record, start, end);
+        return unlocked.chronologize(key, record, start, end);
     }
 
     @Override
     public Map<Long, Set<TObject>> exploreUnlocked(String key,
             Aliases aliases) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return explore(key, aliases);
+        return unlocked.explore(key, aliases);
     }
 
     @Override
     public Set<TObject> gatherUnlocked(String key, long record) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return gather(key, record);
+        return unlocked.gather(key, record);
     }
 
     @Override
-    @Restricted
-    public void notifyVersionChange(Token token) {}
-
-    @Override
-    public void onVersionChange(Token token) {
-        // We override this method to handle the case where an atomic operation
-        // started from this transaction must fail because of a version change,
+    public boolean observe(TokenEvent event, Token token) {
+        // We override this method to handle the case where an Atomic Operation
+        // started from this Transaction must fail because of a version change,
         // but that failure should not cause the transaction itself to fail
         // (i.e. calling verifyAndSwap from a transaction and a version change
         // causes that particular operation to fail prior to commit. The logic
         // in this method will simply cause the invocation of verifyAndSwap to
         // return false while this transaction would stay alive.
-        boolean callSuper = true;
-        for (AtomicOperation operation : managedVersionChangeListeners
-                .keySet()) {
-            for (Token tok : managedVersionChangeListeners.get(operation)) {
-                if(tok.equals(token)) {
-                    operation.onVersionChange(tok);
-                    managedVersionChangeListeners.remove(operation, tok);
-                    callSuper = false;
-                    break;
+        while (observers == null) {
+            // Account for a race condition where the Transaction (via
+            // AtomicOperation) subscribes for TokenEvents before the #observers
+            // collection is set during Transaction construction
+            Logger.warn("A Transaction handled by {} received a Token "
+                    + "Event announcement before it was fully initialized",
+                    Thread.currentThread());
+            Thread.yield();
+        }
+        boolean intercepted = false;
+        try {
+            for (TokenEventObserver observer : observers) {
+                AtomicOperation atomic = (AtomicOperation) observer;
+                if(atomic.preemptedBy(event, token)) {
+                    atomic.abort();
+                    intercepted = true;
                 }
             }
         }
-        if(callSuper) {
-            super.onVersionChange(token);
+        catch (ConcurrentModificationException e) {
+            // Another asynchronous write or announcement was received while
+            // observing the token event, so a retry is necessary.
+            return observe(event, token);
+        }
+        if(intercepted) {
+            return true;
+        }
+        else {
+            return super.observe(event, token);
         }
     }
 
     @Override
-    @Restricted
-    public void removeVersionChangeListener(Token token,
-            VersionChangeListener listener) {}
+    public void onCommit(AtomicOperation operation) {
+        absorb(operation);
+    }
 
     @Override
     public Map<Long, List<String>> reviewUnlocked(long record) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return review(record);
+        return unlocked.review(record);
     }
 
     @Override
     public Map<Long, List<String>> reviewUnlocked(String key, long record) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return review(key, record);
+        return unlocked.review(key, record);
     }
 
     @Override
     public Map<String, Set<TObject>> selectUnlocked(long record) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return select(record);
+        return unlocked.select(record);
     }
 
     @Override
     public Set<TObject> selectUnlocked(String key, long record) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return select(key, record);
+        return unlocked.select(key, record);
     }
 
     @Override
@@ -305,10 +300,14 @@ public final class Transaction extends AtomicOperation implements
         // JIT Locking guarantee with respect to the Engine's lock services, so
         // if it births an AtomicOperation, it should just inherit but defer any
         // locks needed therewithin, instead of passing the Engine's lock
-        // service
-        // on
+        // service on
         return AtomicOperation.start(this, LockService.noOp(),
                 RangeLockService.noOp());
+    }
+
+    @Override
+    public void subscribe(TokenEventObserver observer) {
+        observers.add(observer);
     }
 
     @Override
@@ -320,23 +319,18 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
+    public void unsubscribe(TokenEventObserver observer) {
+        observers.remove(observer);
+    }
+
+    @Override
     public boolean verifyUnlocked(String key, TObject value, long record) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return verify(key, value, record);
+        return unlocked.verify(key, value, record);
     }
 
     @Override
     public boolean verifyUnlocked(Write write) {
-        // The call below inherits from AtomicOperation, which grabs the
-        // appropriate lock intentions and instructs the Transaction's
-        // #destination to perform the work unlocked. This all has the affect of
-        // making it such that the Transaction inherits the lock intentions of
-        // any of its offspring AtomicOperations.
-        return verify(write);
+        return unlocked.verify(write);
     }
 
     @Override
@@ -375,15 +369,15 @@ public final class Transaction extends AtomicOperation implements
         }
     }
 
-    /**
-     * Perform cleanup for the atomic {@code operation} that was birthed from
-     * this transaction and has successfully committed.
-     * 
-     * @param operation an AtomicOperation, birthed from this Transaction,
-     *            that has committed successfully
-     */
-    protected void onCommit(AtomicOperation operation) {
-        managedVersionChangeListeners.removeAll(operation);
+    @Override
+    @Restricted
+    protected boolean preemptedBy(TokenEvent event, Token token) {
+        for (TokenEventObserver observer : observers) {
+            if(((AtomicOperation) observer).preemptedBy(event, token)) {
+                return true;
+            }
+        }
+        return super.preemptedBy(event, token);
     }
 
     /**
@@ -443,5 +437,4 @@ public final class Transaction extends AtomicOperation implements
         bytes.rewind();
         return bytes;
     }
-
 }
