@@ -123,6 +123,7 @@ subprojects {
         compile 'commons-configuration:commons-configuration:1.9'
         compile group: 'com.cinchapi', name: 'accent4j', version: '1.12.1', changing:true
         compile 'com.cinchapi:lib-config:1.5.1'
+        compile 'com.cinchapi:lib-cli:1.0.0'
         
         testCompile 'junit:junit:4.11'
     }

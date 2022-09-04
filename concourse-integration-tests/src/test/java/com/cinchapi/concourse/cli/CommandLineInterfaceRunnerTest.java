@@ -16,12 +16,12 @@
 package com.cinchapi.concourse.cli;
 
 import java.security.Permission;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
-import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Unit tests for {@link CommandLineInterfaceRunner}.
@@ -73,7 +73,7 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
     @Test
     public void testDynamicParamters() {
         try {
-            CommandLineInterfaceRunner.run(FakeCli.class,
+            com.cinchapi.lib.cli.CommandLineInterfaceRunner.run(FakeCli.class,
                     "-Dfoo=bar -Dbaz=bang");
         }
         catch (SystemExitInvoked e) {}
@@ -85,7 +85,7 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
      * 
      * @author Jeff Nelson
      */
-    private static class FakeCli extends CommandLineInterface {
+    private static class FakeCli extends ConcourseClientCommandLineInterface {
 
         /**
          * Construct a new instance.
@@ -106,8 +106,8 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
         }
 
         @Override
-        protected Options getOptions() {
-            return new Options();
+        protected ConcourseClientOptions getOptions() {
+            return new ConcourseClientOptions();
         }
 
     }

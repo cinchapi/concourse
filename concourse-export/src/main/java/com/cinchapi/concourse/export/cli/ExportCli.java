@@ -34,8 +34,8 @@ import com.cinchapi.ccl.syntax.PageTree;
 import com.cinchapi.common.base.AnyObjects;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.describe.Empty;
-import com.cinchapi.concourse.cli.CommandLineInterface;
-import com.cinchapi.concourse.cli.Options;
+import com.cinchapi.concourse.cli.ConcourseClientCommandLineInterface;
+import com.cinchapi.concourse.cli.ConcourseClientOptions;
 import com.cinchapi.concourse.export.Exporter;
 import com.cinchapi.concourse.export.Exporters;
 import com.cinchapi.concourse.lang.ConcourseCompiler;
@@ -50,7 +50,7 @@ import com.google.common.collect.Lists;
  *
  * @author Jeff Nelson
  */
-public final class ExportCli extends CommandLineInterface {
+public final class ExportCli extends ConcourseClientCommandLineInterface {
 
     /**
      * The set of records from which to export data.
@@ -294,11 +294,11 @@ public final class ExportCli extends CommandLineInterface {
     }
 
     /**
-     * Export specific {@link Options}.
+     * Export specific {@link ConcourseClientOptions}.
      * 
      * @author jnelson
      */
-    private static class ExportOptions extends Options {
+    private static class ExportOptions extends ConcourseClientOptions {
         @Parameter(names = { "-r",
                 "--records" }, description = "Comma separated list of records to export", variableArity = true)
         public List<String> records = Lists.newArrayList();
