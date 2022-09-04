@@ -31,6 +31,24 @@ import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
 
     /**
+     * Run the {@code cli} with {@code flags}.
+     * <p>
+     * This method prepends the appropriate options to establish a connection to
+     * Concourse Server.
+     * </p>
+     * 
+     * @param cli
+     * @param flags
+     */
+    private static void run(
+            Class<? extends com.cinchapi.lib.cli.CommandLineInterface> cli,
+            String flags) {
+        flags = "--port " + SERVER_PORT + " --username admin --password admin "
+                + flags;
+        com.cinchapi.lib.cli.CommandLineInterfaceRunner.run(cli, flags);
+    }
+
+    /**
      * A flag that verifies that {@link #testDynamicParamters()} works.
      */
     private static AtomicBoolean DYNAMIC_PARAMS_EXIST = new AtomicBoolean(
@@ -54,6 +72,7 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
             @Override
             public void checkExit(int status) {
                 super.checkExit(status);
+                System.out.println("[NOTE]: Ignore the SystemExtiInvoked stacktrace");
                 throw new SystemExitInvoked();
             }
 
@@ -73,8 +92,7 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
     @Test
     public void testDynamicParamters() {
         try {
-            com.cinchapi.lib.cli.CommandLineInterfaceRunner.run(FakeCli.class,
-                    "-Dfoo=bar -Dbaz=bang");
+            run(FakeCli.class, "-Dfoo=bar -Dbaz=bang");
         }
         catch (SystemExitInvoked e) {}
         Assert.assertTrue(DYNAMIC_PARAMS_EXIST.get());
