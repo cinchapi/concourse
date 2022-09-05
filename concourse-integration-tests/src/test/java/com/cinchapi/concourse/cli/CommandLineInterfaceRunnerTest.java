@@ -40,12 +40,20 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
      * @param cli
      * @param flags
      */
+<<<<<<< HEAD
     private static void run(
             Class<? extends com.cinchapi.lib.cli.CommandLineInterface> cli,
             String flags) {
         flags = "--port " + SERVER_PORT + " --username admin --password admin "
                 + flags;
         com.cinchapi.lib.cli.CommandLineInterfaceRunner.run(cli, flags);
+=======
+    private static void run(Class<? extends CommandLineInterface> cli,
+            String flags) {
+        flags = "--port " + SERVER_PORT + " --username admin --password admin "
+                + flags;
+        CommandLineInterfaceRunner.run(cli, flags);
+>>>>>>> develop
     }
 
     /**
