@@ -41,7 +41,7 @@ public abstract class ConcourseClientCommandLineInterface
      * Internal {@link Concourse} instance that should be used to do the work of
      * the CLI.
      */
-    protected Concourse concourse = null;
+    protected Concourse concourse;
 
     /**
      * Construct a new instance.
