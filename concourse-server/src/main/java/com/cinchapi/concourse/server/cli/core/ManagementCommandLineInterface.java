@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.cli.core;
 
 import java.nio.ByteBuffer;
+
 import javax.annotation.Nullable;
 
 import jline.console.ConsoleReader;
@@ -46,7 +47,8 @@ import com.google.common.base.Throwables;
  * 
  * @author Jeff Nelson
  */
-public abstract class ManagementCommandLineInterface extends CommandLineInterface {
+public abstract class ManagementCommandLineInterface
+        extends CommandLineInterface {
 
     /**
      * The host where the management server is located.

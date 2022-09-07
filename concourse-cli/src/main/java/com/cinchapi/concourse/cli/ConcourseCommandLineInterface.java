@@ -98,7 +98,5 @@ public abstract class ConcourseCommandLineInterface
 
     @Override
     protected abstract ConcourseOptions getOptions();
-    
-    
 
 }

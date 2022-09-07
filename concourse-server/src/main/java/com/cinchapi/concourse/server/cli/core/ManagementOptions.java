@@ -47,5 +47,4 @@ public class ManagementOptions extends Options {
     @Parameter(names = "--password", description = "The password", hidden = true)
     public String password = new String(defaults.getPasswordExplicit());
 
-
 }

@@ -36,7 +36,6 @@ public class ListEnvironmentCli extends EnvironmentCli {
         super(args);
     }
 
-
     @Override
     protected void doTask(Client client) {
         try {

@@ -62,8 +62,7 @@ public final class CommandLineInterfaceRunner {
      * @param flags the flags to pass to the cli, formatted the same as they
      *            would be on the command line
      */
-    public static void run(
-            Class<? extends ConcourseCommandLineInterface> clazz,
+    public static void run(Class<? extends ConcourseCommandLineInterface> clazz,
             String flags) {
         com.cinchapi.lib.cli.CommandLineInterfaceRunner.run(clazz, flags);
     }

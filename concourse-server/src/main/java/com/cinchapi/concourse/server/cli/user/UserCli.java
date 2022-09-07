@@ -20,7 +20,8 @@ import com.cinchapi.concourse.server.cli.core.ManagementCommandLineInterface;
 import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 
 /**
- * Entry point for management CLIs to add/modify/remove user access to the server.
+ * Entry point for management CLIs to add/modify/remove user access to the
+ * server.
  * 
  * @author Jeff Nelson
  */
