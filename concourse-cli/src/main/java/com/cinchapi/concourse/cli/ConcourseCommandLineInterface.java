@@ -27,14 +27,14 @@ import com.cinchapi.lib.cli.Options;
 import com.google.common.base.Strings;
 
 /**
- * A {@link ConcourseClientCommandLineInterface} is a console tool that
+ * A {@link ConcourseCommandLineInterface} is a console tool that
  * interacts with {@link Concourse} via the client interface. This class
  * contains boilerplate logic for grabbing authentication credentials and
  * establishing a connection to Concourse.
  * 
  * @author Jeff Nelson
  */
-public abstract class ConcourseClientCommandLineInterface
+public abstract class ConcourseCommandLineInterface
         extends com.cinchapi.lib.cli.CommandLineInterface {
 
     /**
@@ -48,14 +48,14 @@ public abstract class ConcourseClientCommandLineInterface
      * 
      * @param args
      */
-    protected ConcourseClientCommandLineInterface(String... args) {
+    protected ConcourseCommandLineInterface(String... args) {
         super(args);
     }
 
     @Override
     protected void setup(Options options, ConsoleReader console) {
         try {
-            ConcourseClientOptions opts = (ConcourseClientOptions) options;
+            ConcourseOptions opts = (ConcourseOptions) options;
             if(!Strings.isNullOrEmpty(opts.prefs)) {
                 opts.prefs = FileOps.expandPath(opts.prefs,
                         getLaunchDirectory());
@@ -95,5 +95,10 @@ public abstract class ConcourseClientCommandLineInterface
             throw CheckedExceptions.throwAsRuntimeException(e);
         }
     }
+
+    @Override
+    protected abstract ConcourseOptions getOptions();
+    
+    
 
 }

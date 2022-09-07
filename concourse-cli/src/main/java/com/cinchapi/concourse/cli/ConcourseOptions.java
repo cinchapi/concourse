@@ -29,7 +29,7 @@ import com.cinchapi.concourse.config.ConcourseClientPreferences;
  * 
  * @author Jeff Nelson
  */
-public class ConcourseClientOptions extends com.cinchapi.lib.cli.Options {
+public class ConcourseOptions extends com.cinchapi.lib.cli.Options {
 
     /**
      * A handler for the client preferences that <em>may</em> exist in the

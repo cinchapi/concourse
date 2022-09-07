@@ -25,7 +25,7 @@ package com.cinchapi.concourse.cli;
  * <p>
  * 
  * @author Jeff Nelson
- * @deprecated Use {@link ConcourseClientOptions} instead
+ * @deprecated Use {@link ConcourseOptions} instead
  */
 @Deprecated
-public class Options extends ConcourseClientOptions {}
+public class Options extends ConcourseOptions {}

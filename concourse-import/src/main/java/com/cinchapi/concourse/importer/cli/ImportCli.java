@@ -48,8 +48,8 @@ import com.cinchapi.common.groovy.GroovyFiles;
 import com.cinchapi.common.io.Files;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.cli.ConcourseClientCommandLineInterface;
-import com.cinchapi.concourse.cli.ConcourseClientOptions;
+import com.cinchapi.concourse.cli.ConcourseCommandLineInterface;
+import com.cinchapi.concourse.cli.ConcourseOptions;
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Headered;
 import com.cinchapi.concourse.importer.Importer;
@@ -74,7 +74,7 @@ import com.google.common.reflect.ClassPath.ClassInfo;
  * @author Jeff Nelson
  */
 @SuppressWarnings("deprecation")
-public class ImportCli extends ConcourseClientCommandLineInterface {
+public class ImportCli extends ConcourseCommandLineInterface {
 
     /**
      * Aliases for built-in importer types. These aliases should be specified
@@ -300,7 +300,7 @@ public class ImportCli extends ConcourseClientCommandLineInterface {
     }
 
     @Override
-    protected ConcourseClientOptions getOptions() {
+    protected ConcourseOptions getOptions() {
         return new ImportOptions();
     }
 
@@ -531,11 +531,11 @@ public class ImportCli extends ConcourseClientCommandLineInterface {
     }
 
     /**
-     * Import specific {@link ConcourseClientOptions}.
+     * Import specific {@link ConcourseOptions}.
      * 
      * @author jnelson
      */
-    protected static class ImportOptions extends ConcourseClientOptions {
+    protected static class ImportOptions extends ConcourseOptions {
 
         @Parameter(names = { "-d",
                 "--data" }, description = "The path to the file or directory to import; if no source is provided read from stdin")

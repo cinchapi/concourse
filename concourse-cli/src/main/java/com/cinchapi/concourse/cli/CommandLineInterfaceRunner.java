@@ -17,13 +17,13 @@ package com.cinchapi.concourse.cli;
 
 /**
  * A single runner that can execute any
- * {@link ConcourseClientCommandLineInterface} class that
+ * {@link ConcourseCommandLineInterface} class that
  * is specified as the first argument. This class is designed to make it easier
  * to create CLI applications.
  * <p>
  * <ol>
  * <li>Write a CLI class that extends
- * {@link ConcourseClientCommandLineInterface}. The CLI must
+ * {@link ConcourseCommandLineInterface}. The CLI must
  * define a public constructor that takes a single array of string arguments
  * (i.e. similar to a main method).</li>
  * <li>Write a wrapper script that invokes
@@ -55,7 +55,7 @@ public final class CommandLineInterfaceRunner {
     }
 
     /**
-     * A hook to run {@link ConcourseClientCommandLineInterface clis}
+     * A hook to run {@link ConcourseCommandLineInterface clis}
      * programmatically.
      * 
      * @param clazz the CLI class
@@ -63,7 +63,7 @@ public final class CommandLineInterfaceRunner {
      *            would be on the command line
      */
     public static void run(
-            Class<? extends ConcourseClientCommandLineInterface> clazz,
+            Class<? extends ConcourseCommandLineInterface> clazz,
             String flags) {
         com.cinchapi.lib.cli.CommandLineInterfaceRunner.run(clazz, flags);
     }

@@ -18,15 +18,15 @@ package com.cinchapi.concourse.cli;
 import com.cinchapi.concourse.Concourse;
 
 /**
- * A {@link ConcourseClientCommandLineInterface} is a console tool that
+ * A {@link ConcourseCommandLineInterface} is a console tool that
  * interacts with
  * {@link Concourse} via the client interface. This class contains boilerplate
  * logic for grabbing authentication credentials and establishing a connection
  * to Concourse.
  * 
  * @author Jeff Nelson
- * @deprecated Use {@link ConcourseClientCommandLineInterface} instead
+ * @deprecated Use {@link ConcourseCommandLineInterface} instead
  */
 @Deprecated
 public abstract class CommandLineInterface
-        extends ConcourseClientCommandLineInterface {}
+        extends ConcourseCommandLineInterface {}
