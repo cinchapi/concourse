@@ -16,8 +16,9 @@
 package com.cinchapi.concourse.server.cli.data;
 
 import com.cinchapi.common.base.AnyStrings;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.core.EnvironmentManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A CLI for compacting data files.
@@ -25,7 +26,7 @@ import com.cinchapi.concourse.server.management.ConcourseManagementService.Clien
  * @author Jeff Nelson
  */
 @CommandLineInterfaceInformation(description = "Suggest that Concourse Server compact data files")
-public class CompactDataCli extends DataCli {
+class CompactDataCli extends DataCli {
 
     /**
      * Construct a new instance.
@@ -33,18 +34,13 @@ public class CompactDataCli extends DataCli {
      * @param options
      * @param args
      */
-    public CompactDataCli(String[] args) {
-        super(new DataOptions(), args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+    public CompactDataCli(String... args) {
+        super(args);
     }
 
     @Override
     protected void doTask(Client client) {
-        DataOptions opts = (DataOptions) options;
+        EnvironmentManagementOptions opts = options();
         try {
             client.compactData(opts.environment, token);
             System.out.println(AnyStrings.format(
@@ -53,7 +49,7 @@ public class CompactDataCli extends DataCli {
             System.out.println("Follow the logs for more details...");
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
 
     }

@@ -25,12 +25,12 @@ import org.apache.thrift.TException;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.cli.util.CommandLineInterfaces;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 import com.cinchapi.concourse.thrift.ManagementException;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A cli for installing plugins.
@@ -47,7 +47,7 @@ class InstallPluginCli extends PluginCli {
      * @param args
      */
     public InstallPluginCli(String[] args) {
-        super(new PluginCli.PluginOptions(), args);
+        super(args);
     }
 
     @Override
@@ -86,7 +86,7 @@ class InstallPluginCli extends PluginCli {
                 installPluginBundle(client, path0);
             }
             catch (TException e) {
-                die(e.getMessage());
+                halt(e.getMessage(), e);
             }
         }
         else {

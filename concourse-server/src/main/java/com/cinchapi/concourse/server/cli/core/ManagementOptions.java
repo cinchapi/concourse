@@ -15,11 +15,9 @@
  */
 package com.cinchapi.concourse.server.cli.core;
 
-import java.util.List;
-
 import com.beust.jcommander.Parameter;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
-import com.google.common.collect.Lists;
+import com.cinchapi.lib.cli.Options;
 
 /**
  * Each member variable represents the options that can be passed to the main
@@ -32,7 +30,7 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public abstract class Options {
+public class ManagementOptions extends Options {
 
     /**
      * A handler for the client preferences that <em>may</em> exist in the
@@ -42,9 +40,6 @@ public abstract class Options {
     private ConcourseClientPreferences defaults = ConcourseClientPreferences
             .fromUserHomeDirectory();
 
-    @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
-    public boolean help;
-
     @Parameter(names = { "-u",
             "--username" }, description = "The username with which to connect")
     public String username = defaults.getUsername();
@@ -52,12 +47,5 @@ public abstract class Options {
     @Parameter(names = "--password", description = "The password", hidden = true)
     public String password = new String(defaults.getPasswordExplicit());
 
-    /**
-     * Contains all the non parameterized arguments that are passed to the
-     * program. This is typically what would be available in the array passed to
-     * Java's main method.
-     */
-    @Parameter(description = "additional program arguments...")
-    public List<String> args = Lists.newArrayList();
 
 }

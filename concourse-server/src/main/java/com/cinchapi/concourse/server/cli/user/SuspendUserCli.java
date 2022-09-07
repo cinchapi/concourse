@@ -16,9 +16,9 @@
 package com.cinchapi.concourse.server.cli.user;
 
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
-import com.cinchapi.concourse.server.cli.core.Options;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A cli for suspending users.
@@ -35,29 +35,25 @@ public class SuspendUserCli extends UserCli {
      * @param args
      */
     public SuspendUserCli(String[] args) {
-        super(new Options() {}, args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+        super(args);
     }
 
     @Override
     protected void doTask(Client client) {
         try {
+            ManagementOptions opts = options();
             String username;
-            if(options.args.isEmpty()) {
+            if(opts.args.isEmpty()) {
                 username = console.readLine("User to suspend: ");
             }
             else {
-                username = options.args.get(0);
+                username = opts.args.get(0);
             }
             if(!client.hasUser(ByteBuffers.fromUtf8String(username), token)) {
                 throw new IllegalArgumentException(
                         "A user named '" + username + "' does not exist");
             }
-            else if(options.username.equals(username)) {
+            else if(opts.username.equals(username)) {
                 throw new IllegalArgumentException(
                         "The current user cannot suspend itself");
             }
@@ -67,9 +63,14 @@ public class SuspendUserCli extends UserCli {
             }
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
 
+    }
+
+    @Override
+    protected ManagementOptions getOptions() {
+        return new ManagementOptions();
     }
 
 }

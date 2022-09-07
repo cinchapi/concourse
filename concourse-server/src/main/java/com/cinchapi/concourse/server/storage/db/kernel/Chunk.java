@@ -285,7 +285,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     /**
      * Return a dump of the revisions in the {@link Chunk} as a String. This
-     * method primarily exists for debugging using the {@link ManageDataCli}
+     * method primarily exists for debugging using the
+     * {@link com.cinchapi.concourse.server.cli.data.ListDataCli ListDataCli}
      * tool.
      * 
      * @return a string dump
@@ -593,11 +594,11 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
             long version, Action type) throws IllegalStateException {
         Preconditions.checkState(isMutable(),
                 "Cannot modify an immutable chunk");
-        //@formatter:off
+        // @formatter:off
         locator = deduplicate(locator);
-        key     = deduplicate(key);
-        value   = deduplicate(value);
-        //@formatter:on
+        key = deduplicate(key);
+        value = deduplicate(value);
+        // @formatter:on
         Revision<L, K, V> revision = makeRevision(locator, key, value, version,
                 type);
         revisions.add(revision);
@@ -607,7 +608,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                 Composite.create(revision.getLocator()),
                 Composite.create(revision.getLocator(), revision.getKey()),
                 Composite.create(revision.getLocator(), revision.getKey(),
-                        revision.getValue()) // NOTE: The entire revision is added
+                        revision.getValue()) // NOTE: The entire revision is
+                                             // added
                                              // to the filter so that we can
                                              // quickly verify that a revision
                                              // DOES NOT exist using
@@ -908,8 +910,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     .compare(o1.getKey(), o2.getKey())
                     .compare(o1.getVersion(), o2.getVersion())
                     .compare(o1.getValue(), o2.getValue())
-                    .compare(o1.stamp(), o2.stamp())
-                    .result();
+                    .compare(o1.stamp(), o2.stamp()).result();
             // @formatter:on
         }
 
