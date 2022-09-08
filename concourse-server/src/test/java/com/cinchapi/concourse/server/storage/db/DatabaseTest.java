@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.common.profile.Benchmark;
@@ -240,6 +241,7 @@ public class DatabaseTest extends StoreTest {
     }
 
     @Test
+    @Ignore
     public void testGatherVsSelectBenchmark() {
         java.util.Random rand = new java.util.Random();
         Database store = (Database) this.store;
