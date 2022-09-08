@@ -594,23 +594,22 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
             long version, Action type) throws IllegalStateException {
         Preconditions.checkState(isMutable(),
                 "Cannot modify an immutable chunk");
-        // @formatter:off
+        //@formatter:off
         locator = deduplicate(locator);
-        key = deduplicate(key);
-        value = deduplicate(value);
+        key     = deduplicate(key);
+        value   = deduplicate(value);
         // @formatter:on
         Revision<L, K, V> revision = makeRevision(locator, key, value, version,
                 type);
         revisions.add(revision);
         revisionCount.incrementAndGet();
-        // @formatter:off
+        //@formatter:off
         Composite[] composites = Array.containing(
                 Composite.create(revision.getLocator()),
                 Composite.create(revision.getLocator(), revision.getKey()),
                 Composite.create(revision.getLocator(), revision.getKey(),
                         revision.getValue()) // NOTE: The entire revision is
-                                             // added
-                                             // to the filter so that we can
+                                             // added to the filter so that we can
                                              // quickly verify that a revision
                                              // DOES NOT exist using
                                              // #mightContain(L,K,V) without
@@ -904,13 +903,14 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
          */
         @Override
         public int compare(Revision o1, Revision o2) {
-            // @formatter:off
+            //@formatter:off
             return ComparisonChain.start()
                     .compare(o1.getLocator(), o2.getLocator())
                     .compare(o1.getKey(), o2.getKey())
                     .compare(o1.getVersion(), o2.getVersion())
                     .compare(o1.getValue(), o2.getValue())
-                    .compare(o1.stamp(), o2.stamp()).result();
+                    .compare(o1.stamp(), o2.stamp())
+                    .result();
             // @formatter:on
         }
 
