@@ -598,7 +598,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
         locator = deduplicate(locator);
         key     = deduplicate(key);
         value   = deduplicate(value);
-        // @formatter:on
+        //@formatter:on
         Revision<L, K, V> revision = makeRevision(locator, key, value, version,
                 type);
         revisions.add(revision);
@@ -615,7 +615,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                                              // #mightContain(L,K,V) without
                                              // seeking
         );
-        // @formatter:on
+        //@formatter:on
         for (Composite composite : composites) {
             filter.put(composite);
         }
@@ -911,7 +911,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     .compare(o1.getValue(), o2.getValue())
                     .compare(o1.stamp(), o2.stamp())
                     .result();
-            // @formatter:on
+            //@formatter:on
         }
 
     }
