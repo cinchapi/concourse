@@ -31,6 +31,23 @@ import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicBoolean;
 public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
 
     /**
+     * Run the {@code cli} with {@code flags}.
+     * <p>
+     * This method prepends the appropriate options to establish a connection to
+     * Concourse Server.
+     * </p>
+     * 
+     * @param cli
+     * @param flags
+     */
+    private static void run(Class<? extends CommandLineInterface> cli,
+            String flags) {
+        flags = "--port " + SERVER_PORT + " --username admin --password admin "
+                + flags;
+        CommandLineInterfaceRunner.run(cli, flags);
+    }
+
+    /**
      * A flag that verifies that {@link #testDynamicParamters()} works.
      */
     private static AtomicBoolean DYNAMIC_PARAMS_EXIST = new AtomicBoolean(
@@ -73,8 +90,7 @@ public class CommandLineInterfaceRunnerTest extends ConcourseIntegrationTest {
     @Test
     public void testDynamicParamters() {
         try {
-            CommandLineInterfaceRunner.run(FakeCli.class,
-                    "-Dfoo=bar -Dbaz=bang");
+            run(FakeCli.class, "-Dfoo=bar -Dbaz=bang");
         }
         catch (SystemExitInvoked e) {}
         Assert.assertTrue(DYNAMIC_PARAMS_EXIST.get());
