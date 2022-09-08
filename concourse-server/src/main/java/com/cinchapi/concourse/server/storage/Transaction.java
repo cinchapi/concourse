@@ -22,9 +22,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.cinchapi.common.base.CheckedExceptions;
@@ -32,6 +35,7 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.RangeLockService;
+import com.cinchapi.concourse.server.concurrent.RangeToken;
 import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -236,20 +240,29 @@ public final class Transaction extends AtomicOperation implements
         // causes that particular operation to fail prior to commit. The logic
         // in this method will simply cause the invocation of verifyAndSwap to
         // return false while this transaction would stay alive.
-        boolean callSuper = true;
-        for (AtomicOperation operation : managedVersionChangeListeners
-                .keySet()) {
-            for (Token tok : managedVersionChangeListeners.get(operation)) {
-                if(tok.equals(token)) {
-                    operation.onVersionChange(tok);
-                    managedVersionChangeListeners.remove(operation, tok);
-                    callSuper = false;
-                    break;
+        try {
+            boolean callSuper = true;
+            for (Entry<AtomicOperation, Collection<Token>> entry : managedVersionChangeListeners
+                    .asMap().entrySet()) {
+                AtomicOperation operation = entry.getKey();
+                for (Token tok : entry.getValue()) {
+                    if((token instanceof RangeToken && tok instanceof RangeToken
+                            && ((RangeToken) token)
+                                    .intersects((RangeToken) tok))
+                            || tok.equals(token)) {
+                        operation.onVersionChange(tok);
+                        managedVersionChangeListeners.remove(operation, tok);
+                        callSuper = false;
+                        break;
+                    }
                 }
             }
+            if(callSuper) {
+                super.onVersionChange(token);
+            }
         }
-        if(callSuper) {
-            super.onVersionChange(token);
+        catch (ConcurrentModificationException e) {
+            onVersionChange(token);
         }
     }
 
