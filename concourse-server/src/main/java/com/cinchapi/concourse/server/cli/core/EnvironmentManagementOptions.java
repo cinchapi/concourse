@@ -23,7 +23,7 @@ import com.google.common.base.Strings;
  * 
  * @author Jeff Nelson
  */
-public class EnvironmentOptions extends Options {
+public class EnvironmentManagementOptions extends ManagementOptions {
 
     @Parameter(names = { "-e",
             "--environment" }, description = "The environment of the Concourse Server to use")

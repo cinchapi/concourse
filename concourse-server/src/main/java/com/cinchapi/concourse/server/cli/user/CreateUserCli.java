@@ -17,8 +17,9 @@ package com.cinchapi.concourse.server.cli.user;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 import com.google.common.base.Strings;
 
 /**
@@ -36,12 +37,7 @@ public class CreateUserCli extends UserCli {
      * @param args
      */
     public CreateUserCli(String[] args) {
-        super(new EditUserOptions(), args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+        super(args);
     }
 
     @Override
@@ -83,9 +79,14 @@ public class CreateUserCli extends UserCli {
             }
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
 
+    }
+
+    @Override
+    protected ManagementOptions getOptions() {
+        return new EditUserOptions();
     }
 
 }

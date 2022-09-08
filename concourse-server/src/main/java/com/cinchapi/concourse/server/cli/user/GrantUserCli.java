@@ -20,8 +20,9 @@ import java.nio.ByteBuffer;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A CLI for granting user permissions.
@@ -32,12 +33,7 @@ import com.cinchapi.concourse.server.management.ConcourseManagementService.Clien
 public class GrantUserCli extends UserCli {
 
     public GrantUserCli(String[] args) {
-        super(new GrantPermissionOptions(), args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+        super(args);
     }
 
     @Override
@@ -63,6 +59,11 @@ public class GrantUserCli extends UserCli {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
+    }
+
+    @Override
+    protected ManagementOptions getOptions() {
+        return new GrantPermissionOptions();
     }
 
 }

@@ -15,9 +15,9 @@
  */
 package com.cinchapi.concourse.server.cli.user;
 
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
-import com.cinchapi.concourse.server.cli.core.Options;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A cli for listing the current user sessions.
@@ -34,12 +34,7 @@ public class SessionsUserCli extends UserCli {
      * @param args
      */
     public SessionsUserCli(String[] args) {
-        super(new Options() {}, args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+        super(args);
     }
 
     @Override
@@ -49,9 +44,14 @@ public class SessionsUserCli extends UserCli {
             System.out.println(client.listAllUserSessions(token));
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
 
+    }
+
+    @Override
+    protected ManagementOptions getOptions() {
+        return new ManagementOptions();
     }
 
 }
