@@ -30,7 +30,7 @@ FILES=(
 )
 ARGS=""
 for file in "${FILES[@]}"; do
-  ARGS="-f $APP_HOME/conf/$file "
+  ARGS=$ARGS"-f $APP_HOME/conf/$file "
 done
 ARGS=$(echo $ARGS | xargs)
 
