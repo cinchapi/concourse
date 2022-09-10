@@ -285,7 +285,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     /**
      * Return a dump of the revisions in the {@link Chunk} as a String. This
-     * method primarily exists for debugging using the {@link ManageDataCli}
+     * method primarily exists for debugging using the
+     * {@link com.cinchapi.concourse.server.cli.data.ListDataCli ListDataCli}
      * tool.
      * 
      * @return a string dump

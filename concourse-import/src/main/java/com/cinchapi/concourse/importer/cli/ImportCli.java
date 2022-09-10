@@ -48,8 +48,8 @@ import com.cinchapi.common.groovy.GroovyFiles;
 import com.cinchapi.common.io.Files;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.cli.CommandLineInterface;
-import com.cinchapi.concourse.cli.Options;
+import com.cinchapi.concourse.cli.ConcourseCommandLineInterface;
+import com.cinchapi.concourse.cli.ConcourseOptions;
 import com.cinchapi.concourse.importer.CsvImporter;
 import com.cinchapi.concourse.importer.Headered;
 import com.cinchapi.concourse.importer.Importer;
@@ -74,7 +74,7 @@ import com.google.common.reflect.ClassPath.ClassInfo;
  * @author Jeff Nelson
  */
 @SuppressWarnings("deprecation")
-public class ImportCli extends CommandLineInterface {
+public class ImportCli extends ConcourseCommandLineInterface {
 
     /**
      * Aliases for built-in importer types. These aliases should be specified
@@ -300,7 +300,7 @@ public class ImportCli extends CommandLineInterface {
     }
 
     @Override
-    protected Options getOptions() {
+    protected ConcourseOptions getOptions() {
         return new ImportOptions();
     }
 
@@ -531,11 +531,11 @@ public class ImportCli extends CommandLineInterface {
     }
 
     /**
-     * Import specific {@link Options}.
+     * Import specific {@link ConcourseOptions}.
      * 
      * @author jnelson
      */
-    protected static class ImportOptions extends Options {
+    protected static class ImportOptions extends ConcourseOptions {
 
         @Parameter(names = { "-d",
                 "--data" }, description = "The path to the file or directory to import; if no source is provided read from stdin")

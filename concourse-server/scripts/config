@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#?Manage Concourse Server plugins.
+#?Manage Concourse Server configuration.
 
 # Copyright (c) 2013-2022 Cinchapi Inc.
 #
@@ -20,8 +20,19 @@
 . "`dirname "$0"`/.env"
 
 # Specify the fully qualified name of the java CLI class to run.
-PACKAGE="com.cinchapi.concourse.server.cli.plugin"
-CLI="PluginCli"
+PACKAGE="com.cinchapi"
+CLI="configctl.lib.ConfigCli"
+
+# The config files in order of lowest to highest priority
+FILES=(
+  concourse.prefs
+  concourse.prefs.dev
+)
+ARGS=""
+for file in "${FILES[@]}"; do
+  ARGS=$ARGS"-f $APP_HOME/conf/$file "
+done
+ARGS=$(echo $ARGS | xargs)
 
 # run the program
-exec $JAVACMD -classpath "$CLASSPATH" -Dcom.cinchapi.lib.cli.reflectionScannerPackagePrefix=$PACKAGE com.cinchapi.lib.cli.HierarchicalCommandLineInterfaceRunner $PACKAGE.$CLI "$@"
+exec $JAVACMD -classpath "$CLASSPATH" -Dcom.cinchapi.lib.cli.reflectionScannerPackagePrefix=$PACKAGE com.cinchapi.lib.cli.HierarchicalCommandLineInterfaceRunner $PACKAGE.$CLI "$@" $ARGS

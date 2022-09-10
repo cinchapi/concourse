@@ -15,17 +15,15 @@
  */
 package com.cinchapi.concourse.cli;
 
-import java.lang.reflect.Constructor;
-import java.text.MessageFormat;
-import java.util.Arrays;
-
 /**
- * A single runner that can execute any {@link CommandLineInterface} class that
+ * A single runner that can execute any
+ * {@link ConcourseCommandLineInterface} class that
  * is specified as the first argument. This class is designed to make it easier
  * to create CLI applications.
  * <p>
  * <ol>
- * <li>Write a CLI class that extends {@link CommandLineInterface}. The CLI must
+ * <li>Write a CLI class that extends
+ * {@link ConcourseCommandLineInterface}. The CLI must
  * define a public constructor that takes a single array of string arguments
  * (i.e. similar to a main method).</li>
  * <li>Write a wrapper script that invokes
@@ -41,8 +39,10 @@ import java.util.Arrays;
  * </p>
  * 
  * @author Jeff Nelson
+ * @deprecated use {@link com.cinchapi.lib.cli.CommandLineInterfaceRunner}
+ *             instead.
  */
-@SuppressWarnings("unchecked")
+@Deprecated
 public final class CommandLineInterfaceRunner {
 
     /**
@@ -51,58 +51,20 @@ public final class CommandLineInterfaceRunner {
      * @param args
      */
     public static void main(String... args) {
-        if(args.length == 0) {
-            System.err.println(
-                    "ERROR: Please specify a " + "CommandLineInterface to run");
-            System.exit(1);
-        }
-        String name = args[0];
-        args = Arrays.copyOfRange(args, 1, args.length);
-        Constructor<? extends CommandLineInterface> constructor = null;
-        try {
-            Class<?> clazz = Class.forName(name);
-            constructor = (Constructor<? extends CommandLineInterface>) clazz
-                    .getConstructor(String[].class);
-        }
-        catch (Exception e) {
-            System.err.println(MessageFormat.format(
-                    "Cannot execute CommandLineInterface named {0}", name));
-            e.printStackTrace();
-            System.exit(1);
-        }
-        // Not worried about NPE because #constructor is guaranteed to be
-        // initialized if we make it this far
-        try {
-            CommandLineInterface cli = constructor.newInstance((Object) args);
-            System.exit(cli.run());
-        }
-        catch (Exception e) {
-            // At this point, the Exception is thrown from the CLI (i.e. the
-            // user did not pass in a required arg, etc).
-            if(e instanceof ReflectiveOperationException
-                    && e.getCause().getMessage() != null) {
-                System.err.println(MessageFormat.format("ERROR: {0}",
-                        e.getCause().getMessage()));
-            }
-            System.exit(1);
-        }
-
+        com.cinchapi.lib.cli.CommandLineInterfaceRunner.main(args);
     }
 
     /**
-     * A hook to run {@link CommandLineInterface clis} programmatically.
+     * A hook to run {@link ConcourseCommandLineInterface clis}
+     * programmatically.
      * 
      * @param clazz the CLI class
      * @param flags the flags to pass to the cli, formatted the same as they
      *            would be on the command line
      */
-    public static void run(Class<? extends CommandLineInterface> clazz,
+    public static void run(Class<? extends ConcourseCommandLineInterface> clazz,
             String flags) {
-        String[] args0 = flags.split("\\s");
-        String[] args = new String[args0.length + 1];
-        args[0] = clazz.getName();
-        System.arraycopy(args0, 0, args, 1, args0.length);
-        main(args);
+        com.cinchapi.lib.cli.CommandLineInterfaceRunner.run(clazz, flags);
     }
 
     private CommandLineInterfaceRunner() {}
