@@ -45,8 +45,8 @@
 
 # Options that are passed to Java to configure the Concourse Server runtime.
 # Before changing these parameters, please check the documentation for
-# concourse.prefs to see if the desired functionality is configured there (i.e
-# the Concourse Server heap size is specified using the `heap_size` preference)
+# the configuration files to see if the desired functionality is configured there 
+# (i.e the Concourse Server heap size is specified using the `heap_size` preference)
 # because those take precedence.
 JVMOPTS="
 -Xms1024m
@@ -219,70 +219,70 @@ get_cli_for_alias(){
   echo $RET
 }
 
-# The location of the concourse.prefs file that is used to configure the
-# application
-PREFS=$APP_HOME"/conf/concourse.prefs"
-
 # The place to store the PID
 PIDFILE=$APP_HOME"/concourse.pid"
 
 # The classpath for Concourse Server
 CLASSPATH="$APP_HOME/lib/*"
 
-#############################################################################
-# Handle any variables in concourse.prefs that affect the JVM configuration #
-#############################################################################
+###############################################################################
+# Handle any variables in the configuration that affect the JVM configuration #
+###############################################################################
+configure(){
+  echo "Loading Concourse Server configuration..."
+  CONFIG_SCRIPT=$BIN_DIR"/config"
+  CONFIG=`exec $CONFIG_SCRIPT view -k jmx_port -k remote_debugger_port -k heap_size -k log_level`
 
-#jmx_port
-JMX_PREF=`cat $PREFS | grep -e '^jmx_port\s*=\s*[0-9]\{1,\}$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
-if [ -z "$JMX_PREF" ]; then
-  JMX_PREF="9010"
-fi
-JVMOPTS=${JVMOPTS/jmxremote.port=9010/jmxremote.port=$JMX_PREF}
-
-#remote_debugger_port
-RDP_PREF=`cat $PREFS | grep -e '^remote_debugger_port\s*=\s*[0-9]\{1,\}$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
-if [ ! -z "$RDP_PREF" ] && [ "$RDP_PREF" -ne "0" ]; then
-    JVMOPTS=$JVMOPTS"
-    -Xdebug
-    -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=$RDP_PREF
-    "
-fi
-
-#heap_size
-HEAP_PREF=`cat $PREFS | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
-HEAP_PREF=`echo $HEAP_PREF | awk '{print tolower($0)}'`
-HEAP=${HEAP_PREF//[!0-9]/}
-if [[ $HEAP_PREF == *g* ]]; then
-  HEAP=$(($HEAP * 1024))
-fi
-if [ -z "$HEAP" ]; then
-  HEAP=`recommended_heap_size`
-  if [ -z "$HEAP" ]
-    then
-    HEAP="1024"
+  #jmx_port
+  JMX_PREF=`echo "$CONFIG"  | grep -e '^jmx_port\s*=\s*[0-9]\{1,\}$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+  if [ -z "$JMX_PREF" ]; then
+    JMX_PREF="9010"
   fi
-fi
-JVMOPTS=${JVMOPTS/Xms1024m/Xms$HEAP"m"}
-JVMOPTS=${JVMOPTS/Xmx1024m/Xmx$HEAP"m"}
+  JVMOPTS=${JVMOPTS/jmxremote.port=9010/jmxremote.port=$JMX_PREF}
 
-# if the log_level = DEBUG, these options are also passed to the JVM.
-DEBUG=`cat $PREFS | grep -e '^log_level\s*=\s*[Dd][Ee][Bb][Uu][Gg]'`
-if [ -n "$DEBUG" ]
-  then
-  JVMOPTS=$JVMOPTS"
-  -XX:+HeapDumpOnOutOfMemoryError
-  -XX:HeapDumpPath=$APP_HOME/log
-  -Xloggc:$APP_HOME/log/gc.log
-  -XX:+PrintGCDetails
-  -XX:+PrintGCDateStamps
-  -XX:+PrintGCTimeStamps
-  -XX:+UseGCLogFileRotation
-  -XX:NumberOfGCLogFiles=5
-  -XX:GCLogFileSize=5M
-  "
-fi
+  #remote_debugger_port
+  RDP_PREF=`echo "$CONFIG"  | grep -e '^remote_debugger_port\s*=\s*[0-9]\{1,\}$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+  if [ ! -z "$RDP_PREF" ] && [ "$RDP_PREF" -ne "0" ]; then
+      JVMOPTS=$JVMOPTS"
+      -Xdebug
+      -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=$RDP_PREF
+      "
+  fi
 
+  #heap_size
+  HEAP_PREF=`echo "$CONFIG"  | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+  HEAP_PREF=`echo $HEAP_PREF | awk '{print tolower($0)}'`
+  HEAP=${HEAP_PREF//[!0-9]/}
+  if [[ $HEAP_PREF == *g* ]]; then
+    HEAP=$(($HEAP * 1024))
+  fi
+  if [ -z "$HEAP" ]; then
+    HEAP=`recommended_heap_size`
+    if [ -z "$HEAP" ]
+      then
+      HEAP="1024"
+    fi
+  fi
+  JVMOPTS=${JVMOPTS/Xms1024m/Xms$HEAP"m"}
+  JVMOPTS=${JVMOPTS/Xmx1024m/Xmx$HEAP"m"}
+
+  # if the log_level = DEBUG, these options are also passed to the JVM.
+  DEBUG=`echo "$CONFIG" | grep -e '^log_level\s*=\s*[Dd][Ee][Bb][Uu][Gg]'`
+  if [ -n "$DEBUG" ]
+    then
+    JVMOPTS=$JVMOPTS"
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:HeapDumpPath=$APP_HOME/log
+    -Xloggc:$APP_HOME/log/gc.log
+    -XX:+PrintGCDetails
+    -XX:+PrintGCDateStamps
+    -XX:+PrintGCTimeStamps
+    -XX:+UseGCLogFileRotation
+    -XX:NumberOfGCLogFiles=5
+    -XX:GCLogFileSize=5M
+    "
+  fi
+}
 #############################################################################
 
 # Determine the Java command to use to start the JVM.
@@ -589,6 +589,7 @@ status() {
 cd $APP_HOME
 case "$1" in
   'start' | '--start')
+  configure
   start
   ;;
 
@@ -597,6 +598,7 @@ case "$1" in
   ;;
 
   'console' | '--console')
+  configure
   console
   ;;
 
@@ -614,10 +616,12 @@ case "$1" in
 
   'restart' | '--restart' | 'force-reload' | '--force-reload')
   stop
+  configure
   start
   ;;
 
   '')
+  configure
   start
   ;;
 
