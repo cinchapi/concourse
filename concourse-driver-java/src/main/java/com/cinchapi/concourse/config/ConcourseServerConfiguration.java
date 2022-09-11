@@ -28,7 +28,7 @@ import com.cinchapi.lib.config.read.Interpreters;
  * A wrapper around the configuration files that can be used to configure
  * Concourse Server.
  * <p>
- * Instantiate using {@link ConcourseServerConfiguration#from(Path[])};
+ * Instantiate using {@link ConcourseServerConfiguration#from(Path...)};
  * providing paths to files in order from lowest to highest priority.
  * </p>
  * 

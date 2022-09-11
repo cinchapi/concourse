@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -26,6 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Incubating;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
 import com.cinchapi.concourse.lang.BuildableState;
 import com.cinchapi.concourse.lang.Criteria;
@@ -72,6 +74,7 @@ import com.google.common.collect.Sets;
  * 
  * @author Jeff Nelson
  */
+@SuppressWarnings("deprecation")
 @NotThreadSafe
 public abstract class Concourse implements AutoCloseable {
 
@@ -88,7 +91,7 @@ public abstract class Concourse implements AutoCloseable {
 
     /**
      * Create a new connection to the Concourse deployment described in
-     * {@code ./concourse_client.prefs} (or, if the file does not exist, the
+     * {@code ~/concourse_client.yaml} (or, if the file does not exist, the
      * default environment of the server at localhost:1717) and return a handle
      * to facilitate interaction.
      * 
@@ -99,8 +102,36 @@ public abstract class Concourse implements AutoCloseable {
     }
 
     /**
+     * Create a new connection using the information specified in the
+     * {@code config}.
+     * 
+     * @param config a {@link ConcourseClientConfiguration configuration}
+     *            handler
+     * @return the connection
+     */
+    public static Concourse connect(ConcourseClientConfiguration config) {
+        return connect(config.getHost(), config.getPort(), config.getUsername(),
+                String.valueOf(config.getPassword()), config.getEnvironment());
+    }
+
+    /**
+     * Create a new connection using the information specified in the config
+     * {@code file}.
+     * 
+     * @param file the absolute path to the config file that contains the
+     *            information for the Concourse deployment (relative paths will
+     *            resolve to the user's home directory)
+     * @return the handle
+     */
+    public static Concourse connect(Path file) {
+        ConcourseClientConfiguration config = ConcourseClientConfiguration
+                .from(file);
+        return connect(config);
+    }
+
+    /**
      * Create a new connection to the specified {@code environment} of the
-     * Concourse deployment described in {@code ~/concourse_client.prefs} (or,
+     * Concourse deployment described in {@code ~/concourse_client.yaml} (or,
      * if the file does not exist, the server at localhost:1717) and return a
      * handle to facilitate interaction.
      * 
@@ -150,7 +181,10 @@ public abstract class Concourse implements AutoCloseable {
      * 
      * @param prefs a {@link ConcourseClientPreferences prefs} handler
      * @return the connection
+     * @deprecated use {@link #connect(ConcourseClientConfiguration)}
+     *             instead
      */
+    @Deprecated
     public static Concourse connectWithPrefs(ConcourseClientPreferences prefs) {
         return connect(prefs.getHost(), prefs.getPort(), prefs.getUsername(),
                 String.valueOf(prefs.getPassword()), prefs.getEnvironment());
@@ -164,7 +198,9 @@ public abstract class Concourse implements AutoCloseable {
      *            information for the Concourse deployment (relative paths will
      *            resolve to the user's home directory)
      * @return the handle
+     * @deprecated use {@link #connect(Path)} instead
      */
+    @Deprecated
     public static Concourse connectWithPrefs(String file) {
         ConcourseClientPreferences prefs = ConcourseClientPreferences
                 .from(Paths.get(file));
@@ -7717,8 +7753,8 @@ public abstract class Concourse implements AutoCloseable {
         /**
          * Client connection preferences container.
          */
-        private final ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .from(Paths.get(FileOps.tempFile()));
+        private final ConcourseClientConfiguration config = ConcourseClientConfiguration
+                .from(Paths.get(FileOps.tempFile() + ".yaml"));
 
         /**
          * Connect to the Concourse deployment described by this
@@ -7727,7 +7763,7 @@ public abstract class Concourse implements AutoCloseable {
          * @return the connection
          */
         public Concourse connect() {
-            return connectWithPrefs(prefs);
+            return Concourse.connect(config);
         }
 
         /**
@@ -7737,7 +7773,7 @@ public abstract class Concourse implements AutoCloseable {
          * @return this
          */
         public ConnectionBuilder environment(String environment) {
-            prefs.setEnvironment(environment);
+            config.setEnvironment(environment);
             return this;
         }
 
@@ -7748,7 +7784,7 @@ public abstract class Concourse implements AutoCloseable {
          * @return this
          */
         public ConnectionBuilder host(String host) {
-            prefs.setHost(host);
+            config.setHost(host);
             return this;
         }
 
@@ -7759,7 +7795,7 @@ public abstract class Concourse implements AutoCloseable {
          * @return this
          */
         public ConnectionBuilder password(String password) {
-            prefs.setPassword(password.toCharArray());
+            config.setPassword(password.toCharArray());
             return this;
         }
 
@@ -7770,7 +7806,7 @@ public abstract class Concourse implements AutoCloseable {
          * @return this
          */
         public ConnectionBuilder port(int port) {
-            prefs.setPort(port);
+            config.setPort(port);
             return this;
         }
 
@@ -7781,7 +7817,7 @@ public abstract class Concourse implements AutoCloseable {
          * @return this
          */
         public ConnectionBuilder username(String username) {
-            prefs.setUsername(username);
+            config.setUsername(username);
             return this;
         }
 

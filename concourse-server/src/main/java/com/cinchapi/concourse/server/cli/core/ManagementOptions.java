@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.server.cli.core;
 
 import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 import com.cinchapi.lib.cli.Options;
 
 /**
@@ -37,7 +37,7 @@ public class ManagementOptions extends Options {
      * user's home directory. If the file is available, its contents will be
      * used for configuration defaults.
      */
-    private ConcourseClientPreferences defaults = ConcourseClientPreferences
+    private ConcourseClientConfiguration defaults = ConcourseClientConfiguration
             .fromUserHomeDirectory();
 
     @Parameter(names = { "-u",

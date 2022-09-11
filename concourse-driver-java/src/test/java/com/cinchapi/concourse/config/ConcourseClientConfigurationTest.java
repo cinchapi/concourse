@@ -29,21 +29,21 @@ import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 
 /**
- * Unit tests for the {@link ConcourseClientPreferences} class.
+ * Unit tests for the {@link ConcourseClientConfiguration} class.
  * 
  * @author Jeff Nelson
  */
-public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
+public class ConcourseClientConfigurationTest extends ConcourseBaseTest {
 
     /**
      * Path to the prefs file that will be used within the test case.
      */
-    private Path prefsPath = null;
+    private Path configPath = null;
 
     @Override
     protected void beforeEachTest() {
         try {
-            prefsPath = Paths.get(java.nio.file.Files
+            configPath = Paths.get(java.nio.file.Files
                     .createTempFile(this.getClass().getName(), ".tmp")
                     .toString());
         }
@@ -59,7 +59,7 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
      */
     private void appendLine(String line) {
         try {
-            Files.asCharSink(prefsPath.toFile(), StandardCharsets.UTF_8,
+            Files.asCharSink(configPath.toFile(), StandardCharsets.UTF_8,
                     FileWriteMode.APPEND).write(line + System.lineSeparator());
         }
         catch (IOException e) {
@@ -70,8 +70,8 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
     @Override
     public void afterEachTest() {
         try {
-            java.nio.file.Files.delete(prefsPath);
-            prefsPath = null;
+            java.nio.file.Files.delete(configPath);
+            configPath = null;
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -82,9 +82,9 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
     public void testGetPasswordExplicitWhenAbset() {
         appendLine("username = foo");
         appendLine("host = localhost");
-        ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .from(prefsPath);
-        Assert.assertEquals(ConcourseClientPreferences.NO_PASSWORD_DEFINED,
+        ConcourseClientConfiguration prefs = ConcourseClientConfiguration
+                .from(configPath);
+        Assert.assertEquals(ConcourseClientConfiguration.NO_PASSWORD_DEFINED,
                 prefs.getPasswordExplicit());
     }
 
@@ -93,32 +93,32 @@ public class ConcourseClientPreferencesTest extends ConcourseBaseTest {
         appendLine("username = foo");
         appendLine("host = localhost");
         appendLine("password = foofoo");
-        ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .from(prefsPath);
+        ConcourseClientConfiguration prefs = ConcourseClientConfiguration
+                .from(configPath);
         Assert.assertEquals("foofoo", new String(prefs.getPasswordExplicit()));
     }
 
     @Test
     public void testGetPortWhenWrittenAsString() {
         appendLine("port = \"1717\"");
-        ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .from(prefsPath);
+        ConcourseClientConfiguration prefs = ConcourseClientConfiguration
+                .from(configPath);
         Assert.assertEquals(1717, prefs.getPort());
     }
 
     @Test
     public void testGetPortWhenNotProvided() {
-        ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .from(prefsPath);
+        ConcourseClientConfiguration prefs = ConcourseClientConfiguration
+                .from(configPath);
         Assert.assertEquals(1717, prefs.getPort());
     }
 
     @Test
     public void testSet() {
-        ConcourseClientPreferences prefs = ConcourseClientPreferences
-                .from(prefsPath);
+        ConcourseClientConfiguration prefs = ConcourseClientConfiguration
+                .from(configPath);
         prefs.setPort(9000);
-        prefs = ConcourseClientPreferences.from(prefsPath);
+        prefs = ConcourseClientConfiguration.from(configPath);
         Assert.assertEquals(9000, prefs.getPort());
     }
 

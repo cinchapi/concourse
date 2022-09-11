@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +68,7 @@ import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 import com.cinchapi.concourse.config.ConcourseServerConfiguration;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.Criteria;
@@ -350,9 +351,15 @@ public class ManagedConcourseServer {
     private static final String TARGET_BINARY_NAME = "concourse-server.bin";
 
     /**
-     * A flag that determines how the concourse_client.prefs file should be
+     * The names of client config files.
+     */
+    private static final String[] CLIENT_CONFIG_FILENAMES = new String[] {
+            "concourse_client.prefs", "concourse_client.yaml" };
+
+    /**
+     * A flag that determines how the client configuration files should be
      * handled when this server is {@link #destroy() destroyed}. Generally,
-     * nothing is done to the prefs file unless
+     * nothing is done to the configuration files unless
      * {@link #syncDefaultClientConnectionInfo()} was called by the client.
      */
     private ClientPrefsCleanupAction clientPrefsCleanupAction = ClientPrefsCleanupAction.NONE;
@@ -455,24 +462,27 @@ public class ManagedConcourseServer {
                 stop();
             }
             try {
-                Path prefs = Paths.get("concourse_client.prefs")
-                        .toAbsolutePath();
-                if(clientPrefsCleanupAction == ClientPrefsCleanupAction.RESTORE_BACKUP) {
-                    Path backup = Paths.get("concourse_client.prefs.bak")
-                            .toAbsolutePath();
-                    Files.move(backup, prefs,
-                            StandardCopyOption.REPLACE_EXISTING);
-                    log.info("Restored original client prefs from {} to {}",
-                            backup, prefs);
+                for (String filename : CLIENT_CONFIG_FILENAMES) {
+                    Path file = Paths.get(filename).toAbsolutePath();
+                    if(clientPrefsCleanupAction == ClientPrefsCleanupAction.RESTORE_BACKUP) {
+                        Path backup = Paths.get(filename + ".bak")
+                                .toAbsolutePath();
+                        Files.move(backup, file,
+                                StandardCopyOption.REPLACE_EXISTING);
+                        log.info(
+                                "Restored original client configuration from {} to {}",
+                                backup, file);
+                    }
+                    else if(clientPrefsCleanupAction == ClientPrefsCleanupAction.DELETE) {
+                        Files.delete(file);
+                        log.info("Deleted client configuration from {}", file);
+                    }
+                    deleteDirectory(
+                            Paths.get(installDirectory).getParent().toString());
+                    log.info("Deleted server install directory at {}",
+                            installDirectory);
                 }
-                else if(clientPrefsCleanupAction == ClientPrefsCleanupAction.DELETE) {
-                    Files.delete(prefs);
-                    log.info("Deleted client prefs from {}", prefs);
-                }
-                deleteDirectory(
-                        Paths.get(installDirectory).getParent().toString());
-                log.info("Deleted server install directory at {}",
-                        installDirectory);
+
             }
             catch (Exception e) {
                 throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -779,10 +789,10 @@ public class ManagedConcourseServer {
     }
 
     /**
-     * Copy the connection information for this managed server to a
-     * {@code concourse_client.prefs} file located in the root of the working
-     * directory so that source code relying on the default connection behaviour
-     * will properly connect to this server.
+     * Copy the connection information for this managed server to a client
+     * configuration file located in the root of the working directory so that
+     * source code relying on the default connection behaviour will properly
+     * connect to this server.
      * <p>
      * A test case that uses an indirect connection to Concourse (i.e. the test
      * case doesn't directly use the provided {@code client} variable provided
@@ -800,27 +810,35 @@ public class ManagedConcourseServer {
      */
     public void syncDefaultClientConnectionInfo() {
         try {
-            Path prefs = Paths.get("concourse_client.prefs").toAbsolutePath();
-            if(Files.exists(prefs)) {
-                Path backup = Paths.get("concourse_client.prefs.bak")
-                        .toAbsolutePath();
-                Files.move(prefs, backup);
-                clientPrefsCleanupAction = ClientPrefsCleanupAction.RESTORE_BACKUP;
-                log.info("Took backup for client prefs file located at {}. "
-                        + "The backup is stored in {}", prefs, backup);
+            ArrayBuilder<Path> builder = ArrayBuilder.builder();
+            for (String filename : CLIENT_CONFIG_FILENAMES) {
+                Path file = Paths.get(filename).toAbsolutePath();
+                builder.add(file);
+                if(Files.exists(file)) {
+                    Path backup = Paths.get(filename + ".bak").toAbsolutePath();
+                    Files.move(file, backup);
+                    clientPrefsCleanupAction = ClientPrefsCleanupAction.RESTORE_BACKUP;
+                    log.info(
+                            "Took backup for client configuration file located at "
+                                    + "{}. The backup is stored in {}",
+                            file, backup);
+                }
+                else {
+                    clientPrefsCleanupAction = ClientPrefsCleanupAction.DELETE;
+                }
             }
-            else {
-                clientPrefsCleanupAction = ClientPrefsCleanupAction.DELETE;
+            Path[] files = builder.build();
+            for (Path file : files) {
+                FileOps.touch(file.toString());
             }
-            log.info(
-                    "Synchronizing the managed server's connection "
-                            + "information to the client prefs file at {}",
-                    prefs);
-            ConcourseClientPreferences ccp = ConcourseClientPreferences
-                    .from(Paths.get(FileOps.touch(prefs.toString())));
-            ccp.setPort(getClientPort());
-            ccp.setUsername("admin");
-            ccp.setPassword("admin".toCharArray());
+            log.info("Synchronizing the managed server's connection "
+                    + "information to the client configuration files at {}",
+                    Arrays.toString(files));
+            ConcourseClientConfiguration config = ConcourseClientConfiguration
+                    .from(files);
+            config.setPort(getClientPort());
+            config.setUsername("admin");
+            config.setPassword("admin".toCharArray());
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);

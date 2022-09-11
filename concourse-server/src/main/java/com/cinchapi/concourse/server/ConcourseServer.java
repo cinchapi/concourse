@@ -369,7 +369,8 @@ public class ConcourseServer extends BaseConcourseServer implements
                                                        // future release.
 
     /**
-     * Tracks the number of {@link Engine engines} that have been initialized via
+     * Tracks the number of {@link Engine engines} that have been initialized
+     * via
      * {@link #getEngineUnsafe(String)}.
      */
     protected final AtomicInteger numEnginesInitialized = new AtomicInteger(0); // CON-673
