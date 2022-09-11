@@ -7754,7 +7754,7 @@ public abstract class Concourse implements AutoCloseable {
          * Client connection preferences container.
          */
         private final ConcourseClientConfiguration config = ConcourseClientConfiguration
-                .from(Paths.get(FileOps.tempFile() + ".yaml"));
+                .from(Paths.get(FileOps.tempFile(null, ".yaml")));
 
         /**
          * Connect to the Concourse deployment described by this
