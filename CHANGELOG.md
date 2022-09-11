@@ -24,7 +24,9 @@
 	* `CommandLineInterfaceRunner` in favor of `com.cinchapi.lib.cli.CommandLineInterfaceRunner` from the `lib-cli` framework.
 	* `NoOptions` in favor of creating a new `Options` object.
 	* `Options` in favor of `com.cinchapi.lib.cli.Options` from the `lib-cli` framework.
-* Usage of `concourse.prefs`, `concourse.prefs.dev` and `concourse_client.prefs` is deprecated in favor of `concourse.yaml`, `concourse.yaml.dev` and `concourse_client.yaml` respectively.
+* As a result of Concourse's new support for YAML configuration:
+	* Usage of `concourse.prefs`, `concourse.prefs.dev` and `concourse_client.prefs` is deprecated in favor of `concourse.yaml`, `concourse.yaml.dev` and `concourse_client.yaml` respectively.
+	* The `ConcourseServerPreferences` handler is deprecated in favor of using `ConcourseServerConfiguration`, which provides the same functionality.
 
 #### Version 0.11.5 (TBD)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).

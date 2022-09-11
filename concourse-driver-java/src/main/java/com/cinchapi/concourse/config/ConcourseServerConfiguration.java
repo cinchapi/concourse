@@ -15,58 +15,57 @@
  */
 package com.cinchapi.concourse.config;
 
+import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import ch.qos.logback.classic.Level;
 
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.concourse.util.Logging;
+import com.cinchapi.lib.config.read.Interpreters;
 
 /**
  * A wrapper around the configuration files that can be used to configure
  * Concourse Server.
  * <p>
- * Instantiate using {@link ConcourseServerPreferences#from(Path[])}; providing
- * paths to files in order from lowest to highest priority.
+ * Instantiate using {@link ConcourseServerConfiguration#from(Path[])};
+ * providing paths to files in order from lowest to highest priority.
  * </p>
  * 
  * @author Jeff Nelson
- * @deprecated Use {@link ConcourseServerConfiguration} instead
  */
-@Deprecated
-public abstract class ConcourseServerPreferences extends PreferencesHandler {
+@SuppressWarnings("deprecation")
+public class ConcourseServerConfiguration extends ConcourseServerPreferences {
 
     /**
-     * Return a {@link ConcourseServerPreferences} handler that is backed by the
-     * configuration information in {@code file}.
-     * 
-     * @param file the absolute path to the preferences file (relative paths
-     *            will resolve to the user's home directory)
-     * @return the preferences handler
-     * @deprecated use {@link ConcourseServerPreferences#from(Path...)} instead
-     */
-    @Deprecated
-    public static ConcourseServerPreferences open(String file) {
-        return from(Paths.get(file));
-
-    }
-
-    /**
-     * Return a {@link ConcourseServerPreferences} handler that is sourced from
-     * the {@link files}.
+     * Return a {@link ConcourseServerConfiguration} handler that is sourced
+     * from the {@link files}.
      * 
      * @param files
      * @return the sources
      */
-    public static ConcourseServerPreferences from(Path... files) {
+    public static ConcourseServerConfiguration from(Path... files) {
         Verify.thatArgument(files.length > 0, "Must include at least one file");
         return new ConcourseServerConfiguration(files);
     }
 
     static {
-        Logging.disable(ConcourseServerPreferences.class);
+        Logging.disable(ConcourseServerConfiguration.class);
     }
+
+    // Defaults
+    private static String DEFAULT_DATA_HOME = System.getProperty("user.home")
+            + File.separator + "concourse" + File.separator;
+    private static String DEFAULT_BUFFER_DIRECTORY = DEFAULT_DATA_HOME
+            + "buffer";
+    private static String DEFAULT_DATABASE_DIRECTORY = DEFAULT_DATA_HOME + "db";
+    private static int DEFAULT_BUFFER_PAGE_SIZE = 8192;
+    private static Level DEFAULT_LOG_LEVEL = Level.INFO;
+    private static boolean DEFAULT_ENABLE_CONSOLE_LOGGING = false;
+    private static int DEFAULT_CLIENT_PORT = 1717;
+    private static int DEFAULT_SHUTDOWN_PORT = 3434;
+    private static int DEFAULT_JMX_PORT = 9010;
+    private static String DEFAULT_DEFAULT_ENVIRONMENT = "default";
 
     /**
      * Construct a new instance.
@@ -75,7 +74,7 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      *            will resolve to the user's home directory)
      * @throws ConfigurationException
      */
-    ConcourseServerPreferences(Path... files) {
+    ConcourseServerConfiguration(Path... files) {
         super(files);
     }
 
@@ -87,7 +86,9 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      * 
      * @return the buffer directory
      */
-    public abstract String getBufferDirectory();
+    public String getBufferDirectory() {
+        return getOrDefault("buffer_directory", DEFAULT_BUFFER_DIRECTORY);
+    }
 
     /**
      * The size for each page in the Buffer. During reads, Buffer pages
@@ -98,7 +99,9 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      * 
      * @return the buffer page size in bytes
      */
-    public abstract long getBufferPageSize();
+    public long getBufferPageSize() {
+        return getSize("buffer_page_size", DEFAULT_BUFFER_PAGE_SIZE);
+    }
 
     /**
      * The listener port (1-65535) for client connections. Choose a port between
@@ -107,7 +110,9 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      * 
      * @return the client port
      */
-    public abstract int getClientPort();
+    public int getClientPort() {
+        return getOrDefault("client_port", DEFAULT_CLIENT_PORT);
+    }
 
     /**
      * The absolute path to the directory where the Database record and index
@@ -117,7 +122,9 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      * 
      * @return the database directory
      */
-    public abstract String getDatabaseDirectory();
+    public String getDatabaseDirectory() {
+        return getOrDefault("database_directory", DEFAULT_DATABASE_DIRECTORY);
+    }
 
     /**
      * The default environment that is automatically loaded when the server
@@ -126,7 +133,9 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      * 
      * @return the default environment
      */
-    public abstract String getDefaultEnvironment();
+    public String getDefaultEnvironment() {
+        return getOrDefault("default_environment", DEFAULT_DEFAULT_ENVIRONMENT);
+    }
 
     /**
      * Determine whether log messages should also be printed to the console
@@ -134,7 +143,10 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      * 
      * @return the determination whether to enable console logging
      */
-    public abstract boolean getEnableConsoleLogging();
+    public boolean getEnableConsoleLogging() {
+        return getOrDefault("enable_console_logging",
+                DEFAULT_ENABLE_CONSOLE_LOGGING);
+    }
 
     /**
      * The listener port (1-65535) for management commands via JMX. Choose a
@@ -143,7 +155,9 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      * 
      * @return the jmx port
      */
-    public abstract int getJmxPort();
+    public int getJmxPort() {
+        return getOrDefault("jmx_port", DEFAULT_JMX_PORT);
+    }
 
     /**
      * # The amount of runtime information logged by the system. The options
@@ -180,7 +194,10 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      * 
      * @return the log level
      */
-    public abstract Level getLogLevel();
+    public Level getLogLevel() {
+        return getOrDefault("log_level", Interpreters.logLevel(),
+                DEFAULT_LOG_LEVEL);
+    }
 
     /**
      * The listener port (1-65535) for shutdown commands. Choose a port between
@@ -189,67 +206,87 @@ public abstract class ConcourseServerPreferences extends PreferencesHandler {
      * 
      * @return the shutdown port
      */
-    public abstract int getShutdownPort();
+    public int getShutdownPort() {
+        return getOrDefault("shutdown_port", DEFAULT_SHUTDOWN_PORT);
+    }
 
     /**
      * Set the value associated with the {@code buffer_directory} key.
      * 
      * @param bufferDirectory
      */
-    public abstract void setBufferDirectory(String bufferDirectory);
+    public void setBufferDirectory(String bufferDirectory) {
+        set("buffer_directory", bufferDirectory);
+    }
 
     /**
      * Set the value associated with the {@code buffer_page_size} key.
      */
-    public abstract void setBufferPageSize(long sizeInBytes);
+    public void setBufferPageSize(long sizeInBytes) {
+        set("buffer_page_size", sizeInBytes);
+    }
 
     /**
      * Set the value associated with the {@code client_port} key.
      * 
      * @param clientPort
      */
-    public abstract void setClientPort(int clientPort);
+    public void setClientPort(int clientPort) {
+        set("client_port", clientPort);
+    }
 
     /**
      * Set the value associated with the {@code database_directory} key.
      * 
      * @param databaseDirectory
      */
-    public abstract void setDatabaseDirectory(String databaseDirectory);
+    public void setDatabaseDirectory(String databaseDirectory) {
+        set("database_directory", databaseDirectory);
+    }
 
     /**
      * Set the value associated with the {@code default_environment} key.
      * 
      * @param defaultEnvironment
      */
-    public abstract void setDefaultEnvironment(String defaultEnvironment);
+    public void setDefaultEnvironment(String defaultEnvironment) {
+        set("default_environment", defaultEnvironment);
+    }
 
     /**
      * Set the value associated with the {@code enable_console_logging} key.
      * 
      * @param enableConsoleLogging
      */
-    public abstract void setEnableConsoleLogging(boolean enableConsoleLogging);
+    public void setEnableConsoleLogging(boolean enableConsoleLogging) {
+        set("enable_console_logging", enableConsoleLogging);
+    }
 
     /**
      * Set the value associated with the {@code jmx_port} key.
      * 
      * @param port
      */
-    public abstract void setJmxPort(int port);
+    public void setJmxPort(int port) {
+        set("jmx_port", port);
+    }
 
     /**
      * Set the value associated with the {@code log_level} key.
      * 
      * @param level
      */
-    public abstract void setLogLevel(Level level);
+    public void setLogLevel(Level level) {
+        set("log_level", level.toString());
+    }
 
     /**
      * Set the value associated with the {@code shutdown_port} key.
      * 
      * @param shutdownPort
      */
-    public abstract void setShutdownPort(int shutdownPort);
+    public void setShutdownPort(int shutdownPort) {
+        set("shutdown_port", shutdownPort);
+    }
 
 }

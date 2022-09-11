@@ -56,6 +56,7 @@ import ch.qos.logback.classic.Level;
 
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.process.Processes;
@@ -67,6 +68,7 @@ import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.config.ConcourseServerConfiguration;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.paginate.Page;
@@ -90,6 +92,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
+@SuppressWarnings("deprecation")
 public class ManagedConcourseServer {
 
     /**
@@ -162,16 +165,18 @@ public class ManagedConcourseServer {
      * @param installDirectory
      */
     private static void configure(String installDirectory) {
-        ConcourseServerPreferences prefs = ConcourseServerPreferences
-                .from(Paths.get(installDirectory + File.separator + CONF
-                        + File.separator + "concourse.prefs"));
+        Path[] configPaths = Array.containing(
+                Paths.get(installDirectory, CONF, "concourse.prefs"),
+                Paths.get(installDirectory, CONF, "concourse.yaml"));
+        ConcourseServerConfiguration config = ConcourseServerConfiguration
+                .from(configPaths);
         String data = installDirectory + File.separator + "data";
-        prefs.setBufferDirectory(data + File.separator + "buffer");
-        prefs.setDatabaseDirectory(data + File.separator + "database");
-        prefs.setClientPort(getOpenPort());
-        prefs.setJmxPort(getOpenPort());
-        prefs.setLogLevel(Level.DEBUG);
-        prefs.setShutdownPort(getOpenPort());
+        config.setBufferDirectory(data + File.separator + "buffer");
+        config.setDatabaseDirectory(data + File.separator + "database");
+        config.setClientPort(getOpenPort());
+        config.setJmxPort(getOpenPort());
+        config.setLogLevel(Level.DEBUG);
+        config.setShutdownPort(getOpenPort());
     }
 
     /**
@@ -370,9 +375,9 @@ public class ManagedConcourseServer {
     private MBeanServerConnection mBeanServerConnection = null;
 
     /**
-     * The handler for the server's preferences.
+     * The handler for the server's configuration.
      */
-    private final ConcourseServerPreferences prefs;
+    private final ConcourseServerConfiguration config;
 
     /**
      * Construct a new instance.
@@ -381,9 +386,11 @@ public class ManagedConcourseServer {
      */
     private ManagedConcourseServer(String installDirectory) {
         this.installDirectory = installDirectory;
-        this.prefs = ConcourseServerPreferences.from(Paths.get(installDirectory
-                + File.separator + CONF + File.separator + "concourse.prefs"));
-        prefs.setLogLevel(Level.DEBUG);
+        Path[] configPaths = Array.containing(
+                Paths.get(installDirectory, CONF, "concourse.prefs"),
+                Paths.get(installDirectory, CONF, "concourse.yaml"));
+        this.config = ConcourseServerConfiguration.from(configPaths);
+        config.setLogLevel(Level.DEBUG);
         this.destroyOnExitFlag = Paths.get(installDirectory)
                 .resolve(".destroyOnExit");
         destroyOnExit(true);
@@ -397,6 +404,16 @@ public class ManagedConcourseServer {
             }
 
         }));
+    }
+
+    /**
+     * Return the {@link ManagedConcourseServer server's}
+     * {@link ConourseServerConfiguration configuration}.
+     * 
+     * @return the {@link ConourseServerPreferences configuration}.
+     */
+    public ConcourseServerConfiguration config() {
+        return config;
     }
 
     /**
@@ -538,7 +555,7 @@ public class ManagedConcourseServer {
      * @return the buffer directory
      */
     public Path getBufferDirectory() {
-        return Paths.get(prefs.getBufferDirectory());
+        return Paths.get(config.getBufferDirectory());
     }
 
     /**
@@ -547,7 +564,7 @@ public class ManagedConcourseServer {
      * @return the client port
      */
     public int getClientPort() {
-        return prefs.getClientPort();
+        return config.getClientPort();
     }
 
     /**
@@ -556,7 +573,7 @@ public class ManagedConcourseServer {
      * @return the database directory
      */
     public Path getDatabaseDirectory() {
-        return Paths.get(prefs.getDatabaseDirectory());
+        return Paths.get(config.getDatabaseDirectory());
     }
 
     /**
@@ -597,7 +614,7 @@ public class ManagedConcourseServer {
             try {
                 JMXServiceURL url = new JMXServiceURL(
                         "service:jmx:rmi:///jndi/rmi://localhost:"
-                                + prefs.getJmxPort() + "/jmxrmi");
+                                + config.getJmxPort() + "/jmxrmi");
                 JMXConnector connector = JMXConnectorFactory.connect(url);
                 mBeanServerConnection = connector.getMBeanServerConnection();
             }
@@ -634,7 +651,7 @@ public class ManagedConcourseServer {
      *         environment
      */
     public boolean hasWritesToTransport() {
-        return hasWritesToTransport(prefs.getDefaultEnvironment());
+        return hasWritesToTransport(config.getDefaultEnvironment());
     }
 
     /**
@@ -691,9 +708,11 @@ public class ManagedConcourseServer {
      * {@link ConourseServerPreferences preferences}.
      * 
      * @return the {@link ConourseServerPreferences preferences}.
+     * @deprecated use {@link #config() }instead
      */
+    @Deprecated
     public ConcourseServerPreferences prefs() {
-        return prefs;
+        return config();
     }
 
     /**

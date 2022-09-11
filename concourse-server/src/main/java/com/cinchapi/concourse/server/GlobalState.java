@@ -40,7 +40,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.Experimental;
 import com.cinchapi.concourse.annotate.NonPreference;
-import com.cinchapi.concourse.config.ConcourseServerPreferences;
+import com.cinchapi.concourse.config.ConcourseServerConfiguration;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.util.Networking;
@@ -87,8 +87,8 @@ public final class GlobalState extends Constants {
      * 2. Find the PREF READING BLOCK and attempt to read the value from the
      * prefs file, while supplying the variable you made in Step 1 as the
      * defaultValue.
-     * 3. Add a placeholder for the new preference to the stock concourse.prefs
-     * file in conf/concourse.prefs.
+     * 3. Add a placeholder for the new preference to the stock configuration
+     * file within the "conf" directory.
      */
 
     /**
@@ -334,7 +334,7 @@ public final class GlobalState extends Constants {
                 "conf" + File.separator + "concourse.yaml",
                 "conf" + File.separator + "concourse.prefs.dev",
                 "conf" + File.separator + "concourse.yaml.dev");
-        ConcourseServerPreferences config = ConcourseServerPreferences
+        ConcourseServerConfiguration config = ConcourseServerConfiguration
                 .from(files.stream()
                         .map(file -> Paths.get(FileSystem.expandPath(file)))
                         .collect(Collectors.toList())

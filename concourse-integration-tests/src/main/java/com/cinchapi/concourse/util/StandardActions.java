@@ -112,8 +112,8 @@ public final class StandardActions {
 
     /**
      * Launch a new ConcourseServer process in a separate JVM. This method will
-     * use the port defined in conf/concourse.prefs, so it will not start if
-     * there is a conflict.
+     * use the port defined in the configuration, so it will not start if there
+     * is a conflict.
      */
     public static void launchServerInSeparateJVM() {
         String classpath = System.getProperty("java.class.path");
