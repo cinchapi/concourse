@@ -24,12 +24,10 @@ import com.cinchapi.common.base.Verify;
 import com.cinchapi.concourse.util.Logging;
 
 /**
- * A wrapper around the configuration files that can be used to configure
- * Concourse Server.
+ * A wrapper around the {@code concourse.prefs} file that is used to
+ * configure the server.
  * <p>
- * Instantiate using {@link ConcourseServerPreferences#from(Path[])}; providing
- * paths to files in order from lowest to highest priority.
- * </p>
+ * Instantiate using {@link ConcourseServerPreferences#open(String)}
  * 
  * @author Jeff Nelson
  * @deprecated Use {@link ConcourseServerConfiguration} instead

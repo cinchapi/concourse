@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Incubating;
 import com.cinchapi.concourse.config.ConcourseClientConfiguration;
@@ -121,11 +122,14 @@ public abstract class Concourse implements AutoCloseable {
      * @param file the absolute path to the config file that contains the
      *            information for the Concourse deployment (relative paths will
      *            resolve to the user's home directory)
+     * @param files the absolute path to other higher priority config files that
+     *            contain the information for the Concourse deployment (relative
+     *            paths will resolve to the user's home directory)
      * @return the handle
      */
-    public static Concourse connect(Path file) {
-        ConcourseClientConfiguration config = ConcourseClientConfiguration
-                .from(file);
+    public static Concourse connect(Path file, Path... files) {
+        ConcourseClientConfiguration config = ConcourseClientConfiguration.from(
+                ArrayBuilder.<Path> builder().add(file).add(files).build());
         return connect(config);
     }
 

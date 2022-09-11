@@ -63,7 +63,7 @@ public class ConcourseOptions extends com.cinchapi.lib.cli.Options {
     public String config;
 
     /**
-     * References to {@link #config} for backwards compatibility.
+     * Reference to {@link #config} for backwards compatibility.
      */
     public String prefs;
 
