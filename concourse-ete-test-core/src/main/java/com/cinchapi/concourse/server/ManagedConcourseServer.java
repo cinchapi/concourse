@@ -477,12 +477,11 @@ public class ManagedConcourseServer {
                         Files.delete(file);
                         log.info("Deleted client configuration from {}", file);
                     }
-                    deleteDirectory(
-                            Paths.get(installDirectory).getParent().toString());
-                    log.info("Deleted server install directory at {}",
-                            installDirectory);
                 }
-
+                deleteDirectory(
+                        Paths.get(installDirectory).getParent().toString());
+                log.info("Deleted server install directory at {}",
+                        installDirectory);
             }
             catch (Exception e) {
                 throw CheckedExceptions.wrapAsRuntimeException(e);
