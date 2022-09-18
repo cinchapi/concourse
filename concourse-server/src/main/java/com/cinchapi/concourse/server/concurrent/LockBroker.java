@@ -76,7 +76,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  *
  * @author Jeff Nelson
  */
-public final class LockBroker {
+public class LockBroker {
 
     /**
      * Return a new {@link LockBroker} that provides a set of distinct locks.
@@ -137,7 +137,36 @@ public final class LockBroker {
      * Return from {@link #noOp()}.
      */
     private static final LockBroker NO_OP = new LockBroker(ImmutableMap.of(),
-            ImmutableMap.of(), ImmutableMap.of(), false);
+            ImmutableMap.of(), ImmutableMap.of(), false) {
+
+        @Override
+        public Permit readLock(Token token) {
+            return new Permit(token, Mode.READ);
+        }
+
+        @Override
+        public Permit tryReadLock(Token token) {
+            return readLock(token);
+        }
+
+        @Override
+        public Permit tryWriteLock(Token token) {
+            return writeLock(token);
+        }
+
+        @Override
+        public void unlock(Permit permit) {}
+
+        @Override
+        public Permit writeLock(Token token) {
+            return new Permit(token, Mode.WRITE);
+        }
+
+        @Override
+        boolean isRangeBlocked(Mode mode, Token token) {
+            return false;
+        }
+    };
 
     /**
      * A mapping from a {@link Token token}, representing a resource, to the
@@ -186,7 +215,7 @@ public final class LockBroker {
      * @param token
      * @return the {@link Permit}
      */
-    public final Permit readLock(Token token) {
+    public Permit readLock(Token token) {
         while (isRangeBlocked(Mode.READ, token)) {
             Thread.yield();
             continue;
@@ -208,6 +237,13 @@ public final class LockBroker {
     }
 
     /**
+     * Shutdown the {@link LockBroker}.
+     */
+    public final void shutdown() {
+        brokers.remove(this);
+    }
+
+    /**
      * Try to acquire a read lock for the resource represented by {@code token},
      * if it is immediately available, and return a {@link Permit} to proceed if
      * successful. If the lock cannot be immediately acquired, return
@@ -218,7 +254,7 @@ public final class LockBroker {
      *         {@code null}
      */
     @Nullable
-    public final Permit tryReadLock(Token token) {
+    public Permit tryReadLock(Token token) {
         if(isRangeBlocked(Mode.READ, token)) {
             return null;
         }
@@ -255,7 +291,7 @@ public final class LockBroker {
      *         {@code null}
      */
     @Nullable
-    public final Permit tryWriteLock(Token token) {
+    public Permit tryWriteLock(Token token) {
         if(isRangeBlocked(Mode.WRITE, token)) {
             return null;
         }
@@ -290,7 +326,7 @@ public final class LockBroker {
      * 
      * @param permit
      */
-    public final void unlock(Permit permit) {
+    public void unlock(Permit permit) {
         if(permit.issuer() != this) {
             throw new IllegalArgumentException(AnyStrings.format(
                     "Invalid permit. Permit {} was not issued by {}", permit,
@@ -335,7 +371,7 @@ public final class LockBroker {
      * @param token
      * @return the {@link Permit}
      */
-    public final Permit writeLock(Token token) {
+    public Permit writeLock(Token token) {
         while (isRangeBlocked(Mode.WRITE, token)) {
             Thread.yield();
             continue;
@@ -354,11 +390,6 @@ public final class LockBroker {
         }
         afterLockAcquired(Mode.WRITE, token);
         return permit;
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        brokers.remove(this);
     }
 
     /**
@@ -523,9 +554,11 @@ public final class LockBroker {
             else {
                 Value value = rangeToken.getValues()[0];
                 Set<Value> existing = writes.get(key);
-                existing.remove(value);
-                if(existing.isEmpty()) {
-                    writes.remove(key);
+                if(existing != null) {
+                    existing.remove(value);
+                    if(existing.isEmpty()) {
+                        writes.remove(key);
+                    }
                 }
             }
         }
@@ -541,7 +574,7 @@ public final class LockBroker {
      * @return the new Lock
      */
     private Object createLock(Token token) {
-        if(token.cardinality > 1) {
+        if(token instanceof SharedToken) {
             return new SharedReadWriteLock();
         }
         else {

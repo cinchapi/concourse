@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.concurrent;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -95,8 +96,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
     @Test
     public void testSharedWriteLockForUpgradedToken()
             throws InterruptedException {
-        Token token = Token.wrap(TestData.getLong());
-        token.upgrade();
+        Token token = Token.shareable(TestData.getLong());
         broker.writeLock(token);
         Thread b = new Thread(new Runnable() {
 
@@ -117,8 +117,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
     @Test
     public void testSharedReadLockForUpgradedToken()
             throws InterruptedException {
-        Token token = Token.wrap(TestData.getLong());
-        token.upgrade();
+        Token token = Token.shareable(TestData.getLong());
         broker.readLock(token);
         Thread b = new Thread(new Runnable() {
 
@@ -1028,7 +1027,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
                         Value.wrap(Convert.javaToThrift(15)))));
         permit.release();
     }
-    
+
     @Test
     public void testWriteNotRangeBlockedIfNoReading() {
         Text key = Variables.register("key", TestData.getText());

@@ -33,14 +33,14 @@ import com.google.common.collect.Lists;
  * @author jeff
  */
 public class SharedReadWriteLockTest extends ConcourseBaseTest {
-    
+
     private SharedReadWriteLock lock;
-    
+
     @Override
     public void beforeEachTest() {
         lock = new SharedReadWriteLock();
     }
-    
+
     @Test
     public void testMultipleConcurrentWriters() {
         List<Thread> threads = Lists.newArrayList();
@@ -63,7 +63,7 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
         }
         Assert.assertTrue(success.get());
     }
-    
+
     @Test
     public void testMultipleConcurrentReaders() {
         List<Thread> threads = Lists.newArrayList();
@@ -86,7 +86,7 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
         }
         Assert.assertTrue(success.get());
     }
-    
+
     @Test
     public void testNoReadersWithMultipleConcurrentWriters() {
         List<Thread> threads = Lists.newArrayList();
@@ -113,7 +113,7 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
 
         }).start();
     }
-    
+
     @Test
     public void testNoWritersWithMultipleConcurrentReaders() {
         List<Thread> threads = Lists.newArrayList();
@@ -188,7 +188,7 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
         Threads.sleep(100);
         unlock.set(true);
     }
-    
+
     @Test
     public void testNotifyWhenWriteNoLongerBlocked() {
         List<Thread> threads = Lists.newArrayList();

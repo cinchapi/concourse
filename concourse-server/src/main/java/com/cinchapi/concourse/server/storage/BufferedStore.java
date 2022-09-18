@@ -326,8 +326,7 @@ public abstract class BufferedStore implements Store {
 
     @Override
     public Set<TObject> select(String key, long record) {
-        Set<TObject> context = $select(key, record);
-        return limbo.select(key, record, context);
+        return _select(key, record);
     }
 
     @Override
@@ -351,7 +350,7 @@ public abstract class BufferedStore implements Store {
     public void set(String key, TObject value, long record) {
         try {
             ensureWriteIntegrity(key, value, record);
-            Set<TObject> values = select(key, record);
+            Set<TObject> values = _select(key, record);
             for (TObject stored : values) {
                 limbo.insert(Write.remove(key, stored, record));
             }
@@ -382,6 +381,20 @@ public abstract class BufferedStore implements Store {
         else {
             return truth.boolValue();
         }
+    }
+
+    /**
+     * Internal implementation of {@link #select(String, long)} for internal
+     * delegation without the need for reentrant locking if the subclass
+     * implements locking.
+     * 
+     * @param key
+     * @param record
+     * @return a possibly empty Set of values
+     */
+    protected final Set<TObject> _select(String key, long record) {
+        Set<TObject> context = $select(key, record);
+        return limbo.select(key, record, context);
     }
 
     /**

@@ -102,16 +102,16 @@ class SharedReadWriteLock implements ReadWriteLock {
         @Override
         public boolean tryLock() {
             if(writers.writeLock().tryLock()) {
-                for (;;) {
-                    try {
+                try {
+                    for (;;) {
                         if(readers.readLock().tryLock()) {
                             return true;
                         }
+                        Thread.yield();
                     }
-                    finally {
-                        writers.writeLock().unlock();
-                    }
-                    Thread.yield();
+                }
+                finally {
+                    writers.writeLock().unlock();
                 }
             }
             else {
@@ -124,24 +124,20 @@ class SharedReadWriteLock implements ReadWriteLock {
                 throws InterruptedException {
             Stopwatch watch = Stopwatch.createStarted();
             if(writers.writeLock().tryLock(time, unit)) {
-                for (;;) {
-                    watch.stop();
-                    long elapsed = watch.elapsed(unit);
-                    time = time - elapsed;
-                    watch.start();
-                    try {
+                try {
+                    for (;;) {
+                        watch.stop();
+                        long elapsed = watch.elapsed(unit);
+                        time = time - elapsed;
+                        watch.start();
                         if(readers.readLock().tryLock(time, unit)) {
                             return true;
                         }
+                        Thread.yield();
                     }
-                    finally {
-                        writers.writeLock().unlock();
-                    }
-                    watch.stop();
-                    elapsed = watch.elapsed(unit);
-                    time = time - elapsed;
-                    watch.start();
-                    Thread.yield();
+                }
+                finally {
+                    writers.writeLock().unlock();
                 }
             }
             else {
@@ -197,16 +193,16 @@ class SharedReadWriteLock implements ReadWriteLock {
         @Override
         public boolean tryLock() {
             if(readers.writeLock().tryLock()) {
-                for (;;) {
-                    try {
+                try {
+                    for (;;) {
                         if(writers.readLock().tryLock()) {
                             return true;
                         }
+                        Thread.yield();
                     }
-                    finally {
-                        readers.writeLock().unlock();
-                    }
-                    Thread.yield();
+                }
+                finally {
+                    readers.writeLock().unlock();
                 }
             }
             else {
@@ -219,24 +215,20 @@ class SharedReadWriteLock implements ReadWriteLock {
                 throws InterruptedException {
             Stopwatch watch = Stopwatch.createStarted();
             if(readers.writeLock().tryLock(time, unit)) {
-                for (;;) {
-                    watch.stop();
-                    long elapsed = watch.elapsed(unit);
-                    time = time - elapsed;
-                    watch.start();
-                    try {
+                try {
+                    for (;;) {
+                        watch.stop();
+                        long elapsed = watch.elapsed(unit);
+                        time = time - elapsed;
+                        watch.start();
                         if(writers.readLock().tryLock(time, unit)) {
                             return true;
                         }
+                        Thread.yield();
                     }
-                    finally {
-                        readers.writeLock().unlock();
-                    }
-                    watch.stop();
-                    elapsed = watch.elapsed(unit);
-                    time = time - elapsed;
-                    watch.start();
-                    Thread.yield();
+                }
+                finally {
+                    readers.writeLock().unlock();
                 }
             }
             else {
