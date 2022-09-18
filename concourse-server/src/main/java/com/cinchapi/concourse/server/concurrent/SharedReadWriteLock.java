@@ -16,12 +16,10 @@
 package com.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.StampedLock;
-
-import com.google.common.base.Stopwatch;
 
 /**
  * A {@link ReadWriteLock} that permits either multiple concurrent readers
@@ -32,213 +30,169 @@ import com.google.common.base.Stopwatch;
 class SharedReadWriteLock implements ReadWriteLock {
 
     /**
-     * An internal lock that controls concurrent access; allowing multiple
-     * readers and blocking writers.
+     * Synchronizer
      */
-    private final ReadWriteLock readers;
+    private final Sync sync = new Sync();
 
     /**
-     * An internal lock that controls concurrent access; allowing multiple
-     * writers and blocking readers.
+     * A {@link Lock} that allows multiple concurrent readers and blocks
+     * writers.
      */
-    private final ReadWriteLock writers;
+    private final Lock readLock = new SharedLock(-1);
 
     /**
-     * Construct a new instance.
+     * A {@link Lock} that allows multiple concurrent writers and block readers.
      */
-    SharedReadWriteLock() {
-        this.readers = new StampedLock().asReadWriteLock();
-        this.writers = new StampedLock().asReadWriteLock();
-    }
+    private final Lock writeLock = new SharedLock(1);
 
     @Override
     public Lock readLock() {
-        return new SharedReadLock();
+        return readLock;
     }
 
     @Override
     public Lock writeLock() {
-        return new SharedWriteLock();
+        return writeLock;
+    }
+
+    @Override
+    public String toString() {
+        int state = sync.getCount();
+        int reads = 0;
+        int writes = 0;
+        if(state > 0) {
+            writes += Math.abs(state);
+        }
+        else if(state < 0) {
+            reads += Math.abs(state);
+        }
+        return super.toString() + "[Write locks = " + writes + ", Read locks = "
+                + reads + "]";
     }
 
     /**
-     * Read view of this {@link SharedReadWriteLock}.
-     *
+     * Uses the {@link #sync} to to perform locking, for a given mode (e.g.,
+     * read or write).
+     * 
      * @author Jeff Nelson
      */
-    class SharedReadLock implements Lock {
+    private class SharedLock implements Lock {
+
+        /**
+         * <ul>
+         * <li>-1 means increment the number of read locks</li>
+         * <li>1 means increment the number of write locks</li>
+         * </ul>
+         */
+        private final int mode;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param mode
+         */
+        SharedLock(int mode) {
+            this.mode = mode;
+        }
 
         @Override
         public void lock() {
-            boolean locked = false;
-            while (!locked) {
-                writers.writeLock().lock();
-                locked = readers.readLock().tryLock();
-                writers.writeLock().unlock();
-                if(!locked) {
-                    Thread.yield();
-                }
-            }
+            sync.acquireShared(mode);
         }
 
         @Override
         public void lockInterruptibly() throws InterruptedException {
-            boolean locked = false;
-            while (!locked) {
-                writers.writeLock().lockInterruptibly();
-                locked = readers.readLock().tryLock();
-                writers.writeLock().unlock();
-                if(!locked) {
-                    Thread.yield();
-                }
-            }
+            sync.acquireSharedInterruptibly(mode);
         }
 
         @Override
         public Condition newCondition() {
-            return readers.readLock().newCondition();
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public boolean tryLock() {
-            if(writers.writeLock().tryLock()) {
-                try {
-                    for (;;) {
-                        if(readers.readLock().tryLock()) {
-                            return true;
-                        }
-                        Thread.yield();
-                    }
-                }
-                finally {
-                    writers.writeLock().unlock();
-                }
-            }
-            else {
-                return false;
-            }
+            return sync.tryAcquireShared(mode) > 0;
         }
 
         @Override
         public boolean tryLock(long time, TimeUnit unit)
                 throws InterruptedException {
-            Stopwatch watch = Stopwatch.createStarted();
-            if(writers.writeLock().tryLock(time, unit)) {
-                try {
-                    for (;;) {
-                        watch.stop();
-                        long elapsed = watch.elapsed(unit);
-                        time = time - elapsed;
-                        watch.start();
-                        if(readers.readLock().tryLock(time, unit)) {
-                            return true;
-                        }
-                        Thread.yield();
-                    }
-                }
-                finally {
-                    writers.writeLock().unlock();
-                }
-            }
-            else {
-                return false;
-            }
+            return sync.tryAcquireSharedNanos(mode,
+                    TimeUnit.NANOSECONDS.convert(time, unit));
         }
 
         @Override
         public void unlock() {
-            readers.readLock().unlock();
+            sync.releaseShared(mode);
         }
 
     }
 
     /**
-     * Write view of this {@link SharedReadWriteLock}.
+     * Internal synchronizer that facilitates the semantics of "shared" locking.
+     * <p>
+     * The internal state is tracked as follows:
+     * <ul>
+     * <li>A value of <strong>0</strong> indicates that the no one holds the
+     * lock and it may be acquired by a reader or a writer</li>
+     * <li>A <strong>positive value</strong> indicates how many writers
+     * currently hold the lock and that the lock may be acquired by another
+     * writer, but not by a reader</li>
+     * <li>A <strong>negative value</strong> indicates how many readers
+     * currently hold the lock (e.g., the absolute value of the state) and that
+     * the lock may be acquired by another reader, but not by a writer</li>
+     * </ul>
+     * </p>
      *
      * @author Jeff Nelson
      */
-    class SharedWriteLock implements Lock {
+    private static final class Sync extends AbstractQueuedSynchronizer {
 
-        @Override
-        public void lock() {
-            boolean locked = false;
-            while (!locked) {
-                readers.writeLock().lock();
-                locked = writers.readLock().tryLock();
-                readers.writeLock().unlock();
-                if(!locked) {
-                    Thread.yield();
-                }
-            }
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * Construct a new instance.
+         */
+        public Sync() {
+            setState(0);
         }
 
         @Override
-        public void lockInterruptibly() throws InterruptedException {
-            boolean locked = false;
-            while (!locked) {
-                readers.writeLock().lockInterruptibly();
-                locked = writers.readLock().tryLock();
-                readers.writeLock().unlock();
-                if(!locked) {
-                    Thread.yield();
-                }
-            }
-        }
-
-        @Override
-        public Condition newCondition() {
-            return writers.readLock().newCondition();
-        }
-
-        @Override
-        public boolean tryLock() {
-            if(readers.writeLock().tryLock()) {
-                try {
-                    for (;;) {
-                        if(writers.readLock().tryLock()) {
-                            return true;
-                        }
-                        Thread.yield();
+        protected int tryAcquireShared(int mode) {
+            for (;;) {
+                int state = getState();
+                if((mode < 0 && state <= 0) || (mode > 0 && state >= 0)) {
+                    if(compareAndSetState(state, state + mode)) {
+                        return 1;
                     }
                 }
-                finally {
-                    readers.writeLock().unlock();
+                else {
+                    return -1;
                 }
-            }
-            else {
-                return false;
             }
         }
 
         @Override
-        public boolean tryLock(long time, TimeUnit unit)
-                throws InterruptedException {
-            Stopwatch watch = Stopwatch.createStarted();
-            if(readers.writeLock().tryLock(time, unit)) {
-                try {
-                    for (;;) {
-                        watch.stop();
-                        long elapsed = watch.elapsed(unit);
-                        time = time - elapsed;
-                        watch.start();
-                        if(writers.readLock().tryLock(time, unit)) {
-                            return true;
-                        }
-                        Thread.yield();
-                    }
+        protected boolean tryReleaseShared(int mode) {
+            for (;;) {
+                int state = getState();
+                if(state == 0) {
+                    throw new IllegalMonitorStateException();
                 }
-                finally {
-                    readers.writeLock().unlock();
+                if(compareAndSetState(state, state - mode)) {
+                    return true;
                 }
-            }
-            else {
-                return false;
             }
         }
 
-        @Override
-        public void unlock() {
-            writers.readLock().unlock();
+        /**
+         * Return the number of holds.
+         * 
+         * @return the current number of holds
+         */
+        public int getCount() {
+            return getState();
         }
 
     }

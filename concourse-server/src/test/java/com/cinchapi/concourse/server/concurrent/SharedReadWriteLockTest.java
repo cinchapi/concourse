@@ -16,21 +16,19 @@
 package com.cinchapi.concourse.server.concurrent;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseBaseTest;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 
 /**
+ * Unit tests for {@link SharedReadWriteLock}
  *
- *
- * @author jeff
+ * @author Jeff Nelson
  */
 public class SharedReadWriteLockTest extends ConcourseBaseTest {
 
@@ -42,7 +40,7 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
     }
 
     @Test
-    public void testMultipleConcurrentWriters() {
+    public void testMultipleConcurrentWriters() throws InterruptedException {
         List<Thread> threads = Lists.newArrayList();
         final AtomicBoolean success = new AtomicBoolean(true);
         Runnable runnable = new Runnable() {
@@ -61,11 +59,14 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
         for (Thread thread : threads) {
             thread.start();
         }
+        for (Thread thread : threads) {
+            thread.join();
+        }
         Assert.assertTrue(success.get());
     }
 
     @Test
-    public void testMultipleConcurrentReaders() {
+    public void testMultipleConcurrentReaders() throws InterruptedException {
         List<Thread> threads = Lists.newArrayList();
         final AtomicBoolean success = new AtomicBoolean(true);
         Runnable runnable = new Runnable() {
@@ -84,12 +85,17 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
         for (Thread thread : threads) {
             thread.start();
         }
+        for (Thread thread : threads) {
+            thread.join();
+        }
         Assert.assertTrue(success.get());
     }
 
     @Test
-    public void testNoReadersWithMultipleConcurrentWriters() {
+    public void testNoReadersWithMultipleConcurrentWriters()
+            throws InterruptedException {
         List<Thread> threads = Lists.newArrayList();
+        AtomicBoolean failed = new AtomicBoolean(false);
         Runnable runnable = new Runnable() {
 
             @Override
@@ -104,19 +110,29 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
         for (Thread thread : threads) {
             thread.start();
         }
-        new Thread(new Runnable() {
+        for (Thread thread : threads) {
+            thread.join();
+        }
+        Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                Assert.assertFalse(lock.readLock().tryLock());
+                if(lock.readLock().tryLock()) {
+                    failed.set(true);
+                }
             }
 
-        }).start();
+        });
+        t.start();
+        t.join();
+        Assert.assertFalse(failed.get());
     }
 
     @Test
-    public void testNoWritersWithMultipleConcurrentReaders() {
+    public void testNoWritersWithMultipleConcurrentReaders()
+            throws InterruptedException {
         List<Thread> threads = Lists.newArrayList();
+        AtomicBoolean failed = new AtomicBoolean(false);
         Runnable runnable = new Runnable() {
 
             @Override
@@ -131,18 +147,27 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
         for (Thread thread : threads) {
             thread.start();
         }
-        new Thread(new Runnable() {
+        for (Thread thread : threads) {
+            thread.join();
+        }
+        Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                Assert.assertFalse(lock.writeLock().tryLock());
+                if(lock.writeLock().tryLock()) {
+                    failed.set(true);
+                }
             }
 
-        }).start();
+        });
+        t.start();
+        t.join();
+        Assert.assertFalse(failed.get());
     }
 
     @Test
-    public void testNotifyWhenReadNoLongerBlocked() {
+    public void testNotifyWhenReadNoLongerBlocked()
+            throws InterruptedException {
         List<Thread> threads = Lists.newArrayList();
         final AtomicBoolean unlock = new AtomicBoolean(false);
         Runnable runnable = new Runnable() {
@@ -164,33 +189,34 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
         for (Thread thread : threads) {
             thread.start();
         }
-        new Thread(new Runnable() {
+        AtomicBoolean succeeded = new AtomicBoolean(false);
+        Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                long t1 = Time.now();
                 lock.readLock().lock();
                 try {
-                    long elapsed = TimeUnit.MILLISECONDS
-                            .convert(Time.now() - t1, TimeUnit.MICROSECONDS);
-                    Assert.assertTrue(elapsed >= (.80 * 100)); // sleep time is
-                                                               // imprecise, so
-                                                               // accept 80%
-                                                               // accuracy
+                    succeeded.set(true);
                 }
                 finally {
                     lock.readLock().unlock();
                 }
-
             }
 
-        }).start();
+        });
+        t.start();
         Threads.sleep(100);
         unlock.set(true);
+        for (Thread thread : threads) {
+            thread.join();
+        }
+        t.join();
+        Assert.assertTrue(succeeded.get());
     }
 
     @Test
-    public void testNotifyWhenWriteNoLongerBlocked() {
+    public void testNotifyWhenWriteNoLongerBlocked()
+            throws InterruptedException {
         List<Thread> threads = Lists.newArrayList();
         final AtomicBoolean unlock = new AtomicBoolean(false);
         Runnable runnable = new Runnable() {
@@ -212,29 +238,29 @@ public class SharedReadWriteLockTest extends ConcourseBaseTest {
         for (Thread thread : threads) {
             thread.start();
         }
-        new Thread(new Runnable() {
+        AtomicBoolean succeeded = new AtomicBoolean(false);
+        Thread t = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                long t1 = Time.now();
                 lock.writeLock().lock();
                 try {
-                    long elapsed = TimeUnit.MILLISECONDS
-                            .convert(Time.now() - t1, TimeUnit.MICROSECONDS);
-                    Assert.assertTrue(elapsed >= (.80 * 100)); // sleep time is
-                                                               // imprecise, so
-                                                               // accept 80%
-                                                               // accuracy
+                    succeeded.set(true);
                 }
                 finally {
                     lock.writeLock().unlock();
                 }
-
             }
 
-        }).start();
+        });
+        t.start();
         Threads.sleep(100);
         unlock.set(true);
+        for (Thread thread : threads) {
+            thread.join();
+        }
+        t.join();
+        Assert.assertTrue(succeeded.get());
     }
 
 }
