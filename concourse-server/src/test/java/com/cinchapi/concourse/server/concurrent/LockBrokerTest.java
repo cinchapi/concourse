@@ -1061,7 +1061,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         permit.release();
         t.join();
         long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
-        Assert.assertTrue(elapsed > sleep);
+        Assert.assertTrue(elapsed >= sleep);
     }
 
     private Value decrease(Value value) {
