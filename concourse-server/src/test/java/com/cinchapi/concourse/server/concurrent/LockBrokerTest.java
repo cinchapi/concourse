@@ -17,13 +17,13 @@ package com.cinchapi.concourse.server.concurrent;
 
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.server.concurrent.LockBroker.Mode;
 import com.cinchapi.concourse.server.concurrent.LockBroker.Permit;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
@@ -33,6 +33,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.TCollections;
 import com.cinchapi.concourse.util.TestData;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Sets;
 
 /**
@@ -299,10 +300,10 @@ public class LockBrokerTest extends ConcourseBaseTest {
                 Operator.BETWEEN, Value.NEGATIVE_INFINITY,
                 Value.POSITIVE_INFINITY);
         Permit permit = broker.readLock(read);
-        Assert.assertTrue(broker.isRangeBlocked(Mode.WRITE, RangeToken
+        Assert.assertNull(broker.tryWriteLock(RangeToken
                 .forWriting(Text.wrapCached("foo"), TestData.getValue())));
         permit.release();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.WRITE, RangeToken
+        Assert.assertNotNull(broker.tryWriteLock(RangeToken
                 .forWriting(Text.wrapCached("foo"), TestData.getValue())));
     }
 
@@ -335,8 +336,9 @@ public class LockBrokerTest extends ConcourseBaseTest {
         t.start();
         startLatch.await();
         Value value3 = Variables.register("value3", decrease(value1));
-        Assert.assertFalse(broker.isRangeBlocked(Mode.WRITE,
-                RangeToken.forReading(key, null, value3)));
+        broker.tryWriteLock(RangeToken.forWriting(key, value3));
+        Assert.assertNotNull(
+                broker.tryWriteLock(RangeToken.forWriting(key, value3)));
         finishLatch.countDown();
     }
 
@@ -369,8 +371,8 @@ public class LockBrokerTest extends ConcourseBaseTest {
         t.start();
         startLatch.await();
         Value value3 = Variables.register("value3", increase(value2));
-        Assert.assertFalse(broker.isRangeBlocked(Mode.WRITE,
-                RangeToken.forWriting(key, value3)));
+        Assert.assertNotNull(
+                broker.tryWriteLock(RangeToken.forWriting(key, value3)));
         finishLatch.countDown();
     }
 
@@ -400,7 +402,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.EQUALS, value)));
         finishLatch.countDown();
     }
@@ -432,8 +434,8 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.READ, RangeToken
-                .forReading(key, Operator.GREATER_THAN_OR_EQUALS, value)));
+        Assert.assertNotNull(broker.tryReadLock(RangeToken.forReading(key,
+                Operator.GREATER_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
     }
 
@@ -463,8 +465,8 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ, RangeToken
-                .forReading(key, Operator.GREATER_THAN_OR_EQUALS, value)));
+        Assert.assertNull(broker.tryReadLock(RangeToken.forReading(key,
+                Operator.GREATER_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
     }
 
@@ -495,8 +497,8 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ, RangeToken
-                .forReading(key, Operator.GREATER_THAN_OR_EQUALS, value)));
+        Assert.assertNull(broker.tryReadLock(RangeToken.forReading(key,
+                Operator.GREATER_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
     }
 
@@ -526,7 +528,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNotNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.GREATER_THAN, value)));
         finishLatch.countDown();
     }
@@ -558,7 +560,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNotNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.GREATER_THAN, value)));
         finishLatch.countDown();
     }
@@ -590,7 +592,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.GREATER_THAN, value)));
         finishLatch.countDown();
     }
@@ -622,8 +624,8 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.READ, RangeToken
-                .forReading(key, Operator.LESS_THAN_OR_EQUALS, value)));
+        Assert.assertNotNull(broker.tryReadLock(RangeToken.forReading(key,
+                Operator.LESS_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
     }
 
@@ -653,8 +655,8 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ, RangeToken
-                .forReading(key, Operator.LESS_THAN_OR_EQUALS, value)));
+        Assert.assertNull(broker.tryReadLock(RangeToken.forReading(key,
+                Operator.LESS_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
     }
 
@@ -685,8 +687,8 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ, RangeToken
-                .forReading(key, Operator.LESS_THAN_OR_EQUALS, value)));
+        Assert.assertNull(broker.tryReadLock(RangeToken.forReading(key,
+                Operator.LESS_THAN_OR_EQUALS, value)));
         finishLatch.countDown();
     }
 
@@ -717,7 +719,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNotNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.LESS_THAN, value)));
         finishLatch.countDown();
     }
@@ -748,7 +750,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNotNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.LESS_THAN, value)));
         finishLatch.countDown();
     }
@@ -780,7 +782,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.LESS_THAN, value)));
         finishLatch.countDown();
     }
@@ -814,7 +816,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -848,7 +850,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNotNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -880,7 +882,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -914,7 +916,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -946,7 +948,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNotNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -980,7 +982,7 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertFalse(broker.isRangeBlocked(Mode.READ,
+        Assert.assertNotNull(broker.tryReadLock(
                 RangeToken.forReading(key, Operator.BETWEEN, value, value1)));
         finishLatch.countDown();
     }
@@ -1012,8 +1014,8 @@ public class LockBrokerTest extends ConcourseBaseTest {
         });
         t.start();
         startLatch.await();
-        Assert.assertTrue(broker.isRangeBlocked(Mode.WRITE,
-                RangeToken.forWriting(key, value)));
+        Assert.assertNull(
+                broker.tryWriteLock(RangeToken.forWriting(key, value)));
         finishLatch.countDown();
     }
 
@@ -1021,9 +1023,9 @@ public class LockBrokerTest extends ConcourseBaseTest {
     public void testSameThreadNotRangeBlockedIfReadingRangeThatCoversHeldWrite() {
         Permit permit = broker.writeLock(RangeToken.forWriting(Text.wrap("foo"),
                 Value.wrap(Convert.javaToThrift(10))));
-        Assert.assertFalse(broker.isRangeBlocked(Mode.WRITE,
-                RangeToken.forReading(Text.wrapCached("foo"), Operator.BETWEEN,
-                        Value.wrap(Convert.javaToThrift(5)),
+        Assert.assertNotNull(broker
+                .tryWriteLock(RangeToken.forReading(Text.wrapCached("foo"),
+                        Operator.BETWEEN, Value.wrap(Convert.javaToThrift(5)),
                         Value.wrap(Convert.javaToThrift(15)))));
         permit.release();
     }
@@ -1032,8 +1034,34 @@ public class LockBrokerTest extends ConcourseBaseTest {
     public void testWriteNotRangeBlockedIfNoReading() {
         Text key = Variables.register("key", TestData.getText());
         Value value = Variables.register("value", TestData.getValue());
-        Assert.assertFalse(broker.isRangeBlocked(Mode.WRITE,
-                RangeToken.forWriting(key, value)));
+        Assert.assertNotNull(
+                broker.tryWriteLock(RangeToken.forWriting(key, value)));
+    }
+
+    @Test
+    public void testRangeLockUnlock() throws InterruptedException {
+        Text key = Text.wrap("foo");
+        Value value = Value.wrap(Convert.javaToThrift(17));
+        RangeToken token = RangeToken.forReading(key, Operator.GREATER_THAN,
+                value);
+        Permit permit = broker.readLock(token);
+        RangeToken token2 = RangeToken.forWriting(key, increase(value));
+        Assert.assertNull(broker.tryWriteLock(token2));
+        Stopwatch watch = Stopwatch.createUnstarted();
+        Thread t = new Thread(() -> {
+            watch.start();
+            Permit p = broker.writeLock(token2);
+            watch.stop();
+            Assert.assertEquals(token2, p.token());
+            p.release();
+        });
+        t.start();
+        int sleep = 500;
+        Threads.sleep(sleep);
+        permit.release();
+        t.join();
+        long elapsed = watch.elapsed(TimeUnit.MILLISECONDS);
+        Assert.assertTrue(elapsed > sleep);
     }
 
     private Value decrease(Value value) {
