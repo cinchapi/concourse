@@ -488,6 +488,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
             thread.start();
         }
         latch.await(numThread);
+        Assert.assertTrue(true);
     }
 
     @Override
