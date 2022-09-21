@@ -1064,6 +1064,21 @@ public class LockBrokerTest extends ConcourseBaseTest {
         Assert.assertTrue(elapsed >= sleep);
     }
 
+    @Test
+    public void testRangeLocksKeepTrackOfDistinctRangesEvenWhenConnected() {
+        Text key = Text.wrap("foo");
+        Permit a = broker.readLock(RangeToken.forReading(key,
+                Operator.LESS_THAN, Value.wrap(Convert.javaToThrift(10))));
+        Permit b = broker.readLock(RangeToken.forReading(key,
+                Operator.GREATER_THAN, Value.wrap(Convert.javaToThrift(5))));
+        RangeToken token = RangeToken.forWriting(key,
+                Value.wrap(Convert.javaToThrift(7)));
+        Assert.assertNull(broker.tryWriteLock(token));
+        b.release();
+        Assert.assertNull(broker.tryWriteLock(token));
+        a.release();
+    }
+
     private Value decrease(Value value) {
         Value lt = null;
         while (lt == null || lt.compareTo(value) >= 0) {

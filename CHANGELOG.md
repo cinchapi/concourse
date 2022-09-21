@@ -8,6 +8,7 @@ We made several changes to improve the safety, scalability and operational effic
 * Eliminated redundant logic and localized the determination of when an Atomic Operation or Transaction becomes preempted by another commit. Previously that determination was managed globally in the Engine and relied on the JVM garbage collector (GC) to remove terminated operations from listening for data conflicts. Under contention, If many terminated operations accumulated between GC cycles, write performance could become degraded for hot data topics. As a result of this change, JIT locking is generally more memory efficient.
 * Reduced redunant lock metadata by consolidating the provisioning for all locks to a single broker. Previously, range locks and granular locks were issued and managed independently by different services. 
 * Improved the CPU efficiency of range locks by scheduling range blocked operations to park instead of busy waiting.
+* Eliminated a known race condition that made it possible for two different conflicting commits to violate ACID semantics by concurrently acquiring different locks for the same resource.
 
 ##### API Breaks and Deprecations
 * Concourse CLIs have been updated to leverage the `lib-cli` framework. There are no changes in functionality, however, in the `concourse-cli` framework, the following classes have been deprecated:
@@ -18,9 +19,8 @@ We made several changes to improve the safety, scalability and operational effic
 
 ##### Bug Fixes
 * [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
-* Fixed a range lock race condition that made it possible for range bloked operations to spurriously be allowed to proceed.
+* [GH-491](https://github.com/cinchapi/concourse/issues/491) Fixed a race condition that made it possible for a range bloked operation to spurriously be allowed to proceed if it was waiting to acquire a range lock whose intended scope of protection intersected the scope of a range lock that was concurrently released.  
 * Fixed a bug that caused range locks to protect an inadequate scope of data once acquired.
-* Eliminated a race condition that made it possible for two different conflicting commits to violate ACID semantics by concurrently acquiring different locks for the same resource.
 * [GH-490](https://github.com/cinchapi/concourse/issues/490): Fixed a bug that made it possible for a write to a key within a record (e.g., key `A` in record `1`) to erroneously block a concurrent write to a different key in the same record (e.g., key `B` in record `1`). The practial consquence of this bug was that more Atomic Operations and Transactions failed than actually necessary. 
 
 #### Version 0.11.5 (TBD)
