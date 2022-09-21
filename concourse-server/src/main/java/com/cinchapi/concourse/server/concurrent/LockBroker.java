@@ -71,7 +71,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * </p>
  * <p>
  * <strong>NOTE:</strong> Locking facilitated by a {@link LockBroker} is not
- * reentrant. The {@link Permit permits} that are returned when a lock is
+ * reentrant. So, the {@link Permit permits} that are returned when a lock is
  * acquired does not need to be released by the same thread that acquired it.
  * </p>
  *
