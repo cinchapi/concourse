@@ -2,8 +2,12 @@
 
 #### Version 0.12.0 (TBD)
 
-##### Optimizations
-* Improved the scalability and memory efficiency of the Just-in-Time (JIT) locking protocol by eliminating redundant logic and localizing the determination of when an Atomic Operation or Transaction becomes preempted by another commit. Previously that determination was managed globally in the Engine and relied on the JVM garbage collector (GC) to remove terminated operations from listening for data conflicts. Under contention, If many terminated operations accumulated between GC cycles, write performance could become degraded for hot data topics.
+##### Locking Optimizations
+We made several changes to improve the safety, scalability and operational efficiency of the Just-in-Time (JIT) locking protocol:
+
+* Eliminated redundant logic and localized the determination of when an Atomic Operation or Transaction becomes preempted by another commit. Previously that determination was managed globally in the Engine and relied on the JVM garbage collector (GC) to remove terminated operations from listening for data conflicts. Under contention, If many terminated operations accumulated between GC cycles, write performance could become degraded for hot data topics. As a result of this change, JIT locking is generally more memory efficient.
+* Reduced redunant lock metadata by consolidating the provisioning for all locks to a single broker. Previously, range locks and granular locks were issued and managed independently by different services. 
+* Improved the CPU efficiency of range locks by scheduling range blocked operations to park instead of busy waiting.
 
 ##### API Breaks and Deprecations
 * Concourse CLIs have been updated to leverage the `lib-cli` framework. There are no changes in functionality, however, in the `concourse-cli` framework, the following classes have been deprecated:
@@ -14,6 +18,9 @@
 
 ##### Bug Fixes
 * [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
+* Fixed a range lock race condition that made it possible for range bloked operations to spurriously be allowed to proceed.
+* Fixed a range lock bug that allowed them to protect an inadequate scope of data once acquired.
+* Eliminated a race condition that made it possible for two different conflicting commits to violate ACID semantics by concurrently acquiring different locks for the same resource.
 
 #### Version 0.11.5 (TBD)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).
