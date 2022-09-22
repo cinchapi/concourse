@@ -26,10 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -38,7 +35,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.AnyStrings;
-import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
@@ -62,7 +58,6 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -140,13 +135,6 @@ public final class Engine extends BufferedStore implements
     protected static int BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 5000; // visible
                                                                                                  // for
                                                                                                  // testing
-
-    /**
-     * Indicates that all {@link #announceAsync(Token...) async announcements}
-     * have been completed.
-     */
-    private static final CompletableFuture<?> ALL_ANNOUNCEMENTS_COMPLETED = CompletableFuture
-            .completedFuture(null);
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
@@ -262,12 +250,6 @@ public final class Engine extends BufferedStore implements
      */
     private final ReentrantReadWriteLock transportLock = PriorityReadWriteLock
             .prioritizeReads();
-
-    /**
-     * An {@link ExecutorService} that is responsible for asynchronous
-     * operations.
-     */
-    private ExecutorService async;
 
     /**
      * Construct an Engine that is made up of a {@link Buffer} and
@@ -394,26 +376,15 @@ public final class Engine extends BufferedStore implements
         Permit shared = broker.writeLock(sharedToken);
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
-        boolean committed = addUnlocked(Write.add(key, value, record),
-                Sync.YES);
-        CompletableFuture<?> announced;
-        if(committed) {
-            announced = announceAsync(sharedToken, writeToken, rangeToken);
+        try {
+            return addUnlocked(Write.add(key, value, record), Sync.YES);
         }
-        else {
-            announced = ALL_ANNOUNCEMENTS_COMPLETED;
+        finally {
+            announce(sharedToken, writeToken, rangeToken);
+            shared.release();
+            write.release();
+            range.release();
         }
-        async.submit(() -> {
-            try {
-                announced.join();
-            }
-            finally {
-                shared.release();
-                write.release();
-                range.release();
-            }
-        });
-        return committed;
     }
 
     @Override
@@ -634,26 +605,15 @@ public final class Engine extends BufferedStore implements
         Permit shared = broker.writeLock(sharedToken);
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
-        boolean committed = removeUnlocked(Write.remove(key, value, record),
-                Sync.YES);
-        CompletableFuture<?> announced;
-        if(committed) {
-            announced = announceAsync(sharedToken, writeToken, rangeToken);
+        try {
+            return removeUnlocked(Write.remove(key, value, record), Sync.YES);
         }
-        else {
-            announced = ALL_ANNOUNCEMENTS_COMPLETED;
+        finally {
+            announce(sharedToken, writeToken, rangeToken);
+            shared.release();
+            write.release();
+            range.release();
         }
-        async.submit(() -> {
-            try {
-                announced.join();
-            }
-            finally {
-                shared.release();
-                write.release();
-                range.release();
-            }
-        });
-        return committed;
     }
 
     @Override
@@ -816,19 +776,15 @@ public final class Engine extends BufferedStore implements
         Permit shared = broker.writeLock(sharedToken);
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
-        super.set(key, value, record);
-        CompletableFuture<?> announced = announceAsync(sharedToken, writeToken,
-                rangeToken);
-        async.submit(() -> {
-            try {
-                announced.join();
-            }
-            finally {
-                shared.release();
-                write.release();
-                range.release();
-            }
-        });
+        try {
+            super.set(key, value, record);
+        }
+        finally {
+            announce(sharedToken, writeToken, rangeToken);
+            shared.release();
+            write.release();
+            range.release();
+        }
     }
 
     @Override
@@ -862,9 +818,6 @@ public final class Engine extends BufferedStore implements
             }, BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS,
                     BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
             bufferTransportThread.start();
-            async = Executors.newFixedThreadPool(
-                    Runtime.getRuntime().availableProcessors(), ThreadFactories
-                            .namingDaemonThreadFactory("EngineAsyncProcessor"));
         }
     }
 
@@ -888,8 +841,6 @@ public final class Engine extends BufferedStore implements
             durable.stop();
             broker.shutdown();
             observers.clear();
-            async.shutdownNow();
-            async = MoreExecutors.newDirectExecutorService();
         }
     }
 
@@ -983,18 +934,6 @@ public final class Engine extends BufferedStore implements
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
         return super.add(write, sync, verify);
-    }
-
-    /**
-     * Asynchronously {@link #announce(Token...) announce} a version change
-     * {@link TokenEvent} for the {@code tokens} to all observers.
-     * 
-     * @param tokens
-     * @return a {@link CompletableFuture} to track the status of the
-     *         announcements
-     */
-    private final CompletableFuture<?> announceAsync(Token... tokens) {
-        return CompletableFuture.runAsync(() -> announce(tokens), async);
     }
 
     /**
