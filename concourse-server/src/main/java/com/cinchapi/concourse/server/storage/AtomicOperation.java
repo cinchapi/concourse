@@ -96,7 +96,7 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * {@link Status Statuses} that can be
-     * {@link #preemptedBy(TokenEvent, Token) preempted} by a
+     * {@link #isPreemptedBy(TokenEvent, Token) preempted} by a
      * {@link TokenEvent}.
      */
     private static final Set<Status> PREEMPTIBLE_STATUSES = ImmutableSet
@@ -363,7 +363,7 @@ public class AtomicOperation extends BufferedStore implements
         // automatically remove this AtomicOperation from its list of known
         // observers.
         try {
-            return preemptedBy(event, token) && (status
+            return isPreemptedBy(event, token) && (status
                     .compareAndSet(Status.OPEN, Status.PREEMPTED)
                     || status.compareAndSet(Status.PENDING, Status.PREEMPTED));
         }
@@ -675,16 +675,6 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Return {@code true} if this Atomic Operation has 0 writes.
-     * 
-     * @return {@code true} if this atomic operation is considered
-     *         <em>read-only</em>
-     */
-    protected boolean isReadOnly() {
-        return ((Queue) limbo).size() == 0;
-    }
-
-    /**
      * Return {@code true} if {@code event} for {@code token} preempts this
      * {@link AtomicOperation operation}.
      * 
@@ -697,7 +687,9 @@ public class AtomicOperation extends BufferedStore implements
      *         announcement of {@code event} for {@code token}
      */
     @Restricted
-    protected boolean preemptedBy(TokenEvent event, Token token) {
+    protected boolean isPreemptedBy(TokenEvent event, Token token) {
+        // TODO: for rangeTokens, add onto a queue and for everything else just
+        // add it onto a queue
         if(event == TokenEvent.VERSION_CHANGE && isPreemptible()) {
             if(token instanceof RangeToken) {
                 // NOTE: RangeTokens intended for writes (held in
@@ -721,6 +713,16 @@ public class AtomicOperation extends BufferedStore implements
             }
         }
         return false;
+    }
+
+    /**
+     * Return {@code true} if this Atomic Operation has 0 writes.
+     * 
+     * @return {@code true} if this atomic operation is considered
+     *         <em>read-only</em>
+     */
+    protected boolean isReadOnly() {
+        return ((Queue) limbo).size() == 0;
     }
 
     @Override
@@ -878,7 +880,7 @@ public class AtomicOperation extends BufferedStore implements
     /**
      * Return {@code true} if the {@link #status} of this
      * {@link AtomicOperation} means that it can be
-     * {@link #preemptedBy(TokenEvent, Token) preempted}.
+     * {@link #isPreemptedBy(TokenEvent, Token) preempted}.
      * 
      * @return {@code true} if this is preemptible
      */
@@ -986,25 +988,6 @@ public class AtomicOperation extends BufferedStore implements
             this.token = token;
         }
 
-        public boolean tryLock() {
-            if(type == LockType.READ || type == LockType.RANGE_READ) {
-                permit = broker.tryReadLock(token);
-            }
-            else {
-                permit = broker.tryWriteLock(token);
-            }
-            return permit != null;
-        }
-
-        public void unlock() {
-            if(permit != null) {
-                permit.release();
-            }
-            else {
-                throw new IllegalMonitorStateException();
-            }
-        }
-
         @Override
         public void copyTo(ByteSink sink) {
             sink.put((byte) type.ordinal());
@@ -1047,6 +1030,25 @@ public class AtomicOperation extends BufferedStore implements
         @Override
         public int size() {
             return token.size() + 1; // token + type(1)
+        }
+
+        public boolean tryLock() {
+            if(type == LockType.READ || type == LockType.RANGE_READ) {
+                permit = broker.tryReadLock(token);
+            }
+            else {
+                permit = broker.tryWriteLock(token);
+            }
+            return permit != null;
+        }
+
+        public void unlock() {
+            if(permit != null) {
+                permit.release();
+            }
+            else {
+                throw new IllegalMonitorStateException();
+            }
         }
 
     }
