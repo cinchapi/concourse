@@ -26,7 +26,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,6 +38,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
@@ -58,6 +62,7 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -135,6 +140,13 @@ public final class Engine extends BufferedStore implements
     protected static int BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 5000; // visible
                                                                                                  // for
                                                                                                  // testing
+
+    /**
+     * Indicates that all {@link #announceAsync(Token...) async announcements}
+     * have been completed.
+     */
+    private static final CompletableFuture<?> ALL_ANNOUNCEMENTS_COMPLETED = CompletableFuture
+            .completedFuture(null);
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
@@ -252,6 +264,12 @@ public final class Engine extends BufferedStore implements
             .prioritizeReads();
 
     /**
+     * An {@link ExecutorService} that is responsible for asynchronous
+     * operations.
+     */
+    private ExecutorService async;
+
+    /**
      * Construct an Engine that is made up of a {@link Buffer} and
      * {@link Database} in the default locations.
      * 
@@ -348,16 +366,14 @@ public final class Engine extends BufferedStore implements
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
-        boolean accepted;
-        if(write.getType() == Action.ADD) {
-            accepted = addUnlocked(write, sync ? Sync.YES : Sync.NO,
-                    sharedToken, writeToken, rangeToken);
+        boolean accepted = write.getType() == Action.ADD
+                ? addUnlocked(write, Sync.of(sync))
+                : removeUnlocked(write, Sync.of(sync));
+        if(accepted) {
+            announce(sharedToken, writeToken, rangeToken);
+            Logger.debug("'{}' was accepted by the Engine", write);
         }
         else {
-            accepted = removeUnlocked(write, sync ? Sync.YES : Sync.NO,
-                    sharedToken, writeToken, rangeToken);
-        }
-        if(!accepted) {
             Logger.warn(
                     "Write {} was rejected by the Engine "
                             + "because it was previously accepted "
@@ -366,9 +382,6 @@ public final class Engine extends BufferedStore implements
                             + "Transaction is attempting to restore "
                             + "itself from backup and finish committing.",
                     write);
-        }
-        else {
-            Logger.debug("'{}' was accepted by the Engine", write);
         }
     }
 
@@ -381,15 +394,26 @@ public final class Engine extends BufferedStore implements
         Permit shared = broker.writeLock(sharedToken);
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
-        try {
-            return addUnlocked(Write.add(key, value, record), Sync.YES,
-                    sharedToken, writeToken, rangeToken);
+        boolean committed = addUnlocked(Write.add(key, value, record),
+                Sync.YES);
+        CompletableFuture<?> announced;
+        if(committed) {
+            announced = announceAsync(sharedToken, writeToken, rangeToken);
         }
-        finally {
-            shared.release();
-            write.release();
-            range.release();
+        else {
+            announced = ALL_ANNOUNCEMENTS_COMPLETED;
         }
+        async.submit(() -> {
+            try {
+                announced.join();
+            }
+            finally {
+                shared.release();
+                write.release();
+                range.release();
+            }
+        });
+        return committed;
     }
 
     @Override
@@ -610,15 +634,26 @@ public final class Engine extends BufferedStore implements
         Permit shared = broker.writeLock(sharedToken);
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
-        try {
-            return removeUnlocked(Write.remove(key, value, record), Sync.YES,
-                    sharedToken, writeToken, rangeToken);
+        boolean committed = removeUnlocked(Write.remove(key, value, record),
+                Sync.YES);
+        CompletableFuture<?> announced;
+        if(committed) {
+            announced = announceAsync(sharedToken, writeToken, rangeToken);
         }
-        finally {
-            shared.release();
-            write.release();
-            range.release();
+        else {
+            announced = ALL_ANNOUNCEMENTS_COMPLETED;
         }
+        async.submit(() -> {
+            try {
+                announced.join();
+            }
+            finally {
+                shared.release();
+                write.release();
+                range.release();
+            }
+        });
+        return committed;
     }
 
     @Override
@@ -781,15 +816,19 @@ public final class Engine extends BufferedStore implements
         Permit shared = broker.writeLock(sharedToken);
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
-        try {
-            super.set(key, value, record);
-            announce(writeToken, sharedToken, rangeToken);
-        }
-        finally {
-            shared.release();
-            write.release();
-            range.release();
-        }
+        super.set(key, value, record);
+        CompletableFuture<?> announced = announceAsync(sharedToken, writeToken,
+                rangeToken);
+        async.submit(() -> {
+            try {
+                announced.join();
+            }
+            finally {
+                shared.release();
+                write.release();
+                range.release();
+            }
+        });
     }
 
     @Override
@@ -823,6 +862,9 @@ public final class Engine extends BufferedStore implements
             }, BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS,
                     BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
             bufferTransportThread.start();
+            async = Executors.newFixedThreadPool(
+                    Runtime.getRuntime().availableProcessors(), ThreadFactories
+                            .namingDaemonThreadFactory("EngineAsyncProcessor"));
         }
     }
 
@@ -846,6 +888,8 @@ public final class Engine extends BufferedStore implements
             durable.stop();
             broker.shutdown();
             observers.clear();
+            async.shutdownNow();
+            async = MoreExecutors.newDirectExecutorService();
         }
     }
 
@@ -924,20 +968,13 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
-     * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
-     * locks. This method is ONLY appropriate to call from the
-     * {@link #accept(Write)} method that processes transaction commits since,
-     * in that case, the appropriate locks have already been grabbed.
+     * Add the {@code write} WITHOUT grabbing any locks.
      * 
      * @param write
      * @param sync
-     * @param sharedToken - {@link LockToken} for record
-     * @param writeToken - {@link LockToken} for key in record
-     * @param rangeToken - {@link RangeToken} for writing value to key
      * @return {@code true} if the add was successful
      */
-    private boolean addUnlocked(Write write, Sync sync, Token sharedToken,
-            Token writeToken, RangeToken rangeToken) {
+    private boolean addUnlocked(Write write, Sync sync) {
         // NOTE: #sync ends up being NO when the Engine accepts
         // Writes that are transported from a committing AtomicOperation
         // or Transaction, in which case passing this boolean along to
@@ -945,11 +982,19 @@ public final class Engine extends BufferedStore implements
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        if(super.add(write, sync, verify)) {
-            announce(writeToken, sharedToken, rangeToken);
-            return true;
-        }
-        return false;
+        return super.add(write, sync, verify);
+    }
+
+    /**
+     * Asynchronously {@link #announce(Token...) announce} a version change
+     * {@link TokenEvent} for the {@code tokens} to all observers.
+     * 
+     * @param tokens
+     * @return a {@link CompletableFuture} to track the status of the
+     *         announcements
+     */
+    private final CompletableFuture<?> announceAsync(Token... tokens) {
+        return CompletableFuture.runAsync(() -> announce(tokens), async);
     }
 
     /**
@@ -977,22 +1022,13 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
-     * Remove {@code key} as {@code value} from {@code record} WITHOUT grabbing
-     * any locks. This method is ONLY appropriate to call from the
-     * {@link #accept(Write)} method that processes transaction commits since,
-     * in that case, the appropriate locks have already been grabbed.
+     * Remove the {@code write} WITHOUT grabbing any locks.
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param write
      * @param sync
-     * @param sharedToken - {@link LockToken} for record
-     * @param writeToken - {@link LockToken} for key in record
-     * @param rangeToken - {@link RangeToken} for writing value to key
      * @return {@code true} if the remove was successful
      */
-    private boolean removeUnlocked(Write write, Sync sync, Token sharedToken,
-            Token writeToken, RangeToken rangeToken) {
+    private boolean removeUnlocked(Write write, Sync sync) {
         // NOTE: #sync ends up being NO when the Engine accepts
         // Writes that are transported from a committing AtomicOperation
         // or Transaction, in which case passing this boolean along to
@@ -1000,11 +1036,7 @@ public final class Engine extends BufferedStore implements
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        if(super.remove(write, sync, verify)) {
-            announce(writeToken, sharedToken, rangeToken);
-            return true;
-        }
-        return false;
+        return super.remove(write, sync, verify);
     }
 
     /**
