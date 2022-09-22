@@ -6,9 +6,10 @@
 We made several changes to improve the safety, scalability and operational efficiency of the Just-in-Time (JIT) locking protocol:
 
 * Eliminated redundant logic and localized the determination of when an Atomic Operation or Transaction becomes preempted by another commit. Previously that determination was managed globally in the Engine and relied on the JVM garbage collector (GC) to remove terminated operations from listening for data conflicts. Under contention, If many terminated operations accumulated between GC cycles, write performance could become degraded for hot data topics. As a result of this change, JIT locking is generally more memory efficient.
-* Reduced redunant lock metadata by consolidating the provisioning for all locks to a single broker. Previously, range locks and granular locks were issued and managed independently by different services. 
+* Reduced lock metadata by consolidating the provisioning for all locks to a single broker. Previously, range locks and granular locks were issued and managed independently by different services. 
 * Improved the CPU efficiency of range locks by scheduling range blocked operations to park instead of busy waiting.
 * Eliminated a known race condition that made it possible for two different conflicting commits to violate ACID semantics by concurrently acquiring different locks for the same resource.
+* Switched the basis for all storage engine locks from `java.util.concurrent.locks.ReenteantReadWriteLock` to either `java.util.concurrent.locks.StampedLock` or other synchronization primitives that are generally shown to have better throughput.
 
 ##### API Breaks and Deprecations
 * Concourse CLIs have been updated to leverage the `lib-cli` framework. There are no changes in functionality, however, in the `concourse-cli` framework, the following classes have been deprecated:
