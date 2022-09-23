@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -25,6 +26,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.concurrent.CountUpLatch;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.AtomicOperation.Status;
 import com.cinchapi.concourse.server.storage.temp.Write;
@@ -200,6 +202,29 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
         destination.accept(Write.add(key, value, record));
         atomicOp.explore(aheadOfTime, key, Operator.BETWEEN,
                 Convert.javaToThrift(0), Convert.javaToThrift(100));
+    }
+
+    @Test
+    public void testConcurrentWritesToDifferentKeysInSameRecord()
+            throws InterruptedException {
+        int numThread = 50;
+        long record = 1;
+        AtomicInteger failed = new AtomicInteger(0);
+        CountUpLatch latch = new CountUpLatch();
+        for (int i = 0; i < numThread; ++i) {
+            Thread thread = new Thread(() -> {
+                AtomicOperation atomic = getStore(destination);
+                atomic.add(Long.toString(Time.now()), TestData.getTObject(),
+                        record);
+                if(!atomic.commit()) {
+                    failed.incrementAndGet();
+                }
+                latch.countUp();
+            });
+            thread.start();
+        }
+        latch.await(numThread);
+        Assert.assertEquals(0, failed.get());
     }
 
     @Override
