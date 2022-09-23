@@ -93,7 +93,7 @@ The `Operator` class defines the operators that can be used to build a query cri
 
 ### connect
 ##### `Concourse connect()`
-Create a new client connection using the details provided in *concourse_client.prefs*. If the prefs file does not exist or does not contain connection information, then the default connection details (*admin@localhost:1717*) will be used.
+Create a new client connection using the details provided in *concourse_client.yaml*. If the configuration file does not exist or does not contain connection information, then the default connection details (*admin@localhost:1717*) will be used.
 ###### Returns
 the database handler
 ###### Example

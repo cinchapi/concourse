@@ -21,7 +21,7 @@ import jline.console.ConsoleReader;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.lib.cli.Options;
 import com.google.common.base.Strings;
@@ -56,16 +56,17 @@ public abstract class ConcourseCommandLineInterface
     protected void setup(Options options, ConsoleReader console) {
         try {
             ConcourseOptions opts = (ConcourseOptions) options;
-            if(!Strings.isNullOrEmpty(opts.prefs)) {
-                opts.prefs = FileOps.expandPath(opts.prefs,
+            if(!Strings.isNullOrEmpty(opts.config)) {
+                opts.config = FileOps.expandPath(opts.config,
                         getLaunchDirectory());
-                ConcourseClientPreferences prefs = ConcourseClientPreferences
-                        .from(Paths.get(opts.prefs));
-                opts.username = prefs.getUsername();
-                opts.password = new String(prefs.getPasswordExplicit());
-                opts.host = prefs.getHost();
-                opts.port = prefs.getPort();
-                opts.environment = prefs.getEnvironment();
+                opts.prefs = opts.config; // backwards compatibility
+                ConcourseClientConfiguration config = ConcourseClientConfiguration
+                        .from(Paths.get(opts.config));
+                opts.username = config.getUsername();
+                opts.password = new String(config.getPasswordExplicit());
+                opts.host = config.getHost();
+                opts.port = config.getPort();
+                opts.environment = config.getEnvironment();
             }
             if(Strings.isNullOrEmpty(opts.password)) {
                 opts.password = console.readLine(

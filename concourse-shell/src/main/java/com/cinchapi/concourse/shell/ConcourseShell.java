@@ -56,7 +56,7 @@ import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.PermissionException;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.StartState;
 import com.cinchapi.concourse.lang.paginate.Page;
@@ -112,16 +112,16 @@ public final class ConcourseShell {
                 parser.usage();
                 System.exit(1);
             }
-            if(!Strings.isNullOrEmpty(opts.prefs)) {
-                opts.prefs = FileOps.expandPath(opts.prefs,
+            if(!Strings.isNullOrEmpty(opts.config)) {
+                opts.config = FileOps.expandPath(opts.config,
                         System.getProperty("user.dir.real"));
-                ConcourseClientPreferences prefs = ConcourseClientPreferences
-                        .from(Paths.get(opts.prefs));
-                opts.username = prefs.getUsername();
-                opts.password = new String(prefs.getPasswordExplicit());
-                opts.host = prefs.getHost();
-                opts.port = prefs.getPort();
-                opts.environment = prefs.getEnvironment();
+                ConcourseClientConfiguration config = ConcourseClientConfiguration
+                        .from(Paths.get(opts.config));
+                opts.username = config.getUsername();
+                opts.password = new String(config.getPasswordExplicit());
+                opts.host = config.getHost();
+                opts.port = config.getPort();
+                opts.environment = config.getEnvironment();
             }
             if(Strings.isNullOrEmpty(opts.password)) {
                 cash.setExpandEvents(false);
@@ -850,7 +850,7 @@ public final class ConcourseShell {
          * user's home directory. If the file is available, its contents will be
          * used for configuration defaults.
          */
-        private ConcourseClientPreferences defaults = ConcourseClientPreferences
+        private ConcourseClientConfiguration defaults = ConcourseClientConfiguration
                 .fromUserHomeDirectory();
 
         @Parameter(names = { "-e",
@@ -887,8 +887,9 @@ public final class ConcourseShell {
                 "--no-rc" }, description = "A flag to disable loading any run commands file")
         public boolean ignoreRunCommands = false;
 
-        @Parameter(names = "--prefs", description = "Path to the concourse_client.prefs file")
-        public String prefs;
+        @Parameter(names = { "--prefs",
+                "--config" }, description = "Path to the client configuration file (e.g., concourse_client.yaml)")
+        public String config;
 
     }
 

@@ -15,7 +15,7 @@
 
 		  sh concourse-server.bin
 
-3. **Start Concourse.** Concourse ships with reasonable default configuration so you can use it right out-the-box! If necessary, you can configure how Concourse runs by editing the [conf/concourse.prefs](/) configuration file located in Concourse's [home directory](/).
+3. **Start Concourse.** Concourse ships with reasonable default configuration so you can use it right out-the-box! If necessary, you can configure how Concourse runs by editing the [conf/concourse.yaml](/) configuration file located in Concourse's [home directory](/).
 
 		  concourse start
 
@@ -29,7 +29,7 @@ docker run -p 1717:1717 -v </path/to/local/data>:/data --name concourse cinchapi
 **NOTE:** The above command will run Concourse in the foreground. To run in the background, add a `-d` flag immediately after the `docker run` command.
 
 ### Modifying the configuration
-You can add or modifiy any configuration that would normally go in the [`conf/concourse.prefs`](/) file using environment variables that are passed to the docker container. 
+You can add or modifiy any configuration that would normally go in the [`conf/concourse.yaml`](/) file using environment variables that are passed to the docker container. 
 
 Simply UPPERCASE the preference key and prepend it with `CONCOURSE_`. For example, you can modify the `heap_size` preference by passing an environment variable named `CONCOURSE_HEAP_SIZE` to the docker container.
 ```bash

@@ -16,7 +16,7 @@
 package com.cinchapi.concourse.cli;
 
 import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 
 /**
  * Each member variable represents the options that can be passed to the main
@@ -36,7 +36,7 @@ public class ConcourseOptions extends com.cinchapi.lib.cli.Options {
      * user's home directory. If the file is available, its contents will be
      * used for configuration defaults.
      */
-    private ConcourseClientPreferences defaults = ConcourseClientPreferences
+    private ConcourseClientConfiguration defaults = ConcourseClientConfiguration
             .fromUserHomeDirectory();
 
     @Parameter(names = { "-h",
@@ -58,7 +58,13 @@ public class ConcourseOptions extends com.cinchapi.lib.cli.Options {
             "--environment" }, description = "The environment of the Concourse Server to use")
     public String environment = defaults.getEnvironment();
 
-    @Parameter(names = "--prefs", description = "Path to the concourse_client.prefs file")
+    @Parameter(names = { "--prefs",
+            "--config" }, description = "Path to the client configuration file (e.g., concourse_client.yaml)")
+    public String config;
+
+    /**
+     * Reference to {@link #config} for backwards compatibility.
+     */
     public String prefs;
 
 }

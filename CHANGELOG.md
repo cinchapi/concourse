@@ -11,18 +11,34 @@ We made several changes to improve the safety, scalability and operational effic
 * Eliminated a known race condition that made it possible for two different conflicting commits to violate ACID semantics by concurrently acquiring different locks for the same resource.
 * Switched the basis for all storage engine locks from `java.util.concurrent.locks.ReenteantReadWriteLock` to either `java.util.concurrent.locks.StampedLock` or other synchronization primitives that are generally shown to have better throughput.
 
-##### API Breaks and Deprecations
-* Concourse CLIs have been updated to leverage the `lib-cli` framework. There are no changes in functionality, however, in the `concourse-cli` framework, the following classes have been deprecated:
-	* `CommandLineInterface` in favor of `ConcourseCommandLineInterface`
-	* `CommandLineInterfaceRunner` in favor of `com.cinchapi.lib.cli.CommandLineInterfaceRunner` from the `lib-cli` framework.
-	* `NoOptions` in favor of creating a new `Options` object.
-	* `Options` in favor of `com.cinchapi.lib.cli.Options` from the `lib-cli` framework.
+##### YAML Configuration
+* Concourse now supports YAML configuration files. Going forward, YAML files are preferred over preferences files for configuration.
+	* Concourse Server can be configured with `concourse.yaml` and `concourse.yaml.dev` files.
+	* Concourse Shell and other Java Driver based clients can be configured with a `concourse_client.yaml` file.
+	* Usage of `concourse.prefs`, `concourse.prefs.dev` and `concourse_client.prefs` is now deprecated.
+* Existing configuration defined in `.prefs` files is still recognized and backwards compatability is fully preserved.
+* Configuration that is defined in `.yaml` files take precedence over configuration defined in `.prefs` files, with the exception that `concourse.prefs.dev` takes precedence over `concourse.yaml` to honor the convention of prioritizing dev configuration.
+* The stock `concourse.prefs` file will no longer be updated when new configuration options are available. All new configuration templates will be defined in the stock `concourse.yaml` file.
+* Concourse Server will not automatically migrate custom configuration from `.prefs` files to the corresponding `.yaml` files. While `.prefs` files are still functional, users are encouraged to manually copy custom configuration to the new format in case support for `.prefs` files goes away at a future date.
 
 ##### Bug Fixes
 * [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
 * [GH-491](https://github.com/cinchapi/concourse/issues/491) Fixed a race condition that made it possible for a range bloked operation to spurriously be allowed to proceed if it was waiting to acquire a range lock whose intended scope of protection intersected the scope of a range lock that was concurrently released.  
 * Fixed a bug that caused range locks to protect an inadequate scope of data once acquired.
 * [GH-490](https://github.com/cinchapi/concourse/issues/490): Fixed a bug that made it possible for a write to a key within a record (e.g., key `A` in record `1`) to erroneously block a concurrent write to a different key in the same record (e.g., key `B` in record `1`). The practial consquence of this bug was that more Atomic Operations and Transactions failed than actually necessary. 
+
+##### API Breaks and Deprecations
+* Concourse CLIs have been updated to leverage the `lib-cli` framework. There are no changes in functionality, however, in the `concourse-cli` framework, the following classes have been deprecated:
+	* `CommandLineInterface` in favor of `ConcourseCommandLineInterface`
+	* `CommandLineInterfaceRunner` in favor of `com.cinchapi.lib.cli.CommandLineInterfaceRunner` from the `lib-cli` framework.
+	* `NoOptions` in favor of creating a new `Options` object.
+	* `Options` in favor of `com.cinchapi.lib.cli.Options` from the `lib-cli` framework.
+* As a result of Concourse's new support for YAML configuration:
+	* Usage of `concourse.prefs`, `concourse.prefs.dev` and `concourse_client.prefs` is deprecated in favor of `concourse.yaml`, `concourse.yaml.dev` and `concourse_client.yaml` respectively.
+	* The `ConcourseServerPreferences` handler is deprecated in favor of using `ConcourseServerConfiguration`, which provides the same functionality.
+	* The `ConcourseClientPreferences` handler is deprecated in favor of using `ConcourseClientConfiguration`, which provides the same functionality.
+	* `ManagedConcourseServer#prefs()` is deprecated in favor of `ManagedConcourseServer#config()`.
+	* The `Concourse#connectWithPrefs` methods have been deprecated in favor of `Concourse#connect` methods that take one or more configuration file `Path`s or a `ConcourseClientConfiguration` handler, respectively.
 
 #### Version 0.11.5 (TBD)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).

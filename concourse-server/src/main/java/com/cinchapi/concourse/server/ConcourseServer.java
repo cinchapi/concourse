@@ -141,7 +141,7 @@ import com.google.inject.Injector;
 
 /**
  * Accepts requests from clients to read and write data in Concourse. The server
- * is configured with a {@code concourse.prefs} file.
+ * is configured with a {@code concourse.yaml} file.
  *
  * @author Jeff Nelson
  */
@@ -161,7 +161,7 @@ public class ConcourseServer extends BaseConcourseServer implements
     /**
      * Create a new {@link ConcourseServer} instance that uses the default port
      * and storage locations or those defined in the accessible
-     * {@code concourse.prefs} file.
+     * {@code concourse.yaml} file.
      *
      * Creates a new {@link ConcourseServer} for management running
      * on {@link JMX_PORT} using {@code Thrift}
@@ -364,12 +364,13 @@ public class ConcourseServer extends BaseConcourseServer implements
      * The number of worker threads that Concourse Server uses.
      */
     private static final int NUM_WORKER_THREADS = 100; // This may become
-                                                       // configurable in a
-                                                       // prefs file in a
+                                                       // managed in the
+                                                       // configuration in a
                                                        // future release.
 
     /**
-     * Tracks the number of {@link Engine engines} that have been intialized via
+     * Tracks the number of {@link Engine engines} that have been initialized
+     * via
      * {@link #getEngineUnsafe(String)}.
      */
     protected final AtomicInteger numEnginesInitialized = new AtomicInteger(0); // CON-673
@@ -6532,7 +6533,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TTransportException {
         Preconditions.checkState(!bufferStore.equalsIgnoreCase(dbStore),
                 "Cannot store buffer and database files in the same directory. "
-                        + "Please check concourse.prefs.");
+                        + "Please check the configuration.");
         Preconditions.checkState(
                 !Strings.isNullOrEmpty(
                         Environments.sanitize(DEFAULT_ENVIRONMENT)),

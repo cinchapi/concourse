@@ -64,6 +64,7 @@ Thumbs.db
 *.access
 *.launch
 *concourse.prefs.dev*
+*concourse.yaml.dev*
 *concourse-shell/src/main/resources/*
 *.codestate
 
