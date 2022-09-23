@@ -1065,25 +1065,6 @@ public class AtomicOperation extends BufferedStore implements
             this.token = token;
         }
 
-        public boolean tryLock() {
-            if(type == LockType.READ || type == LockType.RANGE_READ) {
-                permit = broker.tryReadLock(token);
-            }
-            else {
-                permit = broker.tryWriteLock(token);
-            }
-            return permit != null;
-        }
-
-        public void unlock() {
-            if(permit != null) {
-                permit.release();
-            }
-            else {
-                throw new IllegalMonitorStateException();
-            }
-        }
-
         @Override
         public void copyTo(ByteSink sink) {
             sink.put((byte) type.ordinal());
@@ -1128,6 +1109,11 @@ public class AtomicOperation extends BufferedStore implements
             return token.size() + 1; // token + type(1)
         }
 
+        /**
+         * Try to acquire the lock.
+         * 
+         * @return {@code true} if the lock could be acquired
+         */
         public boolean tryLock() {
             if(type == LockType.READ || type == LockType.RANGE_READ) {
                 permit = broker.tryReadLock(token);
@@ -1138,6 +1124,9 @@ public class AtomicOperation extends BufferedStore implements
             return permit != null;
         }
 
+        /**
+         * Release the lock.
+         */
         public void unlock() {
             if(permit != null) {
                 permit.release();
