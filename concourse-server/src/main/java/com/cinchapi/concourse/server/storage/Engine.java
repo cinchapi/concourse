@@ -377,10 +377,15 @@ public final class Engine extends BufferedStore implements
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
         try {
-            return addUnlocked(Write.add(key, value, record), Sync.YES);
+            if(addUnlocked(Write.add(key, value, record), Sync.YES)) {
+                announce(sharedToken, writeToken, rangeToken);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         finally {
-            announce(sharedToken, writeToken, rangeToken);
             shared.release();
             write.release();
             range.release();
@@ -606,10 +611,15 @@ public final class Engine extends BufferedStore implements
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
         try {
-            return removeUnlocked(Write.remove(key, value, record), Sync.YES);
+            if(removeUnlocked(Write.remove(key, value, record), Sync.YES)) {
+                announce(sharedToken, writeToken, rangeToken);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         finally {
-            announce(sharedToken, writeToken, rangeToken);
             shared.release();
             write.release();
             range.release();
@@ -778,9 +788,9 @@ public final class Engine extends BufferedStore implements
         Permit range = broker.writeLock(rangeToken);
         try {
             super.set(key, value, record);
+            announce(sharedToken, writeToken, rangeToken);
         }
         finally {
-            announce(sharedToken, writeToken, rangeToken);
             shared.release();
             write.release();
             range.release();

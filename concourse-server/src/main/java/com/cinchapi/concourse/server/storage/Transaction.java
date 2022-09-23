@@ -170,7 +170,7 @@ public final class Transaction extends AtomicOperation implements
     private Transaction(Engine destination, ByteBuffer bytes) {
         this(destination);
         deserialize(bytes);
-        status.set(Status.COMMITTED);
+        setStatus(Status.COMMITTED);
 
     }
 
@@ -328,6 +328,16 @@ public final class Transaction extends AtomicOperation implements
     @Override
     public boolean verifyUnlocked(Write write) {
         return unlocked.verify(write);
+    }
+
+    @Override
+    protected void checkIfQueuedPreempted() throws AtomicStateException {
+        try {
+            super.checkIfQueuedPreempted();
+        }
+        catch (AtomicStateException e) {
+            throw new TransactionStateException();
+        }
     }
 
     @Override
