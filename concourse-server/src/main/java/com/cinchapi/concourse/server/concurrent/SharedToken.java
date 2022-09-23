@@ -15,33 +15,23 @@
  */
 package com.cinchapi.concourse.server.concurrent;
 
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import com.cinchapi.concourse.annotate.PackagePrivate;
+import java.nio.ByteBuffer;
 
 /**
- * A custom {@link ReentrantReadWriteLock} that is defined by a {@link Token}.
- * 
+ * A {@link Token} that is intended to be represented by a shared lock (e.g.,
+ * {@link SharedReadWriteLock}).
+ *
  * @author Jeff Nelson
  */
-@SuppressWarnings("serial")
-final class TokenReadWriteLock extends ReferenceCountingLock {
-
-    /**
-     * The token that represents the notion this lock controls
-     */
-    @PackagePrivate
-    final Token token;
+class SharedToken extends Token {
 
     /**
      * Construct a new instance.
      * 
-     * @param token
+     * @param bytes
      */
-    public TokenReadWriteLock(Token token) {
-        super(token.cardinality == 1 ? new ReadWriteSharedLock()
-                : new ReentrantReadWriteLock());
-        this.token = token;
+    protected SharedToken(ByteBuffer bytes) {
+        super(bytes);
     }
 
 }

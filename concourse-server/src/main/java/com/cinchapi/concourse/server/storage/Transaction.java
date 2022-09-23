@@ -32,8 +32,7 @@ import java.util.Set;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.annotate.Restricted;
-import com.cinchapi.concourse.server.concurrent.LockService;
-import com.cinchapi.concourse.server.concurrent.RangeLockService;
+import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -44,7 +43,6 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
-import com.google.common.collect.Maps;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
@@ -145,7 +143,7 @@ public final class Transaction extends AtomicOperation implements
      */
     private Transaction(Engine destination) {
         super(new ToggleQueue(INITIAL_CAPACITY), destination,
-                destination.lockService, destination.rangeLockService);
+                destination.broker);
         this.id = Long.toString(Time.now());
         this.unlocked = new BufferedStore(limbo, durable) {
 
@@ -172,7 +170,7 @@ public final class Transaction extends AtomicOperation implements
     private Transaction(Engine destination, ByteBuffer bytes) {
         this(destination);
         deserialize(bytes);
-        status.set(Status.COMMITTED);
+        setStatus(Status.COMMITTED);
 
     }
 
@@ -249,7 +247,7 @@ public final class Transaction extends AtomicOperation implements
         try {
             for (TokenEventObserver observer : observers) {
                 AtomicOperation atomic = (AtomicOperation) observer;
-                if(atomic.preemptedBy(event, token)) {
+                if(atomic.isPreemptedBy(event, token)) {
                     atomic.abort();
                     intercepted = true;
                 }
@@ -300,9 +298,8 @@ public final class Transaction extends AtomicOperation implements
         // JIT Locking guarantee with respect to the Engine's lock services, so
         // if it births an AtomicOperation, it should just inherit but defer any
         // locks needed therewithin, instead of passing the Engine's lock
-        // service on
-        return AtomicOperation.start(this, LockService.noOp(),
-                RangeLockService.noOp());
+        // broker on
+        return AtomicOperation.start(this, LockBroker.noOp());
     }
 
     @Override
@@ -331,6 +328,16 @@ public final class Transaction extends AtomicOperation implements
     @Override
     public boolean verifyUnlocked(Write write) {
         return unlocked.verify(write);
+    }
+
+    @Override
+    protected void checkIfQueuedPreempted() throws AtomicStateException {
+        try {
+            super.checkIfQueuedPreempted();
+        }
+        catch (AtomicStateException e) {
+            throw new TransactionStateException();
+        }
     }
 
     @Override
@@ -371,13 +378,13 @@ public final class Transaction extends AtomicOperation implements
 
     @Override
     @Restricted
-    protected boolean preemptedBy(TokenEvent event, Token token) {
+    protected boolean isPreemptedBy(TokenEvent event, Token token) {
         for (TokenEventObserver observer : observers) {
-            if(((AtomicOperation) observer).preemptedBy(event, token)) {
+            if(((AtomicOperation) observer).isPreemptedBy(event, token)) {
                 return true;
             }
         }
-        return super.preemptedBy(event, token);
+        return super.isPreemptedBy(event, token);
     }
 
     /**
@@ -386,13 +393,14 @@ public final class Transaction extends AtomicOperation implements
      * @param bytes
      */
     private void deserialize(ByteBuffer bytes) {
-        locks = Maps.newHashMap();
+        locks = new HashSet<>();
         Iterator<ByteBuffer> it = ByteableCollections
                 .iterator(ByteBuffers.slice(bytes, bytes.getInt()));
         while (it.hasNext()) {
             LockDescription lock = LockDescription.fromByteBuffer(it.next(),
-                    lockService, rangeLockService);
-            locks.put(lock.getToken(), lock);
+                    broker);
+            // TODO: grab the lock?
+            locks.add(lock);
         }
         it = ByteableCollections.iterator(bytes);
         while (it.hasNext()) {
@@ -426,7 +434,7 @@ public final class Transaction extends AtomicOperation implements
      * @return the ByteBuffer representation
      */
     private ByteBuffer serialize() {
-        ByteBuffer _locks = ByteableCollections.toByteBuffer(locks.values());
+        ByteBuffer _locks = ByteableCollections.toByteBuffer(locks);
         ByteBuffer _writes = ByteableCollections
                 .toByteBuffer(((Queue) limbo).getWrites());
         ByteBuffer bytes = ByteBuffer
