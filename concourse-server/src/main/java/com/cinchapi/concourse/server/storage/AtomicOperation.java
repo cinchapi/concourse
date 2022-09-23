@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 
@@ -96,7 +97,7 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * {@link Status Statuses} that can be
-     * {@link #preemptedBy(TokenEvent, Token) preempted} by a
+     * {@link #isPreemptedBy(TokenEvent, Token) preempted} by a
      * {@link TokenEvent}.
      */
     private static final Set<Status> PREEMPTIBLE_STATUSES = ImmutableSet
@@ -117,7 +118,7 @@ public class AtomicOperation extends BufferedStore implements
     /**
      * Tracks the {@link Status} of this {@link AtomicOperation}.
      */
-    protected final AtomicReference<Status> status = new AtomicReference<>(
+    private final AtomicReference<Status> status = new AtomicReference<>(
             Status.OPEN);
 
     /**
@@ -160,6 +161,13 @@ public class AtomicOperation extends BufferedStore implements
      * wide write {@link Token tokens}.
      */
     private final Set<Token> exemptions = new HashSet<>();
+
+    /**
+     * A queue that holds {@link Token tokens} for which
+     * {@link TokenEvent#VERSION_CHANGE version changes} are announced but are
+     * not immediately assessed for preemption.
+     */
+    private final java.util.Queue<Token> queued = new ConcurrentLinkedQueue<>();
 
     /**
      * Construct a new instance.
@@ -267,6 +275,7 @@ public class AtomicOperation extends BufferedStore implements
      */
     public final boolean commit(long version) throws AtomicStateException {
         if(status.compareAndSet(Status.OPEN, Status.PENDING)) {
+            checkIfQueuedPreempted();
             if(grabLocks() && status.compareAndSet(Status.PENDING,
                     Status.FINALIZING)) {
                 source.unsubscribe(this);
@@ -363,7 +372,7 @@ public class AtomicOperation extends BufferedStore implements
         // automatically remove this AtomicOperation from its list of known
         // observers.
         try {
-            return preemptedBy(event, token) && (status
+            return isImmediatelyPreemptedBy(event, token) && (status
                     .compareAndSet(Status.OPEN, Status.PREEMPTED)
                     || status.compareAndSet(Status.PENDING, Status.PREEMPTED));
         }
@@ -477,6 +486,19 @@ public class AtomicOperation extends BufferedStore implements
 
     @Override
     public final void start() {}
+
+    /**
+     * Return the {@link Status} of this {@link AtomicOperation}.
+     * 
+     * @return the {@link Status}.
+     */
+    public final Status status() {
+        try {
+            checkIfQueuedPreempted();
+        }
+        catch (AtomicStateException e) {}
+        return status.get();
+    }
 
     @Override
     public final void stop() {}
@@ -608,6 +630,26 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Check if this operation is preempted by any {@link #queued} version
+     * change announcements.
+     * <p>
+     * If the operation is preempted, an {@link AtomicStateException} is thrown.
+     * </p>
+     */
+    protected void checkIfQueuedPreempted() {
+        Token token;
+        while ((token = queued.poll()) != null) {
+            if(isPreemptedBy(TokenEvent.VERSION_CHANGE, token)
+                    && (status.compareAndSet(Status.OPEN, Status.PREEMPTED)
+                            || status.compareAndSet(Status.PENDING,
+                                    Status.PREEMPTED))) {
+                source.unsubscribe(this);
+                throw new AtomicStateException();
+            }
+        }
+    }
+
+    /**
      * Check that this AtomicOperation is open and throw an
      * AtomicStateException if it is not.
      * 
@@ -620,6 +662,7 @@ public class AtomicOperation extends BufferedStore implements
         if(status.get() != Status.OPEN) {
             throw new AtomicStateException();
         }
+        checkIfQueuedPreempted();
     }
 
     /**
@@ -675,16 +718,6 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Return {@code true} if this Atomic Operation has 0 writes.
-     * 
-     * @return {@code true} if this atomic operation is considered
-     *         <em>read-only</em>
-     */
-    protected boolean isReadOnly() {
-        return ((Queue) limbo).size() == 0;
-    }
-
-    /**
      * Return {@code true} if {@code event} for {@code token} preempts this
      * {@link AtomicOperation operation}.
      * 
@@ -697,7 +730,7 @@ public class AtomicOperation extends BufferedStore implements
      *         announcement of {@code event} for {@code token}
      */
     @Restricted
-    protected boolean preemptedBy(TokenEvent event, Token token) {
+    protected boolean isPreemptedBy(TokenEvent event, Token token) {
         if(event == TokenEvent.VERSION_CHANGE && isPreemptible()) {
             if(token instanceof RangeToken) {
                 // NOTE: RangeTokens intended for writes (held in
@@ -723,6 +756,16 @@ public class AtomicOperation extends BufferedStore implements
         return false;
     }
 
+    /**
+     * Return {@code true} if this Atomic Operation has 0 writes.
+     * 
+     * @return {@code true} if this atomic operation is considered
+     *         <em>read-only</em>
+     */
+    protected boolean isReadOnly() {
+        return ((Queue) limbo).size() == 0;
+    }
+
     @Override
     protected final boolean remove(Write write, Sync sync, Verify verify)
             throws AtomicStateException {
@@ -746,6 +789,15 @@ public class AtomicOperation extends BufferedStore implements
         }
         writes2Lock.add(rangeToken);
         return super.remove(write, sync, verify);
+    }
+
+    /**
+     * Set the {@link Status} of this {@link AtomicOperation}.
+     * 
+     * @param status
+     */
+    protected final void setStatus(Status status) {
+        this.status.set(status);
     }
 
     @Override
@@ -876,9 +928,36 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Return {@code true} if it can immediately be determined that
+     * {@code event} for {@code token} preempts this {@link AtomicOperation
+     * operation}.
+     * <p>
+     * If this method returns {@code false}, it either means that
+     * the operation is not preempted by {@code event} for {@code token} or that
+     * the determination could not be made immediately. In the latter case, the
+     * {@code token} is placed on a {@link #queued queue} and can be later
+     * processed using {@link #checkIfQueuedPreempted()}.
+     * </p>
+     * 
+     * @param event
+     * @param token
+     * @return {@code true} if it is immediately known that {@code event} for
+     *         {@code token} preempts this {@link AtomicOperation operation}
+     */
+    private boolean isImmediatelyPreemptedBy(TokenEvent event, Token token) {
+        if(event == TokenEvent.VERSION_CHANGE && token instanceof RangeToken) {
+            queued.add(token);
+            return false;
+        }
+        else {
+            return isPreemptedBy(event, token);
+        }
+    }
+
+    /**
      * Return {@code true} if the {@link #status} of this
      * {@link AtomicOperation} means that it can be
-     * {@link #preemptedBy(TokenEvent, Token) preempted}.
+     * {@link #isPreemptedBy(TokenEvent, Token) preempted}.
      * 
      * @return {@code true} if this is preemptible
      */
@@ -1047,6 +1126,25 @@ public class AtomicOperation extends BufferedStore implements
         @Override
         public int size() {
             return token.size() + 1; // token + type(1)
+        }
+
+        public boolean tryLock() {
+            if(type == LockType.READ || type == LockType.RANGE_READ) {
+                permit = broker.tryReadLock(token);
+            }
+            else {
+                permit = broker.tryWriteLock(token);
+            }
+            return permit != null;
+        }
+
+        public void unlock() {
+            if(permit != null) {
+                permit.release();
+            }
+            else {
+                throw new IllegalMonitorStateException();
+            }
         }
 
     }

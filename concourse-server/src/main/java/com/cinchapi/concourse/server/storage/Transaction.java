@@ -170,7 +170,7 @@ public final class Transaction extends AtomicOperation implements
     private Transaction(Engine destination, ByteBuffer bytes) {
         this(destination);
         deserialize(bytes);
-        status.set(Status.COMMITTED);
+        setStatus(Status.COMMITTED);
 
     }
 
@@ -247,7 +247,7 @@ public final class Transaction extends AtomicOperation implements
         try {
             for (TokenEventObserver observer : observers) {
                 AtomicOperation atomic = (AtomicOperation) observer;
-                if(atomic.preemptedBy(event, token)) {
+                if(atomic.isPreemptedBy(event, token)) {
                     atomic.abort();
                     intercepted = true;
                 }
@@ -331,6 +331,16 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
+    protected void checkIfQueuedPreempted() throws AtomicStateException {
+        try {
+            super.checkIfQueuedPreempted();
+        }
+        catch (AtomicStateException e) {
+            throw new TransactionStateException();
+        }
+    }
+
+    @Override
     protected void checkState() throws AtomicStateException {
         try {
             super.checkState();
@@ -368,13 +378,13 @@ public final class Transaction extends AtomicOperation implements
 
     @Override
     @Restricted
-    protected boolean preemptedBy(TokenEvent event, Token token) {
+    protected boolean isPreemptedBy(TokenEvent event, Token token) {
         for (TokenEventObserver observer : observers) {
-            if(((AtomicOperation) observer).preemptedBy(event, token)) {
+            if(((AtomicOperation) observer).isPreemptedBy(event, token)) {
                 return true;
             }
         }
-        return super.preemptedBy(event, token);
+        return super.isPreemptedBy(event, token);
     }
 
     /**

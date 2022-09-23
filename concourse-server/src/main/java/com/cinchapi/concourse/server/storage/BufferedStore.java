@@ -689,7 +689,18 @@ public abstract class BufferedStore implements Store {
         /**
          * Instruct {@link #limbo} to sync the write.
          */
-        YES
+        YES;
+
+        /**
+         * Return the {@link Sync} value that corresponds to the input
+         * {@code value}.
+         * 
+         * @param value
+         * @return the corresponding {@link Sync}
+         */
+        protected static Sync of(boolean value) {
+            return value ? YES : NO;
+        };
     }
 
     /**

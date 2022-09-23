@@ -348,16 +348,14 @@ public final class Engine extends BufferedStore implements
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
-        boolean accepted;
-        if(write.getType() == Action.ADD) {
-            accepted = addUnlocked(write, sync ? Sync.YES : Sync.NO,
-                    sharedToken, writeToken, rangeToken);
+        boolean accepted = write.getType() == Action.ADD
+                ? addUnlocked(write, Sync.of(sync))
+                : removeUnlocked(write, Sync.of(sync));
+        if(accepted) {
+            announce(sharedToken, writeToken, rangeToken);
+            Logger.debug("'{}' was accepted by the Engine", write);
         }
         else {
-            accepted = removeUnlocked(write, sync ? Sync.YES : Sync.NO,
-                    sharedToken, writeToken, rangeToken);
-        }
-        if(!accepted) {
             Logger.warn(
                     "Write {} was rejected by the Engine "
                             + "because it was previously accepted "
@@ -366,9 +364,6 @@ public final class Engine extends BufferedStore implements
                             + "Transaction is attempting to restore "
                             + "itself from backup and finish committing.",
                     write);
-        }
-        else {
-            Logger.debug("'{}' was accepted by the Engine", write);
         }
     }
 
@@ -382,8 +377,13 @@ public final class Engine extends BufferedStore implements
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
         try {
-            return addUnlocked(Write.add(key, value, record), Sync.YES,
-                    sharedToken, writeToken, rangeToken);
+            if(addUnlocked(Write.add(key, value, record), Sync.YES)) {
+                announce(sharedToken, writeToken, rangeToken);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         finally {
             shared.release();
@@ -611,8 +611,13 @@ public final class Engine extends BufferedStore implements
         Permit write = broker.writeLock(writeToken);
         Permit range = broker.writeLock(rangeToken);
         try {
-            return removeUnlocked(Write.remove(key, value, record), Sync.YES,
-                    sharedToken, writeToken, rangeToken);
+            if(removeUnlocked(Write.remove(key, value, record), Sync.YES)) {
+                announce(sharedToken, writeToken, rangeToken);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         finally {
             shared.release();
@@ -783,7 +788,7 @@ public final class Engine extends BufferedStore implements
         Permit range = broker.writeLock(rangeToken);
         try {
             super.set(key, value, record);
-            announce(writeToken, sharedToken, rangeToken);
+            announce(sharedToken, writeToken, rangeToken);
         }
         finally {
             shared.release();
@@ -924,20 +929,13 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
-     * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
-     * locks. This method is ONLY appropriate to call from the
-     * {@link #accept(Write)} method that processes transaction commits since,
-     * in that case, the appropriate locks have already been grabbed.
+     * Add the {@code write} WITHOUT grabbing any locks.
      * 
      * @param write
      * @param sync
-     * @param sharedToken - {@link LockToken} for record
-     * @param writeToken - {@link LockToken} for key in record
-     * @param rangeToken - {@link RangeToken} for writing value to key
      * @return {@code true} if the add was successful
      */
-    private boolean addUnlocked(Write write, Sync sync, Token sharedToken,
-            Token writeToken, RangeToken rangeToken) {
+    private boolean addUnlocked(Write write, Sync sync) {
         // NOTE: #sync ends up being NO when the Engine accepts
         // Writes that are transported from a committing AtomicOperation
         // or Transaction, in which case passing this boolean along to
@@ -945,11 +943,7 @@ public final class Engine extends BufferedStore implements
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        if(super.add(write, sync, verify)) {
-            announce(writeToken, sharedToken, rangeToken);
-            return true;
-        }
-        return false;
+        return super.add(write, sync, verify);
     }
 
     /**
@@ -977,22 +971,13 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
-     * Remove {@code key} as {@code value} from {@code record} WITHOUT grabbing
-     * any locks. This method is ONLY appropriate to call from the
-     * {@link #accept(Write)} method that processes transaction commits since,
-     * in that case, the appropriate locks have already been grabbed.
+     * Remove the {@code write} WITHOUT grabbing any locks.
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param write
      * @param sync
-     * @param sharedToken - {@link LockToken} for record
-     * @param writeToken - {@link LockToken} for key in record
-     * @param rangeToken - {@link RangeToken} for writing value to key
      * @return {@code true} if the remove was successful
      */
-    private boolean removeUnlocked(Write write, Sync sync, Token sharedToken,
-            Token writeToken, RangeToken rangeToken) {
+    private boolean removeUnlocked(Write write, Sync sync) {
         // NOTE: #sync ends up being NO when the Engine accepts
         // Writes that are transported from a committing AtomicOperation
         // or Transaction, in which case passing this boolean along to
@@ -1000,11 +985,7 @@ public final class Engine extends BufferedStore implements
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        if(super.remove(write, sync, verify)) {
-            announce(writeToken, sharedToken, rangeToken);
-            return true;
-        }
-        return false;
+        return super.remove(write, sync, verify);
     }
 
     /**
