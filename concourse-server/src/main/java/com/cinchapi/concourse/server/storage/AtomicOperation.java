@@ -1065,6 +1065,25 @@ public class AtomicOperation extends BufferedStore implements
             this.token = token;
         }
 
+        public boolean tryLock() {
+            if(type == LockType.READ || type == LockType.RANGE_READ) {
+                permit = broker.tryReadLock(token);
+            }
+            else {
+                permit = broker.tryWriteLock(token);
+            }
+            return permit != null;
+        }
+
+        public void unlock() {
+            if(permit != null) {
+                permit.release();
+            }
+            else {
+                throw new IllegalMonitorStateException();
+            }
+        }
+
         @Override
         public void copyTo(ByteSink sink) {
             sink.put((byte) type.ordinal());
