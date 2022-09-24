@@ -36,7 +36,7 @@ public class AccessCredentialsFileTest extends ClientServerTest {
         server.connect("jeff", "admin");
         server.stop();
         String file = FileOps.tempFile();
-        server.prefs().set("access_credentials_file", file);
+        server.config().set("access_credentials_file", file);
         server.start();
         try {
             server.connect("jeff", " admin");

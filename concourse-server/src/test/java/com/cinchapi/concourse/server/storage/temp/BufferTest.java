@@ -16,6 +16,8 @@
 package com.cinchapi.concourse.server.storage.temp;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +33,7 @@ import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.test.Variables;
@@ -279,22 +282,28 @@ public class BufferTest extends LimboTest {
 
     @Test
     public void testAsyncWritesToBuffer() {
-        GlobalState.BINARY_QUEUE.clear();
         Buffer buffer = (Buffer) store;
-        int count = TestData.getScaleCount();
-        for (int i = 0; i < count; ++i) {
-            Write write = null;
-            while (write == null) {
-                write = TestData.getWriteAdd();
+        Collection<WriteEvent> backup = buffer.eventLog;
+        try {
+            buffer.eventLog = new ArrayList<>();
+            int count = TestData.getScaleCount();
+            for (int i = 0; i < count; ++i) {
+                Write write = null;
+                while (write == null) {
+                    write = TestData.getWriteAdd();
+                }
+                buffer.insert(write, true);
             }
-            buffer.insert(write, true);
+            while (buffer.eventLog.size() < count) {
+                // wait for all the async placements onto the binary queue to
+                // finish
+                continue;
+            }
+            Assert.assertEquals(count, buffer.eventLog.size());
         }
-        while (GlobalState.BINARY_QUEUE.size() < count) {
-            // wait for all the async placements onto the binary queue to finish
-            continue;
+        finally {
+            buffer.eventLog = backup;
         }
-        Assert.assertEquals(count, GlobalState.BINARY_QUEUE.size());
-        GlobalState.BINARY_QUEUE.clear();
     }
 
     /**

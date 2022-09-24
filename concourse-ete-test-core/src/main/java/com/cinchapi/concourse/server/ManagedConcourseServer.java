@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +57,7 @@ import ch.qos.logback.classic.Level;
 
 import com.cinchapi.ccl.grammar.Symbol;
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.base.Array;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.process.Processes;
@@ -66,7 +68,8 @@ import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
+import com.cinchapi.concourse.config.ConcourseServerConfiguration;
 import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.paginate.Page;
@@ -90,6 +93,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
+@SuppressWarnings("deprecation")
 public class ManagedConcourseServer {
 
     /**
@@ -162,16 +166,18 @@ public class ManagedConcourseServer {
      * @param installDirectory
      */
     private static void configure(String installDirectory) {
-        ConcourseServerPreferences prefs = ConcourseServerPreferences
-                .from(Paths.get(installDirectory + File.separator + CONF
-                        + File.separator + "concourse.prefs"));
+        Path[] configPaths = Array.containing(
+                Paths.get(installDirectory, CONF, "concourse.prefs"),
+                Paths.get(installDirectory, CONF, "concourse.yaml"));
+        ConcourseServerConfiguration config = ConcourseServerConfiguration
+                .from(configPaths);
         String data = installDirectory + File.separator + "data";
-        prefs.setBufferDirectory(data + File.separator + "buffer");
-        prefs.setDatabaseDirectory(data + File.separator + "database");
-        prefs.setClientPort(getOpenPort());
-        prefs.setJmxPort(getOpenPort());
-        prefs.setLogLevel(Level.DEBUG);
-        prefs.setShutdownPort(getOpenPort());
+        config.setBufferDirectory(data + File.separator + "buffer");
+        config.setDatabaseDirectory(data + File.separator + "database");
+        config.setClientPort(getOpenPort());
+        config.setJmxPort(getOpenPort());
+        config.setLogLevel(Level.DEBUG);
+        config.setShutdownPort(getOpenPort());
     }
 
     /**
@@ -345,9 +351,15 @@ public class ManagedConcourseServer {
     private static final String TARGET_BINARY_NAME = "concourse-server.bin";
 
     /**
-     * A flag that determines how the concourse_client.prefs file should be
+     * The names of client config files.
+     */
+    private static final String[] CLIENT_CONFIG_FILENAMES = new String[] {
+            "concourse_client.prefs", "concourse_client.yaml" };
+
+    /**
+     * A flag that determines how the client configuration files should be
      * handled when this server is {@link #destroy() destroyed}. Generally,
-     * nothing is done to the prefs file unless
+     * nothing is done to the configuration files unless
      * {@link #syncDefaultClientConnectionInfo()} was called by the client.
      */
     private ClientPrefsCleanupAction clientPrefsCleanupAction = ClientPrefsCleanupAction.NONE;
@@ -370,9 +382,9 @@ public class ManagedConcourseServer {
     private MBeanServerConnection mBeanServerConnection = null;
 
     /**
-     * The handler for the server's preferences.
+     * The handler for the server's configuration.
      */
-    private final ConcourseServerPreferences prefs;
+    private final ConcourseServerConfiguration config;
 
     /**
      * Construct a new instance.
@@ -381,9 +393,11 @@ public class ManagedConcourseServer {
      */
     private ManagedConcourseServer(String installDirectory) {
         this.installDirectory = installDirectory;
-        this.prefs = ConcourseServerPreferences.from(Paths.get(installDirectory
-                + File.separator + CONF + File.separator + "concourse.prefs"));
-        prefs.setLogLevel(Level.DEBUG);
+        Path[] configPaths = Array.containing(
+                Paths.get(installDirectory, CONF, "concourse.prefs"),
+                Paths.get(installDirectory, CONF, "concourse.yaml"));
+        this.config = ConcourseServerConfiguration.from(configPaths);
+        config.setLogLevel(Level.DEBUG);
         this.destroyOnExitFlag = Paths.get(installDirectory)
                 .resolve(".destroyOnExit");
         destroyOnExit(true);
@@ -397,6 +411,16 @@ public class ManagedConcourseServer {
             }
 
         }));
+    }
+
+    /**
+     * Return the {@link ManagedConcourseServer server's}
+     * {@link ConourseServerConfiguration configuration}.
+     * 
+     * @return the {@link ConourseServerPreferences configuration}.
+     */
+    public ConcourseServerConfiguration config() {
+        return config;
     }
 
     /**
@@ -438,19 +462,21 @@ public class ManagedConcourseServer {
                 stop();
             }
             try {
-                Path prefs = Paths.get("concourse_client.prefs")
-                        .toAbsolutePath();
-                if(clientPrefsCleanupAction == ClientPrefsCleanupAction.RESTORE_BACKUP) {
-                    Path backup = Paths.get("concourse_client.prefs.bak")
-                            .toAbsolutePath();
-                    Files.move(backup, prefs,
-                            StandardCopyOption.REPLACE_EXISTING);
-                    log.info("Restored original client prefs from {} to {}",
-                            backup, prefs);
-                }
-                else if(clientPrefsCleanupAction == ClientPrefsCleanupAction.DELETE) {
-                    Files.delete(prefs);
-                    log.info("Deleted client prefs from {}", prefs);
+                for (String filename : CLIENT_CONFIG_FILENAMES) {
+                    Path file = Paths.get(filename).toAbsolutePath();
+                    if(clientPrefsCleanupAction == ClientPrefsCleanupAction.RESTORE_BACKUP) {
+                        Path backup = Paths.get(filename + ".bak")
+                                .toAbsolutePath();
+                        Files.move(backup, file,
+                                StandardCopyOption.REPLACE_EXISTING);
+                        log.info(
+                                "Restored original client configuration from {} to {}",
+                                backup, file);
+                    }
+                    else if(clientPrefsCleanupAction == ClientPrefsCleanupAction.DELETE) {
+                        Files.delete(file);
+                        log.info("Deleted client configuration from {}", file);
+                    }
                 }
                 deleteDirectory(
                         Paths.get(installDirectory).getParent().toString());
@@ -538,7 +564,7 @@ public class ManagedConcourseServer {
      * @return the buffer directory
      */
     public Path getBufferDirectory() {
-        return Paths.get(prefs.getBufferDirectory());
+        return Paths.get(config.getBufferDirectory());
     }
 
     /**
@@ -547,7 +573,7 @@ public class ManagedConcourseServer {
      * @return the client port
      */
     public int getClientPort() {
-        return prefs.getClientPort();
+        return config.getClientPort();
     }
 
     /**
@@ -556,7 +582,7 @@ public class ManagedConcourseServer {
      * @return the database directory
      */
     public Path getDatabaseDirectory() {
-        return Paths.get(prefs.getDatabaseDirectory());
+        return Paths.get(config.getDatabaseDirectory());
     }
 
     /**
@@ -597,7 +623,7 @@ public class ManagedConcourseServer {
             try {
                 JMXServiceURL url = new JMXServiceURL(
                         "service:jmx:rmi:///jndi/rmi://localhost:"
-                                + prefs.getJmxPort() + "/jmxrmi");
+                                + config.getJmxPort() + "/jmxrmi");
                 JMXConnector connector = JMXConnectorFactory.connect(url);
                 mBeanServerConnection = connector.getMBeanServerConnection();
             }
@@ -634,7 +660,7 @@ public class ManagedConcourseServer {
      *         environment
      */
     public boolean hasWritesToTransport() {
-        return hasWritesToTransport(prefs.getDefaultEnvironment());
+        return hasWritesToTransport(config.getDefaultEnvironment());
     }
 
     /**
@@ -691,9 +717,11 @@ public class ManagedConcourseServer {
      * {@link ConourseServerPreferences preferences}.
      * 
      * @return the {@link ConourseServerPreferences preferences}.
+     * @deprecated use {@link #config() }instead
      */
+    @Deprecated
     public ConcourseServerPreferences prefs() {
-        return prefs;
+        return config();
     }
 
     /**
@@ -760,10 +788,10 @@ public class ManagedConcourseServer {
     }
 
     /**
-     * Copy the connection information for this managed server to a
-     * {@code concourse_client.prefs} file located in the root of the working
-     * directory so that source code relying on the default connection behaviour
-     * will properly connect to this server.
+     * Copy the connection information for this managed server to a client
+     * configuration file located in the root of the working directory so that
+     * source code relying on the default connection behaviour will properly
+     * connect to this server.
      * <p>
      * A test case that uses an indirect connection to Concourse (i.e. the test
      * case doesn't directly use the provided {@code client} variable provided
@@ -781,27 +809,35 @@ public class ManagedConcourseServer {
      */
     public void syncDefaultClientConnectionInfo() {
         try {
-            Path prefs = Paths.get("concourse_client.prefs").toAbsolutePath();
-            if(Files.exists(prefs)) {
-                Path backup = Paths.get("concourse_client.prefs.bak")
-                        .toAbsolutePath();
-                Files.move(prefs, backup);
-                clientPrefsCleanupAction = ClientPrefsCleanupAction.RESTORE_BACKUP;
-                log.info("Took backup for client prefs file located at {}. "
-                        + "The backup is stored in {}", prefs, backup);
+            ArrayBuilder<Path> builder = ArrayBuilder.builder();
+            for (String filename : CLIENT_CONFIG_FILENAMES) {
+                Path file = Paths.get(filename).toAbsolutePath();
+                builder.add(file);
+                if(Files.exists(file)) {
+                    Path backup = Paths.get(filename + ".bak").toAbsolutePath();
+                    Files.move(file, backup);
+                    clientPrefsCleanupAction = ClientPrefsCleanupAction.RESTORE_BACKUP;
+                    log.info(
+                            "Took backup for client configuration file located at "
+                                    + "{}. The backup is stored in {}",
+                            file, backup);
+                }
+                else {
+                    clientPrefsCleanupAction = ClientPrefsCleanupAction.DELETE;
+                }
             }
-            else {
-                clientPrefsCleanupAction = ClientPrefsCleanupAction.DELETE;
+            Path[] files = builder.build();
+            for (Path file : files) {
+                FileOps.touch(file.toString());
             }
-            log.info(
-                    "Synchronizing the managed server's connection "
-                            + "information to the client prefs file at {}",
-                    prefs);
-            ConcourseClientPreferences ccp = ConcourseClientPreferences
-                    .from(Paths.get(FileOps.touch(prefs.toString())));
-            ccp.setPort(getClientPort());
-            ccp.setUsername("admin");
-            ccp.setPassword("admin".toCharArray());
+            log.info("Synchronizing the managed server's connection "
+                    + "information to the client configuration files at {}",
+                    Arrays.toString(files));
+            ConcourseClientConfiguration config = ConcourseClientConfiguration
+                    .from(files);
+            config.setPort(getClientPort());
+            config.setUsername("admin");
+            config.setPassword("admin".toCharArray());
         }
         catch (IOException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);

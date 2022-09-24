@@ -16,22 +16,24 @@
 package com.cinchapi.concourse.server.storage;
 
 import java.nio.ByteBuffer;
+import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.annotate.Restricted;
-import com.cinchapi.concourse.server.concurrent.LockService;
+import com.cinchapi.concourse.server.concurrent.LockBroker;
+import com.cinchapi.concourse.server.concurrent.LockBroker.Permit;
 import com.cinchapi.concourse.server.concurrent.LockType;
-import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.concurrent.RangeToken;
-import com.cinchapi.concourse.server.concurrent.RangeTokens;
 import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.Byteable;
@@ -47,10 +49,10 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
-import com.google.common.collect.Sets;
 import com.google.common.collect.TreeRangeSet;
 
 /**
@@ -69,7 +71,7 @@ import com.google.common.collect.TreeRangeSet;
  */
 // TODO: need to implement Ensemble
 public class AtomicOperation extends BufferedStore implements
-        VersionChangeListener {
+        TokenEventObserver {
 
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
@@ -81,13 +83,12 @@ public class AtomicOperation extends BufferedStore implements
      * {@code store}.
      * 
      * @param store
-     * @param lockService
-     * @param rangeLockService
+     * @param broker
      * @return the AtomicOperation
      */
     protected static AtomicOperation start(AtomicSupport store,
-            LockService lockService, RangeLockService rangeLockService) {
-        return new AtomicOperation(store, lockService, rangeLockService);
+            LockBroker broker) {
+        return new AtomicOperation(store, broker);
     }
 
     /**
@@ -96,44 +97,30 @@ public class AtomicOperation extends BufferedStore implements
     protected static final int INITIAL_CAPACITY = 10;
 
     /**
-     * A flag that indicates this atomic operation has successfully grabbed all
-     * required locks and is in the process of committing or has been notified
-     * of a version change and is in the process of aborting. We use this flag
-     * to protect the atomic operation from version change notifications that
-     * happen while its committing (because the version change notifications
-     * come from the transaction itself).
+     * {@link Status Statuses} that can be
+     * {@link #isPreemptedBy(TokenEvent, Token) preempted} by a
+     * {@link TokenEvent}.
      */
-    protected AtomicBoolean finalizing = new AtomicBoolean(false);
+    private static final Set<Status> PREEMPTIBLE_STATUSES = ImmutableSet
+            .of(Status.OPEN, Status.PENDING);
 
     /**
      * The collection of {@link LockDescription} objects that are grabbed in the
      * {@link #grabLocks()} method at commit time.
      */
     @Nullable
-    protected Map<Token, LockDescription> locks = null;
+    protected Set<LockDescription> locks = null;
 
     /**
-     * The {@link LockService} that is used to coordinate concurrent operations.
+     * The {@link LockBroker} that is used to coordinate concurrent operations.
      */
-    protected final LockService lockService;
+    protected final LockBroker broker;
 
     /**
-     * The AtomicOperation is open until it is committed or aborted.
+     * Tracks the {@link Status} of this {@link AtomicOperation}.
      */
-    protected AtomicBoolean open = new AtomicBoolean(true);
-
-    /**
-     * The {@link RangeLockService} that is used to coordinate concurrent
-     * operations.
-     */
-    protected final RangeLockService rangeLockService;
-
-    /**
-     * A flag that is set when the atomic operation must fail because it is
-     * notified about a version change. Each operation checks this flag so it
-     * can know whether it needs to perform an abort (to clean up resources).
-     */
-    private boolean notifiedAboutVersionChange = false;
+    private final AtomicReference<Status> status = new AtomicReference<>(
+            Status.OPEN);
 
     /**
      * The {@link RangeToken range read tokens} that represent any queries in
@@ -145,7 +132,7 @@ public class AtomicOperation extends BufferedStore implements
      * The read {@link Token tokens} that represent any record based reads in
      * this operation that we must grab locks for at commit time.
      */
-    private final Set<Token> reads2Lock = Sets.newHashSet();
+    private final Set<Token> reads2Lock = new HashSet<>();
 
     /**
      * A casted pointer to the destination store, which is the source from which
@@ -158,7 +145,7 @@ public class AtomicOperation extends BufferedStore implements
      * that touches every field in the record) was performed. This data is used
      * to determine if lock coarsening can be performed at commit time.
      */
-    private final Map<Long, Token> wideReads = Maps.newHashMap();
+    private final Map<Long, Token> wideReads = new HashMap<>();
 
     /**
      * The write {@link Token tokens} or {@link RangeToken range write tokens}
@@ -166,17 +153,30 @@ public class AtomicOperation extends BufferedStore implements
      * at commit time. Both write and range write tokens are stored in the same
      * collection for efficiency reasons.
      */
-    private final Set<Token> writes2Lock = Sets.newHashSet();
+    private final Set<Token> writes2Lock = new HashSet<>();
+
+    /**
+     * The {@link Tokens} for which locks must be grabbed, but don't cause any
+     * conflicts that necessitate {@link Status#PREEMPTED preemption} if
+     * there is a version change. These {@link Token} are usually shared and
+     * wide write {@link Token tokens}.
+     */
+    private final Set<Token> exemptions = new HashSet<>();
+
+    /**
+     * A queue that holds {@link Token tokens} for which
+     * {@link TokenEvent#VERSION_CHANGE version changes} are announced but are
+     * not immediately assessed for preemption.
+     */
+    private final java.util.Queue<Token> queued = new ConcurrentLinkedQueue<>();
 
     /**
      * Construct a new instance.
      * 
      * @param destination
      */
-    protected AtomicOperation(AtomicSupport destination,
-            LockService lockService, RangeLockService rangeLockService) {
-        this(new Queue(INITIAL_CAPACITY), destination, lockService,
-                rangeLockService);
+    protected AtomicOperation(AtomicSupport destination, LockBroker broker) {
+        this(new Queue(INITIAL_CAPACITY), destination, broker);
     }
 
     /**
@@ -188,11 +188,11 @@ public class AtomicOperation extends BufferedStore implements
      * @param rangeLockService
      */
     protected AtomicOperation(Queue buffer, AtomicSupport destination,
-            LockService lockService, RangeLockService rangeLockService) {
+            LockBroker broker) {
         super(buffer, destination);
-        this.lockService = lockService;
-        this.rangeLockService = rangeLockService;
+        this.broker = broker;
         this.source = (AtomicSupport) this.durable;
+        source.subscribe(this);
     }
 
     /**
@@ -200,10 +200,18 @@ public class AtomicOperation extends BufferedStore implements
      * any of the changes to the {@link #durable} store.
      */
     public void abort() {
-        open.set(false);
-        finalizing.set(true);
-        if(locks != null && !locks.isEmpty()) {
-            releaseLocks();
+        if(status.compareAndSet(Status.OPEN, Status.FINALIZING)
+                || status.compareAndSet(Status.PENDING, Status.FINALIZING)
+                || status.compareAndSet(Status.PREEMPTED, Status.FINALIZING)) {
+            source.unsubscribe(this);
+            if(locks != null && !locks.isEmpty()) {
+                releaseLocks();
+            }
+            status.compareAndSet(Status.FINALIZING, Status.ABORTED);
+        }
+        else if(status.get() != Status.ABORTED) {
+            throw new IllegalStateException(
+                    "Cannot abort from status: " + status);
         }
     }
 
@@ -220,8 +228,7 @@ public class AtomicOperation extends BufferedStore implements
         Text key0 = Text.wrapCached(key);
         RangeToken rangeToken = RangeToken.forReading(key0, Operator.BETWEEN,
                 Value.NEGATIVE_INFINITY, Value.POSITIVE_INFINITY);
-        source.addVersionChangeListener(rangeToken, this);
-        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(rangeToken);
+        Iterable<Range<Value>> ranges = rangeToken.ranges();
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
@@ -249,7 +256,6 @@ public class AtomicOperation extends BufferedStore implements
             // Must perform a locking read to prevent a non-repeatable read if
             // writes occur between the present and the future timestamp(s)
             Token token = Token.wrap(key, record);
-            source.addVersionChangeListener(token, this);
             reads2Lock.add(token);
             return super.chronologize(key, record, start, end);
         }
@@ -269,16 +275,17 @@ public class AtomicOperation extends BufferedStore implements
      * @return {@code true} if the atomic operation is completely applied
      */
     public final boolean commit(long version) throws AtomicStateException {
-        if(open.compareAndSet(true, false)) {
-            if(grabLocks() && !notifiedAboutVersionChange
-                    && finalizing.compareAndSet(false, true)) {
+        if(status.compareAndSet(Status.OPEN, Status.PENDING)) {
+            checkIfQueuedPreempted();
+            if(grabLocks() && status.compareAndSet(Status.PENDING,
+                    Status.FINALIZING)) {
+                source.unsubscribe(this);
                 limbo.transform(write -> write.rewrite(version));
                 doCommit();
                 releaseLocks();
-                if(durable instanceof Transaction) {
-                    ((Transaction) durable).onCommit(this);
-                }
-                return true;
+                source.onCommit(this);
+                return status.compareAndSet(Status.FINALIZING,
+                        Status.COMMITTED);
             }
             else {
                 abort();
@@ -305,7 +312,6 @@ public class AtomicOperation extends BufferedStore implements
     public final boolean contains(long record) {
         checkState();
         Token token = Token.wrap(record);
-        source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
         return super.contains(record);
@@ -319,8 +325,7 @@ public class AtomicOperation extends BufferedStore implements
         Text key0 = Text.wrapCached(key);
         RangeToken rangeToken = RangeToken.forReading(key0, operator,
                 Transformers.transformArray(values, Value::wrap, Value.class));
-        source.addVersionChangeListener(rangeToken, this);
-        Iterable<Range<Value>> ranges = RangeTokens.convertToRange(rangeToken);
+        Iterable<Range<Value>> ranges = rangeToken.ranges();
         for (Range<Value> range : ranges) {
             rangeReads2Lock.put(key0, range);
         }
@@ -344,7 +349,6 @@ public class AtomicOperation extends BufferedStore implements
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
-        source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         return super.gather(key, record);
     }
@@ -363,9 +367,21 @@ public class AtomicOperation extends BufferedStore implements
 
     @Override
     @Restricted
-    public void onVersionChange(Token token) {
-        notifiedAboutVersionChange = true;
-        open.set(false);
+    public boolean observe(TokenEvent event, Token token) {
+        // NOTE: If the AtomicOperation is preempted by #event, an explicit call
+        // to source.unsubscribe() isn't made here, because the Engine will
+        // automatically remove this AtomicOperation from its list of known
+        // observers.
+        try {
+            return isImmediatelyPreemptedBy(event, token) && (status
+                    .compareAndSet(Status.OPEN, Status.PREEMPTED)
+                    || status.compareAndSet(Status.PENDING, Status.PREEMPTED));
+        }
+        catch (ConcurrentModificationException e) {
+            // Another asynchronous write or announcement was received while
+            // observing the token event, so a retry is necessary.
+            return observe(event, token);
+        }
     }
 
     @Override
@@ -382,7 +398,6 @@ public class AtomicOperation extends BufferedStore implements
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(record);
-        source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
         return super.review(record);
@@ -393,7 +408,6 @@ public class AtomicOperation extends BufferedStore implements
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
-        source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         return super.review(key, record);
     }
@@ -410,7 +424,6 @@ public class AtomicOperation extends BufferedStore implements
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(record);
-        source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
         return super.select(record);
@@ -433,7 +446,6 @@ public class AtomicOperation extends BufferedStore implements
             throws AtomicStateException {
         checkState();
         Token token = Token.wrap(key, record);
-        source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         return super.select(key, record);
     }
@@ -459,16 +471,15 @@ public class AtomicOperation extends BufferedStore implements
                 Value.wrap(value));
         Token wide = wideReads.get(record);
         if(wide != null) {
-            wide.upgrade();
             writes2Lock.add(wide);
         }
         else {
-            source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
-            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
-                                                      // conflicting wide read,
-                                                      // but don't listen for
-                                                      // wide version change
+            // CON-669: Prevent a conflicting wide read, but don't listen for
+            // wide version change
+            Token shared = Token.shareable(record);
+            writes2Lock.add(shared);
+            exemptions.add(shared);
         }
         writes2Lock.add(rangeToken);
         super.set(key, value, record);
@@ -476,6 +487,19 @@ public class AtomicOperation extends BufferedStore implements
 
     @Override
     public final void start() {}
+
+    /**
+     * Return the {@link Status} of this {@link AtomicOperation}.
+     * 
+     * @return the {@link Status}.
+     */
+    public final Status status() {
+        try {
+            checkIfQueuedPreempted();
+        }
+        catch (AtomicStateException e) {}
+        return status.get();
+    }
 
     @Override
     public final void stop() {}
@@ -489,7 +513,6 @@ public class AtomicOperation extends BufferedStore implements
     public void touch(long record) {
         checkState();
         Token token = Token.wrap(record);
-        source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         wideReads.put(record, token);
     }
@@ -511,7 +534,6 @@ public class AtomicOperation extends BufferedStore implements
         checkState();
         Token token = Token.wrap(write.getKey().toString(),
                 write.getRecord().longValue());
-        source.addVersionChangeListener(token, this);
         reads2Lock.add(token);
         return super.verify(write);
     }
@@ -562,6 +584,27 @@ public class AtomicOperation extends BufferedStore implements
         return source.verifyUnlocked(write);
     }
 
+    @Restricted
+    protected void absorb(AtomicOperation atomic) {
+        if(atomic.source == this) {
+            if(atomic.status.get() == Status.FINALIZING) {
+                rangeReads2Lock.ranges.putAll(atomic.rangeReads2Lock.ranges);
+                reads2Lock.addAll(atomic.reads2Lock);
+                wideReads.putAll(atomic.wideReads);
+                writes2Lock.addAll(atomic.writes2Lock);
+                exemptions.addAll(atomic.exemptions);
+            }
+            else {
+                throw new IllegalStateException(
+                        "Cannot absorb an atomic operation that is not finalizing");
+            }
+        }
+        else {
+            throw new IllegalStateException(
+                    "Cannot absorb an atomic operation with a different source");
+        }
+    }
+
     @Override
     protected final boolean add(Write write, Sync sync, Verify verify)
             throws AtomicStateException {
@@ -573,19 +616,38 @@ public class AtomicOperation extends BufferedStore implements
                 write.getValue());
         Token wide = wideReads.get(record);
         if(wide != null) {
-            wide.upgrade();
             writes2Lock.add(wide);
         }
         else {
-            source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
-            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
-                                                      // conflicting wide read,
-                                                      // but don't listen for
-                                                      // wide version change
+            // CON-669: Prevent a conflicting wide read, but don't listen for
+            // wide version change
+            Token shared = Token.shareable(record);
+            writes2Lock.add(shared);
+            exemptions.add(shared);
         }
         writes2Lock.add(rangeToken);
         return super.add(write, sync, verify);
+    }
+
+    /**
+     * Check if this operation is preempted by any {@link #queued} version
+     * change announcements.
+     * <p>
+     * If the operation is preempted, an {@link AtomicStateException} is thrown.
+     * </p>
+     */
+    protected void checkIfQueuedPreempted() {
+        Token token;
+        while ((token = queued.poll()) != null) {
+            if(isPreemptedBy(TokenEvent.VERSION_CHANGE, token)
+                    && (status.compareAndSet(Status.OPEN, Status.PREEMPTED)
+                            || status.compareAndSet(Status.PENDING,
+                                    Status.PREEMPTED))) {
+                source.unsubscribe(this);
+                throw new AtomicStateException();
+            }
+        }
     }
 
     /**
@@ -595,12 +657,13 @@ public class AtomicOperation extends BufferedStore implements
      * @throws AtomicStateException
      */
     protected void checkState() throws AtomicStateException {
-        if(notifiedAboutVersionChange) {
+        if(status.get() == Status.PREEMPTED) {
             abort();
         }
-        if(!open.get()) {
+        if(status.get() != Status.OPEN) {
             throw new AtomicStateException();
         }
+        checkIfQueuedPreempted();
     }
 
     /**
@@ -656,6 +719,45 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Return {@code true} if {@code event} for {@code token} preempts this
+     * {@link AtomicOperation operation}.
+     * 
+     * @param event
+     * @param token
+     * 
+     * @return {@code true} if this {@link AtomicOperation} is
+     *         {@link Status#PREEMPTED interrupted} when
+     *         {@link #observe(TokenEvent, Token) observing} an
+     *         announcement of {@code event} for {@code token}
+     */
+    @Restricted
+    protected boolean isPreemptedBy(TokenEvent event, Token token) {
+        if(event == TokenEvent.VERSION_CHANGE && isPreemptible()) {
+            if(token instanceof RangeToken) {
+                // NOTE: RangeTokens intended for writes (held in
+                // writes2Lock) should never cause the AtomicOperation to be
+                // preempted because they are infinitely wide.
+                RangeToken rangeToken = (RangeToken) token;
+                RangeSet<Value> covered = rangeReads2Lock.ranges
+                        .get(rangeToken.getKey());
+                if(covered != null) {
+                    Iterable<Range<Value>> ranges = rangeToken.ranges();
+                    for (Range<Value> range : ranges) {
+                        if(!covered.subRangeSet(range).isEmpty()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            else if((reads2Lock.contains(token) || writes2Lock.contains(token))
+                    && !exemptions.contains(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Return {@code true} if this Atomic Operation has 0 writes.
      * 
      * @return {@code true} if this atomic operation is considered
@@ -676,19 +778,27 @@ public class AtomicOperation extends BufferedStore implements
                 write.getValue());
         Token wide = wideReads.get(record);
         if(wide != null) {
-            wide.upgrade();
             writes2Lock.add(wide);
         }
         else {
-            source.addVersionChangeListener(token, this);
             writes2Lock.add(token);
-            writes2Lock.add(Token.shareable(record)); // CON-669: Prevent a
-                                                      // conflicting wide read,
-                                                      // but don't listen for
-                                                      // wide version change
+            // CON-669: Prevent a conflicting wide read, but don't listen for
+            // wide version change
+            Token shared = Token.shareable(record);
+            writes2Lock.add(shared);
+            exemptions.add(shared);
         }
         writes2Lock.add(rangeToken);
         return super.remove(write, sync, verify);
+    }
+
+    /**
+     * Set the {@link Status} of this {@link AtomicOperation}.
+     * 
+     * @param status
+     */
+    protected final void setStatus(Status status) {
+        this.status.set(status);
     }
 
     @Override
@@ -727,12 +837,12 @@ public class AtomicOperation extends BufferedStore implements
             // NOTE: If we can't grab a lock immediately because it is held by
             // someone else, then we must fail immediately because the
             // AtomicOperation can't properly commit.
-            locks = Maps.newHashMap();
+            locks = new HashSet<>();
             try {
                 // Grab write locks and remove any covered read or range read
                 // intentions
                 for (Token token : writes2Lock) {
-                    if(notifiedAboutVersionChange) {
+                    if(status.get() == Status.PREEMPTED) {
                         return false;
                     }
                     LockType type;
@@ -762,9 +872,9 @@ public class AtomicOperation extends BufferedStore implements
                         type = LockType.WRITE;
                     }
                     LockDescription lock = LockDescription.forToken(token,
-                            lockService, rangeLockService, type);
-                    if(lock.getLock().tryLock()) {
-                        locks.put(lock.getToken(), lock);
+                            broker, type);
+                    if(lock.tryLock()) {
+                        locks.add(lock);
                     }
                     else {
                         return false;
@@ -774,13 +884,13 @@ public class AtomicOperation extends BufferedStore implements
                 // intentions are not covered by any of the write locks we
                 // grabbed previously.
                 for (Token token : reads2Lock) {
-                    if(notifiedAboutVersionChange) {
+                    if(status.get() == Status.PREEMPTED) {
                         return false;
                     }
                     LockDescription lock = LockDescription.forToken(token,
-                            lockService, rangeLockService, LockType.READ);
-                    if(lock.getLock().tryLock()) {
-                        locks.put(lock.getToken(), lock);
+                            broker, LockType.READ);
+                    if(lock.tryLock()) {
+                        locks.add(lock);
                     }
                     else {
                         return false;
@@ -791,7 +901,7 @@ public class AtomicOperation extends BufferedStore implements
                 // grabbed previously.
                 for (Entry<Text, RangeSet<Value>> entry : rangeReads2Lock.ranges
                         .entrySet()) { /* (Authorized) */
-                    if(notifiedAboutVersionChange) {
+                    if(status.get() == Status.PREEMPTED) {
                         return false;
                     }
                     Text key = entry.getKey();
@@ -799,10 +909,9 @@ public class AtomicOperation extends BufferedStore implements
                         RangeToken rangeToken = Ranges.convertToRangeToken(key,
                                 range);
                         LockDescription lock = LockDescription.forToken(
-                                rangeToken, lockService, rangeLockService,
-                                LockType.RANGE_READ);
-                        if(lock.getLock().tryLock()) {
-                            locks.put(lock.getToken(), lock);
+                                rangeToken, broker, LockType.RANGE_READ);
+                        if(lock.tryLock()) {
+                            locks.add(lock);
                         }
                         else {
                             return false;
@@ -820,6 +929,49 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Return {@code true} if it can immediately be determined that
+     * {@code event} for {@code token} preempts this {@link AtomicOperation
+     * operation}.
+     * <p>
+     * If this method returns {@code false}, it either means that
+     * the operation is not preempted by {@code event} for {@code token} or that
+     * the determination could not be made immediately. In the latter case, the
+     * {@code token} is placed on a {@link #queued queue} and can be later
+     * processed using {@link #checkIfQueuedPreempted()}.
+     * </p>
+     * 
+     * @param event
+     * @param token
+     * @return {@code true} if it is immediately known that {@code event} for
+     *         {@code token} preempts this {@link AtomicOperation operation}
+     */
+    private boolean isImmediatelyPreemptedBy(TokenEvent event, Token token) {
+        if(event == TokenEvent.VERSION_CHANGE && token instanceof RangeToken) {
+            queued.add(token);
+            return false;
+        }
+        else {
+            return isPreemptedBy(event, token);
+        }
+    }
+
+    /**
+     * Return {@code true} if the {@link #status} of this
+     * {@link AtomicOperation} means that it can be
+     * {@link #isPreemptedBy(TokenEvent, Token) preempted}.
+     * 
+     * @return {@code true} if this is preemptible
+     */
+    private boolean isPreemptible() {
+        for (Status status : PREEMPTIBLE_STATUSES) {
+            if(this.status.compareAndSet(status, status)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Release all of the locks that are held by this operation.
      */
     protected void releaseLocks() {
@@ -827,17 +979,16 @@ public class AtomicOperation extends BufferedStore implements
             return;
         }
         else if(locks != null) {
-            Map<Token, LockDescription> _locks = locks;
+            Set<LockDescription> _locks = locks;
             locks = null; // CON-172: Set the reference of the locks to null
                           // immediately to prevent a race condition where
                           // the #grabLocks method isn't notified of version
                           // change failure in time
-            for (LockDescription lock : _locks.values()) {
-                lock.getLock().unlock(); // We should never encounter an
-                                         // IllegalMonitorStateException
-                                         // here because a lock should only
-                                         // go in #locks once it has been
-                                         // locked.
+            for (LockDescription lock : _locks) {
+                lock.unlock(); // We should never encounter an
+                               // IllegalMonitorStateException here because a
+                               // lock should only go in #locks once it has been
+                               // locked.
             }
         }
     }
@@ -856,30 +1007,13 @@ public class AtomicOperation extends BufferedStore implements
          * coverage for {@code token}
          * 
          * @param token
-         * @param lockService
-         * @param rangeLockService
+         * @param broker
+         * @param type
          * @return the LockDescription
          */
-        public static LockDescription forToken(Token token,
-                LockService lockService, RangeLockService rangeLockService,
+        public static LockDescription forToken(Token token, LockBroker broker,
                 LockType type) {
-            switch (type) {
-            case RANGE_READ:
-                return new LockDescription(token,
-                        rangeLockService.getReadLock((RangeToken) token), type);
-            case RANGE_WRITE:
-                return new LockDescription(token,
-                        rangeLockService.getWriteLock((RangeToken) token),
-                        type);
-            case READ:
-                return new LockDescription(token,
-                        lockService.getReadLock(token), type);
-            case WRITE:
-                return new LockDescription(token,
-                        lockService.getWriteLock(token), type);
-            default:
-                return null;
-            }
+            return new LockDescription(broker, token, type);
         }
 
         /**
@@ -896,35 +1030,28 @@ public class AtomicOperation extends BufferedStore implements
          * @return the LockDescription
          */
         public static LockDescription fromByteBuffer(ByteBuffer bytes,
-                LockService lockService, RangeLockService rangeLockService) {
+                LockBroker broker) {
             LockType type = LockType.values()[bytes.get()];
             Token token = null;
-            Lock lock = null;
             switch (type) {
             case RANGE_READ:
-                token = RangeToken.fromByteBuffer(bytes);
-                lock = rangeLockService.getReadLock((RangeToken) token);
-                break;
             case RANGE_WRITE:
                 token = RangeToken.fromByteBuffer(bytes);
-                lock = rangeLockService.getWriteLock((RangeToken) token);
                 break;
             case READ:
-                token = Token.fromByteBuffer(bytes);
-                lock = lockService.getReadLock(token);
-                break;
             case WRITE:
                 token = Token.fromByteBuffer(bytes);
-                lock = lockService.getWriteLock(token);
                 break;
-
             }
-            return new LockDescription(token, lock, type);
+            return new LockDescription(broker, token, type);
         }
 
-        private final Lock lock;
         private final Token token;
         private final LockType type;
+        private final LockBroker broker;
+
+        @Nullable
+        private transient Permit permit;
 
         /**
          * Construct a new instance.
@@ -933,8 +1060,8 @@ public class AtomicOperation extends BufferedStore implements
          * @param lock
          * @param type
          */
-        private LockDescription(Token token, Lock lock, LockType type) {
-            this.lock = lock;
+        private LockDescription(LockBroker broker, Token token, LockType type) {
+            this.broker = broker;
             this.type = type;
             this.token = token;
         }
@@ -948,22 +1075,11 @@ public class AtomicOperation extends BufferedStore implements
         @Override
         public boolean equals(Object obj) {
             if(obj instanceof LockDescription) {
-                return lock.equals(((LockDescription) obj).getLock())
-                        && type == ((LockDescription) obj).type;
+                return token.equals(((LockDescription) obj).token);
             }
-            return false;
-        }
-
-        /**
-         * Return the lock that is described by this LockDescription. This
-         * method DOES NOT return a TLock, but will return a ReadLock or
-         * WriteLock, depending on the LockType. The caller should immediately
-         * lock/unlock on whatever is returned from this method.
-         * 
-         * @return the Read or Write lock.
-         */
-        public Lock getLock() {
-            return lock;
+            else {
+                return false;
+            }
         }
 
         /**
@@ -986,7 +1102,7 @@ public class AtomicOperation extends BufferedStore implements
 
         @Override
         public int hashCode() {
-            return Objects.hash(lock, type);
+            return token.hashCode();
         }
 
         @Override
@@ -994,6 +1110,84 @@ public class AtomicOperation extends BufferedStore implements
             return token.size() + 1; // token + type(1)
         }
 
+        /**
+         * Try to acquire the lock.
+         * 
+         * @return {@code true} if the lock could be acquired
+         */
+        public boolean tryLock() {
+            if(type == LockType.READ || type == LockType.RANGE_READ) {
+                permit = broker.tryReadLock(token);
+            }
+            else {
+                permit = broker.tryWriteLock(token);
+            }
+            return permit != null;
+        }
+
+        /**
+         * Release the lock.
+         */
+        public void unlock() {
+            if(permit != null) {
+                permit.release();
+            }
+            else {
+                throw new IllegalMonitorStateException();
+            }
+        }
+
+    }
+
+    /**
+     * The lifecycle states of an {@link AtomicOperation}.
+     *
+     * @author Jeff
+     */
+    protected enum Status {
+        /**
+         * The operation has not {@link #COMMITTED} or {@link #ABORTED} and can
+         * service reads and writes.
+         */
+        OPEN,
+
+        /**
+         * The operation has not {@link #COMMITTED} or {@link #ABORTED}, but can
+         * no longer service reads and writes.
+         */
+        PENDING,
+
+        /**
+         * The operation has successfully {@link #commit(long) committed) and is
+         * no longer {@link #OPEN}.
+         */
+        COMMITTED,
+
+        /**
+         * The operation was automatically or manually {@link #abort() aborted}
+         * and is no longer {@link #OPEN}.
+         */
+        ABORTED,
+
+        /**
+         * The operation is in the process of transitioning to either an
+         * {@link #COMMITTED} or {@link #ABORTED} state and is no longer
+         * {@link #OPEN}.
+         * <p>
+         * This flag that indicates this atomic operation has successfully
+         * grabbed all required locks and is in the process of committing or has
+         * been notified of a version change and is in the process of aborting.
+         * We use this flag to protect the atomic operation from version change
+         * notifications that happen while its committing (because the version
+         * change notifications come from the transaction itself).
+         * </p>
+         */
+        FINALIZING,
+
+        /**
+         * The operation was preempted and cannot become {@link #COMMITTED}.
+         */
+        PREEMPTED
     }
 
     /**

@@ -16,8 +16,9 @@
 package com.cinchapi.concourse.server.cli.data;
 
 import com.cinchapi.common.base.AnyStrings;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.core.EnvironmentManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A cli for listing data files.
@@ -25,7 +26,7 @@ import com.cinchapi.concourse.server.management.ConcourseManagementService.Clien
  * @author Jeff Nelson
  */
 @CommandLineInterfaceInformation(description = "List the Concourse Server data files")
-public class ListDataCli extends DataCli {
+class ListDataCli extends DataCli {
 
     /**
      * Construct a new instance.
@@ -34,17 +35,12 @@ public class ListDataCli extends DataCli {
      * @param args
      */
     public ListDataCli(String[] args) {
-        super(new DataOptions(), args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+        super(args);
     }
 
     @Override
     protected void doTask(Client client) {
-        DataOptions opts = (DataOptions) options;
+        EnvironmentManagementOptions opts = options();
         try {
             String list = client.getDumpList(opts.environment, token);
             System.out.println(AnyStrings.format(
@@ -56,7 +52,7 @@ public class ListDataCli extends DataCli {
             System.out.println(list);
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
 
     }

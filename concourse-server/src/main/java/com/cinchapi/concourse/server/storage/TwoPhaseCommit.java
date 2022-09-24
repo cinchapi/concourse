@@ -15,8 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-import com.cinchapi.concourse.server.concurrent.LockService;
-import com.cinchapi.concourse.server.concurrent.RangeLockService;
+import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.ensemble.Ensemble;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 
@@ -61,9 +60,8 @@ class TwoPhaseCommit extends AtomicOperation implements Ensemble {
      * @param rangeLockService
      */
     protected TwoPhaseCommit(EnsembleInstanceIdentifier identifier,
-            AtomicSupport destination, LockService lockService,
-            RangeLockService rangeLockService) {
-        super(destination, lockService, rangeLockService);
+            AtomicSupport destination, LockBroker broker) {
+        super(destination, broker);
         this.identifier = identifier;
     }
 
@@ -77,12 +75,13 @@ class TwoPhaseCommit extends AtomicOperation implements Ensemble {
      * Finish the {@link #commit()} and release all the locks that were grabbed.
      */
     public void finish() {
-        if(open.get()) {
-            throw new AtomicStateException();
-        }
-        else {
+        if(status().equals(Status.COMMITTED)) {
+            // TODO: need a new status?
             super.doCommit();
             super.releaseLocks();
+        }
+        else {
+            throw new AtomicStateException();
         }
     }
 

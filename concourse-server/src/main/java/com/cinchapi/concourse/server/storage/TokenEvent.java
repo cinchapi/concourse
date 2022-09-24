@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli.core;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.cinchapi.concourse.server.storage;
 
 /**
- * Interface that should be applied to a {@link PluginCli} to provide a
- * description of the cli.
- * 
+ * The event types that can be
+ * {@link TokenEventBroker#publish(Token, TokenEvent) published} by a
+ * {@link TokenEvenBroker}.
+ *
  * @author Jeff Nelson
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface CommandLineInterfaceInformation {
+enum TokenEvent {
 
-    String description();
-
+    /**
+     * A write concerning a {@link Token} has occurred and the version
+     * associated with it has changed.
+     */
+    VERSION_CHANGE;
 }

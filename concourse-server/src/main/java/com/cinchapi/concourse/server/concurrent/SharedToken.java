@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage;
+package com.cinchapi.concourse.server.concurrent;
 
-import com.cinchapi.concourse.server.concurrent.Token;
+import java.nio.ByteBuffer;
 
 /**
- * An object that listens for version changes and responds accordingly.
- * 
+ * A {@link Token} that is intended to be represented by a shared lock (e.g.,
+ * {@link SharedReadWriteLock}).
+ *
  * @author Jeff Nelson
  */
-public interface VersionChangeListener {
+class SharedToken extends Token {
 
     /**
-     * Handle a version change that occurs for {@code token}.
+     * Construct a new instance.
+     * 
+     * @param bytes
      */
-    public void onVersionChange(Token token);
+    protected SharedToken(ByteBuffer bytes) {
+        super(bytes);
+    }
 
 }

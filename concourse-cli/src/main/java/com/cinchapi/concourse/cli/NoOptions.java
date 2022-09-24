@@ -19,5 +19,7 @@ package com.cinchapi.concourse.cli;
  * A holder class for CLI's that don't take additional options.
  * 
  * @author Jeff Nelson
+ * @deprecated use {@link com.cinchapi.lib.cli.NoOptions#instance()} instead.
  */
-public class NoOptions extends Options {/* no-op */}
+@Deprecated
+public class NoOptions extends com.cinchapi.lib.cli.NoOptions {/* no-op */}

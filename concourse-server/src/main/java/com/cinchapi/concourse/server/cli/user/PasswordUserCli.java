@@ -18,8 +18,9 @@ package com.cinchapi.concourse.server.cli.user;
 import java.nio.ByteBuffer;
 
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 import com.google.common.base.Strings;
 
 /**
@@ -37,7 +38,7 @@ public class PasswordUserCli extends UserCli {
      * @param args
      */
     public PasswordUserCli(String[] args) {
-        super(new UserPasswordOptions(), args);
+        super(args);
     }
 
     @Override
@@ -75,9 +76,14 @@ public class PasswordUserCli extends UserCli {
                     "Password for user '" + username + "' has been set");
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
 
+    }
+
+    @Override
+    protected ManagementOptions getOptions() {
+        return new UserPasswordOptions();
     }
 
 }

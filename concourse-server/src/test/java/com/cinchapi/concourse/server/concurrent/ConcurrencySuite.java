@@ -25,8 +25,8 @@ import org.junit.runners.Suite.SuiteClasses;
  * @author Jeff Nelson
  */
 @RunWith(Suite.class)
-@SuiteClasses({ RangeLockServiceTest.class, LockServiceTest.class,
-        RangeTokensTest.class, ReadWriteSharedLockTest.class,
+@SuiteClasses({ LockBrokerTest.class, RangeTokenTest.class,
+        ReadWriteSharedLockTest.class, SharedReadWriteLockTest.class,
         AwaitableExecutorServiceTest.class })
 public class ConcurrencySuite {
 

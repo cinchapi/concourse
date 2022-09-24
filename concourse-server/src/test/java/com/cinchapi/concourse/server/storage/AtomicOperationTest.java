@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.concurrent.CountUpLatch;
+import com.cinchapi.concourse.server.storage.AtomicOperation.Status;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -113,7 +115,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
         TObject valueA = Convert.javaToThrift("valueA");
         String keyB = "keyB";
         TObject valueB = Convert.javaToThrift("valueB");
-        add(keyA, valueA, 1);
+        add(keyA, valueA, record);
         AtomicOperation other = destination.startAtomicOperation();
         other.add(keyB, valueB, record);
         Assert.assertTrue(other.commit());
@@ -442,6 +444,53 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
                         Convert.javaToThrift("jeff")));
     }
 
+    @Test
+    public void testRangeReadInterruptedByWrite() {
+        AtomicOperation atomic = (AtomicOperation) store;
+        atomic.find("age", Operator.GREATER_THAN, Convert.javaToThrift(1));
+        destination.accept(Write.add("age", Convert.javaToThrift(34), 1));
+        Assert.assertEquals(Status.PREEMPTED, atomic.status());
+        try {
+            Assert.assertFalse(atomic.commit());
+        }
+        catch (AtomicStateException e) {
+            Assert.assertTrue(true);
+        }
+    }
+
+    @Test
+    public void testAllAtomicOperationsEventuallyTerminate()
+            throws InterruptedException {
+        int numThread = 50;
+        String key = TestData.getSimpleString();
+        long record = 1;
+        CountUpLatch latch = new CountUpLatch();
+        for (int i = 1; i <= numThread; ++i) {
+            TObject value = Convert.javaToThrift(i);
+            Thread thread = new Thread(() -> {
+                AtomicBoolean committed = new AtomicBoolean(false);
+                while (!committed.get()) {
+                    AtomicOperation atomic = getStore(destination);
+                    try {
+                        atomic.select(key, record);
+                        atomic.add(key, value, record);
+                        atomic.find(key, Operator.EQUALS, value);
+                        if(atomic.commit()) {
+                            committed.set(true);
+                            latch.countUp();
+                        }
+
+                    }
+                    catch (AtomicStateException e) {}
+
+                }
+            });
+            thread.start();
+        }
+        latch.await(numThread);
+        Assert.assertTrue(true);
+    }
+
     @Override
     protected void add(String key, TObject value, long record) {
         ((AtomicOperation) store).add(key, value, record);
@@ -452,6 +501,10 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     @Override
     protected AtomicOperation getStore() {
         destination = getDestination();
+        return getStore(destination);
+    }
+
+    protected AtomicOperation getStore(AtomicSupport destination) {
         return destination.startAtomicOperation();
     }
 

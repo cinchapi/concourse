@@ -19,9 +19,9 @@ import java.util.Map;
 
 import org.apache.thrift.TException;
 
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A CLI for listing information about running plugins.
@@ -38,7 +38,7 @@ class PsPluginCli extends PluginCli {
      * @param args
      */
     public PsPluginCli(String[] args) {
-        super(new PluginCli.PluginOptions(), args);
+        super(args);
     }
 
     @Override
@@ -50,14 +50,9 @@ class PsPluginCli extends PluginCli {
             System.out.println(info);
         }
         catch (TException e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
 
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
     }
 
 }

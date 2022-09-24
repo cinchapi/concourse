@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.cli.core;
-
-import java.util.List;
+package com.cinchapi.concourse.cli;
 
 import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
-import com.google.common.collect.Lists;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 
 /**
  * Each member variable represents the options that can be passed to the main
- * method of a CLI. Each CLI should subclass this and specify the appropriate
- * parameters.
+ * method of a CLI. Each CLI should (anonymously) subclass this and specify the
+ * appropriate parameters.
  * 
  * <p>
  * See http://jcommander.org/ for more information.
@@ -32,32 +29,42 @@ import com.google.common.collect.Lists;
  * 
  * @author Jeff Nelson
  */
-public abstract class Options {
+public class ConcourseOptions extends com.cinchapi.lib.cli.Options {
 
     /**
      * A handler for the client preferences that <em>may</em> exist in the
      * user's home directory. If the file is available, its contents will be
      * used for configuration defaults.
      */
-    private ConcourseClientPreferences defaults = ConcourseClientPreferences
+    private ConcourseClientConfiguration defaults = ConcourseClientConfiguration
             .fromUserHomeDirectory();
 
-    @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
-    public boolean help;
+    @Parameter(names = { "-h",
+            "--host" }, description = "The hostname where the Concourse Server is located")
+    public String host = defaults.getHost();
+
+    @Parameter(names = { "-p",
+            "--port" }, description = "The port on which the Concourse Server is listening")
+    public int port = defaults.getPort();
 
     @Parameter(names = { "-u",
             "--username" }, description = "The username with which to connect")
     public String username = defaults.getUsername();
 
-    @Parameter(names = "--password", description = "The password", hidden = true)
+    @Parameter(names = "--password", description = "The password", password = false, hidden = true)
     public String password = new String(defaults.getPasswordExplicit());
 
+    @Parameter(names = { "-e",
+            "--environment" }, description = "The environment of the Concourse Server to use")
+    public String environment = defaults.getEnvironment();
+
+    @Parameter(names = { "--prefs",
+            "--config" }, description = "Path to the client configuration file (e.g., concourse_client.yaml)")
+    public String config;
+
     /**
-     * Contains all the non parameterized arguments that are passed to the
-     * program. This is typically what would be available in the array passed to
-     * Java's main method.
+     * Reference to {@link #config} for backwards compatibility.
      */
-    @Parameter(description = "additional program arguments...")
-    public List<String> args = Lists.newArrayList();
+    public String prefs;
 
 }

@@ -15,8 +15,9 @@
  */
 package com.cinchapi.concourse.server.cli.data;
 
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.core.EnvironmentManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A cli for dumping data files.
@@ -24,7 +25,7 @@ import com.cinchapi.concourse.server.management.ConcourseManagementService.Clien
  * @author Jeff Nelson
  */
 @CommandLineInterfaceInformation(description = "Dump the contents of a Concourse data file")
-public class DumpDataCli extends DataCli {
+class DumpDataCli extends DataCli {
 
     /**
      * Construct a new instance.
@@ -33,7 +34,7 @@ public class DumpDataCli extends DataCli {
      * @param args
      */
     public DumpDataCli(String[] args) {
-        super(new DataOptions(), args);
+        super(args);
     }
 
     @Override
@@ -43,13 +44,13 @@ public class DumpDataCli extends DataCli {
 
     @Override
     protected void doTask(Client client) {
-        DataOptions opts = (DataOptions) options;
+        EnvironmentManagementOptions opts = options();
         String id = options.args.get(0);
         try {
             System.out.println(client.dump(id, opts.environment, token));
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
     }
 

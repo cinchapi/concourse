@@ -16,8 +16,9 @@
 package com.cinchapi.concourse.server.cli.data;
 
 import com.cinchapi.common.base.AnyStrings;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.core.EnvironmentManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A CLI for repairing data files.
@@ -25,7 +26,7 @@ import com.cinchapi.concourse.server.management.ConcourseManagementService.Clien
  * @author Jeff Nelson
  */
 @CommandLineInterfaceInformation(description = "Repair the Concourse Server data files")
-public class RepairDataCli extends DataCli {
+class RepairDataCli extends DataCli {
 
     /**
      * Construct a new instance.
@@ -33,17 +34,12 @@ public class RepairDataCli extends DataCli {
      * @param args
      */
     public RepairDataCli(String[] args) {
-        super(new DataOptions(), args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+        super(args);
     }
 
     @Override
     protected void doTask(Client client) {
-        DataOptions opts = (DataOptions) options;
+        EnvironmentManagementOptions opts = options();
         try {
             System.out.println(AnyStrings.format(
                     "Looking for corrupted data files in {}. If any are found they will be repaired.",
@@ -57,7 +53,7 @@ public class RepairDataCli extends DataCli {
                             opts.environmentDescription()));
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
 
     }

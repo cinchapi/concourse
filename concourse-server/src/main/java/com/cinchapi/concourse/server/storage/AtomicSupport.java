@@ -21,9 +21,9 @@ package com.cinchapi.concourse.server.storage;
  * <p>
  * {@link AtomicOperation AtomicOperations} use <strong>Just-in-Time
  * Locking</strong>, so initiating {@link LockFreeStore stores} must be
- * able to
- * perform operations without grabbing locks because the {@link AtomicOperation}
- * will do so in bulk prior to {@link AtomicOperation#commit() committing}.
+ * able to perform operations without grabbing locks because the
+ * {@link AtomicOperation} will do so in bulk prior to
+ * {@link AtomicOperation#commit() committing}.
  * </p>
  * 
  * @author Jeff Nelson
@@ -31,7 +31,7 @@ package com.cinchapi.concourse.server.storage;
 public interface AtomicSupport extends
         DurableStore,
         LockFreeStore,
-        VersionChangeNotifier {
+        TokenEventAnnouncer {
 
     /**
      * Return an {@link AtomicOperation} that can be used to group actions that
@@ -42,5 +42,13 @@ public interface AtomicSupport extends
      * @return the {@link AtomicOperation}
      */
     public AtomicOperation startAtomicOperation();
+
+    /**
+     * Perform any additional cleanup that should happen after successfully
+     * committing {@code operation}.
+     * 
+     * @param operation
+     */
+    public default void onCommit(AtomicOperation operation) {/* no-op */}
 
 }

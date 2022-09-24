@@ -66,6 +66,7 @@ if [ \$files -gt 0 ]; then
 	cp -fR NOTICE ../ # introduced in 0.5.0
 	cp -fR $META_FILE ../ # introduced in 0.5.0
 	cp -R bin/* ../bin/ # do not delete old bin dir incase it has custom scripts
+	cp -n conf/concourse.yaml ../conf # copy concourse.yaml (introduced in 0.12.0) to conf, if it doesn't already exist
 	rm ../wrapper-linux-x86-64 2>/dev/null # exists prior to 0.3.3
 	rm ../wrapper-macosx-universal-64 2>/dev/null # exists prior to 0.3.3
 	rm -rf ../wrapper 2>/dev/null #exists prior to 0.5.0
