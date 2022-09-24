@@ -74,7 +74,7 @@ public final class Transaction extends AtomicOperation implements
             ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
             Transaction transaction = new Transaction(destination, bytes);
-            transaction.invokeSuperDoCommit(true); // recovering transaction
+            transaction.invokeSuperApply(true); // recovering transaction
                                                    // must always syncAndVerify
                                                    // to prevent possible data
                                                    // duplication
@@ -331,6 +331,32 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
+    protected void apply() {
+        if(isReadOnly()) {
+            invokeSuperApply(false);
+        }
+        else {
+            String file = ((Engine) durable).transactionStore + File.separator
+                    + id + ".txn";
+            FileChannel channel = FileSystem.getFileChannel(file);
+            try {
+                channel.write(serialize());
+                channel.force(true);
+                Logger.info("Created backup for transaction {} at '{}'", this,
+                        file);
+                invokeSuperApply(false);
+                FileSystem.deleteFile(file);
+            }
+            catch (IOException e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+            finally {
+                FileSystem.closeFileChannel(channel);
+            }
+        }
+    }
+
+    @Override
     protected void checkIfQueuedPreempted() throws AtomicStateException {
         try {
             super.checkIfQueuedPreempted();
@@ -347,32 +373,6 @@ public final class Transaction extends AtomicOperation implements
         }
         catch (AtomicStateException e) {
             throw new TransactionStateException();
-        }
-    }
-
-    @Override
-    protected void doCommit() {
-        if(isReadOnly()) {
-            invokeSuperDoCommit(false);
-        }
-        else {
-            String file = ((Engine) durable).transactionStore + File.separator
-                    + id + ".txn";
-            FileChannel channel = FileSystem.getFileChannel(file);
-            try {
-                channel.write(serialize());
-                channel.force(true);
-                Logger.info("Created backup for transaction {} at '{}'", this,
-                        file);
-                invokeSuperDoCommit(false);
-                FileSystem.deleteFile(file);
-            }
-            catch (IOException e) {
-                throw CheckedExceptions.wrapAsRuntimeException(e);
-            }
-            finally {
-                FileSystem.closeFileChannel(channel);
-            }
         }
     }
 
@@ -410,16 +410,16 @@ public final class Transaction extends AtomicOperation implements
     }
 
     /**
-     * Invoke {@link #doCommit()} that is defined in the super class. This
+     * Invoke {@link #apply()} that is defined in the super class. This
      * method should only be called when it is desirable to doCommit without
      * performing a backup (i.e. when restoring from a backup in a static
      * method).
      * 
      * @param syncAndVerify a flag that is passed onto the
-     *            {@link AtomicOperation#doCommit(boolean)} method
+     *            {@link AtomicOperation#apply(boolean)} method
      */
-    private void invokeSuperDoCommit(boolean syncAndVerify) {
-        super.doCommit(syncAndVerify);
+    private void invokeSuperApply(boolean syncAndVerify) {
+        super.apply(syncAndVerify);
         Logger.info("Finalized commit for Transaction {}", this);
     }
 
