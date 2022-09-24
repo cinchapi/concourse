@@ -730,113 +730,12 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Return {@code true} if {@code event} for {@code token} preempts this
-     * {@link AtomicOperation operation}.
-     * 
-     * @param event
-     * @param token
-     * 
-     * @return {@code true} if this {@link AtomicOperation} is
-     *         {@link Status#PREEMPTED interrupted} when
-     *         {@link #observe(TokenEvent, Token) observing} an
-     *         announcement of {@code event} for {@code token}
-     */
-    @Restricted
-    protected boolean isPreemptedBy(TokenEvent event, Token token) {
-        if(event == TokenEvent.VERSION_CHANGE && isPreemptible()) {
-            if(token instanceof RangeToken) {
-                // NOTE: RangeTokens intended for writes (held in
-                // writes2Lock) should never cause the AtomicOperation to be
-                // preempted because they are infinitely wide.
-                RangeToken rangeToken = (RangeToken) token;
-                RangeSet<Value> covered = rangeReads2Lock.ranges
-                        .get(rangeToken.getKey());
-                if(covered != null) {
-                    Iterable<Range<Value>> ranges = rangeToken.ranges();
-                    for (Range<Value> range : ranges) {
-                        if(!covered.subRangeSet(range).isEmpty()) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            else if((reads2Lock.contains(token) || writes2Lock.contains(token))
-                    && !exemptions.contains(token)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Return {@code true} if this Atomic Operation has 0 writes.
-     * 
-     * @return {@code true} if this atomic operation is considered
-     *         <em>read-only</em>
-     */
-    protected boolean isReadOnly() {
-        return ((Queue) limbo).size() == 0;
-    }
-
-    @Override
-    protected final boolean remove(Write write, Sync sync, Verify verify)
-            throws AtomicStateException {
-        checkState();
-        String key = write.getKey().toString();
-        long record = write.getRecord().longValue();
-        Token token = Token.wrap(key, record);
-        RangeToken rangeToken = RangeToken.forWriting(write.getKey(),
-                write.getValue());
-        Token wide = wideReads.get(record);
-        if(wide != null) {
-            writes2Lock.add(wide);
-        }
-        else {
-            writes2Lock.add(token);
-            // CON-669: Prevent a conflicting wide read, but don't listen for
-            // wide version change
-            Token shared = Token.shareable(record);
-            writes2Lock.add(shared);
-            exemptions.add(shared);
-        }
-        writes2Lock.add(rangeToken);
-        return super.remove(write, sync, verify);
-    }
-
-    /**
-     * Set the {@link Status} of this {@link AtomicOperation}.
-     * 
-     * @param status
-     */
-    protected final void setStatus(Status status) {
-        this.status.set(status);
-    }
-
-    @Override
-    protected boolean verifyWithReentrancy(Write write) {
-        return super.verify(write);
-    }
-
-    /**
-     * Commit the atomic operation to the destination store. The commit is only
-     * successful if all the grouped operations can be successfully applied to
-     * the destination. If the commit fails, the caller should retry the atomic
-     * operation.
-     * 
-     * @return {@code true} if the atomic operation is completely applied
-     */
-    @VisibleForTesting
-    final boolean commit() throws AtomicStateException {
-        return commit(CommitVersions.next());
-    }
-
-    /**
      * Complete the {@link #commit(long) commit} and {@link #apply() apply} any
      * changes.
      * 
      * @param version
      */
-    private void complete(long version) {
+    protected void complete(long version) {
         if(status.compareAndSet(Status.FINALIZING, Status.FINALIZING)) {
             source.unsubscribe(this);
             limbo.transform(write -> write.rewrite(version));
@@ -963,6 +862,107 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Return {@code true} if {@code event} for {@code token} preempts this
+     * {@link AtomicOperation operation}.
+     * 
+     * @param event
+     * @param token
+     * 
+     * @return {@code true} if this {@link AtomicOperation} is
+     *         {@link Status#PREEMPTED interrupted} when
+     *         {@link #observe(TokenEvent, Token) observing} an
+     *         announcement of {@code event} for {@code token}
+     */
+    @Restricted
+    protected boolean isPreemptedBy(TokenEvent event, Token token) {
+        if(event == TokenEvent.VERSION_CHANGE && isPreemptible()) {
+            if(token instanceof RangeToken) {
+                // NOTE: RangeTokens intended for writes (held in
+                // writes2Lock) should never cause the AtomicOperation to be
+                // preempted because they are infinitely wide.
+                RangeToken rangeToken = (RangeToken) token;
+                RangeSet<Value> covered = rangeReads2Lock.ranges
+                        .get(rangeToken.getKey());
+                if(covered != null) {
+                    Iterable<Range<Value>> ranges = rangeToken.ranges();
+                    for (Range<Value> range : ranges) {
+                        if(!covered.subRangeSet(range).isEmpty()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            else if((reads2Lock.contains(token) || writes2Lock.contains(token))
+                    && !exemptions.contains(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Return {@code true} if this Atomic Operation has 0 writes.
+     * 
+     * @return {@code true} if this atomic operation is considered
+     *         <em>read-only</em>
+     */
+    protected boolean isReadOnly() {
+        return ((Queue) limbo).size() == 0;
+    }
+
+    @Override
+    protected final boolean remove(Write write, Sync sync, Verify verify)
+            throws AtomicStateException {
+        checkState();
+        String key = write.getKey().toString();
+        long record = write.getRecord().longValue();
+        Token token = Token.wrap(key, record);
+        RangeToken rangeToken = RangeToken.forWriting(write.getKey(),
+                write.getValue());
+        Token wide = wideReads.get(record);
+        if(wide != null) {
+            writes2Lock.add(wide);
+        }
+        else {
+            writes2Lock.add(token);
+            // CON-669: Prevent a conflicting wide read, but don't listen for
+            // wide version change
+            Token shared = Token.shareable(record);
+            writes2Lock.add(shared);
+            exemptions.add(shared);
+        }
+        writes2Lock.add(rangeToken);
+        return super.remove(write, sync, verify);
+    }
+
+    /**
+     * Set the {@link Status} of this {@link AtomicOperation}.
+     * 
+     * @param status
+     */
+    protected final void setStatus(Status status) {
+        this.status.set(status);
+    }
+
+    @Override
+    protected boolean verifyWithReentrancy(Write write) {
+        return super.verify(write);
+    }
+
+    /**
+     * Commit the atomic operation to the destination store. The commit is only
+     * successful if all the grouped operations can be successfully applied to
+     * the destination. If the commit fails, the caller should retry the atomic
+     * operation.
+     * 
+     * @return {@code true} if the atomic operation is completely applied
+     */
+    @VisibleForTesting
+    final boolean commit() throws AtomicStateException {
+        return commit(CommitVersions.next());
+    }
+
+    /**
      * Return {@code true} if it can immediately be determined that
      * {@code event} for {@code token} preempts this {@link AtomicOperation
      * operation}.
@@ -1028,7 +1028,7 @@ public class AtomicOperation extends BufferedStore implements
     /**
      * Release all of the locks that are held by this operation.
      */
-    protected void releaseLocks() {
+    private void releaseLocks() {
         if(isReadOnly()) {
             return;
         }
