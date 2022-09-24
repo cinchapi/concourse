@@ -281,7 +281,7 @@ public class AtomicOperation extends BufferedStore implements
                     Status.FINALIZING)) {
                 source.unsubscribe(this);
                 limbo.transform(write -> write.rewrite(version));
-                doCommit();
+                apply();
                 releaseLocks();
                 source.onCommit(this);
                 return status.compareAndSet(Status.FINALIZING,
@@ -631,6 +631,58 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Transport the written data to the {@link #durable} store. The
+     * subclass may override this method to do additional things (i.e. backup
+     * the data, etc) if necessary.
+     */
+    protected void apply() {
+        apply(false);
+    }
+
+    /**
+     * Transport the written data to the {@link #durable} store. The
+     * subclass may override this method to do additional things (i.e. backup
+     * the data, etc) if necessary.
+     * 
+     * @param syncAndVerify a flag that controls whether this operation will
+     *            cause the {@code destination} to always perform a sync and
+     *            verify for each write that is transported. If this value is
+     *            set to {@code false}, this operation will transport all the
+     *            writes without instructing the destination to sync and verify.
+     *            Once all the writes have been transported, the destination
+     *            will be instructed to sync the writes as a group (GROUP SYNC),
+     *            but no verification will occur for any of the writes (which is
+     *            okay as long as this operation implicitly verifies each write
+     *            prior to commit, see CON-246).
+     *            <p>
+     *            NOTE: This parameter is eventually passed from the
+     *            {@code verify} parameter in a call to
+     *            {@link BufferedStore#add(String, TObject, long, boolean, boolean, boolean)}
+     *            or
+     *            {@link BufferedStore#remove(String, TObject, long, boolean, boolean, boolean)}
+     *            . Generally speaking, this coupling between optional syncing
+     *            and optional verifying is okay because it doesn't make sense
+     *            to sync but not verify or verify but not sync.
+     *            </p>
+     */
+    protected void apply(boolean syncAndVerify) {
+        // Since we don't take a backup, it is possible that we can end up
+        // in a situation where the server crashes in the middle of the data
+        // transport, which means that the atomic operation would be partially
+        // committed on server restart, which would appear to violate the
+        // "all or nothing" guarantee. We are willing to live with that risk
+        // because the occurrence of that happening seems low and atomic
+        // operations don't guarantee consistency or durability, so it is
+        // technically not a violation of "all or nothing" if the entire
+        // operation succeeds but isn't durable on crash and leaves the database
+        // in an inconsistent state.
+        limbo.transport(durable, syncAndVerify);
+        if(!syncAndVerify) {
+            durable.sync();
+        }
+    }
+
+    /**
      * Check if this operation is preempted by any {@link #queued} version
      * change announcements.
      * <p>
@@ -664,58 +716,6 @@ public class AtomicOperation extends BufferedStore implements
             throw new AtomicStateException();
         }
         checkIfQueuedPreempted();
-    }
-
-    /**
-     * Transport the written data to the {@link #durable} store. The
-     * subclass may override this method to do additional things (i.e. backup
-     * the data, etc) if necessary.
-     */
-    protected void doCommit() {
-        doCommit(false);
-    }
-
-    /**
-     * Transport the written data to the {@link #durable} store. The
-     * subclass may override this method to do additional things (i.e. backup
-     * the data, etc) if necessary.
-     * 
-     * @param syncAndVerify a flag that controls whether this operation will
-     *            cause the {@code destination} to always perform a sync and
-     *            verify for each write that is transported. If this value is
-     *            set to {@code false}, this operation will transport all the
-     *            writes without instructing the destination to sync and verify.
-     *            Once all the writes have been transported, the destination
-     *            will be instructed to sync the writes as a group (GROUP SYNC),
-     *            but no verification will occur for any of the writes (which is
-     *            okay as long as this operation implicitly verifies each write
-     *            prior to commit, see CON-246).
-     *            <p>
-     *            NOTE: This parameter is eventually passed from the
-     *            {@code verify} parameter in a call to
-     *            {@link BufferedStore#add(String, TObject, long, boolean, boolean, boolean)}
-     *            or
-     *            {@link BufferedStore#remove(String, TObject, long, boolean, boolean, boolean)}
-     *            . Generally speaking, this coupling between optional syncing
-     *            and optional verifying is okay because it doesn't make sense
-     *            to sync but not verify or verify but not sync.
-     *            </p>
-     */
-    protected void doCommit(boolean syncAndVerify) {
-        // Since we don't take a backup, it is possible that we can end up
-        // in a situation where the server crashes in the middle of the data
-        // transport, which means that the atomic operation would be partially
-        // committed on server restart, which would appear to violate the
-        // "all or nothing" guarantee. We are willing to live with that risk
-        // because the occurrence of that happening seems low and atomic
-        // operations don't guarantee consistency or durability, so it is
-        // technically not a violation of "all or nothing" if the entire
-        // operation succeeds but isn't durable on crash and leaves the database
-        // in an inconsistent state.
-        limbo.transport(durable, syncAndVerify);
-        if(!syncAndVerify) {
-            durable.sync();
-        }
     }
 
     /**
