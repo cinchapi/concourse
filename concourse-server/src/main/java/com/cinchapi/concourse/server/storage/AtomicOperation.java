@@ -269,6 +269,24 @@ public class AtomicOperation extends BufferedStore implements
      * successful if all the grouped operations can be successfully applied to
      * the destination. If the commit fails, the caller should retry the atomic
      * operation.
+     * <p>
+     * Implicitly, this implementation is based on the two-phase commit
+     * protocol.
+     * <ul>
+     * <li>
+     * First, the operation {@link #prepare() makes preparations} to commit and
+     * confirms whether it can guarantee successful {@link #complete(long)
+     * completion}.
+     * </li>
+     * <li>
+     * If the operation confirms it can {@link #complete(long) complete}, it
+     * proceeds to do so
+     * </li>
+     * <li>
+     * Otherwise, the operation is {@link #abort() aborted}.
+     * </li>
+     * </ul>
+     * </p>
      * 
      * @param version the {@link Versioned#getVersion() version} to apply to all
      *            the writes in this {@link AtomicOperation}
@@ -276,16 +294,9 @@ public class AtomicOperation extends BufferedStore implements
      */
     public final boolean commit(long version) throws AtomicStateException {
         if(status.compareAndSet(Status.OPEN, Status.PENDING)) {
-            checkIfQueuedPreempted();
-            if(grabLocks() && status.compareAndSet(Status.PENDING,
-                    Status.FINALIZING)) {
-                source.unsubscribe(this);
-                limbo.transform(write -> write.rewrite(version));
-                apply();
-                releaseLocks();
-                source.onCommit(this);
-                return status.compareAndSet(Status.FINALIZING,
-                        Status.COMMITTED);
+            if(prepare()) {
+                complete(version);
+                return true;
             }
             else {
                 abort();
@@ -820,6 +831,29 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Complete the {@link #commit(long) commit} and {@link #apply() apply} any
+     * changes.
+     * 
+     * @param version
+     */
+    private void complete(long version) {
+        if(status.compareAndSet(Status.FINALIZING, Status.FINALIZING)) {
+            source.unsubscribe(this);
+            limbo.transform(write -> write.rewrite(version));
+            apply();
+            releaseLocks();
+            source.onCommit(this);
+            if(!status.compareAndSet(Status.FINALIZING, Status.COMMITTED)) {
+                throw new IllegalStateException(
+                        "Unexpected atomic operation state change");
+            }
+        }
+        else {
+            throw new AtomicStateException();
+        }
+    }
+
+    /**
      * Check each one of the {@link #intentions} against the
      * {@link #durable} and grab the appropriate locks along the way. This
      * method will return {@code true} if all expectations are met and all
@@ -969,6 +1003,26 @@ public class AtomicOperation extends BufferedStore implements
             }
         }
         return false;
+    }
+
+    /**
+     * Prepare to {@link #complete(long) complete} the {@link #commit(long)
+     * commit} (e.g., acquire locks) without actually {@link #apply() applying}
+     * any of the changes.
+     * 
+     * @return {@code true} if the transaction can guarantee that it can
+     *         {@code #complete(long) complete}
+     */
+    private boolean prepare() {
+        if(status.compareAndSet(Status.PENDING, Status.PENDING)) {
+            checkIfQueuedPreempted();
+            return grabLocks()
+                    && status.compareAndSet(Status.PENDING, Status.FINALIZING);
+        }
+        else {
+            throw new AtomicStateException();
+        }
+
     }
 
     /**

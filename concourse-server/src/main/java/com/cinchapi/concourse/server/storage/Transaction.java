@@ -79,9 +79,9 @@ public final class Transaction extends AtomicOperation implements
                     FileSystem.getFileSize(file));
             Transaction transaction = new Transaction(destination, bytes);
             transaction.invokeSuperApply(true); // recovering transaction
-                                                   // must always syncAndVerify
-                                                   // to prevent possible data
-                                                   // duplication
+                                                // must always syncAndVerify
+                                                // to prevent possible data
+                                                // duplication
             FileSystem.deleteFile(file);
         }
         catch (Exception e) {
