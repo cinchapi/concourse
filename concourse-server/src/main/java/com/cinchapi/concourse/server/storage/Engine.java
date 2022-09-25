@@ -58,12 +58,10 @@ import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Transformers;
 import com.cinchapi.ensemble.Broadcast;
-import com.cinchapi.ensemble.Ensemble;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 import com.cinchapi.ensemble.Locator;
 import com.cinchapi.ensemble.Read;
 import com.cinchapi.ensemble.WeakRead;
-import com.cinchapi.ensemble.core.LocalProcess;
 import com.google.common.annotations.VisibleForTesting;
 
 /**
@@ -83,7 +81,7 @@ import com.google.common.annotations.VisibleForTesting;
 public final class Engine extends BufferedStore implements
         TransactionSupport,
         AtomicSupport,
-        Ensemble {
+        Distributed {
 
     //
     // NOTES ON LOCKING:
@@ -320,35 +318,13 @@ public final class Engine extends BufferedStore implements
     }
 
     @Override
-    public void $ensembleAbortAtomic(EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
-        atomic.abort();
-    }
-
-    @Override
-    public void $ensembleFinishCommitAtomic(
-            EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
-        atomic.finish();
-    }
-
-    @Override
     public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
         return EnsembleInstanceIdentifier.of(environment);
     }
 
     @Override
-    public boolean $ensemblePrepareCommitAtomic(
-            EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
-        return atomic.commit();
-    }
-
-    @Override
-    public EnsembleInstanceIdentifier $ensembleStartAtomic(
-            EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = new TwoPhaseCommit(identifier, this, broker);
-        return atomic.$ensembleInstanceIdentifier();
+    public LockBroker $ensembleLockBroker() {
+        return broker;
     }
 
     @Override

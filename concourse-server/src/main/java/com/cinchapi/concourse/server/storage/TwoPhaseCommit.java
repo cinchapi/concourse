@@ -44,13 +44,18 @@ import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
  *
  * @author Jeff Nelson
  */
-class TwoPhaseCommit extends AtomicOperation implements Ensemble {
+class TwoPhaseCommit extends AtomicOperation {
 
     /**
      * The {@link EnsembleInstanceIdentifier} that is assigned when
-     * {@link Engine#$ensembleStartAtomic(EnsembleInstanceIdentifier)}.
+     * {@link Ensemble#$ensembleStartAtomic(EnsembleInstanceIdentifier)}.
      */
     private final EnsembleInstanceIdentifier identifier;
+
+    /**
+     * The version to assign when {@link #finish() finishing the commit}.
+     */
+    private Long version = null;
 
     /**
      * Construct a new instance.
@@ -66,38 +71,57 @@ class TwoPhaseCommit extends AtomicOperation implements Ensemble {
     }
 
     @Override
+    public void $ensembleAbortAtomic(EnsembleInstanceIdentifier identifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void $ensembleFinishCommitAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
+        return identifier;
+    }
+
+    @Override
+    public boolean $ensemblePrepareCommitAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        return false;
+    }
+
+    @Override
+    public EnsembleInstanceIdentifier $ensembleStartAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void abort() {
-        super.abort();
-        super.releaseLocks();
+        super.cancel();
     }
 
     /**
      * Finish the {@link #commit()} and release all the locks that were grabbed.
      */
     public void finish() {
-        if(status().equals(Status.COMMITTED)) {
-            // TODO: need a new status?
-            super.doCommit();
-            super.releaseLocks();
+        if(version != null) {
+            super.complete(version);
         }
         else {
-            throw new AtomicStateException();
+            throwAtomicStateException();
         }
     }
 
     @Override
-    protected void doCommit() {
-        // Don't actually perform the commit work. This ensures that the only
-        // thing that happens when #commit() is called is that the locks are
-        // grabbed. The actual commit work happens when #finish() is called.
-    }
-
-    @Override
-    protected void releaseLocks() {/* no-op */}
-
-    @Override
-    public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
-        return identifier;
+    protected void complete(long version) {
+        this.version = version;
+        // Don't actually perform the completion work. This ensures that the
+        // only thing that happens when #commit() is called is that the locks
+        // are acquired. The actual completion work happens when #finish() is
+        // called.
     }
 
 }
