@@ -357,26 +357,6 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    protected void checkIfQueuedPreempted() throws AtomicStateException {
-        try {
-            super.checkIfQueuedPreempted();
-        }
-        catch (AtomicStateException e) {
-            throw new TransactionStateException();
-        }
-    }
-
-    @Override
-    protected void checkState() throws AtomicStateException {
-        try {
-            super.checkState();
-        }
-        catch (AtomicStateException e) {
-            throw new TransactionStateException();
-        }
-    }
-
-    @Override
     @Restricted
     protected boolean isPreemptedBy(TokenEvent event, Token token) {
         for (TokenEventObserver observer : observers) {
@@ -445,4 +425,10 @@ public final class Transaction extends AtomicOperation implements
         bytes.rewind();
         return bytes;
     }
+
+    @Override
+    protected void throwAtomicStateException() {
+        throw new TransactionStateException();
+    }
+
 }
