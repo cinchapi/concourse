@@ -15,10 +15,13 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.nio.ByteBuffer;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,6 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.concurrent.LockBroker;
@@ -47,6 +51,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -69,12 +74,14 @@ import com.google.common.collect.TreeRangeSet;
  * 
  * @author Jeff Nelson
  */
+@NotThreadSafe
 public class AtomicOperation extends BufferedStore implements
+        AtomicSupport,
         TokenEventObserver {
 
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
-    // destination is assumed to have its own concurrency control scheme in
+    // #source is assumed to have its own concurrency control scheme in
     // place.
 
     /**
@@ -116,6 +123,27 @@ public class AtomicOperation extends BufferedStore implements
     protected final LockBroker broker;
 
     /**
+     * Whenever a nested {@link AtomicOperation} is
+     * {@link #startAtomicOperation() started}, it, by virtue of being a
+     * {@link TokenEventObserver}, {@link #subscribe(TokenEventObserver)
+     * subscribes} for announcements about token events from this operation.
+     * This operation {@link #observe(TokenEvent, Token) observes} on behalf of
+     * the child {@link AtomicOperation}, intercepting announcements from its
+     * own {@link #source} store (e.g., the {@link Engine}) and
+     * {@link AtomicOperation#abort() aborting} the child
+     * {@link AtomicOperation} if it
+     * {@link AtomicOperation#isPreemptedBy(TokenEvent, Token) concerns} an
+     * {@link #observe(TokenEvent, Token) observed} {@link TokenEvent event} for
+     * a {@link Token}
+     * <p>
+     * This collection is non thread-safe because it is assumed that only one
+     * nested {@link AtomicOperation} will live at a time, so there will ever
+     * only be one {@link #observers observer}.
+     * </p>
+     */
+    private final Set<TokenEventObserver> observers = new HashSet<>(1);
+
+    /**
      * Tracks the {@link Status} of this {@link AtomicOperation}.
      */
     private final AtomicReference<Status> status = new AtomicReference<>(
@@ -138,6 +166,14 @@ public class AtomicOperation extends BufferedStore implements
      * this Atomic Operation stems.
      */
     private final AtomicSupport source;
+
+    /**
+     * A handler that bypasses the overloaded logic defined in this class and
+     * hooks into the "unlocked" logic of {@link BufferedStore} for read
+     * methods. This handler facilitates the methods that are defined in
+     * {@link LockFreeStore}.
+     */
+    private final BufferedStore unlocked;
 
     /**
      * This map contains all the records in which a "wide read" (e.g. a read
@@ -191,6 +227,20 @@ public class AtomicOperation extends BufferedStore implements
         super(buffer, destination);
         this.broker = broker;
         this.source = (AtomicSupport) this.durable;
+        this.unlocked = new BufferedStore(limbo, durable) {
+
+            @Override
+            public void start() {}
+
+            @Override
+            public void stop() {}
+
+            @Override
+            protected boolean verifyWithReentrancy(Write write) {
+                return super.verify(write);
+            }
+
+        };
         source.subscribe(this);
     }
 
@@ -215,10 +265,32 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    public void accept(Write write) {
+        // Accept writes from an a nested AtomicOperation and put them in this
+        // operation's buffer without performing an additional #verify, but
+        // grabbing the necessary lock intentions.
+        checkArgument(write.getType() != Action.COMPARE);
+        if(write.getType() == Action.ADD) {
+            add(write, Sync.NO, Verify.NO);
+        }
+        else {
+            remove(write, Sync.NO, Verify.NO);
+        }
+    }
+
+    @Override
+    public void accept(Write write, boolean sync) {
+        accept(write);
+    }
+
+    @Override
     public final boolean add(String key, TObject value, long record)
             throws AtomicStateException {
         return add(Write.add(key, value, record), Sync.NO, Verify.YES);
     }
+
+    @Override
+    public void announce(TokenEvent event, Token... tokens) {}
 
     @Override
     public final Map<TObject, Set<Long>> browse(String key)
@@ -247,6 +319,11 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    public Map<TObject, Set<Long>> browseUnlocked(String key) {
+        return unlocked.browse(key);
+    }
+
+    @Override
     public final Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) throws AtomicStateException {
         checkState();
@@ -261,6 +338,12 @@ public class AtomicOperation extends BufferedStore implements
         else {
             return super.chronologize(key, record, start, end);
         }
+    }
+
+    @Override
+    public Map<Long, Set<TObject>> chronologizeUnlocked(String key, long record,
+            long start, long end) {
+        return unlocked.chronologize(key, record, start, end);
     }
 
     /**
@@ -342,6 +425,12 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    public Map<Long, Set<TObject>> exploreUnlocked(String key,
+            Aliases aliases) {
+        return unlocked.explore(key, aliases);
+    }
+
+    @Override
     public final Set<TObject> gather(String key, long record)
             throws AtomicStateException {
         checkState();
@@ -363,22 +452,58 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    public Set<TObject> gatherUnlocked(String key, long record) {
+        return unlocked.gather(key, record);
+    }
+
+    @Override
     @Restricted
     public boolean observe(TokenEvent event, Token token) {
-        // NOTE: If the AtomicOperation is preempted by #event, an explicit call
-        // to source.unsubscribe() isn't made here, because the Engine will
-        // automatically remove this AtomicOperation from its list of known
-        // observers.
+        while (observers == null) {
+            // Account for a race condition where the Transaction (via
+            // AtomicOperation) subscribes for TokenEvents before the #observers
+            // collection is set during Transaction construction
+            Logger.warn("An atomic operation handled by {} received a Token "
+                    + "Event announcement before it was fully initialized",
+                    Thread.currentThread());
+            Thread.yield();
+        }
+        boolean intercepted = false;
         try {
-            return isImmediatelyPreemptedBy(event, token) && (status
-                    .compareAndSet(Status.OPEN, Status.PREEMPTED)
-                    || status.compareAndSet(Status.PENDING, Status.PREEMPTED));
+            Iterator<TokenEventObserver> it = observers.iterator();
+            while (it.hasNext()) {
+                TokenEventObserver observer = it.next();
+                AtomicOperation atomic = (AtomicOperation) observer;
+                if(atomic.isPreemptedBy(event, token)) {
+                    atomic.abort();
+                    intercepted = true;
+                    it.remove();
+                }
+            }
+            if(intercepted) {
+                return true;
+            }
+            else {
+                // NOTE: If the AtomicOperation is preempted by #event, an
+                // explicit call to source.unsubscribe() isn't made here,
+                // because the Engine will automatically remove this
+                // AtomicOperation from its list of known observers.
+                return isImmediatelyPreemptedBy(event, token)
+                        && (status.compareAndSet(Status.OPEN, Status.PREEMPTED)
+                                || status.compareAndSet(Status.PENDING,
+                                        Status.PREEMPTED));
+            }
         }
         catch (ConcurrentModificationException e) {
             // Another asynchronous write or announcement was received while
             // observing the token event, so a retry is necessary.
             return observe(event, token);
         }
+    }
+
+    @Override
+    public void onCommit(AtomicOperation operation) {
+        absorb(operation);
     }
 
     @Override
@@ -407,6 +532,16 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(key, record);
         reads2Lock.add(token);
         return super.review(key, record);
+    }
+
+    @Override
+    public Map<Long, List<String>> reviewUnlocked(long record) {
+        return unlocked.review(record);
+    }
+
+    @Override
+    public Map<Long, List<String>> reviewUnlocked(String key, long record) {
+        return unlocked.review(key, record);
     }
 
     @Override
@@ -460,6 +595,16 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
+    public Map<String, Set<TObject>> selectUnlocked(long record) {
+        return unlocked.select(record);
+    }
+
+    @Override
+    public Set<TObject> selectUnlocked(String key, long record) {
+        return unlocked.select(key, record);
+    }
+
+    @Override
     public final void set(String key, TObject value, long record)
             throws AtomicStateException {
         checkState();
@@ -485,6 +630,19 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     public final void start() {}
 
+    @Override
+    public AtomicOperation startAtomicOperation() {
+        checkState();
+        /*
+         * This operation must adhere to the JIT locking guarantees of its
+         * #source. So, when starting a nested operation, this one inherits the
+         * lock intentions of its child, but defers locking on behalf of the
+         * child until it is ready to commit. As a result, we do not pass the
+         * #source's lock broker to the nested operation.
+         */
+        return AtomicOperation.start(this, LockBroker.noOp());
+    }
+
     /**
      * Return the {@link Status} of this {@link AtomicOperation}.
      * 
@@ -501,6 +659,14 @@ public class AtomicOperation extends BufferedStore implements
     @Override
     public final void stop() {}
 
+    @Override
+    public void subscribe(TokenEventObserver observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void sync() {/* no-op */}
+
     /**
      * Register interest in {@code record} so that this AtomicOperation can
      * listen for changes and grab a read lock at commit time.
@@ -512,6 +678,11 @@ public class AtomicOperation extends BufferedStore implements
         Token token = Token.wrap(record);
         reads2Lock.add(token);
         wideReads.put(record, token);
+    }
+
+    @Override
+    public void unsubscribe(TokenEventObserver observer) {
+        observers.remove(observer);
     }
 
     @Override
@@ -533,6 +704,16 @@ public class AtomicOperation extends BufferedStore implements
                 write.getRecord().longValue());
         reads2Lock.add(token);
         return super.verify(write);
+    }
+
+    @Override
+    public boolean verifyUnlocked(String key, TObject value, long record) {
+        return unlocked.verify(key, value, record);
+    }
+
+    @Override
+    public boolean verifyUnlocked(Write write) {
+        return unlocked.verify(write);
     }
 
     @Override
@@ -729,6 +910,11 @@ public class AtomicOperation extends BufferedStore implements
      */
     @Restricted
     protected boolean isPreemptedBy(TokenEvent event, Token token) {
+        for (TokenEventObserver observer : observers) {
+            if(((AtomicOperation) observer).isPreemptedBy(event, token)) {
+                return true;
+            }
+        }
         if(event == TokenEvent.VERSION_CHANGE && isPreemptible()) {
             if(token instanceof RangeToken) {
                 // NOTE: RangeTokens intended for writes (held in
