@@ -44,9 +44,6 @@ import com.cinchapi.concourse.util.Logger;
  * @author Jeff Nelson
  */
 public final class Transaction extends AtomicOperation {
-    // NOTE: Because Transaction's rely on JIT locking, the unsafe methods call
-    // the safe counterparts in the super class (AtomicOperation) because those
-    // have logic to tell the BufferedStore class to perform unsafe reads.
 
     /**
      * Return the Transaction for {@code destination} that is backed up to

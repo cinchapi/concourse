@@ -79,7 +79,7 @@ public class AtomicOperation extends BufferedStore implements
 
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
-    // destination is assumed to have its own concurrency control scheme in
+    // #source is assumed to have its own concurrency control scheme in
     // place.
 
     /**
