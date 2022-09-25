@@ -112,7 +112,7 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * The collection of {@link LockDescription} objects that are grabbed in the
-     * {@link #grabLocks()} method at commit time.
+     * {@link #acquireLocks()} method at commit time.
      */
     @Nullable
     protected Set<LockDescription> locks = null;
@@ -246,7 +246,7 @@ public class AtomicOperation extends BufferedStore implements
 
     /**
      * Close this operation and release all of the held locks without applying
-     * any of the changes to the {@link #durable} store.
+     * any of the changes to the {@link #source} store.
      */
     public void abort() {
         if(status.compareAndSet(Status.OPEN, Status.FINALIZING)
@@ -347,45 +347,43 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Commit the atomic operation to the destination store. The commit is only
-     * successful if all the grouped operations can be successfully applied to
-     * the destination. If the commit fails, the caller should retry the atomic
-     * operation.
+     * Commit the operation and apply its effects to the {@link #source}.
+     * <p>
+     * This method only returns {@code true} if all the effects can be
+     * successfully applied as a unit. If the commit fails, non of the effects
+     * are applied and the caller may retry the operation.
+     * </p>
+     * <p>
+     * The two-phase commit protocol is used:
+     * <ul>
+     * <li>
+     * First, the operation {@link #prepare() makes preparations} to commit and
+     * confirms whether it can guarantee successful {@link #complete(long)
+     * completion}.
+     * </li>
+     * <li>
+     * If the operation confirms it can {@link #complete(long) complete}, it
+     * proceeds.
+     * </li>
+     * <li>
+     * Otherwise, the operation is {@link #cancel() cancelled}.
+     * </li>
+     * </ul>
+     * </p>
      * 
      * @param version the {@link Versioned#getVersion() version} to apply to all
      *            the writes in this {@link AtomicOperation}
-     * @return {@code true} if the atomic operation is completely applied
+     * @return {@code true} if the effects of the operation are completely
+     *         applied
      */
+    @VisibleForTesting
     public final boolean commit(long version) throws AtomicStateException {
-        if(status.compareAndSet(Status.OPEN, Status.PENDING)) {
-            checkIfQueuedPreempted();
-            if(grabLocks() && status.compareAndSet(Status.PENDING,
-                    Status.FINALIZING)) {
-                source.unsubscribe(this);
-                limbo.transform(write -> write.rewrite(version));
-                doCommit();
-                releaseLocks();
-                source.onCommit(this);
-                return status.compareAndSet(Status.FINALIZING,
-                        Status.COMMITTED);
-            }
-            else {
-                abort();
-                return false;
-            }
+        if(prepare()) {
+            complete(version);
+            return true;
         }
         else {
-            try {
-                checkState();
-            }
-            catch (TransactionStateException e) { // the Transaction subclass
-                                                  // overrides #checkState() to
-                                                  // throw this exception to
-                                                  // distinguish transaction
-                                                  // failures
-                throw e;
-            }
-            catch (AtomicStateException e) {/* ignore */}
+            cancel();
             return false;
         }
     }
@@ -811,48 +809,12 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Check if this operation is preempted by any {@link #queued} version
-     * change announcements.
-     * <p>
-     * If the operation is preempted, an {@link AtomicStateException} is thrown.
-     * </p>
-     */
-    protected void checkIfQueuedPreempted() {
-        Token token;
-        while ((token = queued.poll()) != null) {
-            if(isPreemptedBy(TokenEvent.VERSION_CHANGE, token)
-                    && (status.compareAndSet(Status.OPEN, Status.PREEMPTED)
-                            || status.compareAndSet(Status.PENDING,
-                                    Status.PREEMPTED))) {
-                source.unsubscribe(this);
-                throw new AtomicStateException();
-            }
-        }
-    }
-
-    /**
-     * Check that this AtomicOperation is open and throw an
-     * AtomicStateException if it is not.
-     * 
-     * @throws AtomicStateException
-     */
-    protected void checkState() throws AtomicStateException {
-        if(status.get() == Status.PREEMPTED) {
-            abort();
-        }
-        if(status.get() != Status.OPEN) {
-            throw new AtomicStateException();
-        }
-        checkIfQueuedPreempted();
-    }
-
-    /**
      * Transport the written data to the {@link #durable} store. The
      * subclass may override this method to do additional things (i.e. backup
      * the data, etc) if necessary.
      */
-    protected void doCommit() {
-        doCommit(false);
+    protected void apply() {
+        apply(false);
     }
 
     /**
@@ -881,7 +843,7 @@ public class AtomicOperation extends BufferedStore implements
      *            to sync but not verify or verify but not sync.
      *            </p>
      */
-    protected void doCommit(boolean syncAndVerify) {
+    protected void apply(boolean syncAndVerify) {
         // Since we don't take a backup, it is possible that we can end up
         // in a situation where the server crashes in the middle of the data
         // transport, which means that the atomic operation would be partially
@@ -896,6 +858,42 @@ public class AtomicOperation extends BufferedStore implements
         if(!syncAndVerify) {
             durable.sync();
         }
+    }
+
+    /**
+     * Check if this operation is preempted by any {@link #queued} version
+     * change announcements.
+     * <p>
+     * If the operation is preempted, an {@link AtomicStateException} is thrown.
+     * </p>
+     */
+    protected void checkIfQueuedPreempted() {
+        Token token;
+        while ((token = queued.poll()) != null) {
+            if(isPreemptedBy(TokenEvent.VERSION_CHANGE, token)
+                    && (status.compareAndSet(Status.OPEN, Status.PREEMPTED)
+                            || status.compareAndSet(Status.PENDING,
+                                    Status.PREEMPTED))) {
+                source.unsubscribe(this);
+                throwAtomicStateException();
+            }
+        }
+    }
+
+    /**
+     * Check that this AtomicOperation is open and throw an
+     * AtomicStateException if it is not.
+     * 
+     * @throws AtomicStateException
+     */
+    protected void checkState() throws AtomicStateException {
+        if(status.get() == Status.PREEMPTED) {
+            abort();
+        }
+        if(status.get() != Status.OPEN) {
+            throwAtomicStateException();
+        }
+        checkIfQueuedPreempted();
     }
 
     /**
@@ -986,6 +984,15 @@ public class AtomicOperation extends BufferedStore implements
         this.status.set(status);
     }
 
+    /**
+     * Throw an {@link AtomicStateException}.
+     * 
+     * @throws AtomicStateException
+     */
+    protected void throwAtomicStateException() throws AtomicStateException {
+        throw new AtomicStateException();
+    }
+
     @Override
     protected boolean verifyWithReentrancy(Write write) {
         return super.verify(write);
@@ -1014,7 +1021,7 @@ public class AtomicOperation extends BufferedStore implements
      * @return {@code true} if all expectations are met and all necessary locks
      *         are grabbed.
      */
-    private boolean grabLocks() {
+    private boolean acquireLocks() {
         if(isReadOnly()) {
             return true;
         }
@@ -1114,6 +1121,46 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Cancel the operation and set its status to {@link Status#ABORTED},
+     * regardless of its current state.
+     */
+    private final void cancel() {
+        source.unsubscribe(this);
+        if(locks != null && !locks.isEmpty()) {
+            releaseLocks();
+        }
+        status.set(Status.ABORTED);
+    }
+
+    /**
+     * The second phase of the {@link #commit(long) commit} protocol: apply the
+     * effects of this operation to the {@link #source}.
+     * <p>
+     * This method requires that the operation have been {@link #prepare()
+     * prepared} so that it is guaranteed that the effects can be applied
+     * without conflict.
+     * </p>
+     * 
+     * @param version the {@link Versioned#getVersion() version} to apply to all
+     *            the writes in this {@link AtomicOperation}
+     */
+    private final void complete(long version) {
+        if(status.compareAndSet(Status.FINALIZING, Status.FINALIZING)) {
+            limbo.transform(write -> write.rewrite(version));
+            apply();
+            releaseLocks();
+            source.onCommit(this);
+            if(!status.compareAndSet(Status.FINALIZING, Status.COMMITTED)) {
+                throw new IllegalStateException(
+                        "Unexpected atomic operation state change");
+            }
+        }
+        else {
+            throwAtomicStateException();
+        }
+    }
+
+    /**
      * Return {@code true} if it can immediately be determined that
      * {@code event} for {@code token} preempts this {@link AtomicOperation
      * operation}.
@@ -1152,6 +1199,52 @@ public class AtomicOperation extends BufferedStore implements
             if(this.status.compareAndSet(status, status)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    /**
+     * The first phase of the {@link #commit(long) commit} protocol: attempt to
+     * make all preparations necessary for this operation to guarantee that its
+     * effects can be {@link #complete(long) applied}.
+     * <p>
+     * The operation must be {@link Status#OPEN open}. If this method returns
+     * {@code true}, the operation will enter the {@link Status#FINALIZING
+     * prepared} state where it is then able to proceed to the final phase of
+     * the commit protocol. A return value of {@code true} indicates that all
+     * the effects of the operation can be applied as a unit.
+     * </p>
+     * <p>
+     * If, for any reason, this method returns {@code false}, the operation will
+     * be in a state where the only option is to {@link #cancel() cancel}.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong>Attempts to {@link #prepare() prepare} an operation
+     * that is not {@link Status#OPEN open} will throw an
+     * {@link AtomicStateException}.
+     * </p>
+     * 
+     * @return {@code true} if the transaction can guarantee that its effects
+     *         can be {@code #complete(long) applied}
+     */
+    private final boolean prepare() {
+        if(status.compareAndSet(Status.OPEN, Status.PENDING)) {
+            checkIfQueuedPreempted();
+            if(acquireLocks()) {
+                source.unsubscribe(this);
+                return status.compareAndSet(Status.PENDING, Status.FINALIZING);
+            }
+        }
+        else {
+            try {
+                throwAtomicStateException();
+            }
+            catch (TransactionStateException e) {
+                // Thrown by the Transaction subclass to distinguish transaction
+                // failures that should be propagated to the client
+                throw e;
+            }
+            catch (AtomicStateException e) {/* ignore */}
         }
         return false;
     }
@@ -1372,7 +1465,12 @@ public class AtomicOperation extends BufferedStore implements
         /**
          * The operation was preempted and cannot become {@link #COMMITTED}.
          */
-        PREEMPTED
+        PREEMPTED,
+
+        /**
+         * The operation is prepared to become {@link #COMMITTED}.
+         */
+        PREPARED
     }
 
     /**
