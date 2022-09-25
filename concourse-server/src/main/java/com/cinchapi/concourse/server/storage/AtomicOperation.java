@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.concurrent.LockBroker;
@@ -73,6 +74,7 @@ import com.google.common.collect.TreeRangeSet;
  * 
  * @author Jeff Nelson
  */
+@NotThreadSafe
 public class AtomicOperation extends BufferedStore implements
         AtomicSupport,
         TokenEventObserver {

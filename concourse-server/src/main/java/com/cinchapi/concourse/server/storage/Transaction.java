@@ -23,6 +23,8 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.server.io.ByteableCollections;
@@ -43,6 +45,7 @@ import com.cinchapi.concourse.util.Logger;
  * 
  * @author Jeff Nelson
  */
+@NotThreadSafe
 public final class Transaction extends AtomicOperation {
 
     /**
