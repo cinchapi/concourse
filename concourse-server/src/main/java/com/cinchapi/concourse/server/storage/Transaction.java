@@ -433,6 +433,11 @@ public final class Transaction extends AtomicOperation implements
         return super.isPreemptedBy(event, token);
     }
 
+    @Override
+    protected void throwAtomicStateException() {
+        throw new TransactionStateException();
+    }
+
     /**
      * Deserialize the content of this Transaction from {@code bytes}.
      * 
@@ -491,4 +496,5 @@ public final class Transaction extends AtomicOperation implements
         bytes.rewind();
         return bytes;
     }
+
 }
