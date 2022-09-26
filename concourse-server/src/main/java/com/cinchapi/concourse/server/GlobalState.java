@@ -328,6 +328,12 @@ public final class GlobalState extends Constants {
     @Experimental
     public static boolean ENABLE_VERIFY_BY_LOOKUP = false;
 
+    /**
+     * The list of server addresses for each node in the distributed cluster.
+     */
+    @Experimental
+    public static List<String> CLUSTER = ImmutableList.of();
+
     static {
         List<String> files = ImmutableList.of(
                 "conf" + File.separator + "concourse.prefs",
@@ -408,6 +414,8 @@ public final class GlobalState extends Constants {
 
         ENABLE_VERIFY_BY_LOOKUP = config.getOrDefault("enable_verify_by_lookup",
                 ENABLE_VERIFY_BY_LOOKUP);
+
+        CLUSTER = config.getOrDefault("cluster", CLUSTER);
         // =================== PREF READING BLOCK ====================
     }
 

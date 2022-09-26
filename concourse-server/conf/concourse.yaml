@@ -217,3 +217,14 @@ enable_search_cache:
 #
 # DEFAULT: false
 enable_verify_by_lookup:
+
+
+#########################################################
+###  CONFIGURATION FOR DISTRIBUTED CONCOURSE CLUSTER  ###
+#########################################################
+
+# If this Concourse Server instance is a node in a distributed cluster, list the servers 
+# address (formatted as host:port) for each a node in the cluster, including this one.
+#
+# DEFAULT: (standalone instance that is not a node within a distributed cluster)
+cluster:

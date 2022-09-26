@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -128,6 +129,10 @@ import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
+import com.cinchapi.ensemble.Cluster;
+import com.cinchapi.ensemble.Ensemble;
+import com.cinchapi.ensemble.core.LocalProcess;
+import com.cinchapi.ensemble.core.Node;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -135,6 +140,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -384,6 +390,12 @@ public class ConcourseServer extends BaseConcourseServer implements
      * Reference to the {@link ConcourseCompiler}.
      */
     private final ConcourseCompiler compiler = ConcourseCompiler.get();
+
+    /**
+     * The distributed {@link Cluster} of nodes.
+     */
+    @Nullable
+    private Cluster cluster;
 
     /**
      * The base location where the indexed database records are stored.
@@ -6014,6 +6026,18 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     @PluginRestricted
     public void start() throws TTransportException {
+        if(cluster != null) {
+            Logger.info(
+                    "Concourse Server is waiting to join a distributed cluster...");
+            CompletableFuture<Void> task = cluster.join();
+            try {
+                task.get();
+            }
+            catch (Exception e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+            Logger.info("Concourse Server has joined a distributed cluster");
+        }
         for (Engine engine : engines.values()) {
             engine.start();
         }
@@ -6034,6 +6058,10 @@ public class ConcourseServer extends BaseConcourseServer implements
     @PluginRestricted
     public void stop() {
         if(server.isServing()) {
+            if(cluster != null) {
+                cluster.leave();
+                Logger.info("Concourse Server has left a distributed cluster");
+            }
             mgmtServer.stop();
             server.stop();
             pluginManager.stop();
@@ -6498,6 +6526,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             String buffer = bufferStore + File.separator + env;
             String db = dbStore + File.separator + env;
             Engine engine = new Engine(buffer, db, env);
+            engine = Ensemble.replicate(engine).across(cluster);
             engine.start();
             numEnginesInitialized.incrementAndGet();
             return engine;
@@ -6611,6 +6640,24 @@ public class ConcourseServer extends BaseConcourseServer implements
         TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
         mgmtArgs.processor(new ConcourseManagementService.Processor<>(this));
         this.mgmtServer = new TSimpleServer(mgmtArgs);
+
+        // Setup the distributed cluster
+        if(!CLUSTER.isEmpty()) { // TODO check if config has cluster defined
+            LocalProcess.instance().clear();
+            LocalProcess.instance().claim(port);
+            // TODO: register some gossip handlers when building the cluster
+            Cluster.Builder builder = Cluster.builder();
+            // TODO: add a Node for this instance just incase it is defined in
+            // the config? How do I detect if it is defined in the config?
+            for (String address : CLUSTER) {
+                Node node = new Node(HostAndPort.fromString(address));
+                builder.add(node);
+                this.cluster = builder.build();
+            }
+        }
+        else {
+            this.cluster = null;
+        }
     }
 
     /**
