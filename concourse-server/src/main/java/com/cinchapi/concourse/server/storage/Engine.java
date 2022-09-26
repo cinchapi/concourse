@@ -61,6 +61,7 @@ import com.cinchapi.ensemble.Broadcast;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 import com.cinchapi.ensemble.Locator;
 import com.cinchapi.ensemble.Read;
+import com.cinchapi.ensemble.ReturnsEnsemble;
 import com.cinchapi.ensemble.WeakRead;
 import com.google.common.annotations.VisibleForTesting;
 
@@ -880,6 +881,7 @@ public final class Engine extends BufferedStore implements
     @Override
     @com.cinchapi.ensemble.Write
     @Broadcast
+    @ReturnsEnsemble
     public AtomicOperation startAtomicOperation() {
         return AtomicOperation.start(this, broker);
     }
@@ -887,6 +889,7 @@ public final class Engine extends BufferedStore implements
     @Override
     @com.cinchapi.ensemble.Write
     @Broadcast
+    @ReturnsEnsemble
     public Transaction startTransaction() {
         return Transaction.start(this);
     }
