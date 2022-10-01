@@ -161,7 +161,7 @@ public final class Transaction extends AtomicOperation {
     protected void throwAtomicStateException() {
         throw new TransactionStateException();
     }
-    
+
     /**
      * Deserialize the content of this Transaction from {@code bytes}.
      * 
