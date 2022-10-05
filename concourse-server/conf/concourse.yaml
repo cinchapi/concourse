@@ -228,3 +228,9 @@ enable_verify_by_lookup:
 #
 # DEFAULT: (standalone instance that is not a node within a distributed cluster)
 cluster:
+
+  # List the server address for each node in the cluster
+  nodes:
+
+  # The number of nodes that
+  replication_factor:
