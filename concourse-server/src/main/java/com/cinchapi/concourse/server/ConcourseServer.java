@@ -6526,7 +6526,9 @@ public class ConcourseServer extends BaseConcourseServer implements
             String buffer = bufferStore + File.separator + env;
             String db = dbStore + File.separator + env;
             Engine engine = new Engine(buffer, db, env);
+            if(cluster != null) {
             engine = Ensemble.replicate(engine).across(cluster);
+            }
             engine.start();
             numEnginesInitialized.incrementAndGet();
             return engine;
