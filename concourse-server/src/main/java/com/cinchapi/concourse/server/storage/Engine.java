@@ -79,7 +79,7 @@ import com.google.common.annotations.VisibleForTesting;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Engine extends BufferedStore implements
+public class Engine extends BufferedStore implements
         TransactionSupport,
         AtomicSupport,
         Distributed {
