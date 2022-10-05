@@ -415,7 +415,7 @@ public final class GlobalState extends Constants {
         ENABLE_VERIFY_BY_LOOKUP = config.getOrDefault("enable_verify_by_lookup",
                 ENABLE_VERIFY_BY_LOOKUP);
 
-        CLUSTER = config.getOrDefault("cluster", CLUSTER);
+        CLUSTER = config.getOrDefault("cluster.nodes", CLUSTER);
         // =================== PREF READING BLOCK ====================
     }
 
