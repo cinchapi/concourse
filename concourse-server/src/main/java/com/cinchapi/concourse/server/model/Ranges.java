@@ -176,6 +176,29 @@ public final class Ranges {
     }
 
     /**
+     * Return {@code true} if {@code a} {@link Range#isConnected(Range) is
+     * connected to} {@code b} and the {@link Range#intersection(Range)
+     * intersection} of the two is not {@link Range#isEmpty() empty}.
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} and {@code b} are connected and have a
+     *         non-empty intersection
+     */
+    public static boolean haveNonEmptyIntersection(Range<Value> a,
+            Range<Value> b) {
+        int lower = compareToLower(a, b);
+        int upper = compareToUpper(a, b);
+        if((lower > 0 && upper > 0) || (lower < 0 && upper < 0)) {
+            return false;
+        }
+        else {
+            return !(getLowerEndpoint(a).equals(getLowerEndpoint(b))
+                    && upper == 0);
+        }
+    }
+
+    /**
      * Return a new {@link Range} that is the merger (e.g. union) of {@code a}
      * and {@code b}. The new {@link Range} maintains both the lower and higher
      * endpoint/bound between the two inputs.
