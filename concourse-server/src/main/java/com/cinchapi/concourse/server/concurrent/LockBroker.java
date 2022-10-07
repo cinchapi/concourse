@@ -719,7 +719,6 @@ public class LockBroker {
                                 }
                             }
                         }
-
                     }
                     List<AtomicInteger> undos = new ArrayList<>(1);
                     for (Range<Value> range : token.ranges()) {
