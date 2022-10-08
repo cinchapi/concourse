@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -190,7 +191,7 @@ public class LockBroker {
      * Threads that are queued to be {@link LockSupport#unpark(Thread) unparked}
      * when a {@link RangeReadWriteLock.RangeLock#unlock() range unlock} occurs.
      */
-    private final ConcurrentLinkedQueue<Thread> parked;
+    private final Map<Text, Queue<Thread>> parked;
 
     /**
      * Construct a new instance.
@@ -201,7 +202,7 @@ public class LockBroker {
         if(enabled) {
             this.locks = new ConcurrentHashMap<>();
             this.rangeLocks = new ConcurrentHashMap<>();
-            this.parked = new ConcurrentLinkedQueue<>();
+            this.parked = new ConcurrentHashMap<>();
             brokers.add(this);
         }
         else {
@@ -612,7 +613,10 @@ public class LockBroker {
                         return;
                     }
                     else {
-                        parked.add(Thread.currentThread());
+                        Queue<Thread> threads = parked.computeIfAbsent(
+                                token.getKey(),
+                                $ -> new ConcurrentLinkedQueue<>());
+                        threads.add(Thread.currentThread());
                         LockSupport.park(this);
                         continue;
                     }
@@ -629,7 +633,10 @@ public class LockBroker {
                         return;
                     }
                     else {
-                        parked.add(Thread.currentThread());
+                        Queue<Thread> threads = parked.computeIfAbsent(
+                                token.getKey(),
+                                $ -> new ConcurrentLinkedQueue<>());
+                        threads.add(Thread.currentThread());
                         LockSupport.park(this);
                         continue;
                     }
@@ -799,7 +806,9 @@ public class LockBroker {
                     break;
                 }
                 Thread t;
-                while ((t = parked.poll()) != null) {
+                Queue<Thread> threads = parked.computeIfAbsent(token.getKey(),
+                        $ -> new ConcurrentLinkedQueue<>());
+                while ((t = threads.poll()) != null) {
                     LockSupport.unpark(t);
                 }
             }
