@@ -48,6 +48,60 @@ public class RangesTest {
         Assert.assertEquals(expected, Ranges.haveNonEmptyIntersection(a, b));
     }
 
+    @Test
+    public void testHaveNonEmptyIntersectionReproA() {
+        Range<Value> a = Range.closedOpen(
+                Value.wrap(Convert.javaToThrift(-1307906851)),
+                Value.wrap(Convert.javaToThrift(740542968)));
+        Range<Value> b = Range.closedOpen(
+                Value.wrap(Convert.javaToThrift(255904862)),
+                Value.wrap(Convert.javaToThrift(1010153814)));
+        boolean expected;
+        try {
+            expected = !a.intersection(b).isEmpty();
+        }
+        catch (IllegalArgumentException e) {
+            expected = false;
+        }
+        Assert.assertEquals(expected, Ranges.haveNonEmptyIntersection(a, b));
+    }
+
+    @Test
+    public void testHaveNonEmptyIntersectionReproB() {
+        Range<Value> a = Range.closedOpen(
+                Value.wrap(Convert.javaToThrift(-14136856)),
+                Value.wrap(Convert.javaToThrift(1519386470)));
+        Range<Value> b = Range.closed(
+                Value.wrap(Convert.javaToThrift(879784252)),
+                Value.wrap(Convert.javaToThrift(879784252)));
+        boolean expected;
+        try {
+            expected = !a.intersection(b).isEmpty();
+        }
+        catch (IllegalArgumentException e) {
+            expected = false;
+        }
+        Assert.assertEquals(expected, Ranges.haveNonEmptyIntersection(a, b));
+    }
+
+    @Test
+    public void testHaveNonEmptyIntersectionReproC() {
+        Range<Value> a = Range.closedOpen(
+                Value.wrap(Convert.javaToThrift(-2114795584)),
+                Value.wrap(Convert.javaToThrift(2012556173)));
+        Range<Value> b = Range.closed(
+                Value.wrap(Convert.javaToThrift(1307191844)),
+                Value.wrap(Convert.javaToThrift(1307191844)));
+        boolean expected;
+        try {
+            expected = !a.intersection(b).isEmpty();
+        }
+        catch (IllegalArgumentException e) {
+            expected = false;
+        }
+        Assert.assertEquals(expected, Ranges.haveNonEmptyIntersection(a, b));
+    }
+
     /**
      * Return a random {@link Range}.
      * 

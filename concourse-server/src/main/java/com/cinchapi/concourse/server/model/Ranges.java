@@ -189,13 +189,32 @@ public final class Ranges {
             Range<Value> b) {
         int lower = compareToLower(a, b);
         int upper = compareToUpper(a, b);
-        if((lower > 0 && upper > 0) || (lower < 0 && upper < 0)) {
-            return false;
+        Value start;
+        Value end;
+        BoundType startBound;
+        BoundType endBound;
+        if(lower >= 0 && upper <= 0) {
+            start = getLowerEndpoint(a);
+            startBound = getLowerBoundType(a);
+            end = getUpperEndpoint(b);
+            endBound = getUpperBoundType(b);
+        }
+        else if(lower <= 0 && upper >= 0) {
+            start = getLowerEndpoint(b);
+            startBound = getLowerBoundType(b);
+            end = getUpperEndpoint(b);
+            endBound = getUpperBoundType(b);
         }
         else {
-            return !(getLowerEndpoint(a).equals(getLowerEndpoint(b))
-                    && upper == 0);
+            start = lower >= 0 ? getLowerEndpoint(a) : getLowerEndpoint(b);
+            startBound = lower >= 0 ? getLowerBoundType(a)
+                    : getLowerBoundType(b);
+            end = upper <= 0 ? getUpperEndpoint(a) : getUpperEndpoint(b);
+            endBound = upper <= 0 ? getUpperBoundType(a) : getUpperBoundType(b);
         }
+        int c = start.compareTo(end);
+        return c < 0 || (c == 0 && startBound == BoundType.CLOSED
+                && endBound == BoundType.CLOSED);
     }
 
     /**
