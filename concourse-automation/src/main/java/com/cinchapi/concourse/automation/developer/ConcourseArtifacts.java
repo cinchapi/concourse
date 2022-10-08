@@ -38,8 +38,7 @@ import com.cinchapi.concourse.util.FileOps;
 
 /**
  * Provides programmatic ability to retrieve local copies of Concourse artifacts
- * for any
- * version.
+ * for any version.
  *
  * @author Jeff Nelson
  */
