@@ -34,11 +34,11 @@ test {
 
 jar {
     manifest {
-        attributes("Specificiation-Title": "Concourse ETE Test Core", "Specificiation-Version": version, "Implementation-Version": version)
+        attributes("Specificiation-Title": "Concourse Automation", "Specificiation-Version": version, "Implementation-Version": version)
     }
 }
 
 
 ext.uploadEnabled = true
-ext.title = 'Concourse ETE Test Core'
-ext.description = 'A framework for writing end-to-end integration tests using the Concourse client and server'
+ext.title = 'Concourse Automation'
+ext.description = 'A framework for programatically interacting with the Concourse codebase and release artifacts in automated tests and devops workflows'
