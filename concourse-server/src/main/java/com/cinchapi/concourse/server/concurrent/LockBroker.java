@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -38,8 +39,10 @@ import java.util.concurrent.locks.StampedLock;
 import javax.annotation.Nullable;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.concourse.server.model.Ranges;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -188,7 +191,7 @@ public class LockBroker {
      * Threads that are queued to be {@link LockSupport#unpark(Thread) unparked}
      * when a {@link RangeReadWriteLock.RangeLock#unlock() range unlock} occurs.
      */
-    private final ConcurrentLinkedQueue<Thread> parked;
+    private final Map<Text, Queue<Thread>> parked;
 
     /**
      * Construct a new instance.
@@ -199,7 +202,7 @@ public class LockBroker {
         if(enabled) {
             this.locks = new ConcurrentHashMap<>();
             this.rangeLocks = new ConcurrentHashMap<>();
-            this.parked = new ConcurrentLinkedQueue<>();
+            this.parked = new ConcurrentHashMap<>();
             brokers.add(this);
         }
         else {
@@ -373,15 +376,34 @@ public class LockBroker {
      */
     @VisibleForTesting
     void gc() {
-        Iterator<Entry<Token, LockReference>> it = locks.entrySet().iterator();
-        while (it.hasNext()) {
-            Entry<Token, LockReference> entry = it.next();
+        Iterator<Entry<Token, LockReference>> locksIt = locks.entrySet()
+                .iterator();
+        while (locksIt.hasNext()) {
+            Entry<Token, LockReference> entry = locksIt.next();
             LockReference reference = entry.getValue();
             if(reference.count.compareAndSet(0, Integer.MIN_VALUE)) {
-                it.remove();
+                locksIt.remove();
             }
         }
-        // TODO: clean up rangeLocks?
+        Iterator<Entry<Text, Map<Range<Value>, AtomicInteger>>> rangeKeys = rangeLocks
+                .entrySet().iterator();
+        while (rangeKeys.hasNext()) {
+            Entry<Text, Map<Range<Value>, AtomicInteger>> rangeEntry = rangeKeys
+                    .next();
+            Map<Range<Value>, AtomicInteger> rangeKeyLocks = rangeEntry
+                    .getValue();
+            Iterator<Entry<Range<Value>, AtomicInteger>> rangeKeyLocksIt = rangeKeyLocks
+                    .entrySet().iterator();
+            while (rangeKeyLocksIt.hasNext()) {
+                Entry<Range<Value>, AtomicInteger> entry = rangeKeyLocksIt
+                        .next();
+                AtomicInteger state = entry.getValue();
+                int s = state.get();
+                if(s == 0 && state.compareAndSet(s, s)) {
+                    rangeKeyLocksIt.remove();
+                }
+            }
+        }
     }
 
     /**
@@ -591,7 +613,10 @@ public class LockBroker {
                         return;
                     }
                     else {
-                        parked.add(Thread.currentThread());
+                        Queue<Thread> threads = parked.computeIfAbsent(
+                                token.getKey(),
+                                $ -> new ConcurrentLinkedQueue<>());
+                        threads.add(Thread.currentThread());
                         LockSupport.park(this);
                         continue;
                     }
@@ -608,7 +633,10 @@ public class LockBroker {
                         return;
                     }
                     else {
-                        parked.add(Thread.currentThread());
+                        Queue<Thread> threads = parked.computeIfAbsent(
+                                token.getKey(),
+                                $ -> new ConcurrentLinkedQueue<>());
+                        threads.add(Thread.currentThread());
                         LockSupport.park(this);
                         continue;
                     }
@@ -623,29 +651,77 @@ public class LockBroker {
             @Override
             public boolean tryLock() {
                 Text key = token.getKey();
+                Operator operator = token.getOperator();
                 Map<Range<Value>, AtomicInteger> ranges = rangeLocks
                         .computeIfAbsent(key, $ -> new ConcurrentHashMap<>());
                 outer: for (;;) {
+                    /*
+                     * NOTE: Continuation of the #outer loop (e.g., retry)
+                     * occurs when a lock has been newly acquired or released
+                     * while checking its state.
+                     */
                     for (Range<Value> range : token.ranges()) {
+                        AtomicInteger state = ranges.computeIfAbsent(range,
+                                $ -> new AtomicInteger(0));
+                        int s = state.get();
+                        if(mode == Mode.WRITE && (s >= 1 || s < 0)) {
+                            // If the same #range is locked in any state, this
+                            // attempt to WRITE lock is blocked.
+                            if(state.compareAndSet(s, s)) {
+                                return false;
+                            }
+                            else {
+                                continue outer;
+                            }
+                        }
+                        if(mode == Mode.READ && operator == Operator.EQUALS) {
+                            if(s <= 0 && state.compareAndSet(s, s)) {
+                                // A EQUAL READ is only blocked if there is a
+                                // concurrent WRITE for the exact value. If that
+                                // isn't the case we can proceed to the next of
+                                // #token.ranges() without checking the current
+                                // #range for conflicts with other locked
+                                // connected ranges.
+                                continue;
+                            }
+                            else if(s > 0 && state.compareAndSet(s, s)) {
+                                return false;
+                            }
+                            else {
+                                continue outer;
+                            }
+                        }
+                        // As a last resort, check for locked connected ranges
+                        // and determine if this lock is blocked as a result.
                         Iterator<Entry<Range<Value>, AtomicInteger>> it = ranges
                                 .entrySet().iterator();
                         while (it.hasNext()) {
                             Entry<Range<Value>, AtomicInteger> entry = it
                                     .next();
                             Range<Value> locked = entry.getKey();
-                            AtomicInteger state = entry.getValue();
-                            int s = state.get();
-                            if(locked.isConnected(range)
-                                    && !locked.intersection(range).isEmpty()
+                            state = entry.getValue();
+                            s = state.get();
+                            if((s == 0 || (mode == Mode.READ && s < 0))) {
+                                if(state.compareAndSet(s, s)) {
+                                    // If the #locked range is actually unlocked
+                                    // or we are attempting a READ lock and the
+                                    // #locked range is also a READ lock, we can
+                                    // move onto checking for conflicts with the
+                                    // next #locked range.
+                                    continue;
+                                }
+                                else {
+                                    continue outer;
+                                }
+                            }
+                            else if(Ranges.haveNonEmptyIntersection(locked,
+                                    range)
                                     && ((mode == Mode.READ && s > 0)
                                             || (mode == Mode.WRITE && s < 0))) {
                                 if(state.compareAndSet(s, s)) {
                                     return false;
                                 }
                                 else {
-                                    // The lock has been newly acquired or
-                                    // released since we checked the state, so
-                                    // tryLock again.
                                     continue outer;
                                 }
                             }
@@ -730,7 +806,9 @@ public class LockBroker {
                     break;
                 }
                 Thread t;
-                while ((t = parked.poll()) != null) {
+                Queue<Thread> threads = parked.computeIfAbsent(token.getKey(),
+                        $ -> new ConcurrentLinkedQueue<>());
+                while ((t = threads.poll()) != null) {
                     LockSupport.unpark(t);
                 }
             }
