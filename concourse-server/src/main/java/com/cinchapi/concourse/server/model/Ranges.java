@@ -196,8 +196,8 @@ public final class Ranges {
         if(lower >= 0 && upper <= 0) {
             start = getLowerEndpoint(a);
             startBound = getLowerBoundType(a);
-            end = getUpperEndpoint(b);
-            endBound = getUpperBoundType(b);
+            end = getUpperEndpoint(a);
+            endBound = getUpperBoundType(a);
         }
         else if(lower <= 0 && upper >= 0) {
             start = getLowerEndpoint(b);
