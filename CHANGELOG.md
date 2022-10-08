@@ -21,6 +21,12 @@ We made several changes to improve the safety, scalability and operational effic
 * The stock `concourse.prefs` file will no longer be updated when new configuration options are available. All new configuration templates will be defined in the stock `concourse.yaml` file.
 * Concourse Server will not automatically migrate custom configuration from `.prefs` files to the corresponding `.yaml` files. While `.prefs` files are still functional, users are encouraged to manually copy custom configuration to the new format in case support for `.prefs` files goes away at a future date.
 
+##### Concourse Automation Framework
+* Added the `concourse-automation` framework to provide a central set of tools to programatically interact with the Concourse codebase and release artifacts in automated tests and devops workflows. For the most part, the `concourse-automation` framework is comprised of tools that were previously available in the `concourse-ete-test-core` framework.
+	* `ConcourseCodebase` - Provides programmatic interaction with a local copy of the Concourse source code. Can be used to build installer artifacts.
+	* `ConcourseArtifacts` - Provides factory methods to retrieve local copies of Concourse artifacts for any version. Can  be used to download the installer for a released version.
+	* `ManagedConcourseServer` - Provdes the ability to control an external Concourse Server process within another application.
+
 ##### Bug Fixes
 * [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
 * [GH-491](https://github.com/cinchapi/concourse/issues/491) Fixed a race condition that made it possible for a range bloked operation to spurriously be allowed to proceed if it was waiting to acquire a range lock whose intended scope of protection intersected the scope of a range lock that was concurrently released.  
@@ -39,6 +45,13 @@ We made several changes to improve the safety, scalability and operational effic
 	* The `ConcourseClientPreferences` handler is deprecated in favor of using `ConcourseClientConfiguration`, which provides the same functionality.
 	* `ManagedConcourseServer#prefs()` is deprecated in favor of `ManagedConcourseServer#config()`.
 	* The `Concourse#connectWithPrefs` methods have been deprecated in favor of `Concourse#connect` methods that take one or more configuration file `Path`s or a `ConcourseClientConfiguration` handler, respectively.
+* With the introduction of the `concourse-automation` framework, duplicate classes in the `concourse-ete-test-core` framework have been deprecated:
+	* `com.cinchapi.concourse.util.ConcourseCodebase` has been deprecated in favor of using `com.cinchapi.concourse.automation.developer.ConcourseCodebase` which provides the functionality, but some methods have been renamed for clarity.
+	* `ConcourseServerDownloader` has been deprecated in favor of using `ConcourseArtifacts` which provides the functionality, but some methods have been renamed for clarity.
+	* `com.cinchapi.concourse.server.ManagedConcourseServer` has been deprecated in favor of using `com.cinchapi.concourse.automation.server.ManagedConcourseServer` which provides the functionality, but some methods have been renamed for clarity.
+* The `com.cinchapi.concourse.util.Processes` utility class has been removed in favor of using `com.cinchapi.common.process` from `accent4j`.
+	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
+	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
 
 #### Version 0.11.5 (TBD)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).

@@ -27,6 +27,7 @@ dependencies {
     compile 'jline:jline:2.11'
     compile 'com.cinchapi:concourse-plugin-bundle-generator:1.0.10'
     compile project(':concourse-driver-java')
+    compile project(':concourse-automation')
 }
 
 test {

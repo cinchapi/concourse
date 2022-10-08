@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.automation.developer.ConcourseCodebase;
+import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
 import com.cinchapi.concourse.plugin.build.PluginBundleGenerator;
-import com.cinchapi.concourse.server.ManagedConcourseServer;
-import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.google.common.base.Strings;
 
 /**
@@ -103,8 +103,8 @@ public abstract class ClientServerTest {
                     "NOTE: The test failed, so the server installation at {} has "
                             + "NOT been deleted. Please manually delete the directory after "
                             + "inspecting its content",
-                    server.getInstallDirectory()));
-            server.destroyOnExit(false);
+                    server.directory()));
+            server.setDestroyOnExit(false);
             server.stop();
         }
 
@@ -119,32 +119,28 @@ public abstract class ClientServerTest {
         @Override
         protected void starting(Description description) {
             Variables.clear();
-            if(Files.exists(Paths.get(getServerVersion()))) { // if
-                                                              // #getServerVersion
-                                                              // returns a valid
-                                                              // path, then
-                                                              // assume its an
-                                                              // installer and
-                                                              // pass the
-                                                              // appropriate
-                                                              // File for
-                                                              // construction
-                server = ManagedConcourseServer
-                        .manageNewServer(new File(getServerVersion()));
+            Path path = Paths.get(getServerVersion());
+            if(Files.exists(path)) { // if
+                                     // #getServerVersion
+                                     // returns a valid
+                                     // path, then
+                                     // assume its an
+                                     // installer and
+                                     // pass it along for
+                                     // construction
+                server = ManagedConcourseServer.install(path);
             }
             else if(getServerVersion()
                     .equalsIgnoreCase(LATEST_SNAPSHOT_VERSION)) {
-                ConcourseCodebase codebase = ConcourseCodebase
-                        .cloneFromGithub();
+                ConcourseCodebase codebase = ConcourseCodebase.get();
                 try {
                     log.info(
                             "Creating an installer for the latest "
                                     + "version using the code in {}",
-                            codebase.getPath());
-                    String installer = codebase.buildInstaller();
-                    if(!Strings.isNullOrEmpty(installer)) {
-                        server = ManagedConcourseServer
-                                .manageNewServer(new File(installer));
+                            codebase.path());
+                    Path installer = codebase.installer();
+                    if(!Strings.isNullOrEmpty(installer.toString())) {
+                        server = ManagedConcourseServer.install(installer);
                     }
                     else {
                         throw new RuntimeException(
@@ -156,12 +152,11 @@ public abstract class ClientServerTest {
                 }
             }
             else if(installerPath() == null) {
-                server = ManagedConcourseServer
-                        .manageNewServer(getServerVersion());
+                server = ManagedConcourseServer.install(getServerVersion());
             }
             else {
                 server = ManagedConcourseServer
-                        .manageNewServer(installerPath());
+                        .install(installerPath().toPath());
             }
             Path pluginBundlePath = null;
             if(PluginTest.class

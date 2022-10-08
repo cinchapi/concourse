@@ -23,6 +23,9 @@ signing {
 
 dependencies {
     compile project(':concourse-driver-java')
+    compile 'org.jsoup:jsoup:1.7.3'
+
+    testCompile 'junit:junit:4.11'
 }
 
 test {

@@ -22,8 +22,8 @@ import java.nio.channels.FileChannel;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.cinchapi.common.process.Processes;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.util.Processes;
 import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.Serializables;
 
