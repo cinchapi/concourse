@@ -6644,18 +6644,19 @@ public class ConcourseServer extends BaseConcourseServer implements
         this.mgmtServer = new TSimpleServer(mgmtArgs);
 
         // Setup the distributed cluster
-        if(!CLUSTER.isEmpty()) { // TODO check if config has cluster defined
+        if(CLUSTER.isEnabled()) {
             LocalProcess.instance().clear();
             LocalProcess.instance().claim(port);
             // TODO: register some gossip handlers when building the cluster
             Cluster.Builder builder = Cluster.builder();
+            builder.replicationFactor(CLUSTER.replicationFactor());
             // TODO: add a Node for this instance just incase it is defined in
             // the config? How do I detect if it is defined in the config?
-            for (String address : CLUSTER) {
+            for (String address : CLUSTER.nodes()) {
                 Node node = new Node(HostAndPort.fromString(address));
                 builder.add(node);
-                this.cluster = builder.build();
             }
+            this.cluster = builder.build();
         }
         else {
             this.cluster = null;
