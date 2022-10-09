@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server;
+package com.cinchapi.concourse.automation.server;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,12 +28,12 @@ public class ManagedConcourseServerInstallTest {
 
     @Test
     public void testInstallVersion0_8_1() {
-        testInstall(ManagedConcourseServer.manageNewServer("0.8.1"));
+        testInstall(ManagedConcourseServer.install("0.8.1"));
     }
 
     @Test
     public void testInstallVersionBefore0_5_0DoesNotHang() {
-        testInstall(ManagedConcourseServer.manageNewServer("0.4.4"));
+        testInstall(ManagedConcourseServer.install("0.4.4"));
         // An "error" occurs in the shutdown hook that checks to see if the
         // server is still running because the Tanuki control script (used
         // before version 0.5) returns an exit code of 1 on the "status"

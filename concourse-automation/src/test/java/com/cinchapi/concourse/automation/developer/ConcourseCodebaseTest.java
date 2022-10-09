@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.util;
+package com.cinchapi.concourse.automation.developer;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.concourse.util.FileOps;
 import com.google.common.io.Files;
 
 /**
@@ -53,8 +54,8 @@ public class ConcourseCodebaseTest {
     @Test
     public void testCloneFromGithubFromWithinRepo() {
         // Assumes that unit test is running from the concourse repo
-        ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
-        Path codepath = Paths.get(codebase.getPath());
+        ConcourseCodebase codebase = ConcourseCodebase.get();
+        Path codepath = codebase.path();
         Path repopath = Paths.get(System.getProperty("user.dir"));
         Assert.assertTrue(isDirectoryOrSubdirectoryOf(codepath, repopath));
     }
@@ -62,8 +63,8 @@ public class ConcourseCodebaseTest {
     @Test
     public void testCloneFromGithubFromOutsideRepo() {
         System.setProperty("user.dir", Files.createTempDir().toString());
-        ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
-        Path codepath = Paths.get(codebase.getPath());
+        ConcourseCodebase codebase = ConcourseCodebase.get();
+        Path codepath = codebase.path();
         Path repopath = Paths.get(System.getProperty("user.dir"));
         Assert.assertFalse(isDirectoryOrSubdirectoryOf(codepath, repopath));
         Path cache = Paths.get(ConcourseCodebase.REPO_CACHE_FILE);
@@ -78,10 +79,10 @@ public class ConcourseCodebaseTest {
     @Test
     public void testCloneFromGithubOutsideRepoCached() {
         System.setProperty("user.dir", Files.createTempDir().toString());
-        ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
+        ConcourseCodebase codebase = ConcourseCodebase.get();
         ConcourseCodebase.INSTANCE = null; // remove the local process cache
-        codebase = ConcourseCodebase.cloneFromGithub();
-        Path codepath = Paths.get(codebase.getPath());
+        codebase = ConcourseCodebase.get();
+        Path codepath = codebase.path();
         Path repopath = Paths.get(System.getProperty("user.dir"));
         Assert.assertFalse(isDirectoryOrSubdirectoryOf(codepath, repopath));
         Path cache = Paths.get(ConcourseCodebase.REPO_CACHE_FILE);
@@ -96,14 +97,14 @@ public class ConcourseCodebaseTest {
     @Test
     public void testCloneFromGithubDetectStaleCache() {
         System.setProperty("user.dir", Files.createTempDir().toString());
-        ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
+        ConcourseCodebase codebase = ConcourseCodebase.get();
         Path path = Paths.get(FileOps
                 .readLines(
                         Paths.get(ConcourseCodebase.REPO_CACHE_FILE).toString())
                 .iterator().next());
         path.toFile().delete();
-        codebase = ConcourseCodebase.cloneFromGithub();
-        Path codepath = Paths.get(codebase.getPath());
+        codebase = ConcourseCodebase.get();
+        Path codepath = codebase.path();
         Path repopath = Paths.get(System.getProperty("user.dir"));
         Assert.assertFalse(isDirectoryOrSubdirectoryOf(codepath, repopath));
         Path cache = Paths.get(ConcourseCodebase.REPO_CACHE_FILE);

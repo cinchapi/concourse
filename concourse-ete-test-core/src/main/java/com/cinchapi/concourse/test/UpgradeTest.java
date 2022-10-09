@@ -17,10 +17,12 @@ package com.cinchapi.concourse.test;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import com.cinchapi.common.base.CheckedExceptions;
-import com.cinchapi.concourse.util.ConcourseCodebase;
-import com.cinchapi.concourse.util.Processes;
+import com.cinchapi.common.process.Processes;
+import com.cinchapi.common.process.Processes.ProcessResult;
+import com.cinchapi.concourse.automation.developer.ConcourseCodebase;
 import com.google.common.io.Files;
 
 /**
@@ -46,21 +48,19 @@ public abstract class UpgradeTest extends ClientServerTest {
             log.info("Running pre upgrade actions...");
             preUpgradeActions();
             server.stop();
-            ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
-            String installer = codebase.buildInstaller();
-            File src = new File(installer);
-            File dest = new File(
-                    server.getInstallDirectory() + "/concourse-server.bin");
+            ConcourseCodebase codebase = ConcourseCodebase.get();
+            Path installer = codebase.installer();
+            File src = installer.toFile();
+            File dest = server.directory().resolve("concourse-server.bin")
+                    .toFile();
             Files.copy(src, dest);
             // Run the upgrade from the installer
             log.info("Upgrading Concourse Server...");
             Process proc = new ProcessBuilder("sh", dest.getAbsolutePath(),
                     "--", "skip-integration")
-                            .directory(new File(server.getInstallDirectory()))
-                            .start();
-
-            Processes.waitForSuccessfulCompletion(proc);
-            for (String line : Processes.getStdOut(proc)) {
+                            .directory(server.directory().toFile()).start();
+            ProcessResult result = Processes.waitForSuccessfulCompletion(proc);
+            for (String line : result.out()) {
                 log.info(line);
             }
             server.start();

@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.server.ManagedConcourseServer;
+import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
 
 /**
  * Utility functions for {@link ClientServerTest} and descendant classes.

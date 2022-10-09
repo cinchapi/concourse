@@ -39,7 +39,7 @@ public class Upgrade0_11_0_1Test extends UpgradeTest {
 
     @Override
     protected String getInitialServerVersion() {
-        return "0.10.5";
+        return "0.10.6";
     }
 
     private String[] envs;

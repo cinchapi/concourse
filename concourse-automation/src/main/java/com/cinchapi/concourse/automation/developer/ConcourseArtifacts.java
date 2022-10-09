@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.util;
+package com.cinchapi.concourse.automation.developer;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.Iterator;
@@ -34,48 +34,45 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.concourse.util.FileOps;
 
 /**
- * A utility class that can download Concourse Server binaries from Github.
- * 
- * @author jnelson
- * @deprecated use
- *             {@link com.cinchapi.concourse.automation.developer.ConcourseArtifacts}
- *             instead
+ * Provides programmatic ability to retrieve local copies of Concourse artifacts
+ * for any version.
+ *
+ * @author Jeff Nelson
  */
-@Deprecated
-public final class ConcourseServerDownloader {
+public final class ConcourseArtifacts {
 
     /**
-     * Download the Concourse Server binary of the specified {@code version} to
-     * the user's home directory.
+     * Get the {@link Path} to the Concourse Server installer for the specified
+     * {@code version} into the user's home directory.
      * 
      * @param version
-     * @return the absolute path to the downloaded file
+     * @return the absolute {@link Path} to the installer file
      */
-    public static String download(String version) {
-        return download(version, System.getProperty("user.home"));
+    public static Path installer(String version) {
+        return installer(version, Paths.get(FileOps.getUserHome()));
     }
 
     /**
-     * Download the Concourse Server binary of the specified {@code version} to
-     * the
-     * specified {@code location}.
+     * Get the {@link Path} to the Concourse Server installer for the specified
+     * {@code version} into the specified {@code location}.
      * 
      * @param version
      * @param location
-     * @return the absolute path to the downloaded file
+     * @return the absolute {@link Path} to the installer file
      */
-    public static String download(String version, String location) {
-        String file = location + File.separator + "concourse-server-" + version
-                + ".bin";
-        if(!Files.exists(Paths.get(file))) {
+    public static Path installer(String version, Path location) {
+        Path file = location.resolve("concourse-server-" + version + ".bin");
+        if(!Files.exists(file)) {
             log.info(MessageFormat.format(
                     "Did not find an installer for "
                             + "ConcourseServer v{0} in {1}",
                     version, location));
             URL url;
-            try (FileOutputStream stream = new FileOutputStream(file)) {
+            try (FileOutputStream stream = new FileOutputStream(
+                    file.toFile())) {
                 url = new URI(getDownloadUrl(version)).toURL();
                 ReadableByteChannel channel = Channels
                         .newChannel(url.openStream());
@@ -131,8 +128,8 @@ public final class ConcourseServerDownloader {
 
     // ---logger
     private static final Logger log = LoggerFactory
-            .getLogger(ConcourseServerDownloader.class);
+            .getLogger(ConcourseArtifacts.class);
 
-    private ConcourseServerDownloader() {}
+    private ConcourseArtifacts() {}
 
 }
