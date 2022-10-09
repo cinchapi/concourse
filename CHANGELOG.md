@@ -44,6 +44,7 @@ We made several changes to improve the safety, scalability and operational effic
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).
 * Fixed a bug that allowed a Transaction's atomic operations (e.g., `verifyAndSwap`) to ignore range conflicts stemming from writes committed in other operations. As a result, the atomic operation would successfully commit to its a Transaction, but the Transaction would inevitably fail due to the aforementioned conflict. The correct (and now current) behaviour is that the atomic operation fails (so it can be retried) without dooming the entire Transaction to failure.
 * Fixed a bug that caused an innocuous Exception to be thrown when importing CSV data using the interactive input feature of `concourse import` CLI.
+* Fixed a bug that caused an inexplicable failure to occur when invoking a plugin method that indirectly depended on result set sorting.
 
 #### Version 0.11.4 (July 4, 2022)
 * Slightly improved the performance of result sorting by removing unnecessary intermediate data gathering.
