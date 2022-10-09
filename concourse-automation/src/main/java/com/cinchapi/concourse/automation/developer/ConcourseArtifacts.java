@@ -104,7 +104,6 @@ public final class ConcourseArtifacts {
             while (it.hasNext()) {
                 Element element = it.next();
                 String url = element.attr("href");
-                System.out.println(url);
                 if(url.endsWith(".bin")) {
                     return DOWNLOAD_URL_BASE + url;
                 }
