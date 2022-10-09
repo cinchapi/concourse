@@ -18,7 +18,7 @@ package com.cinchapi.concourse.ete.security;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.server.ManagedConcourseServer;
+import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
 import com.cinchapi.concourse.test.ClientServerTest;
 import com.cinchapi.concourse.util.FileOps;
 
@@ -51,8 +51,7 @@ public class AccessCredentialsFileTest extends ClientServerTest {
         server.stop();
         // New server installation should revert back to default creds which
         // doesn't have data for jeff or ashleah
-        server = ManagedConcourseServer
-                .manageExistingServer(server.getInstallDirectory());
+        server = ManagedConcourseServer.install(server.directory());
         server.start();
         try {
             server.connect("jeff", " admin");

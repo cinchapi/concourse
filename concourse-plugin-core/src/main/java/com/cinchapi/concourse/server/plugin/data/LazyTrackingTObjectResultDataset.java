@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.plugin.data;
 import java.util.Map;
 import java.util.Set;
 
+import com.cinchapi.concourse.EmptyOperationException;
 import com.cinchapi.concourse.data.sort.Sorter;
 import com.cinchapi.concourse.thrift.TObject;
 import com.google.common.collect.ImmutableMap;
@@ -140,18 +141,24 @@ public class LazyTrackingTObjectResultDataset extends TObjectResultDataset {
 
     @Override
     public void sort(Sorter<Set<TObject>> sorter) {
-        data = sorter.organize(data);
-        if(tracking != null) {
-            tracking();
+        try {
+            data = sorter.organize(data);
+            if(tracking != null) {
+                tracking();
+            }
         }
+        catch (EmptyOperationException e) {}
     }
 
     @Override
     public void sort(Sorter<Set<TObject>> sorter, long at) {
-        data = sorter.organize(data, at);
-        if(tracking != null) {
-            tracking();
+        try {
+            data = sorter.organize(data, at);
+            if(tracking != null) {
+                tracking();
+            }
         }
+        catch (EmptyOperationException e) {}
     }
 
     @Override

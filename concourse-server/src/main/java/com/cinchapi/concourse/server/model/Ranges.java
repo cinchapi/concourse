@@ -176,6 +176,48 @@ public final class Ranges {
     }
 
     /**
+     * Return {@code true} if {@code a} {@link Range#isConnected(Range) is
+     * connected to} {@code b} and the {@link Range#intersection(Range)
+     * intersection} of the two is not {@link Range#isEmpty() empty}.
+     * 
+     * @param a
+     * @param b
+     * @return {@code true} if {@code a} and {@code b} are connected and have a
+     *         non-empty intersection
+     */
+    public static boolean haveNonEmptyIntersection(Range<Value> a,
+            Range<Value> b) {
+        int lower = compareToLower(a, b);
+        int upper = compareToUpper(a, b);
+        Value start;
+        Value end;
+        BoundType startBound;
+        BoundType endBound;
+        if(lower >= 0 && upper <= 0) {
+            start = getLowerEndpoint(a);
+            startBound = getLowerBoundType(a);
+            end = getUpperEndpoint(a);
+            endBound = getUpperBoundType(a);
+        }
+        else if(lower <= 0 && upper >= 0) {
+            start = getLowerEndpoint(b);
+            startBound = getLowerBoundType(b);
+            end = getUpperEndpoint(b);
+            endBound = getUpperBoundType(b);
+        }
+        else {
+            start = lower >= 0 ? getLowerEndpoint(a) : getLowerEndpoint(b);
+            startBound = lower >= 0 ? getLowerBoundType(a)
+                    : getLowerBoundType(b);
+            end = upper <= 0 ? getUpperEndpoint(a) : getUpperEndpoint(b);
+            endBound = upper <= 0 ? getUpperBoundType(a) : getUpperBoundType(b);
+        }
+        int c = start.compareTo(end);
+        return c < 0 || (c == 0 && startBound == BoundType.CLOSED
+                && endBound == BoundType.CLOSED);
+    }
+
+    /**
      * Return a new {@link Range} that is the merger (e.g. union) of {@code a}
      * and {@code b}. The new {@link Range} maintains both the lower and higher
      * endpoint/bound between the two inputs.

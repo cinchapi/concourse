@@ -336,7 +336,6 @@ public class LockBrokerTest extends ConcourseBaseTest {
         t.start();
         startLatch.await();
         Value value3 = Variables.register("value3", decrease(value1));
-        broker.tryWriteLock(RangeToken.forWriting(key, value3));
         Assert.assertNotNull(
                 broker.tryWriteLock(RangeToken.forWriting(key, value3)));
         finishLatch.countDown();
@@ -1077,6 +1076,17 @@ public class LockBrokerTest extends ConcourseBaseTest {
         b.release();
         Assert.assertNull(broker.tryWriteLock(token));
         a.release();
+    }
+
+    @Test
+    public void testRangeWriteLockIsExclusive() {
+        Text key = Text.wrap("foo");
+        Value value = Value.wrap(Convert.javaToThrift(1));
+        RangeToken token = RangeToken.forWriting(key, value);
+        Permit a = broker.writeLock(token);
+        Assert.assertNull(broker.tryWriteLock(token));
+        a.release();
+        Assert.assertNotNull(broker.tryWriteLock(token));
     }
 
     private Value decrease(Value value) {

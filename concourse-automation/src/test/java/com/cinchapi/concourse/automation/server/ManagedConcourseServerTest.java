@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server;
+package com.cinchapi.concourse.automation.server;
 
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.junit.Assert;
@@ -27,12 +27,12 @@ import org.junit.runner.Description;
 
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.automation.developer.ConcourseCodebase;
+import com.cinchapi.concourse.automation.server.ManagedConcourseServer.ReflectiveClient;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Order;
-import com.cinchapi.concourse.server.ManagedConcourseServer.ReflectiveClient;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.util.ConcourseCodebase;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -49,10 +49,9 @@ public class ManagedConcourseServerTest {
 
         @Override
         protected void starting(Description description) {
-            ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
-            String installer = codebase.buildInstaller();
-            server = ManagedConcourseServer
-                    .manageNewServer(Paths.get(installer).toFile());
+            ConcourseCodebase codebase = ConcourseCodebase.get();
+            Path installer = codebase.installer();
+            server = ManagedConcourseServer.install(installer);
         }
 
         @Override
@@ -93,8 +92,7 @@ public class ManagedConcourseServerTest {
     @Test
     public void testDestroy() {
         server.destroy();
-        Assert.assertFalse(
-                Files.exists(Paths.get(server.getInstallDirectory())));
+        Assert.assertFalse(Files.exists(server.directory()));
     }
 
     @Test

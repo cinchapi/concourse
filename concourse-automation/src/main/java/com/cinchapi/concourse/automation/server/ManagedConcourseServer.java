@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server;
+package com.cinchapi.concourse.automation.server;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,9 +69,9 @@ import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.DuplicateEntryException;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
+import com.cinchapi.concourse.automation.developer.ConcourseArtifacts;
 import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 import com.cinchapi.concourse.config.ConcourseServerConfiguration;
-import com.cinchapi.concourse.config.ConcourseServerPreferences;
 import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Order;
@@ -78,7 +79,6 @@ import com.cinchapi.concourse.lang.sort.OrderComponent;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.ConcourseServerDownloader;
 import com.cinchapi.concourse.util.FileOps;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterables;
@@ -86,30 +86,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * A {@link ManagedConcourseServer} is an external server process that can be
- * programmatically controlled within another application. This class is useful
- * for applications that want to "embed" a Concourse Server for the duration of
- * the application's life cycle and then forget about its existence afterwards.
- * 
- * @author jnelson
- * @deprecated use
- *             {@link com.cinchapi.concourse.automation.server.ManagedConcourseServer}
- *             instead
+ * A controller for an external Concourse Server process for programmatic
+ * control in other applications.
+ *
+ * @author Jeff Nelson
  */
-@Deprecated
-public class ManagedConcourseServer {
-
-    /**
-     * Return an {@link ManagedConcourseServer} that controls an instance
-     * located in the {@code installDirectory}.
-     * 
-     * @param installDirectory
-     * @return the ManagedConcourseServer
-     */
-    public static ManagedConcourseServer manageExistingServer(
-            String installDirectory) {
-        return new ManagedConcourseServer(installDirectory);
-    }
+public final class ManagedConcourseServer {
 
     /**
      * Create an {@link ManagedConcourseServer} from the {@code installer}.
@@ -117,9 +99,8 @@ public class ManagedConcourseServer {
      * @param installer
      * @return the ManagedConcourseServer
      */
-    public static ManagedConcourseServer manageNewServer(File installer) {
-        return manageNewServer(installer,
-                DEFAULT_INSTALL_HOME + File.separator + Time.now());
+    public static ManagedConcourseServer install(Path installer) {
+        return install(installer, getNewInstallationDirectory());
     }
 
     /**
@@ -130,127 +111,16 @@ public class ManagedConcourseServer {
      * @param directory
      * @return the ManagedConcourseServer
      */
-    public static ManagedConcourseServer manageNewServer(File installer,
-            String directory) {
-        return new ManagedConcourseServer(
-                install(installer.getAbsolutePath(), directory));
-    }
-
-    /**
-     * Create an {@link ManagedConcourseServer} at {@code version}.
-     * 
-     * @param version
-     * @return the ManagedConcourseServer
-     */
-    public static ManagedConcourseServer manageNewServer(String version) {
-        return manageNewServer(version,
-                DEFAULT_INSTALL_HOME + File.separator + Time.now());
-    }
-
-    /**
-     * Create an {@link ManagedConcourseServer} at {@code version} in
-     * {@code directory}.
-     * 
-     * @param version
-     * @param directory
-     * @return the ManagedConcourseServer
-     */
-    public static ManagedConcourseServer manageNewServer(String version,
-            String directory) {
-        return manageNewServer(
-                new File(ConcourseServerDownloader.download(version)),
-                directory);
-    }
-
-    /**
-     * Tweak some of the preferences to make this more palatable for testing
-     * (i.e. reduce the possibility of port conflicts, etc).
-     * 
-     * @param installDirectory
-     */
-    private static void configure(String installDirectory) {
-        Path[] configPaths = Array.containing(
-                Paths.get(installDirectory, CONF, "concourse.prefs"),
-                Paths.get(installDirectory, CONF, "concourse.yaml"));
-        ConcourseServerConfiguration config = ConcourseServerConfiguration
-                .from(configPaths);
-        String data = installDirectory + File.separator + "data";
-        config.setBufferDirectory(data + File.separator + "buffer");
-        config.setDatabaseDirectory(data + File.separator + "database");
-        config.setClientPort(getOpenPort());
-        config.setJmxPort(getOpenPort());
-        config.setLogLevel(Level.DEBUG);
-        config.setShutdownPort(getOpenPort());
-    }
-
-    /**
-     * Collect and return all the {@code jar} files that are located in the
-     * directory at {@code path}. If {@code path} is not a directory, but is
-     * instead, itself, a jar file, then return a list that contains in.
-     * 
-     * @param path
-     * @return the list of jar file URL paths
-     */
-    private static URL[] gatherJars(String path) {
-        List<URL> jars = Lists.newArrayList();
-        gatherJars(path, jars);
-        return jars.toArray(new URL[] {});
-    }
-
-    /**
-     * Collect all the {@code jar} files that are located in the directory at
-     * {@code path} and place them into the list of {@code jars}. If
-     * {@code path} is not a directory, but is instead, itself a jar file, then
-     * place it in the list.
-     * 
-     * @param path
-     * @param jars
-     */
-    private static void gatherJars(String path, List<URL> jars) {
+    public static ManagedConcourseServer install(Path installer,
+            Path directory) {
         try {
-            if(Files.isDirectory(Paths.get(path))) {
-                for (Path p : Files.newDirectoryStream(Paths.get(path))) {
-                    gatherJars(p.toString(), jars);
-                }
-            }
-            else if(path.endsWith(".jar")) {
-                jars.add(new URL("file://" + path.toString()));
-            }
-        }
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
-    }
-
-    /**
-     * Get an open port.
-     * 
-     * @return the port
-     */
-    private static int getOpenPort() {
-        int min = 49512;
-        int max = 65535;
-        int port = min + RAND.nextInt(max - min);
-        return isPortAvailable(port) ? port : getOpenPort();
-    }
-
-    /**
-     * Install a Concourse Server in {@code directory} using {@code installer}.
-     * 
-     * @param installer
-     * @param directory
-     * @return the server install directory
-     */
-    private static String install(String installer, String directory) {
-        try {
-            Files.createDirectories(Paths.get(directory));
-            Path binary = Paths
-                    .get(directory + File.separator + TARGET_BINARY_NAME);
+            Files.createDirectories(directory);
+            Path binary = directory.resolve(TARGET_BINARY_NAME);
             Files.deleteIfExists(binary);
-            Files.copy(Paths.get(installer), binary);
+            Files.copy(installer, binary);
             ProcessBuilder builder = new ProcessBuilder(Lists.newArrayList("sh",
                     binary.toString(), "--", "skip-integration"));
-            builder.directory(new File(directory));
+            builder.directory(directory.toFile());
             builder.redirectErrorStream();
             AtomicBoolean terminated = new AtomicBoolean(false);
             Process proc1 = builder.start();
@@ -280,19 +150,24 @@ public class ManagedConcourseServer {
             proc1.waitFor();
             terminated.set(true);
             TerminalFactory.get().restore();
-            String application = directory + File.separator
-                    + "concourse-server"; // the install directory for the
-                                          // concourse-server application
+            Path application = directory.resolve("concourse-server"); // the
+                                                                      // install
+                                                                      // directory
+                                                                      // for the
+                                                                      // concourse-server
+                                                                      // application
             Process proc2 = Runtime.getRuntime().exec("ls " + application);
             List<String> output = Processes.getStdOut(proc2);
             if(!output.isEmpty()) {
                 // delete the dev prefs because those would take precedence over
                 // what is configured in this class
-                Files.deleteIfExists(
-                        Paths.get(application, "conf/concourse.prefs.dev"));
+                Files.deleteIfExists(application.resolve(CONF)
+                        .resolve("concourse.prefs.dev"));
+                Files.deleteIfExists(application.resolve(CONF)
+                        .resolve("concourse.yaml.dev"));
                 configure(application);
                 log.info("Successfully installed server in {}", application);
-                return application;
+                return new ManagedConcourseServer(application);
             }
             else {
                 throw new RuntimeException(MessageFormat.format(
@@ -305,7 +180,128 @@ public class ManagedConcourseServer {
         catch (Exception e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
+    }
 
+    /**
+     * Create an {@link ManagedConcourseServer} at {@code version}.
+     * 
+     * @param version
+     * @return the ManagedConcourseServer
+     */
+    public static ManagedConcourseServer install(String version) {
+        return install(version, getNewInstallationDirectory());
+    }
+
+    /**
+     * Create an {@link ManagedConcourseServer} at {@code version} in
+     * {@code directory}.
+     * 
+     * @param version
+     * @param directory
+     * @return the ManagedConcourseServer
+     */
+    public static ManagedConcourseServer install(String version,
+            Path directory) {
+        Path installer = ConcourseArtifacts.installer(version);
+        return install(installer, directory);
+    }
+
+    /**
+     * Return a {@link ManagedConcourseServer} that controls an
+     * <strong>existing</strong> Concourse Server installation in the
+     * {@code directory}.
+     * 
+     * @param directory
+     * @return the {@link ManagedConcourseServer}
+     */
+    public static ManagedConcourseServer open(Path directory) {
+        return new ManagedConcourseServer(directory);
+    }
+
+    /**
+     * Tweak some of the preferences to make this more palatable for testing
+     * (i.e. reduce the possibility of port conflicts, etc).
+     * 
+     * @param installDirectory
+     */
+    private static void configure(Path directory) {
+        Path conf = directory.resolve(CONF);
+        Path[] configPaths = Array.containing(conf.resolve("concourse.prefs"),
+                conf.resolve("concourse.yaml"));
+        ConcourseServerConfiguration config = ConcourseServerConfiguration
+                .from(configPaths);
+        Path data = directory.resolve("data");
+        config.setBufferDirectory(data.resolve("buffer").toString());
+        config.setDatabaseDirectory(data.resolve("database").toString());
+        config.setClientPort(getOpenPort());
+        config.setJmxPort(getOpenPort());
+        config.setLogLevel(Level.DEBUG);
+        config.setShutdownPort(getOpenPort());
+    }
+
+    /**
+     * Collect and return all the {@code jar} files that are located in the
+     * directory at {@code path}. If {@code path} is not a directory, but is
+     * instead, itself, a jar file, then return a list that contains in.
+     * 
+     * @param path
+     * @return the list of jar file URL paths
+     */
+    private static URL[] gatherJars(Path path) {
+        List<URL> jars = Lists.newArrayList();
+        gatherJars(path, jars);
+        return jars.toArray(new URL[] {});
+    }
+
+    /**
+     * Collect all the {@code jar} files that are located in the directory at
+     * {@code path} and place them into the list of {@code jars}. If
+     * {@code path} is not a directory, but is instead, itself a jar file, then
+     * place it in the list.
+     * 
+     * @param path
+     * @param jars
+     */
+    private static void gatherJars(Path path, List<URL> jars) {
+        try {
+            if(Files.isDirectory(path)) {
+                try (DirectoryStream<Path> stream = Files
+                        .newDirectoryStream(path)) {
+                    for (Path p : stream) {
+                        gatherJars(p, jars);
+                    }
+                }
+
+            }
+            else if(path.toString().endsWith(".jar")) {
+                jars.add(new URL("file://" + path.toString()));
+            }
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+    }
+
+    /**
+     * Return the {@link Path} to a new directory where a new Concourse Server
+     * installation can be placed.
+     * 
+     * @return the new installation directory
+     */
+    private static Path getNewInstallationDirectory() {
+        return DEFAULT_INSTALL_HOME.resolve(Long.toString(Time.now()));
+    }
+
+    /**
+     * Get an open port.
+     * 
+     * @return the port
+     */
+    private static int getOpenPort() {
+        int min = 49512;
+        int max = 65535;
+        int port = min + RAND.nextInt(max - min);
+        return isPortAvailable(port) ? port : getOpenPort();
     }
 
     /**
@@ -337,8 +333,8 @@ public class ManagedConcourseServer {
      * The default location where the the test server is installed if a
      * particular location is not specified.
      */
-    private static final String DEFAULT_INSTALL_HOME = System
-            .getProperty("user.home") + File.separator + ".concourse-testing";
+    private static final Path DEFAULT_INSTALL_HOME = Paths
+            .get(FileOps.getUserHome(), ".concourse-testing");
 
     // ---logger
     private static final Logger log = LoggerFactory
@@ -365,7 +361,7 @@ public class ManagedConcourseServer {
      * nothing is done to the configuration files unless
      * {@link #syncDefaultClientConnectionInfo()} was called by the client.
      */
-    private ClientPrefsCleanupAction clientPrefsCleanupAction = ClientPrefsCleanupAction.NONE;
+    private ClientConfigCleanupAction clientConfigCleanupAction = ClientConfigCleanupAction.NONE;
 
     /**
      * The file whose existence determines whether or not this server should be
@@ -376,7 +372,7 @@ public class ManagedConcourseServer {
     /**
      * The server application install directory;
      */
-    private final String installDirectory;
+    private final Path directory;
 
     /**
      * A connection to the remote MBean server running in the managed
@@ -394,16 +390,18 @@ public class ManagedConcourseServer {
      * 
      * @param installDirectory
      */
-    private ManagedConcourseServer(String installDirectory) {
-        this.installDirectory = installDirectory;
+    private ManagedConcourseServer(Path directory) {
+        this.directory = directory;
+        Path conf = directory.resolve(CONF);
+        // @formatter:off
         Path[] configPaths = Array.containing(
-                Paths.get(installDirectory, CONF, "concourse.prefs"),
-                Paths.get(installDirectory, CONF, "concourse.yaml"));
+                conf.resolve("concourse.prefs"),
+                conf.resolve("concourse.yaml"));
+        // @formatter:on
         this.config = ConcourseServerConfiguration.from(configPaths);
         config.setLogLevel(Level.DEBUG);
-        this.destroyOnExitFlag = Paths.get(installDirectory)
-                .resolve(".destroyOnExit");
-        destroyOnExit(true);
+        this.destroyOnExitFlag = directory.resolve(".destroyOnExit");
+        setDestroyOnExit(true);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
@@ -427,27 +425,36 @@ public class ManagedConcourseServer {
     }
 
     /**
-     * Return a connection handler to the server using the default "admin"
-     * credentials.
+     * Connect using the default "admin" credentials return a {@link Concourse}
+     * client.
      * 
-     * @return the connection handler
+     * @return the {@link Concourse} client
      */
     public Concourse connect() {
         return connect("admin", "admin");
     }
 
     /**
-     * Return a connection handler to the server using the specified
-     * {@code username} and {@code password}.
+     * Connect with the specific {@code username} and {@code password} and
+     * return a {@link Concourse} client.
      * 
      * @param username
      * @param password
-     * @return the connection handler
+     * @return the {@link Concourse} client
      */
     public Concourse connect(String username, String password) {
         return new Client(username, password);
     }
 
+    /**
+     * Connect to {@code environment} with the specific {@code username} and
+     * {@code password} and return a {@link Concourse} client.
+     * 
+     * @param username
+     * @param password
+     * @param environment
+     * @return the {@link Concourse} client
+     */
     public Concourse connect(String username, String password,
             String environment) {
         return new Client(username, password, environment);
@@ -458,16 +465,16 @@ public class ManagedConcourseServer {
      * files and associated data.
      */
     public void destroy() {
-        if(Files.exists(Paths.get(installDirectory))) { // check if server has
-                                                        // been manually
-                                                        // destroyed
+        if(Files.exists(directory)) { // check if server has
+                                      // been manually
+                                      // destroyed
             if(isRunning()) {
                 stop();
             }
             try {
                 for (String filename : CLIENT_CONFIG_FILENAMES) {
                     Path file = Paths.get(filename).toAbsolutePath();
-                    if(clientPrefsCleanupAction == ClientPrefsCleanupAction.RESTORE_BACKUP) {
+                    if(clientConfigCleanupAction == ClientConfigCleanupAction.RESTORE_BACKUP) {
                         Path backup = Paths.get(filename + ".bak")
                                 .toAbsolutePath();
                         Files.move(backup, file,
@@ -476,15 +483,13 @@ public class ManagedConcourseServer {
                                 "Restored original client configuration from {} to {}",
                                 backup, file);
                     }
-                    else if(clientPrefsCleanupAction == ClientPrefsCleanupAction.DELETE) {
+                    else if(clientConfigCleanupAction == ClientConfigCleanupAction.DELETE) {
                         Files.delete(file);
                         log.info("Deleted client configuration from {}", file);
                     }
                 }
-                deleteDirectory(
-                        Paths.get(installDirectory).getParent().toString());
-                log.info("Deleted server install directory at {}",
-                        installDirectory);
+                deleteDirectory(directory.getParent().toString());
+                log.info("Deleted server install directory at {}", directory);
             }
             catch (Exception e) {
                 throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -509,7 +514,7 @@ public class ManagedConcourseServer {
      * 
      * @param destroyOnExit
      */
-    public synchronized void destroyOnExit(boolean destroyOnExit) {
+    public synchronized void setDestroyOnExit(boolean destroyOnExit) {
         try {
             if(destroyOnExit) {
                 Files.write(destroyOnExitFlag, new byte[] { 1 });
@@ -521,6 +526,16 @@ public class ManagedConcourseServer {
         catch (IOException e) {
             throw CheckedExceptions.throwAsRuntimeException(e);
         }
+    }
+
+    /**
+     * Return the {@link Path} to the directory where the
+     * {@link ManagedConcoursServer} is installed.
+     * 
+     * @return the install directory
+     */
+    public Path directory() {
+        return directory;
     }
 
     /**
@@ -543,9 +558,7 @@ public class ManagedConcourseServer {
                 args0.add(arg.split("\\s"));
             }
             Process process = new ProcessBuilder(args0.build())
-                    .directory(
-                            new File(installDirectory + File.separator + BIN))
-                    .start();
+                    .directory(directory.resolve(BIN).toFile()).start();
             ProcessResult result = Processes.waitFor(process);
             if(result.exitCode() == 0) {
                 return result.out();
@@ -604,15 +617,6 @@ public class ManagedConcourseServer {
         catch (Exception e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
-    }
-
-    /**
-     * Return the {@link #installDirectory} for this server.
-     * 
-     * @return the install directory
-     */
-    public String getInstallDirectory() {
-        return installDirectory;
     }
 
     /**
@@ -716,18 +720,6 @@ public class ManagedConcourseServer {
     }
 
     /**
-     * Return the {@link ManagedConcourseServer server's}
-     * {@link ConourseServerPreferences preferences}.
-     * 
-     * @return the {@link ConourseServerPreferences preferences}.
-     * @deprecated use {@link #config() }instead
-     */
-    @Deprecated
-    public ConcourseServerPreferences prefs() {
-        return config();
-    }
-
-    /**
      * Print the content of the log file with {@code name} to the console.
      * 
      * @param name the name of the log file (i.e. console)
@@ -736,11 +728,11 @@ public class ManagedConcourseServer {
         // NOTE: This method does not currently print contents of archived log
         // files. This is intentional because we assume that any interesting log
         // information that needs to be printed will be in the most recent file.
-        String logdir = Paths.get(installDirectory, "log").toString();
-        String file = Paths.get(logdir, name + ".log").toString();
-        String content = FileOps.read(file);
+        Path logs = directory.resolve("log");
+        Path file = logs.resolve(name + ".log");
+        String content = FileOps.read(file.toString());
         System.err.println(file);
-        for (int i = 0; i < file.length(); ++i) {
+        for (int i = 0; i < file.toString().length(); ++i) {
             System.err.print('-');
         }
         System.err.println();
@@ -819,14 +811,14 @@ public class ManagedConcourseServer {
                 if(Files.exists(file)) {
                     Path backup = Paths.get(filename + ".bak").toAbsolutePath();
                     Files.move(file, backup);
-                    clientPrefsCleanupAction = ClientPrefsCleanupAction.RESTORE_BACKUP;
+                    clientConfigCleanupAction = ClientConfigCleanupAction.RESTORE_BACKUP;
                     log.info(
                             "Took backup for client configuration file located at "
                                     + "{}. The backup is stored in {}",
                             file, backup);
                 }
                 else {
-                    clientPrefsCleanupAction = ClientPrefsCleanupAction.DELETE;
+                    clientConfigCleanupAction = ClientConfigCleanupAction.DELETE;
                 }
             }
             Path[] files = builder.build();
@@ -884,7 +876,7 @@ public class ManagedConcourseServer {
                 command += " " + arg;
             }
             Process process = Runtime.getRuntime().exec(command, null,
-                    new File(installDirectory + File.separator + BIN));
+                    directory.resolve(BIN).toFile());
             process.waitFor();
             if(process.exitValue() == 0) {
                 return Processes.getStdOut(process);
@@ -986,8 +978,8 @@ public class ManagedConcourseServer {
             while (retries > 0 && delegate == null) {
                 --retries;
                 try {
-                    this.loader = new URLClassLoader(
-                            gatherJars(getInstallDirectory()), null);
+                    this.loader = new URLClassLoader(gatherJars(directory()),
+                            null);
                     try {
                         clazz = loader.loadClass(packageBase + "Concourse");
                     }
@@ -3290,13 +3282,13 @@ public class ManagedConcourseServer {
             }
         }
     }
-}
 
-/**
- * The valid options for the {@link #clientPrefsCleanupAction} variable.
- * 
- * @author Jeff Nelson
- */
-enum ClientPrefsCleanupAction {
-    DELETE, NONE, RESTORE_BACKUP
+    /**
+     * The valid options for the {@link #clientConfigCleanupAction} variable.
+     * 
+     * @author Jeff Nelson
+     */
+    enum ClientConfigCleanupAction {
+        DELETE, NONE, RESTORE_BACKUP
+    }
 }

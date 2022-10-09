@@ -74,8 +74,7 @@ public class CON649 extends ClientServerTest {
         Random.microSleep();
         server.stop();
         Path db = server.getDatabaseDirectory().resolve("default");
-        List<Path> directories = ImmutableList.of(db.resolve("cpb"),
-                db.resolve("csb"), db.resolve("ctb"));
+        List<Path> directories = ImmutableList.of(db.resolve("segments"));
         Map<String, AtomicInteger> counts = Maps.newLinkedHashMap();
         directories.forEach(directory -> {
             try {

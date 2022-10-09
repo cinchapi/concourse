@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.util;
+package com.cinchapi.concourse.automation.developer;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,37 +23,44 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.describe.Empty;
 import com.cinchapi.common.process.Processes;
 import com.cinchapi.common.process.Processes.ProcessResult;
+import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Platform;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 
 /**
- * An object that can be used to programmatically interact with a local instance
- * of the Concourse codebase.
- * 
+ * Provides programmatic interaction with a local copy of the Concourse source
+ * code.
+ * <p>
+ * This handler can detect if it is running from code that is part of the
+ * Concourse codebase (e.g., an internal project) and behave appropriately.
+ * </p>
+ *
  * @author Jeff Nelson
- * @deprecated use
- *             {@link com.cinchapi.concourse.automation.developer.ConcourseCodebase}
- *             instead
  */
-@Deprecated
-public class ConcourseCodebase {
+public final class ConcourseCodebase {
 
     /**
-     * If necessary, clone the codebase from Github to a local directory and
-     * return a handler than can be used for programmatic interaction. Multiple
-     * attempts to clone the codebase from Github will return the same
-     * {@link ConcourseCodebase codebase object} for the lifetime of the JVM
-     * process.
+     * If necessary, clone the codebase to a local directory and
+     * return a handler than can be used for programmatic interaction.
+     * <p>
+     * <strong>NOTE:</strong> Multiple attempts to {@link #cloneFromGithub()}
+     * will return the same {@link ConcourseCodebase codebase object} for the
+     * lifetime of the JVM process.
+     * </p>
      * 
      * @return the handler to interact with the codebase
      */
-    public static ConcourseCodebase cloneFromGithub() {
+    public static ConcourseCodebase get() {
         if(INSTANCE == null) {
             // First we must check to see if the current JVM process is running
             // within a directory that is a clone/fork of the github repo. We
@@ -155,7 +162,7 @@ public class ConcourseCodebase {
                     }
                 }
             }
-            INSTANCE = new ConcourseCodebase(dir);
+            INSTANCE = new ConcourseCodebase(Paths.get(dir));
         }
         return INSTANCE;
     }
@@ -217,31 +224,31 @@ public class ConcourseCodebase {
     /**
      * The path to the codebase on the local machine.
      */
-    private final String path;
+    private final Path path;
 
     /**
      * Construct a new instance.
      * 
      * @param path - the path to the codebase
      */
-    private ConcourseCodebase(String path) {
+    private ConcourseCodebase(Path path) {
         this.path = path;
     }
 
     /**
-     * Create a concourse-server.bin installer from this
-     * {@link ConcourseCodebase codebase} and return the path to the installer
-     * file.
+     * If necessary, build a concourse-server installer (e.g.,
+     * concourse-server.bin) from this {@link ConcourseCodebase codebase) and
+     * return the {@link Path} to the file.
      * 
-     * @return the path to the installer file
+     * @return the {@link Path} to the installer filer
      */
-    public String buildInstaller() {
+    public Path installer() {
         try {
             if(!hasInstaller() || hasCodeChanged()) {
                 LOGGER.info("A code change was detected, so a NEW installer "
                         + "is being generated.");
                 Process p = new ProcessBuilder("./gradlew", "clean",
-                        "installer").directory(new File(path)).start();
+                        "installer").directory(path.toFile()).start();
                 Processes.waitForSuccessfulCompletion(p);
                 LOGGER.info("Finished generating installer.");
             }
@@ -253,11 +260,12 @@ public class ConcourseCodebase {
     }
 
     /**
-     * Return the path to this {@link ConcourseCodebase codebase}.
+     * Return the {@link Path} where this {@link ConcourseCodebase codebase}
+     * resides on disk.
      * 
-     * @return the path to the codebase
+     * @return the {@link Path} to the codebase
      */
-    public String getPath() {
+    public Path path() {
         return path;
     }
 
@@ -267,7 +275,8 @@ public class ConcourseCodebase {
      * 
      * @return the path to the installer file
      */
-    private String getInstallerPath() {
+    @Nullable
+    private Path getInstallerPath() {
         try {
             String cmd = new StringBuilder().append("ls -a ").append(path)
                     .append("/concourse-server/build/distributions | grep bin")
@@ -280,10 +289,10 @@ public class ConcourseCodebase {
                     installer = path + "/concourse-server/build/distributions/"
                             + installer;
                 }
-                return installer;
+                return Paths.get(installer);
             }
             catch (Exception e) {
-                return "";
+                return null;
             }
         }
         catch (Exception e) {
@@ -297,13 +306,12 @@ public class ConcourseCodebase {
      * @return {@code true} if it appears that the code has changed
      */
     private boolean hasCodeChanged() {
-        Path cache = Paths.get(getPath(), CODE_STATE_CACHE_FILENAME)
-                .toAbsolutePath();
+        Path cache = path().resolve(CODE_STATE_CACHE_FILENAME).toAbsolutePath();
         String cmd = "(git status; git diff; git log -n 1) | "
                 + (Platform.isMacOsX() ? "md5" : "md5sum");
         try {
             Process p = Processes.getBuilderWithPipeSupport(cmd)
-                    .directory(new File(getPath())).start();
+                    .directory(path().toFile()).start();
             ProcessResult result = Processes.waitForSuccessfulCompletion(p);
             String state = result.out().get(0);
             FileOps.touch(cache.toString());
@@ -328,7 +336,7 @@ public class ConcourseCodebase {
      *         file or not
      */
     private boolean hasInstaller() {
-        return !getInstallerPath().isEmpty();
+        return !Empty.ness().describes(getInstallerPath());
     }
 
 }
