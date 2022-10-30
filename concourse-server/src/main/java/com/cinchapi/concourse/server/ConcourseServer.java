@@ -6644,7 +6644,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         this.mgmtServer = new TSimpleServer(mgmtArgs);
 
         // Setup the distributed cluster
-        if(CLUSTER.isEnabled()) {
+        if(CLUSTER.isDefined()) {
             LocalProcess.instance().clear();
             LocalProcess.instance().claim(port);
             // TODO: register some gossip handlers when building the cluster

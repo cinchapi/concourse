@@ -40,8 +40,8 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.Experimental;
 import com.cinchapi.concourse.annotate.NonPreference;
+import com.cinchapi.concourse.config.ConcourseClusterSpecification;
 import com.cinchapi.concourse.config.ConcourseServerConfiguration;
-import com.cinchapi.concourse.server.config.ConcourseClusterConfiguration;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.util.Networking;
@@ -330,10 +330,11 @@ public final class GlobalState extends Constants {
     public static boolean ENABLE_VERIFY_BY_LOOKUP = false;
 
     /**
-     * Contains all of the distributed
+     * Contains the specification for the distributed cluster of which Concourse
+     * Server is a member.
      */
     @Experimental
-    public static ConcourseClusterConfiguration CLUSTER = ConcourseClusterConfiguration.DEFAULTS;
+    public static ConcourseClusterSpecification CLUSTER = ConcourseClusterSpecification.UNDEFINED;
 
     static {
         List<String> files = ImmutableList.of(
@@ -416,7 +417,7 @@ public final class GlobalState extends Constants {
         ENABLE_VERIFY_BY_LOOKUP = config.getOrDefault("enable_verify_by_lookup",
                 ENABLE_VERIFY_BY_LOOKUP);
 
-        CLUSTER = ConcourseClusterConfiguration.from(config);
+        CLUSTER = ConcourseClusterSpecification.from(config);
         // =================== PREF READING BLOCK ====================
     }
 
