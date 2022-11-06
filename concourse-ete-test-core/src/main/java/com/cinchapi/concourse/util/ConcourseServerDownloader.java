@@ -118,7 +118,7 @@ public final class ConcourseServerDownloader {
     /**
      * The base Github URL for the release page.
      */
-    private static final String RELEASE_PAGE_URL_BASE = "https://github.com/cinchapi/concourse/releases/tag/v";
+    private static final String RELEASE_PAGE_URL_BASE = "https://github.com/cinchapi/concourse/releases/expanded_assets/v";
 
     /**
      * The base Github URL for the download page.
