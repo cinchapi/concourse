@@ -25,7 +25,8 @@ public final class CrossVersionBenchmarkTests {
     /**
      * The versions to use in all benchmark tests
      */
-    public static String[] VERSIONS = { "0.11.3", "0.11.4", "latest" };
+    public static String[] VERSIONS = { "0.11.3", "0.11.4", "0.11.5",
+            "latest" };
 
     private CrossVersionBenchmarkTests() {/* no-init */}
 
