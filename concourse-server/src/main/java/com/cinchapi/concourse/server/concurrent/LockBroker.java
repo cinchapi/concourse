@@ -184,8 +184,16 @@ public class LockBroker {
      * {@link RangeReadWriteLock RangeReadWriteLocks} to provide locking for
      * abstract ranges.
      * </p>
+     * <p>
+     * <li>A value of <strong>0</strong> indicates that the {@link Range} is
+     * unlocked</li>
+     * <li>A <strong>positive number</strong> value indicates that the
+     * {@link Range} is write locked</li>
+     * <li>A <strong>negative number</strong> value indicates that the
+     * {@link Range} is read locked</li>
+     * </p>
      */
-    private final Map<Text, Map<Range<Value>, AtomicInteger>> rangeLocks;
+    private final Map<Text, Map<Range<Value>, Integer>> rangeLocks;
 
     /**
      * Threads that are queued to be {@link LockSupport#unpark(Thread) unparked}
@@ -383,25 +391,6 @@ public class LockBroker {
             LockReference reference = entry.getValue();
             if(reference.count.compareAndSet(0, Integer.MIN_VALUE)) {
                 locksIt.remove();
-            }
-        }
-        Iterator<Entry<Text, Map<Range<Value>, AtomicInteger>>> rangeKeys = rangeLocks
-                .entrySet().iterator();
-        while (rangeKeys.hasNext()) {
-            Entry<Text, Map<Range<Value>, AtomicInteger>> rangeEntry = rangeKeys
-                    .next();
-            Map<Range<Value>, AtomicInteger> rangeKeyLocks = rangeEntry
-                    .getValue();
-            Iterator<Entry<Range<Value>, AtomicInteger>> rangeKeyLocksIt = rangeKeyLocks
-                    .entrySet().iterator();
-            while (rangeKeyLocksIt.hasNext()) {
-                Entry<Range<Value>, AtomicInteger> entry = rangeKeyLocksIt
-                        .next();
-                AtomicInteger state = entry.getValue();
-                int s = state.get();
-                if(s == 0 && state.compareAndSet(s, s)) {
-                    rangeKeyLocksIt.remove();
-                }
             }
         }
     }
@@ -652,7 +641,7 @@ public class LockBroker {
             public boolean tryLock() {
                 Text key = token.getKey();
                 Operator operator = token.getOperator();
-                Map<Range<Value>, AtomicInteger> ranges = rangeLocks
+                Map<Range<Value>, Integer> ranges = rangeLocks
                         .computeIfAbsent(key, $ -> new ConcurrentHashMap<>());
                 outer: for (;;) {
                     /*
@@ -661,13 +650,11 @@ public class LockBroker {
                      * while checking its state.
                      */
                     for (Range<Value> range : token.ranges()) {
-                        AtomicInteger state = ranges.computeIfAbsent(range,
-                                $ -> new AtomicInteger(0));
-                        int s = state.get();
-                        if(mode == Mode.WRITE && (s >= 1 || s < 0)) {
+                        int state = ranges.computeIfAbsent(range, $ -> 0);
+                        if(mode == Mode.WRITE && (state >= 1 || state < 0)) {
                             // If the same #range is locked in any state, this
                             // attempt to WRITE lock is blocked.
-                            if(state.compareAndSet(s, s)) {
+                            if(ranges.replace(range, state, state)) {
                                 return false;
                             }
                             else {
@@ -675,7 +662,8 @@ public class LockBroker {
                             }
                         }
                         if(mode == Mode.READ && operator == Operator.EQUALS) {
-                            if(s <= 0 && state.compareAndSet(s, s)) {
+                            if(state <= 0
+                                    && ranges.replace(range, state, state)) {
                                 // A EQUAL READ is only blocked if there is a
                                 // concurrent WRITE for the exact value. If that
                                 // isn't the case we can proceed to the next of
@@ -684,7 +672,8 @@ public class LockBroker {
                                 // connected ranges.
                                 continue;
                             }
-                            else if(s > 0 && state.compareAndSet(s, s)) {
+                            else if(state > 0
+                                    && ranges.replace(range, state, state)) {
                                 return false;
                             }
                             else {
@@ -693,16 +682,15 @@ public class LockBroker {
                         }
                         // As a last resort, check for locked connected ranges
                         // and determine if this lock is blocked as a result.
-                        Iterator<Entry<Range<Value>, AtomicInteger>> it = ranges
+                        Iterator<Entry<Range<Value>, Integer>> it = ranges
                                 .entrySet().iterator();
                         while (it.hasNext()) {
-                            Entry<Range<Value>, AtomicInteger> entry = it
-                                    .next();
+                            Entry<Range<Value>, Integer> entry = it.next();
                             Range<Value> locked = entry.getKey();
                             state = entry.getValue();
-                            s = state.get();
-                            if((s == 0 || (mode == Mode.READ && s < 0))) {
-                                if(state.compareAndSet(s, s)) {
+                            if((state == 0
+                                    || (mode == Mode.READ && state < 0))) {
+                                if(ranges.replace(locked, state, state)) {
                                     // If the #locked range is actually unlocked
                                     // or we are attempting a READ lock and the
                                     // #locked range is also a READ lock, we can
@@ -716,9 +704,10 @@ public class LockBroker {
                             }
                             else if(Ranges.haveNonEmptyIntersection(locked,
                                     range)
-                                    && ((mode == Mode.READ && s > 0)
-                                            || (mode == Mode.WRITE && s < 0))) {
-                                if(state.compareAndSet(s, s)) {
+                                    && ((mode == Mode.READ && state > 0)
+                                            || (mode == Mode.WRITE
+                                                    && state < 0))) {
+                                if(ranges.replace(locked, state, state)) {
                                     return false;
                                 }
                                 else {
@@ -727,23 +716,30 @@ public class LockBroker {
                             }
                         }
                     }
-                    List<AtomicInteger> undos = new ArrayList<>(1);
+                    List<Range<Value>> undos = new ArrayList<>(1);
                     for (Range<Value> range : token.ranges()) {
-                        AtomicInteger state = ranges.computeIfAbsent(range,
-                                $ -> new AtomicInteger(0));
-                        int s = state.get();
-                        if(!state.compareAndSet(s,
-                                s + (mode == Mode.READ ? -1 : 1))) {
+                        int state = ranges.computeIfAbsent(range, $ -> 0);
+                        if(!ranges.replace(range, state,
+                                state + (mode == Mode.READ ? -1 : 1))) {
                             // The lock has been newly acquired or released
                             // since we checked the state, so undo any ranges we
                             // intermediately acquired and tryLock again.
-                            for (AtomicInteger undo : undos) {
-                                undo.addAndGet(mode == Mode.READ ? 1 : -1);
+                            for (Range<Value> undo : undos) {
+                                for (;;) {
+                                    int s = ranges.get(undo);
+                                    if(ranges.replace(undo, s,
+                                            s + (mode == Mode.READ ? 1 : -1))) {
+                                        break;
+                                    }
+                                    else {
+                                        continue;
+                                    }
+                                }
                             }
                             continue outer;
                         }
                         else {
-                            undos.add(state);
+                            undos.add(range);
                         }
                     }
                     return true;
@@ -777,31 +773,42 @@ public class LockBroker {
             @Override
             public void unlock() {
                 Text key = token.getKey();
-                Map<Range<Value>, AtomicInteger> ranges = rangeLocks
+                Map<Range<Value>, Integer> ranges = rangeLocks
                         .computeIfAbsent(key, $ -> new ConcurrentHashMap<>());
                 outer: for (;;) {
-                    List<AtomicInteger> undos = new ArrayList<>(1);
+                    List<Range<Value>> undos = new ArrayList<>(1);
                     for (Range<Value> range : token.ranges()) {
-                        AtomicInteger state = ranges.computeIfAbsent(range,
-                                $ -> new AtomicInteger(0));
-                        int s = state.get();
-                        if(s == 0 || (mode == Mode.READ && s > 0)
-                                || (mode == Mode.WRITE && s < 0)) {
+                        int state = ranges.computeIfAbsent(range, $ -> 0);
+                        if(state == 0 || (mode == Mode.READ && state > 0)
+                                || (mode == Mode.WRITE && state < 0)) {
                             throw new IllegalMonitorStateException();
                         }
-                        if(state.compareAndSet(s,
-                                s + (mode == Mode.READ ? 1 : -1))) {
-                            undos.add(state);
+                        if(ranges.replace(range, state,
+                                state + (mode == Mode.READ ? 1 : -1))) {
+                            undos.add(range);
                         }
                         else {
                             // The lock has been newly acquired or released
                             // since we checked the state, so try to unlock
                             // again
-                            for (AtomicInteger undo : undos) {
-                                undo.addAndGet(mode == Mode.READ ? -1 : 1);
+                            for (Range<Value> undo : undos) {
+                                for (;;) {
+                                    int s = ranges.get(undo);
+                                    if(ranges.replace(undo, s,
+                                            s + (mode == Mode.READ ? -1 : 1))) {
+                                        break;
+                                    }
+                                    else {
+                                        continue;
+                                    }
+                                }
                             }
                             continue outer;
                         }
+                    }
+                    // Remove previously locked ranges that remain unlocked.
+                    for (Range<Value> range : token.ranges()) {
+                        ranges.remove(range, 0);
                     }
                     break;
                 }
@@ -817,6 +824,11 @@ public class LockBroker {
 
     }
 
+    /**
+     * An enum that tracks the locking mode.
+     *
+     * @author Jeff Nelson
+     */
     enum Mode {
         READ, WRITE
     }
@@ -896,5 +908,4 @@ public class LockBroker {
             this.count = new AtomicInteger(0);
         }
     }
-
 }
