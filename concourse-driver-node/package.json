@@ -1,0 +1,18 @@
+{
+  "name": "concourse-driver-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cinchapi/configurator": "^1.0.1",
+    "lodash.isempty": "^4.4.0",
+    "lodash.isobject": "^3.0.2",
+    "lodash.isundefined": "^3.0.1",
+    "thrift": "0.9.3"
+  }
+}

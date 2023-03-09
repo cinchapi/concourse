@@ -37,6 +37,9 @@ namespace php concourse.thrift.data
 # thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced interface/data.thrift
 namespace rb concourse.thrift
 
+# To generate Node source code run:
+# thrift -out concourse-driver-node/lib/thrift -gen js:node interface/data.thrift
+
 /**
  * A lightweight wrapper for a typed Object that has been encoded
  * as binary data.
