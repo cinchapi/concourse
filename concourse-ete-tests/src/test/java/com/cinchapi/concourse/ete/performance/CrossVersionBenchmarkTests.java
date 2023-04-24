@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2023 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,8 @@ public final class CrossVersionBenchmarkTests {
     /**
      * The versions to use in all benchmark tests
      */
-    public static String[] VERSIONS = { "0.11.3", "0.11.4", "latest" };
+    public static String[] VERSIONS = { "0.11.3", "0.11.4", "0.11.5",
+            "latest" };
 
     private CrossVersionBenchmarkTests() {/* no-init */}
 
