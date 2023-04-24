@@ -72,7 +72,7 @@ public class ConcourseClusterSpecification {
     /**
      * The config key for the list of nodes.
      */
-    private static final String NODES = "node";
+    private static final String NODES = "nodes";
 
     /**
      * The config key for the replication factor.
