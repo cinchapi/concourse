@@ -6632,7 +6632,6 @@ public class ConcourseServer extends BaseConcourseServer implements
         this.httpServer = GlobalState.HTTP_PORT > 0
                 ? HttpServer.create(this, GlobalState.HTTP_PORT)
                 : HttpServer.disabled();
-        getEngine(); // load the default engine
         this.pluginManager = new PluginManager(this,
                 GlobalState.CONCOURSE_HOME + File.separator + "plugins");
 
@@ -6661,6 +6660,9 @@ public class ConcourseServer extends BaseConcourseServer implements
         else {
             this.cluster = null;
         }
+        
+        // Load the Engine for the default environment
+        getEngine();
     }
 
     /**
