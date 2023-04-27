@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.storage;
 
 import com.cinchapi.concourse.server.concurrent.LockBroker;
+import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.ensemble.Ensemble;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 
@@ -101,6 +102,7 @@ class TwoPhaseCommit extends AtomicOperation {
     @Override
     public void abort() {
         super.cancel();
+        Logger.debug("Canceled two phase commit {}", this);
     }
 
     /**
@@ -109,6 +111,7 @@ class TwoPhaseCommit extends AtomicOperation {
     public void finish() {
         if(version != null) {
             super.complete(version);
+            Logger.debug("Finished two phase commit {}", this);
         }
         else {
             throwAtomicStateException();
@@ -122,6 +125,7 @@ class TwoPhaseCommit extends AtomicOperation {
         // only thing that happens when #commit() is called is that the locks
         // are acquired. The actual completion work happens when #finish() is
         // called.
+        Logger.debug("Completed two phase commit {} at version {}", this, version);
     }
 
 }
