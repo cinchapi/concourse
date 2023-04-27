@@ -26,10 +26,12 @@ import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.common.logging.Logger;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
 import com.cinchapi.concourse.config.ConcourseClusterSpecification;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Networking;
 import com.google.common.base.Preconditions;
 
 /**
@@ -207,6 +209,11 @@ public final class ManagedConcourseCluster {
     private final Random random = new Random();
 
     /**
+     * A {@link Logger} for this class.
+     */
+    private final Logger log = Logger.console(this.getClass().getName());
+
+    /**
      * Construct a new instance.
      * 
      * @param nodes
@@ -297,8 +304,16 @@ public final class ManagedConcourseCluster {
      */
     public void start() {
         sync();
+        // TODO: do this async?
         for (ManagedConcourseServer node : nodes) {
-            node.start(); // TODO: do this async?
+            // NOTE: Each node is setup for remote debugging to diagnose unit
+            // test failures.
+            int remoteDebuggerPort = Networking.getOpenPort();
+            node.config().set("remote_debugger_port", remoteDebuggerPort);
+            node.start();
+            log.info(
+                    "The node on localhost:{} is setup for remote debugging on port {}",
+                    node.config().getClientPort(), remoteDebuggerPort);
         }
     }
 
