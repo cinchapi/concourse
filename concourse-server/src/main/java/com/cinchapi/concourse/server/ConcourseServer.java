@@ -6660,7 +6660,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         else {
             this.cluster = null;
         }
-        
+
         // Load the Engine for the default environment
         getEngine();
     }

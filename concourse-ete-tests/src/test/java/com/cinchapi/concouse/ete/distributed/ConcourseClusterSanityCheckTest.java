@@ -64,7 +64,7 @@ public class ConcourseClusterSanityCheckTest extends ConcourseClusterTest {
             results.add(client.select(record));
         }
         Map<String, Set<Object>> last = null;
-        for(Map<String, Set<Object>> result : results) {
+        for (Map<String, Set<Object>> result : results) {
             if(last == null) {
                 last = result;
             }

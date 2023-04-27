@@ -125,7 +125,8 @@ class TwoPhaseCommit extends AtomicOperation {
         // only thing that happens when #commit() is called is that the locks
         // are acquired. The actual completion work happens when #finish() is
         // called.
-        Logger.debug("Completed two phase commit {} at version {}", this, version);
+        Logger.debug("Completed two phase commit {} at version {}", this,
+                version);
     }
 
 }

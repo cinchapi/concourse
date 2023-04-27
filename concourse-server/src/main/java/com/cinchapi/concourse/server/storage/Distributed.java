@@ -53,7 +53,7 @@ public interface Distributed extends AtomicSupport, Ensemble {
             EnsembleInstanceIdentifier identifier) {
         TwoPhaseCommit atomic = new TwoPhaseCommit(identifier, this,
                 $ensembleLockBroker());
-        LocalProcess.instance().register(atomic); //is this necessary?
+        LocalProcess.instance().register(atomic); // is this necessary?
         return atomic.$ensembleInstanceIdentifier();
     }
 
