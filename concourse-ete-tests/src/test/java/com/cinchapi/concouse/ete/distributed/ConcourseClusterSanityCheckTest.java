@@ -15,6 +15,11 @@
  */
 package com.cinchapi.concouse.ete.distributed;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -48,19 +53,25 @@ public class ConcourseClusterSanityCheckTest extends ConcourseClusterTest {
     @Test
     public void testCanUseAnyCoordinator() {
         Concourse client = cluster.connect();
-        long record = client.add("name", "jeff");
+        long record = 1;
+        System.out.println("Using client " + client);
+        boolean added = client.add("name", "jeff", record);
+        Assert.assertTrue(added);
         client = cluster.connect();
+        List<Map<String, Set<Object>>> results = new ArrayList<>();
         for (ManagedConcourseServer node : cluster.nodes()) {
             client = node.connect();
-            System.out.println(client.select(record));
+            results.add(client.select(record));
         }
-        Assert.assertFalse(true);
-        /*
-         * TODO:
-         * - only 1 node is acking the write when at least 3 should
-         * - the same coordinator cohort should be chose so each node should
-         * print the right thing even if its only acked by 1
-         */
+        Map<String, Set<Object>> last = null;
+        for(Map<String, Set<Object>> result : results) {
+            if(last == null) {
+                last = result;
+            }
+            else {
+                Assert.assertEquals(result, last);
+            }
+        }
     }
 
 }
