@@ -509,26 +509,6 @@ public final class ManagedConcourseServer {
     }
 
     /**
-     * Set a flag that determines whether this instance will be destroyed on
-     * exit.
-     * 
-     * @param destroyOnExit
-     */
-    public synchronized void setDestroyOnExit(boolean destroyOnExit) {
-        try {
-            if(destroyOnExit) {
-                Files.write(destroyOnExitFlag, new byte[] { 1 });
-            }
-            else {
-                Files.deleteIfExists(destroyOnExitFlag);
-            }
-        }
-        catch (IOException e) {
-            throw CheckedExceptions.throwAsRuntimeException(e);
-        }
-    }
-
-    /**
      * Return the {@link Path} to the directory where the
      * {@link ManagedConcoursServer} is installed.
      * 
@@ -753,6 +733,26 @@ public final class ManagedConcourseServer {
     }
 
     /**
+     * Set a flag that determines whether this instance will be destroyed on
+     * exit.
+     * 
+     * @param destroyOnExit
+     */
+    public synchronized void setDestroyOnExit(boolean destroyOnExit) {
+        try {
+            if(destroyOnExit) {
+                Files.write(destroyOnExitFlag, new byte[] { 1 });
+            }
+            else {
+                Files.deleteIfExists(destroyOnExitFlag);
+            }
+        }
+        catch (IOException e) {
+            throw CheckedExceptions.throwAsRuntimeException(e);
+        }
+    }
+
+    /**
      * Start the server.
      */
     public void start() {
@@ -926,6 +926,15 @@ public final class ManagedConcourseServer {
     }
 
     /**
+     * The valid options for the {@link #clientConfigCleanupAction} variable.
+     * 
+     * @author Jeff Nelson
+     */
+    enum ClientConfigCleanupAction {
+        DELETE, NONE, RESTORE_BACKUP
+    }
+
+    /**
      * A {@link Concourse} client wrapper that delegates to the jars located in
      * the server's lib directory so that it uses the same version of the code.
      * 
@@ -934,9 +943,9 @@ public final class ManagedConcourseServer {
     private final class Client extends ReflectiveClient {
 
         private Class<?> clazz;
+
         private final Object delegate;
         private ClassLoader loader;
-
         /**
          * The top level package under which all Concourse classes exist in the
          * remote server.
@@ -2979,6 +2988,11 @@ public final class ManagedConcourseServer {
         }
 
         @Override
+        public String toString() {
+            return delegate.toString();
+        }
+
+        @Override
         public Map<Long, Map<String, Set<Long>>> trace(
                 Collection<Long> records) {
             return invoke("trace", Collection.class).with(records);
@@ -3281,14 +3295,5 @@ public final class ManagedConcourseServer {
                 return object;
             }
         }
-    }
-
-    /**
-     * The valid options for the {@link #clientConfigCleanupAction} variable.
-     * 
-     * @author Jeff Nelson
-     */
-    enum ClientConfigCleanupAction {
-        DELETE, NONE, RESTORE_BACKUP
     }
 }
