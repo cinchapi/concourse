@@ -18,10 +18,16 @@ package com.cinchapi.concourse.server.storage;
 import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.ensemble.Ensemble;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
-import com.cinchapi.ensemble.core.LocalProcess;
 
 /**
  * Can be distributed by the {@link Ensemble} framework.
+ * <p>
+ * This interface provides default adherence to {@link Ensemble Ensemble's}
+ * two-phase commit protocol via the {@link TwoPhaseCommit} construct. This
+ * interface automatically manages the registration and lifecycle of
+ * {@link TwoPhaseCommit} instances so that they can be operated on by
+ * individual nodes within an {@link Ensemble} cluster.
+ * </p>
  *
  * @author Jeff Nelson
  */
@@ -30,31 +36,27 @@ public interface Distributed extends AtomicSupport, Ensemble {
     @Override
     public default void $ensembleAbortAtomic(
             EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
-        atomic.abort();
+        TwoPhaseCommit atomic = TwoPhaseCommit.allocator().get(this,
+                identifier);
+        try {
+            atomic.abort();
+        }
+        finally {
+            atomic.deallocate();
+        }
     }
 
     @Override
     public default void $ensembleFinishCommitAtomic(
             EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
-        atomic.finish();
-    }
-
-    @Override
-    public default boolean $ensemblePrepareCommitAtomic(
-            EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
-        return atomic.commit();
-    }
-
-    @Override
-    public default EnsembleInstanceIdentifier $ensembleStartAtomic(
-            EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = new TwoPhaseCommit(identifier, this,
-                $ensembleLockBroker());
-        LocalProcess.instance().register(atomic); // is this necessary?
-        return atomic.$ensembleInstanceIdentifier();
+        TwoPhaseCommit atomic = TwoPhaseCommit.allocator().get(this,
+                identifier);
+        try {
+            atomic.finish();
+        }
+        finally {
+            atomic.deallocate();
+        }
     }
 
     /**
@@ -63,5 +65,21 @@ public interface Distributed extends AtomicSupport, Ensemble {
      * @return the {@link LockBroker}
      */
     public LockBroker $ensembleLockBroker();
+
+    @Override
+    public default boolean $ensemblePrepareCommitAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = TwoPhaseCommit.allocator().get(this,
+                identifier);
+        return atomic.commit();
+    }
+
+    @Override
+    public default EnsembleInstanceIdentifier $ensembleStartAtomic(
+            EnsembleInstanceIdentifier identifier) {
+        TwoPhaseCommit atomic = TwoPhaseCommit.allocator().allocate(identifier,
+                this, $ensembleLockBroker());
+        return atomic.$ensembleInstanceIdentifier();
+    }
 
 }

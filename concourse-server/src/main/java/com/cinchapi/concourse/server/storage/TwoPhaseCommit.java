@@ -15,6 +15,11 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.Nullable;
+
 import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.ensemble.Ensemble;
@@ -48,6 +53,21 @@ import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 class TwoPhaseCommit extends AtomicOperation {
 
     /**
+     * Return the {@link Allocator} that manages {@link TwoPhaseCommit}
+     * instances.
+     * 
+     * @return the {@link Allocator}
+     */
+    public static Allocator allocator() {
+        return ALLOCATOR;
+    }
+
+    /**
+     * The canonical {@link #allocator()}.
+     */
+    private static final Allocator ALLOCATOR = new Allocator();
+
+    /**
      * The {@link EnsembleInstanceIdentifier} that is assigned when
      * {@link Ensemble#$ensembleStartAtomic(EnsembleInstanceIdentifier)}.
      */
@@ -65,7 +85,7 @@ class TwoPhaseCommit extends AtomicOperation {
      * @param lockService
      * @param rangeLockService
      */
-    protected TwoPhaseCommit(EnsembleInstanceIdentifier identifier,
+    private TwoPhaseCommit(EnsembleInstanceIdentifier identifier,
             AtomicSupport destination, LockBroker broker) {
         super(destination, broker);
         this.identifier = identifier;
@@ -127,6 +147,86 @@ class TwoPhaseCommit extends AtomicOperation {
         // called.
         Logger.debug("Completed two phase commit {} at version {}", this,
                 version);
+    }
+
+    /**
+     * Deallocate this {@link TwoPhaseCommit}.
+     * 
+     * @return {@code true} if this is deallocated
+     */
+    boolean deallocate() {
+        return allocator().deallocate((AtomicSupport) durable, identifier);
+    }
+
+    /**
+     * Provides methods to control the lifecycle of {@link TwoPhaseCommit}
+     * instances.
+     *
+     * @author Jeff Nelson
+     */
+    static class Allocator {
+
+        /**
+         * The {@link TwoPhaseCommit TwoPhaseCommits} that are currently
+         * {@link #allocate(EnsembleInstanceIdentifier, AtomicSupport, LockBroker)
+         * allocated}.
+         * 
+         * @implNote It is assumed that assigned EnsembleInstanceIdentifiers are
+         *           unique across destinations, so those are not maintained
+         *           within the map.
+         */
+        private final Map<EnsembleInstanceIdentifier, TwoPhaseCommit> commits = new ConcurrentHashMap<>();
+
+        /**
+         * Construct a new instance.
+         */
+        private Allocator() { /* no init */}
+
+        /**
+         * Allocate a new {@link TwoPhaseCommit} that is
+         * {@link #get(AtomicSupport, EnsembleInstanceIdentifier) retrievable}
+         * with {@code identifier} and acts as a sandbox for the
+         * {@code destination} using the {@code broker}.
+         * 
+         * @param identifier
+         * @param destination
+         * @param broker
+         * @return the allocated {@link TwoPhaseCommit}
+         */
+        public TwoPhaseCommit allocate(EnsembleInstanceIdentifier identifier,
+                AtomicSupport destination, LockBroker broker) {
+            return commits.computeIfAbsent(identifier,
+                    $ -> new TwoPhaseCommit($, destination, broker));
+        }
+
+        /**
+         * Deallocate the {@link TwoPhaseCommit}.
+         * 
+         * @param destination
+         * @param identifier
+         * @return a boolean that indicates if the {@link TwoPhaseCommit} was
+         *         deallocated
+         */
+        public boolean deallocate(AtomicSupport destination,
+                EnsembleInstanceIdentifier identifier) {
+            return commits.remove(identifier) != null;
+        }
+
+        /**
+         * Return the allocated {@link TwoPhaseCommit} with {@code identifier}
+         * that is an extension of {@code destination}.
+         * 
+         * @param destination
+         * @param identifier
+         * @return the {@link TwoPhaseCommit} or {@code null} if it does not
+         *         exist.
+         */
+        @Nullable
+        public TwoPhaseCommit get(AtomicSupport destination,
+                EnsembleInstanceIdentifier identifier) {
+            return commits.get(identifier);
+        }
+
     }
 
 }

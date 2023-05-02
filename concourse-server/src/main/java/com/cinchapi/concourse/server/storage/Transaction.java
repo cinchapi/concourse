@@ -35,9 +35,7 @@ import com.cinchapi.concourse.server.storage.temp.ToggleQueue;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
-import com.cinchapi.ensemble.Ensemble;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
-import com.cinchapi.ensemble.core.LocalProcess;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
@@ -50,7 +48,7 @@ import com.cinchapi.ensemble.core.LocalProcess;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public final class Transaction extends AtomicOperation implements Ensemble {
+public final class Transaction extends AtomicOperation implements Distributed {
 
     /**
      * Return the Transaction for {@code destination} that is backed up to
@@ -133,36 +131,13 @@ public final class Transaction extends AtomicOperation implements Ensemble {
     }
 
     @Override
-    public void $ensembleAbortAtomic(EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
-        atomic.abort();
-    }
-
-    @Override
-    public void $ensembleFinishCommitAtomic(
-            EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
-        atomic.finish();
-    }
-
-    @Override
     public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
         return EnsembleInstanceIdentifier.of(id);
     }
 
     @Override
-    public boolean $ensemblePrepareCommitAtomic(
-            EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = LocalProcess.instance().get(identifier);
-        return atomic.commit();
-    }
-
-    @Override
-    public EnsembleInstanceIdentifier $ensembleStartAtomic(
-            EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = new TwoPhaseCommit(identifier, this,
-                ((Engine) durable).broker);
-        return atomic.$ensembleInstanceIdentifier();
+    public LockBroker $ensembleLockBroker() {
+        return ((Engine) durable).broker;
     }
 
     @Override
