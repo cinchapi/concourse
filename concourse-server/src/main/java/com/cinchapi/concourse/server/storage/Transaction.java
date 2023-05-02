@@ -27,6 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.temp.Queue;
@@ -34,6 +35,7 @@ import com.cinchapi.concourse.server.storage.temp.ToggleQueue;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
@@ -46,7 +48,7 @@ import com.cinchapi.concourse.util.Logger;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public final class Transaction extends AtomicOperation {
+public final class Transaction extends AtomicOperation implements Distributed {
 
     /**
      * Return the Transaction for {@code destination} that is backed up to
@@ -98,6 +100,14 @@ public final class Transaction extends AtomicOperation {
 
     /**
      * Construct a new instance.
+     */
+    Transaction() {
+        super(null, LockBroker.noOp());
+        this.id = null;
+    }
+
+    /**
+     * Construct a new instance.
      * 
      * @param destination
      */
@@ -118,6 +128,16 @@ public final class Transaction extends AtomicOperation {
         deserialize(bytes);
         setStatus(Status.COMMITTED);
 
+    }
+
+    @Override
+    public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
+        return EnsembleInstanceIdentifier.of(id);
+    }
+
+    @Override
+    public LockBroker $ensembleLockBroker() {
+        return ((Engine) durable).broker;
     }
 
     @Override
@@ -158,6 +178,7 @@ public final class Transaction extends AtomicOperation {
     }
 
     @Override
+
     protected void throwAtomicStateException() {
         throw new TransactionStateException();
     }
