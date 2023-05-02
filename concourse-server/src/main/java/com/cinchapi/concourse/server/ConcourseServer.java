@@ -131,6 +131,7 @@ import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
 import com.cinchapi.ensemble.Cluster;
 import com.cinchapi.ensemble.Ensemble;
+import com.cinchapi.ensemble.LoggingIntegration;
 import com.cinchapi.ensemble.core.LocalProcess;
 import com.cinchapi.ensemble.core.Node;
 import com.google.common.base.Preconditions;
@@ -309,6 +310,37 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
 
         });
+    }
+
+    /**
+     * Intercept logging from the Ensemble framework and route it to the native
+     * {@link Logger}.
+     */
+    private static void interceptEnsembleLogging() {
+        com.cinchapi.ensemble.util.Logger
+                .setLoggingIntegration(new LoggingIntegration() {
+
+                    @Override
+                    public void debug(String message, Object... params) {
+                        Logger.debug(message, params);
+                    }
+
+                    @Override
+                    public void error(String message, Object... params) {
+                        Logger.error(message, params);
+                    }
+
+                    @Override
+                    public void info(String message, Object... params) {
+                        Logger.info(message, params);
+                    }
+
+                    @Override
+                    public void warn(String message, Object... params) {
+                        Logger.warn(message, params);
+                    }
+
+                });
     }
 
     /**
@@ -6644,6 +6676,7 @@ public class ConcourseServer extends BaseConcourseServer implements
 
         // Setup the distributed cluster
         if(CLUSTER.isDefined()) {
+            interceptEnsembleLogging();
             LocalProcess.instance().clear();
             LocalProcess.instance().claim(port);
             // TODO: register some gossip handlers when building the cluster
