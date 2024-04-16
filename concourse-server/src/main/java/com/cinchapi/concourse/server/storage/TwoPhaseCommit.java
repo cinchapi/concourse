@@ -20,7 +20,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nullable;
 
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.concurrent.LockBroker;
+import com.cinchapi.concourse.server.storage.temp.Write;
+import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.ensemble.Ensemble;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
@@ -85,9 +89,9 @@ class TwoPhaseCommit extends AtomicOperation {
      * @param lockService
      * @param rangeLockService
      */
-    private TwoPhaseCommit(EnsembleInstanceIdentifier identifier,
+    TwoPhaseCommit(EnsembleInstanceIdentifier identifier,
             AtomicSupport destination, LockBroker broker) {
-        super(destination, broker);
+        super(destination, broker, null);
         this.identifier = identifier;
     }
 
@@ -108,14 +112,25 @@ class TwoPhaseCommit extends AtomicOperation {
     }
 
     @Override
+    public <T> T $ensembleInvokeAtomic(EnsembleInstanceIdentifier identifier,
+            String method, Object... args) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Ensemble $ensembleLocateAtomicInstance(
+            EnsembleInstanceIdentifier identifier) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean $ensemblePrepareCommitAtomic(
             EnsembleInstanceIdentifier identifier) {
         return false;
     }
 
     @Override
-    public EnsembleInstanceIdentifier $ensembleStartAtomic(
-            EnsembleInstanceIdentifier identifier) {
+    public void $ensembleStartAtomic(EnsembleInstanceIdentifier identifier) {
         throw new UnsupportedOperationException();
     }
 
@@ -156,6 +171,36 @@ class TwoPhaseCommit extends AtomicOperation {
      */
     boolean deallocate() {
         return allocator().deallocate((AtomicSupport) durable, identifier);
+    }
+
+    @Override
+    public boolean add(String key, TObject value, long record)
+            throws AtomicStateException {
+        if(limbo.verify(key, value, record)) {
+            // If the Write exists in the #limbo of a TwoPhaseCommit, it means
+            // that it was inserted from the same operation via another node
+            // (e.g., a Write must be dispatched to two Cohorts that have this
+            // node as a leader). Therefore, return true because the distributed
+            // operation has the same side effect.
+            return true;
+        }
+        else {
+            return super.add(key, value, record);
+        }
+    }
+
+    @Override
+    public boolean remove(String key, TObject value, long record)
+            throws AtomicStateException {
+        Action action = Reflection.call(limbo, "getLastWriteAction",
+                Write.notStorable(key, value, record),
+                Time.NONE); /* (authorized) */
+        if(action == Action.REMOVE) {
+            return true;
+        }
+        else {
+            return super.add(key, value, record);
+        }
     }
 
     /**

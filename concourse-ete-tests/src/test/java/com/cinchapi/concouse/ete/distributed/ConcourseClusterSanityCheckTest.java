@@ -26,6 +26,7 @@ import org.junit.Test;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
 import com.cinchapi.concourse.test.ClientServerTest;
+import com.cinchapi.concourse.test.ClusterAssert;
 import com.cinchapi.concourse.test.ConcourseClusterTest;
 import com.google.common.collect.ImmutableMap;
 
@@ -58,28 +59,39 @@ public class ConcourseClusterSanityCheckTest extends ConcourseClusterTest {
         System.out.println("Using client " + client);
         boolean added = client.add("name", "jeff", record);
         Assert.assertTrue(added);
-        client = cluster.connect();
-        List<Map<String, Set<Object>>> results = new ArrayList<>();
-        for (ManagedConcourseServer node : cluster.nodes()) {
-            client = node.connect();
-            results.add(client.select(record));
-        }
-        Map<String, Set<Object>> last = null;
-        for (Map<String, Set<Object>> result : results) {
-            if(last == null) {
-                last = result;
-            }
-            else {
-                Assert.assertEquals(result, last);
-            }
-        }
+        ClusterAssert.assertConsensus(cluster,
+                concourse -> concourse.select(record));
     }
-    
+
     @Test
     public void testCanUseAnyCoordinatorForAtomicOperation() {
         Concourse client = cluster.connect();
         System.out.println("Using client " + client);
         long record = client.insert(ImmutableMap.of("name", "jeff", "age", 35));
+        ClusterAssert.assertConsensus(cluster,
+                concourse -> concourse.verify("name", "jeff", record));
+        ClusterAssert.assertConsensus(cluster,
+                concourse -> concourse.verify("age", 35, record));
+        ClusterAssert.assertConsensus(cluster,
+                concourse -> !concourse.select(record).isEmpty());
+        ClusterAssert.assertConsensus(cluster,
+                concourse -> concourse.select(record));
+    }
+
+    @Test
+    public void testCanUseAnyCoordinatorForTransaction() {
+        Concourse client = cluster.connect();
+        System.out.println("Using client " + client);
+        client.stage();
+        long record = client.add("name", "jeff");
+        client.add("age", 35, record);
+        client.add("name", "jeff");
+        client.find("name = jeff");
+        client.set("name", "Jeff Nelson", record);
+        client.verifyAndSwap("name", "jeff", record, "Jeffery");
+        if(!client.commit()) {
+            Assert.fail();
+        }
         System.out.println(record);
         client = cluster.connect();
         List<Map<String, Set<Object>>> results = new ArrayList<>();
@@ -89,12 +101,11 @@ public class ConcourseClusterSanityCheckTest extends ConcourseClusterTest {
         }
         Map<String, Set<Object>> last = null;
         for (Map<String, Set<Object>> result : results) {
-            if(last == null) {
-                last = result;
-            }
-            else {
+            System.out.println(result);
+            if(last != null) {
                 Assert.assertEquals(result, last);
             }
+            last = result;
         }
     }
 

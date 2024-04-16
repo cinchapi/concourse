@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.storage;
 
 import com.cinchapi.concourse.server.concurrent.LockBroker;
+import com.cinchapi.concourse.server.storage.AtomicOperation.Status;
 import com.cinchapi.ensemble.Ensemble;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 
@@ -71,15 +72,27 @@ public interface Distributed extends AtomicSupport, Ensemble {
             EnsembleInstanceIdentifier identifier) {
         TwoPhaseCommit atomic = TwoPhaseCommit.allocator().get(this,
                 identifier);
-        return atomic.commit();
+        if(atomic.status() == Status.FINALIZING) {
+            // In cases where an Ensemble Tandem includes multiple Cohorts with
+            // the same leader node, the #2pc will be committed more than once.
+            return true;
+        }
+        else {
+            return atomic.commit();
+        }
     }
 
     @Override
-    public default EnsembleInstanceIdentifier $ensembleStartAtomic(
+    public default void $ensembleStartAtomic(
             EnsembleInstanceIdentifier identifier) {
-        TwoPhaseCommit atomic = TwoPhaseCommit.allocator().allocate(identifier,
-                this, $ensembleLockBroker());
-        return atomic.$ensembleInstanceIdentifier();
+        TwoPhaseCommit.allocator().allocate(identifier, this,
+                $ensembleLockBroker());
+    }
+
+    @Override
+    default Ensemble $ensembleLocateAtomicInstance(
+            EnsembleInstanceIdentifier identifier) {
+        return TwoPhaseCommit.allocator().get(this, identifier);
     }
 
 }

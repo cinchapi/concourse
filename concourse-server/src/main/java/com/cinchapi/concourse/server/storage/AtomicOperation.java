@@ -33,6 +33,7 @@ import java.util.concurrent.locks.Lock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.server.concurrent.LockBroker.Permit;
@@ -92,11 +93,12 @@ public class AtomicOperation extends BufferedStore implements
      * 
      * @param store
      * @param broker
+     * @param id
      * @return the AtomicOperation
      */
     protected static AtomicOperation start(AtomicSupport store,
-            LockBroker broker) {
-        return new AtomicOperation(store, broker);
+            LockBroker broker, String id) {
+        return new AtomicOperation(store, broker, id);
     }
 
     /**
@@ -123,6 +125,11 @@ public class AtomicOperation extends BufferedStore implements
      * The {@link LockBroker} that is used to coordinate concurrent operations.
      */
     protected final LockBroker broker;
+
+    /**
+     * The unique identifier.
+     */
+    protected final transient String id;
 
     /**
      * Whenever a nested {@link AtomicOperation} is
@@ -211,9 +218,12 @@ public class AtomicOperation extends BufferedStore implements
      * Construct a new instance.
      * 
      * @param destination
+     * @param broker
+     * @param id
      */
-    protected AtomicOperation(AtomicSupport destination, LockBroker broker) {
-        this(new Queue(INITIAL_CAPACITY), destination, broker);
+    protected AtomicOperation(AtomicSupport destination, LockBroker broker,
+            String id) {
+        this(new Queue(INITIAL_CAPACITY), destination, broker, id);
     }
 
     /**
@@ -221,12 +231,13 @@ public class AtomicOperation extends BufferedStore implements
      * 
      * @param buffer
      * @param destination
-     * @param lockService
-     * @param rangeLockService
+     * @param broker
+     * @param id
      */
     protected AtomicOperation(Queue buffer, AtomicSupport destination,
-            LockBroker broker) {
+            LockBroker broker, String id) {
         super(buffer, destination);
+        this.id = id;
         this.broker = broker;
         this.source = (AtomicSupport) this.durable;
         this.unlocked = new BufferedStore(limbo, durable) {
@@ -246,15 +257,21 @@ public class AtomicOperation extends BufferedStore implements
         source.subscribe(this);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.cinchapi.ensemble.Ensemble#$ensembleInstanceIdentifier()
+    /**
+     * No-arg constructor per requirement for Ensemble
      */
+    @DoNotInvoke
+    AtomicOperation() {
+        super(null, null);
+        this.unlocked = null;
+        this.id = null;
+        this.source = null;
+        this.broker = null;
+    }
+
     @Override
     public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
-        // TODO need an id for atomic operations
-        return null;
+        return EnsembleInstanceIdentifier.of(id);
     }
 
     @Override
@@ -302,7 +319,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public final boolean add(String key, TObject value, long record)
+    public boolean add(String key, TObject value, long record)
             throws AtomicStateException {
         return add(Write.add(key, value, record), Sync.NO, Verify.YES);
     }
@@ -525,7 +542,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public final boolean remove(String key, TObject value, long record)
+    public boolean remove(String key, TObject value, long record)
             throws AtomicStateException {
         return remove(Write.remove(key, value, record), Sync.NO, Verify.YES);
     }
@@ -649,7 +666,7 @@ public class AtomicOperation extends BufferedStore implements
     public final void start() {}
 
     @Override
-    public AtomicOperation startAtomicOperation() {
+    public AtomicOperation startAtomicOperation(String id) {
         checkState();
         /*
          * This operation must adhere to the JIT locking guarantees of its
@@ -658,7 +675,7 @@ public class AtomicOperation extends BufferedStore implements
          * child until it is ready to commit. As a result, we do not pass the
          * #source's lock broker to the nested operation.
          */
-        return AtomicOperation.start(this, LockBroker.noOp());
+        return AtomicOperation.start(this, LockBroker.noOp(), id);
     }
 
     /**

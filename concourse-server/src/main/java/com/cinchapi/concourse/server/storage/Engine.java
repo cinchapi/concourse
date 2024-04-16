@@ -263,9 +263,7 @@ public class Engine extends BufferedStore implements
      * {@link Database} in the default locations.
      * 
      */
-    public Engine() {
-        // TODO: may need to change this to have null default values...it's not
-        // currently used for anything.... Also should make it package-private
+    Engine() {
         this(new Buffer(), new Database(), GlobalState.DEFAULT_ENVIRONMENT);
     }
 
@@ -882,16 +880,16 @@ public class Engine extends BufferedStore implements
     @com.cinchapi.ensemble.Write
     @Broadcast
     @ReturnsEnsemble
-    public AtomicOperation startAtomicOperation() {
-        return AtomicOperation.start(this, broker);
+    public AtomicOperation startAtomicOperation(String id) {
+        return AtomicOperation.start(this, broker, id);
     }
 
     @Override
     @com.cinchapi.ensemble.Write
     @Broadcast
     @ReturnsEnsemble
-    public Transaction startTransaction() {
-        return Transaction.start(this);
+    public Transaction startTransaction(String id) {
+        return Transaction.start(this, id);
     }
 
     @Override
