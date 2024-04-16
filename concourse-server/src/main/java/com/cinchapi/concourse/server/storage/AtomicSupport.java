@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.UUID;
+
 /**
  * A {@link LockFreeStore} that can initiate and therefore serve as the
  * destination for an {@link AtomicOperation}.
@@ -41,7 +43,20 @@ public interface AtomicSupport extends
      * 
      * @return the {@link AtomicOperation}
      */
-    public AtomicOperation startAtomicOperation();
+    public default AtomicOperation startAtomicOperation() {
+        return startAtomicOperation(UUID.randomUUID().toString());
+    }
+
+    /**
+     * Return an {@link AtomicOperation} that can be used to group actions that
+     * should all succeed or fail together. Use {@link AtomicOperation#commit()}
+     * to apply the action to this store or use {@link AtomicOperation#abort()}
+     * to cancel.
+     * 
+     * @param id
+     * @return the {@link AtomoicOperation}
+     */
+    public AtomicOperation startAtomicOperation(String id);
 
     /**
      * Perform any additional cleanup that should happen after successfully

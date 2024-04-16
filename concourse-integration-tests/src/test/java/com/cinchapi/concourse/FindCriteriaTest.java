@@ -219,6 +219,7 @@ public class FindCriteriaTest extends ConcourseIntegrationTest {
         client.add("foo", e, 3);
         Criteria criteria = Criteria.where().key("foo")
                 .operator(Operator.BETWEEN).value(a).value(d);
+        System.out.println(criteria);
         Assert.assertEquals(ImmutableSet.of(1L, 2L), client.find(criteria));
     }
 

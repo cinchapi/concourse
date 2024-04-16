@@ -33,6 +33,7 @@ import java.util.concurrent.locks.Lock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.server.concurrent.LockBroker.Permit;
@@ -53,6 +54,7 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Transformers;
+import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -77,7 +79,8 @@ import com.google.common.collect.TreeRangeSet;
 @NotThreadSafe
 public class AtomicOperation extends BufferedStore implements
         AtomicSupport,
-        TokenEventObserver {
+        TokenEventObserver,
+        Distributed {
 
     // NOTE: This class does not need to do any locking on operations (until
     // commit time) because it is assumed to be isolated to one thread and the
@@ -90,11 +93,12 @@ public class AtomicOperation extends BufferedStore implements
      * 
      * @param store
      * @param broker
+     * @param id
      * @return the AtomicOperation
      */
     protected static AtomicOperation start(AtomicSupport store,
-            LockBroker broker) {
-        return new AtomicOperation(store, broker);
+            LockBroker broker, String id) {
+        return new AtomicOperation(store, broker, id);
     }
 
     /**
@@ -121,6 +125,11 @@ public class AtomicOperation extends BufferedStore implements
      * The {@link LockBroker} that is used to coordinate concurrent operations.
      */
     protected final LockBroker broker;
+
+    /**
+     * The unique identifier.
+     */
+    protected final transient String id;
 
     /**
      * Whenever a nested {@link AtomicOperation} is
@@ -209,9 +218,12 @@ public class AtomicOperation extends BufferedStore implements
      * Construct a new instance.
      * 
      * @param destination
+     * @param broker
+     * @param id
      */
-    protected AtomicOperation(AtomicSupport destination, LockBroker broker) {
-        this(new Queue(INITIAL_CAPACITY), destination, broker);
+    protected AtomicOperation(AtomicSupport destination, LockBroker broker,
+            String id) {
+        this(new Queue(INITIAL_CAPACITY), destination, broker, id);
     }
 
     /**
@@ -219,12 +231,13 @@ public class AtomicOperation extends BufferedStore implements
      * 
      * @param buffer
      * @param destination
-     * @param lockService
-     * @param rangeLockService
+     * @param broker
+     * @param id
      */
     protected AtomicOperation(Queue buffer, AtomicSupport destination,
-            LockBroker broker) {
+            LockBroker broker, String id) {
         super(buffer, destination);
+        this.id = id;
         this.broker = broker;
         this.source = (AtomicSupport) this.durable;
         this.unlocked = new BufferedStore(limbo, durable) {
@@ -242,6 +255,28 @@ public class AtomicOperation extends BufferedStore implements
 
         };
         source.subscribe(this);
+    }
+
+    /**
+     * No-arg constructor per requirement for Ensemble
+     */
+    @DoNotInvoke
+    AtomicOperation() {
+        super(null, null);
+        this.unlocked = null;
+        this.id = null;
+        this.source = null;
+        this.broker = null;
+    }
+
+    @Override
+    public EnsembleInstanceIdentifier $ensembleInstanceIdentifier() {
+        return EnsembleInstanceIdentifier.of(id);
+    }
+
+    @Override
+    public LockBroker $ensembleLockBroker() {
+        return broker;
     }
 
     /**
@@ -284,7 +319,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public final boolean add(String key, TObject value, long record)
+    public boolean add(String key, TObject value, long record)
             throws AtomicStateException {
         return add(Write.add(key, value, record), Sync.NO, Verify.YES);
     }
@@ -507,7 +542,7 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     @Override
-    public final boolean remove(String key, TObject value, long record)
+    public boolean remove(String key, TObject value, long record)
             throws AtomicStateException {
         return remove(Write.remove(key, value, record), Sync.NO, Verify.YES);
     }
@@ -631,7 +666,7 @@ public class AtomicOperation extends BufferedStore implements
     public final void start() {}
 
     @Override
-    public AtomicOperation startAtomicOperation() {
+    public AtomicOperation startAtomicOperation(String id) {
         checkState();
         /*
          * This operation must adhere to the JIT locking guarantees of its
@@ -640,7 +675,7 @@ public class AtomicOperation extends BufferedStore implements
          * child until it is ready to commit. As a result, we do not pass the
          * #source's lock broker to the nested operation.
          */
-        return AtomicOperation.start(this, LockBroker.noOp());
+        return AtomicOperation.start(this, LockBroker.noOp(), id);
     }
 
     /**
@@ -861,6 +896,18 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
+     * Cancel the operation and set its status to {@link Status#ABORTED},
+     * regardless of its current state.
+     */
+    protected final void cancel() {
+        source.unsubscribe(this);
+        if(locks != null && !locks.isEmpty()) {
+            releaseLocks();
+        }
+        status.set(Status.ABORTED);
+    }
+
+    /**
      * Check if this operation is preempted by any {@link #queued} version
      * change announcements.
      * <p>
@@ -894,6 +941,34 @@ public class AtomicOperation extends BufferedStore implements
             throwAtomicStateException();
         }
         checkIfQueuedPreempted();
+    }
+
+    /**
+     * The second phase of the {@link #commit(long) commit} protocol: apply the
+     * effects of this operation to the {@link #source}.
+     * <p>
+     * This method requires that the operation have been {@link #prepare()
+     * prepared} so that it is guaranteed that the effects can be applied
+     * without conflict.
+     * </p>
+     * 
+     * @param version the {@link Versioned#getVersion() version} to apply to all
+     *            the writes in this {@link AtomicOperation}
+     */
+    protected void complete(long version) {
+        if(status.compareAndSet(Status.FINALIZING, Status.FINALIZING)) {
+            limbo.transform(write -> write.rewrite(version));
+            apply();
+            releaseLocks();
+            source.onCommit(this);
+            if(!status.compareAndSet(Status.FINALIZING, Status.COMMITTED)) {
+                throw new IllegalStateException(
+                        "Unexpected atomic operation state change");
+            }
+        }
+        else {
+            throwAtomicStateException();
+        }
     }
 
     /**
@@ -948,6 +1023,28 @@ public class AtomicOperation extends BufferedStore implements
      */
     protected boolean isReadOnly() {
         return ((Queue) limbo).size() == 0;
+    }
+
+    /**
+     * Release all of the locks that are held by this operation.
+     */
+    protected void releaseLocks() {
+        if(isReadOnly()) {
+            return;
+        }
+        else if(locks != null) {
+            Set<LockDescription> _locks = locks;
+            locks = null; // CON-172: Set the reference of the locks to null
+                          // immediately to prevent a race condition where
+                          // the #grabLocks method isn't notified of version
+                          // change failure in time
+            for (LockDescription lock : _locks) {
+                lock.unlock(); // We should never encounter an
+                               // IllegalMonitorStateException here because a
+                               // lock should only go in #locks once it has been
+                               // locked.
+            }
+        }
     }
 
     @Override
@@ -1121,46 +1218,6 @@ public class AtomicOperation extends BufferedStore implements
     }
 
     /**
-     * Cancel the operation and set its status to {@link Status#ABORTED},
-     * regardless of its current state.
-     */
-    private final void cancel() {
-        source.unsubscribe(this);
-        if(locks != null && !locks.isEmpty()) {
-            releaseLocks();
-        }
-        status.set(Status.ABORTED);
-    }
-
-    /**
-     * The second phase of the {@link #commit(long) commit} protocol: apply the
-     * effects of this operation to the {@link #source}.
-     * <p>
-     * This method requires that the operation have been {@link #prepare()
-     * prepared} so that it is guaranteed that the effects can be applied
-     * without conflict.
-     * </p>
-     * 
-     * @param version the {@link Versioned#getVersion() version} to apply to all
-     *            the writes in this {@link AtomicOperation}
-     */
-    private final void complete(long version) {
-        if(status.compareAndSet(Status.FINALIZING, Status.FINALIZING)) {
-            limbo.transform(write -> write.rewrite(version));
-            apply();
-            releaseLocks();
-            source.onCommit(this);
-            if(!status.compareAndSet(Status.FINALIZING, Status.COMMITTED)) {
-                throw new IllegalStateException(
-                        "Unexpected atomic operation state change");
-            }
-        }
-        else {
-            throwAtomicStateException();
-        }
-    }
-
-    /**
      * Return {@code true} if it can immediately be determined that
      * {@code event} for {@code token} preempts this {@link AtomicOperation
      * operation}.
@@ -1247,28 +1304,6 @@ public class AtomicOperation extends BufferedStore implements
             catch (AtomicStateException e) {/* ignore */}
         }
         return false;
-    }
-
-    /**
-     * Release all of the locks that are held by this operation.
-     */
-    private void releaseLocks() {
-        if(isReadOnly()) {
-            return;
-        }
-        else if(locks != null) {
-            Set<LockDescription> _locks = locks;
-            locks = null; // CON-172: Set the reference of the locks to null
-                          // immediately to prevent a race condition where
-                          // the #grabLocks method isn't notified of version
-                          // change failure in time
-            for (LockDescription lock : _locks) {
-                lock.unlock(); // We should never encounter an
-                               // IllegalMonitorStateException here because a
-                               // lock should only go in #locks once it has been
-                               // locked.
-            }
-        }
     }
 
     /**

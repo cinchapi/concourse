@@ -15,31 +15,11 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-import com.cinchapi.concourse.time.Time;
-
 /**
- * A store that can initiate and therefore serve as the destination for a
- * {@link Transaction}.
- * 
- * @author Jeff Nelson
+ *
+ *
+ * @author jeff
  */
-public interface TransactionSupport {
-
-    /**
-     * Start a new {@link Transaction}.
-     * 
-     * @return the Transaction
-     */
-    public default Transaction startTransaction() {
-        return startTransaction(Long.toString(Time.now()));
-    }
-
-    /**
-     * Start a new {@link Transaction}.
-     * 
-     * @param id
-     * @return the Transaction
-     */
-    public Transaction startTransaction(String id);
+public class DistributedStoreTest {
 
 }
