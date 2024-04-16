@@ -15,6 +15,9 @@
  */
 package com.cinchapi.concourse.security;
 
+import static com.cinchapi.concourse.server.GlobalState.INIT_ROOT_PASSWORD;
+import static com.cinchapi.concourse.server.GlobalState.INIT_ROOT_USERNAME;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -64,9 +67,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Longs;
-
-import static com.cinchapi.concourse.server.GlobalState.INIT_ROOT_PASSWORD;
-import static com.cinchapi.concourse.server.GlobalState.INIT_ROOT_USERNAME;
 
 /**
  * The {@link UserService} controls access to the server by keeping tracking
