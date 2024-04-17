@@ -753,6 +753,14 @@ public final class ManagedConcourseServer {
     }
 
     /**
+     * Restart the server.
+     */
+    public void restart() {
+        stop();
+        start();
+    }
+
+    /**
      * Start the server.
      */
     public void start() {
@@ -1013,7 +1021,7 @@ public final class ManagedConcourseServer {
                         catch (InterruptedException t) {/* ignore */}
                     }
                     else {
-                        throw CheckedExceptions.throwAsRuntimeException(e);
+                        throw CheckedExceptions.throwAsRuntimeException(target);
                     }
                 }
                 catch (Exception e) {
