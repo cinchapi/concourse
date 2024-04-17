@@ -53,6 +53,9 @@ We made several changes to improve the safety, scalability and operational effic
 	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
 	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
 
+#### Version 0.11.6 (TBD)
+* Exposed the default JMX port, `9010`, in the `Dockerfile`.
+
 #### Version 0.11.5 (November 5, 2022)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).
 * Fixed a bug that allowed a Transaction's atomic operations (e.g., `verifyAndSwap`) to ignore range conflicts stemming from writes committed in other operations. As a result, the atomic operation would successfully commit to its a Transaction, but the Transaction would inevitably fail due to the aforementioned conflict. The correct (and now current) behaviour is that the atomic operation fails (so it can be retried) without dooming the entire Transaction to failure.
