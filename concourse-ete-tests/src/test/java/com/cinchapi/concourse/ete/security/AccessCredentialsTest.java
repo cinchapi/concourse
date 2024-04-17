@@ -78,7 +78,8 @@ public class AccessCredentialsTest extends ClientServerTest {
             server.connect(username, "admin");
         }
         catch (Exception e) {
-            Assert.fail("Authentication should succeed with configured credentials");
+            Assert.fail(
+                    "Authentication should succeed with configured credentials");
         }
         try {
             server.connect("admin", "admin");
@@ -88,7 +89,7 @@ public class AccessCredentialsTest extends ClientServerTest {
             Assert.assertTrue(true);
         }
     }
-    
+
     @Test
     public void testChangeRootPassword() {
         String password = Random.getSimpleString();
@@ -99,7 +100,8 @@ public class AccessCredentialsTest extends ClientServerTest {
             server.connect("admin", password);
         }
         catch (Exception e) {
-            Assert.fail("Authentication should succeed with configured credentials");
+            Assert.fail(
+                    "Authentication should succeed with configured credentials");
         }
         try {
             server.connect("admin", "admin");
@@ -109,7 +111,7 @@ public class AccessCredentialsTest extends ClientServerTest {
             Assert.assertTrue(true);
         }
     }
-    
+
     @Test
     public void testChangeRootUsernameAndPassword() {
         String username = Random.getSimpleString();
@@ -122,7 +124,8 @@ public class AccessCredentialsTest extends ClientServerTest {
             server.connect(username, password);
         }
         catch (Exception e) {
-            Assert.fail("Authentication should succeed with configured credentials");
+            Assert.fail(
+                    "Authentication should succeed with configured credentials");
         }
         try {
             server.connect("admin", "admin");
@@ -132,7 +135,7 @@ public class AccessCredentialsTest extends ClientServerTest {
             Assert.assertTrue(true);
         }
     }
-    
+
     @Test
     public void testInitDotRootObjectConfigTakesPrecedence() {
         String initUsername = Random.getSimpleString();
@@ -144,13 +147,14 @@ public class AccessCredentialsTest extends ClientServerTest {
             config.set("init_root_username", initUsername);
             config.set("init.root.password", rootPassword);
             config.set("init.root.username", rootUsername);
-            
+
         });
         try {
             server.connect(rootUsername, rootPassword);
         }
         catch (Exception e) {
-            Assert.fail("Authentication should succeed with init.root credentials");
+            Assert.fail(
+                    "Authentication should succeed with init.root credentials");
         }
         try {
             server.connect(initUsername, initPassword);
@@ -166,7 +170,7 @@ public class AccessCredentialsTest extends ClientServerTest {
         catch (Exception e) {
             Assert.assertTrue(true);
         }
-        
+
     }
 
     @Override

@@ -751,7 +751,7 @@ public final class ManagedConcourseServer {
             printLog(name);
         }
     }
-    
+
     /**
      * Restart the server.
      */
