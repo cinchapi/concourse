@@ -70,5 +70,6 @@ CMD ["console"]
 # Expose the TCP and HTTP ports
 EXPOSE 1717
 EXPOSE 3434
+EXPOSE 9010
 
 

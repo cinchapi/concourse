@@ -53,8 +53,8 @@ public final class ConcourseCodebase {
      * If necessary, clone the codebase to a local directory and
      * return a handler than can be used for programmatic interaction.
      * <p>
-     * <strong>NOTE:</strong> Multiple attempts to {@link #cloneFromGithub()}
-     * will return the same {@link ConcourseCodebase codebase object} for the
+     * <strong>NOTE:</strong> Multiple calls to this method will return the same
+     * {@link ConcourseCodebase codebase object} for the
      * lifetime of the JVM process.
      * </p>
      * 
@@ -237,7 +237,7 @@ public final class ConcourseCodebase {
 
     /**
      * If necessary, build a concourse-server installer (e.g.,
-     * concourse-server.bin) from this {@link ConcourseCodebase codebase) and
+     * concourse-server.bin) from this {@link ConcourseCodebase codebase} and
      * return the {@link Path} to the file.
      * 
      * @return the {@link Path} to the installer filer

@@ -58,6 +58,7 @@ We made several changes to improve the safety, scalability and operational effic
 * Added new configuration options for initializing Concourse Server with custom admin credentials upon first run. These options enhance security by allowing a non-default usernames and passwords before starting the server.
 	* The `init_root_username` option in `concourse.prefs` can be used to specify the username for the initial administrator account.
 	* The `init_root_password` option in `concourse.prefs` can be used to specify the password for the initial administrator account
+* Exposed the default JMX port, `9010`, in the `Dockerfile`.
 
 #### Version 0.11.5 (November 5, 2022)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).
