@@ -29,7 +29,11 @@ WORKDIR /usr/src/app
 COPY . /usr/src/app
 
 # Build the installer, if necessary
-RUN if ls concourse-server/build/distributions 2>/dev/null | grep .bin; then echo 'Installer already exists!'; else ./gradlew installer; fi
+RUN if [ -f concourse-server/build/distributions/*.bin ]; then \
+        echo 'Installer already exists!'; \
+    else \
+        ./gradlew installer; \
+    fi
 
 # Copy the installer to the /opt directory
 RUN \
