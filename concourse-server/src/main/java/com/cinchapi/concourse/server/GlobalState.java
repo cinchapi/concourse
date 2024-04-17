@@ -286,6 +286,18 @@ public final class GlobalState extends Constants {
     public static int MAX_SEARCH_SUBSTRING_LENGTH = -1;
 
     /**
+     * The password that is assigned to the root administrator account when
+     * Concourse Server first starts.
+     */
+    public static String INIT_ROOT_PASSWORD = "admin";
+
+    /**
+     * The username that is assigned to the root administrator account when
+     * Concourse Server first starts.
+     */
+    public static String INIT_ROOT_USERNAME = "admin";
+
+    /**
      * Automatically use a combination of defragmentation, garbage collection
      * and load balancing within the data files to optimize storage for read
      * performance.
@@ -406,6 +418,12 @@ public final class GlobalState extends Constants {
 
         ENABLE_VERIFY_BY_LOOKUP = config.getOrDefault("enable_verify_by_lookup",
                 ENABLE_VERIFY_BY_LOOKUP);
+
+        INIT_ROOT_PASSWORD = config.getOrDefault("init.root.password",
+                config.getOrDefault("init_root_password", "admin"));
+
+        INIT_ROOT_USERNAME = config.getOrDefault("init.root.username",
+                config.getOrDefault("init_root_username", "admin"));
         // =================== PREF READING BLOCK ====================
     }
 

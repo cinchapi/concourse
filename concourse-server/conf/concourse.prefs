@@ -119,6 +119,20 @@
 # DEFAULT: (allow any method)
 #http_cors_default_allow_methods = *
 
+# The initial root password for Concourse Server. This password is used to set 
+# up the initial administrator account when the server is first run. It is strongly
+# recommended to change this password immediately after the initial setup to maintain 
+# security.
+#
+# DEFAULT: "admin"
+#init_root_password = admin
+
+# The initial root username for Concourse Server. This username is associated with the
+# initial administrator account. It is strongly
+#
+# DEFAULT: "admin"
+#init_root_username = admin
+
 # The listener port (1-65535) for management commands via JMX. Choose a port
 # between 49152 and 65535 to minimize the possibility of conflicts with other
 # services on this host.
