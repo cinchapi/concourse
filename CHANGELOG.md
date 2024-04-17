@@ -20,11 +20,12 @@ We made several changes to improve the safety, scalability and operational effic
 * Configuration that is defined in `.yaml` files take precedence over configuration defined in `.prefs` files, with the exception that `concourse.prefs.dev` takes precedence over `concourse.yaml` to honor the convention of prioritizing dev configuration.
 * The stock `concourse.prefs` file will no longer be updated when new configuration options are available. All new configuration templates will be defined in the stock `concourse.yaml` file.
 * Concourse Server will not automatically migrate custom configuration from `.prefs` files to the corresponding `.yaml` files. While `.prefs` files are still functional, users are encouraged to manually copy custom configuration to the new format in case support for `.prefs` files goes away at a future date.
+* `concourse.yaml` supports an option to specify custom credentials for the root administrator account under the `init.root` object. If either `init.root.username` or `init.root.password` is provided, it takes precedence over any value provided for `init_root_username` or `init_root_password`, respectively.
 
 ##### Concourse Automation Framework
 * Added the `concourse-automation` framework to provide a central set of tools to programatically interact with the Concourse codebase and release artifacts in automated tests and devops workflows. For the most part, the `concourse-automation` framework is comprised of tools that were previously available in the `concourse-ete-test-core` framework.
 	* `ConcourseCodebase` - Provides programmatic interaction with a local copy of the Concourse source code. Can be used to build installer artifacts.
-	* `ConcourseArtifacts` - Provides factory methods to retrieve local copies of Concourse artifacts for any version. Can  be used to download the installer for a released version.
+	* `ConcourseArtifacts` - Provides factory methods to retrieve local copies of Concourse artifacts for any version. Can be used to download the installer for a released version.
 	* `ManagedConcourseServer` - Provdes the ability to control an external Concourse Server process within another application.
 
 ##### Bug Fixes
@@ -52,6 +53,11 @@ We made several changes to improve the safety, scalability and operational effic
 * The `com.cinchapi.concourse.util.Processes` utility class has been removed in favor of using `com.cinchapi.common.process` from `accent4j`.
 	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
 	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
+
+#### Version 0.11.6 (TBD)
+* Added new configuration options for initializing Concourse Server with custom admin credentials upon first run. These options enhance security by allowing a non-default usernames and passwords before starting the server.
+	* The `init_root_username` option in `concourse.prefs` can be used to specify the username for the initial administrator account.
+	* The `init_root_password` option in `concourse.prefs` can be used to specify the password for the initial administrator account
 
 #### Version 0.11.5 (November 5, 2022)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).
