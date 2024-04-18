@@ -50,6 +50,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.process.Processes;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
@@ -190,6 +191,30 @@ public final class ConcourseShell {
                                     .exec(new String[] { "sh", "-c", "echo \""
                                             + text + "\" | less > /dev/tty" });
                             p.waitFor();
+                            if(p.exitValue() != 0) {
+
+                                Processes.getStdErr(p).stream()
+                                        .forEach(t -> {
+                                            try {
+                                                cash.console.println(t);
+                                            }
+                                            catch (IOException e1) {
+                                                // TODO Auto-generated catch block
+                                                e1.printStackTrace();
+                                            }
+                                        });
+                                Processes.getStdOut(p).stream()
+                                        .forEach(t -> {
+                                            try {
+                                                cash.console.println(t);
+                                            }
+                                            catch (IOException e1) {
+                                                // TODO Auto-generated catch block
+                                                e1.printStackTrace();
+                                            }
+                                        });
+
+                            }
                         }
                         cash.console.getHistory().removeLast();
                     }
