@@ -237,12 +237,13 @@ public final class Database implements DurableStore {
 
     /**
      * Corpus Cache
-     * ------------
+     * <hr />
      * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
      * is done in an attempt to avoid attempting cache updates for every infix
      * of a value when it is known that no search caches exist for the key from
      * which the value is mapped (e.g. we are indexing a term for a key that
      * isn't being searched).
+     * </p>
      */
     private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
             ? new ConcurrentHashMap<>()
