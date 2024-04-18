@@ -395,8 +395,9 @@ public class Manifest extends TransferableByteSequence {
             // disk one-by-one (as is done in the StreamedEntries).
             if(length < streamingThreshold) {
                 // If #composite != null, shortcut the loading process by
-                // forking the job to a background thread and listening for the
-                // sought #composite to be found and returned immediately
+                // forking the job to a background thread which listens for the
+                // sought #composite to be found and returned immediately while
+                // the other entries continue to be read
                 BlockingQueue<Map<Composite, Entry>> queue = new ArrayBlockingQueue<>(
                         1);
                 // @formatter:off
