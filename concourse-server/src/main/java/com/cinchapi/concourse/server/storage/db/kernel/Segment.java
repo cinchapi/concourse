@@ -807,6 +807,13 @@ public final class Segment extends TransferableByteSequence implements
         this.objects = null;
     }
 
+    /**
+     * Return the collection of all the known objects that have been acquired by
+     * this Segment from Write components and are added as either a
+     * locator, key or value.
+     * 
+     * @return the known objects
+     */
     @Nullable
     protected final Map<Byteable, Byteable> objects() {
         return objects;
