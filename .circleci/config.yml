@@ -41,6 +41,11 @@ jobs:
           version: '2.7'
       - run: echo "Ruby 2.7 has been installed"
       - run:
+          name: Install groff
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y groff
+      - run:
           name: Get Sonatype Credentials
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME

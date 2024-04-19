@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2015 Cinchapi Inc.
+# Copyright (c) 2013-2024 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,6 +31,33 @@ RONN=$RONN_HOME/bin/ronn
 DOCS=$HOME/../docs/shell
 TARGET=$HOME/../concourse-shell/src/main/resources
 
+# Check if groff is installed
+if ! command -v groff >/dev/null 2>&1; then
+  echo "groff is not installed. Attempting to install..."
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+      if [ -f /etc/debian_version ]; then
+          sudo apt-get update
+          sudo apt-get install -y groff
+      elif [ -f /etc/redhat-release ]; then
+          sudo yum update
+          sudo yum install -y groff
+      else
+          echo "Unsupported Linux distribution."
+          exit 1
+      fi
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+      if command -v brew >/dev/null 2>&1; then
+          brew install groff
+      else
+          echo "Homebrew is not installed. Please install Homebrew first."
+          exit 1
+      fi
+  else
+      echo "Unsupported operating system."
+      exit 1
+  fi
+fi
+
 # Setup Ronn
 cd "$RONN_GEMS"
 installed=`gem list rdiscount -i`
@@ -48,10 +75,21 @@ fi
 
 # Generate all the docs
 cd "$DOCS"
-for DOC in `ls | grep .md`
+overall_success=true
+for DOC in $(ls | grep .md)
 do
   name=${DOC%.md}
-  "$RONN" --man "$DOC" > "$TARGET/$name" 2>/dev/null
+  "$RONN" --man "$DOC" > "$TARGET/$name" 2> >(grep -v "warn: cannot load such file -- ronn" >&2)
+  if [ $? -ne 0 ]; then
+    echo "Error processing $DOC"
+    overall_success=false
+  fi
 done
 
-exit 0
+if [ "$overall_success" = true ]; then
+    echo "All documentation files were processed successfully."
+    exit 0
+else
+    echo "There were errors in processing some documentation files."
+    exit 1
+fi
