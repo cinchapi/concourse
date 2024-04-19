@@ -50,6 +50,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.process.Processes;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
@@ -193,6 +194,12 @@ public final class ConcourseShell {
                             if(p.exitValue() != 0) {
                                 // There was an error trying to use 'less' so
                                 // fallback to outputting the help text directly
+                                Processes.getStdErr(p).stream()
+                                        .forEach(System.err::println);
+                                System.err.println("The 'less' command is not "
+                                        + "available to display documentation. A "
+                                        + "fallback display method will be used, "
+                                        + "which may have limited functionality.");
                                 cash.displayNavigavbleText(text);
                             }
                         }
