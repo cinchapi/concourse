@@ -298,6 +298,7 @@ public final class Database implements DurableStore {
      * A flag to indicate if the Buffer is running or not.
      */
     private transient boolean running = false;
+
     /**
      * We hold direct references to the current Segment. This pointer changes
      * whenever the database triggers a sync operation.
