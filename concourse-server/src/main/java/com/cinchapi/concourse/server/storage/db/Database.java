@@ -238,6 +238,7 @@ public final class Database implements DurableStore {
     /**
      * Corpus Cache
      * <hr />
+     * <p>
      * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
      * is done in an attempt to avoid attempting cache updates for every infix
      * of a value when it is known that no search caches exist for the key from
@@ -266,16 +267,19 @@ public final class Database implements DurableStore {
 
     /**
      * Index Cache
-     * -----------
+     * <hr />
+     * <p>
      * Records are cached in memory to reduce the number of seeks required. When
      * writing new revisions, we check the appropriate caches for relevant
      * records and append the new revision so that the cached data doesn't grow
      * stale.
-     * 
+     * </p>
+     * <p>
      * The caches are only populated if the Database is #running (see
      * #accept(Write)). Attempts to get a Record when the Database is not
      * running will ignore the cache by virtue of an internal wrapper that has
      * the appropriate detection.
+     * </p>
      */
     private final Cache<Composite, IndexRecord> indexCache = buildCache();
 
@@ -323,31 +327,37 @@ public final class Database implements DurableStore {
 
     /**
      * Table Cache
-     * -----------
+     * <hr />
+     * <p>
      * Records are cached in memory to reduce the number of seeks required. When
      * writing new revisions, we check the appropriate caches for relevant
      * records and append the new revision so that the cached data doesn't grow
      * stale.
-     * 
+     * </p>
+     * <p>
      * The caches are only populated if the Database is #running (see
      * #accept(Write)). Attempts to get a Record when the Database is not
      * running will ignore the cache by virtue of an internal wrapper that has
      * the appropriate detection.
+     * </p>
      */
     private final Cache<Composite, TableRecord> tableCache = buildCache();
 
     /**
      * Partial Table Cache
-     * -------------------
+     * <hr />
+     * <p>
      * Records are cached in memory to reduce the number of seeks required. When
      * writing new revisions, we check the appropriate caches for relevant
      * records and append the new revision so that the cached data doesn't grow
      * stale.
-     * 
+     * </p>
+     * <p>
      * The caches are only populated if the Database is #running (see
      * #accept(Write)). Attempts to get a Record when the Database is not
      * running will ignore the cache by virtue of an internal wrapper that has
      * the appropriate detection.
+     * </p>
      */
     private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
 
