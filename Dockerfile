@@ -18,9 +18,11 @@ MAINTAINER Cinchapi Inc. <opensource@cinchapi.com>
 # Install depdenencies:
 # - sudo because some of the Concourse scripts require it
 # - ruby to generate CaSH docs
+# - less to display CaSH docs
 RUN apt-get update && \
     apt-get -y --no-install-recommends install sudo && \
     apt-get -y --no-install-recommends install ruby-full && \
+    apt-get -y --no-install-recommends install less && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the application source to the container
