@@ -66,6 +66,10 @@ THRIFT_IDL=$HOME/../interface/management/management.thrift
 SOURCE_DESTINATION=$HOME/../concourse-server/src/main/java
 thrift -out $SOURCE_DESTINATION -gen java $THRIFT_IDL
 
+CONCOURSE_MANAGEMENT_SERVICE_FILE=$SOURCE_DESTINATION/com/cinchapi/concourse/server/management/ConcourseManagementService.java
+sed -i '' -e '/@SuppressWarnings/d' $CONCOURSE_MANAGEMENT_SERVICE_FILE
+awk -v annotation="$suppress_warnings_annotation" '/public class ConcourseManagementService/ { print annotation; } { print }' $CONCOURSE_MANAGEMENT_SERVICE_FILE > $CONCOURSE_MANAGEMENT_SERVICE_FILE.tmp && mv $CONCOURSE_MANAGEMENT_SERVICE_FILE.tmp $CONCOURSE_MANAGEMENT_SERVICE_FILE
+
 echo "Finished generating $SOURCE_DESTINATION/com/cinchapi/concourse/server/management/ConcourseManagementService.java"
 
 exit 0
