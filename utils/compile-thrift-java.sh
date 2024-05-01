@@ -34,6 +34,13 @@ for module in "${MODULES[@]}"; do
   # Replace all instances of Hash* data structures with their LinkedHash
   # counterparts (see THRIFT-2115)
   perl -p -i -e "s/Hash/LinkedHash/g" $PACKAGE"/$service.java"
+  
+  # Remove all existing @SuppressWarnings annotations
+  sed -i '' -e '/@SuppressWarnings/d' $PACKAGE"/$service.java"
+
+  # Add the specific @SuppressWarnings before the outermost class definition
+  suppress_warnings_annotation="@SuppressWarnings({ \"unchecked\", \"rawtypes\", \"serial\", \"unused\" })" 
+  awk -v annotation="$suppress_warnings_annotation" '/public class '"$service"'/ { print annotation; } { print }' $PACKAGE"/$service.java" > $PACKAGE"/$service.java.tmp" && mv $PACKAGE"/$service.java.tmp" $PACKAGE"/$service.java"
 
   echo "Finished compiling the $service API for Java to "$(cd $PACKAGE && pwd)
 done
