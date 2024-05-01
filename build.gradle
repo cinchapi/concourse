@@ -119,7 +119,7 @@ subprojects {
         compile 'org.slf4j:slf4j-api:1.7.5'
         compile 'ch.qos.logback:logback-classic:1.2.11'
         compile 'joda-time:joda-time:2.2'
-        compile 'org.apache.thrift:libthrift:0.16.0'
+        compile 'org.apache.thrift:libthrift:0.20.0'
         compile 'commons-configuration:commons-configuration:1.9'
         compile group: 'com.cinchapi', name: 'accent4j', version: '1.12.1', changing:true
         compile 'com.cinchapi:lib-config:1.5.1'
