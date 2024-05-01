@@ -34,6 +34,12 @@ task cashdoc(type: Exec) {
     else {
       commandLine 'bash', '../utils/generate-cash-docs.sh'
     }
+    ignoreExitValue true
+    doLast {
+        if (execResult.exitValue != 0) {
+            logger.warn('CaSH documentation generation failed. Please check the scripts or environment.')
+        }
+    }
 }
 
 idea {
