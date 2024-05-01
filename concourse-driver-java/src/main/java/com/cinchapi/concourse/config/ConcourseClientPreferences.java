@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 package com.cinchapi.concourse.config;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.common.logging.Logging;
-import com.cinchapi.lib.config.read.Interpreters;
 
 /**
  * A wrapper around the {@code concourse_client.prefs} file that is used to
@@ -31,27 +29,14 @@ import com.cinchapi.lib.config.read.Interpreters;
  * </p>
  * 
  * @author Jeff Nelson
+ * @deprecated Use {@link ConcourseClientConfiguration} instead
  */
-public class ConcourseClientPreferences extends PreferencesHandler {
+@Deprecated
+public abstract class ConcourseClientPreferences extends PreferencesHandler {
 
     static {
         Logging.disable(ConcourseClientPreferences.class);
     }
-
-    // Defaults
-    private static final String DEFAULT_HOST = "localhost";
-    private static final int DEFAULT_PORT = 1717;
-    private static final String DEFAULT_USERNAME = "admin";
-    private static final String DEFAULT_PASSWORD = "admin";
-    private static final String DEFAULT_ENVIRONMENT = "";
-
-    /**
-     * An empty char array to return if there is no password defined in the
-     * prefs file during a call to {@link #getPasswordExplicit()}.
-     */
-    protected static final char[] NO_PASSWORD_DEFINED = new char[0]; // visible
-                                                                     // for
-                                                                     // testing
 
     /**
      * Return a {@link ConcourseClientPreferences} handler that is sourced from
@@ -62,7 +47,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      */
     public static ConcourseClientPreferences from(Path... files) {
         Verify.thatArgument(files.length > 0, "Must include at least one file");
-        return new ConcourseClientPreferences(files);
+        return new ConcourseClientConfiguration(files);
     }
 
     /**
@@ -72,7 +57,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @return the handler
      */
     public static ConcourseClientPreferences fromCurrentWorkingDirectory() {
-        return from(Paths.get("concourse_client.prefs"));
+        return ConcourseClientConfiguration.fromCurrentWorkingDirectory();
     }
 
     /**
@@ -82,8 +67,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @return the handler
      */
     public static ConcourseClientPreferences fromUserHomeDirectory() {
-        return from(Paths.get(System.getProperty("user.home") + File.separator
-                + "concourse_client.prefs"));
+        return ConcourseClientConfiguration.fromUserHomeDirectory();
     }
 
     /**
@@ -106,7 +90,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * @param file the absolute path to the preferences file (relative paths
      *            will resolve to the user's home directory)
      */
-    private ConcourseClientPreferences(Path... files) {
+    ConcourseClientPreferences(Path... files) {
         super(files);
     }
 
@@ -115,18 +99,14 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * 
      * @return the environment
      */
-    public String getEnvironment() {
-        return getOrDefault("environment", DEFAULT_ENVIRONMENT);
-    }
+    public abstract String getEnvironment();
 
     /**
      * Return the value associated with the {@code host} key.
      * 
      * @return the host
      */
-    public String getHost() {
-        return getOrDefault("host", DEFAULT_HOST);
-    }
+    public abstract String getHost();
 
     /**
      * Return the value associated with the {@code password} key.
@@ -139,9 +119,7 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * 
      * @return the password
      */
-    public char[] getPassword() {
-        return getOrDefault("password", DEFAULT_PASSWORD).toCharArray();
-    }
+    public abstract char[] getPassword();
 
     /**
      * Return the value associated with the {@code password} key, if it is
@@ -157,76 +135,54 @@ public class ConcourseClientPreferences extends PreferencesHandler {
      * 
      * @return the password or an empty character array if it is not defined
      */
-    public char[] getPasswordExplicit() {
-        String password = get("password");
-        if(password != null) {
-            return password.toCharArray();
-        }
-        else {
-            return NO_PASSWORD_DEFINED;
-        }
-    }
+    public abstract char[] getPasswordExplicit();
 
     /**
      * Return the value associated with the {@code port} key.
      * 
      * @return the port
      */
-    public int getPort() {
-        return getOrDefault("port", Interpreters.numberOrNull(), DEFAULT_PORT);
-    }
+    public abstract int getPort();
 
     /**
      * Return the value associated with the {@code username} key.
      * 
      * @return the username
      */
-    public String getUsername() {
-        return getOrDefault("username", DEFAULT_USERNAME);
-    }
+    public abstract String getUsername();
 
     /**
      * Set the value associated with the {@code environment} key.
      * 
      * @param environment
      */
-    public void setEnvironment(String environment) {
-        set("environment", environment);
-    }
+    public abstract void setEnvironment(String environment);
 
     /**
      * Set the value associated with the {@code host} key.
      * 
      * @param host
      */
-    public void setHost(String host) {
-        set("host", host);
-    }
+    public abstract void setHost(String host);
 
     /**
      * Set the value associated with the {@code password} key.
      * 
      * @param password
      */
-    public void setPassword(char[] password) {
-        set("password", new String(password));
-    }
+    public abstract void setPassword(char[] password);
 
     /**
      * Set the value associated with the {@code port} key.
      * 
      * @param port
      */
-    public void setPort(int port) {
-        set("port", port);
-    }
+    public abstract void setPort(int port);
 
     /**
      * Set the value associated with the {@code username} key.
      * 
      * @param username
      */
-    public void setUsername(String username) {
-        set("username", username);
-    }
+    public abstract void setUsername(String username);
 }

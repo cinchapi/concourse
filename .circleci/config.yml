@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2022 Cinchapi Inc.
+# Copyright (c) 2013-2024 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,6 +40,11 @@ jobs:
       - ruby/install:
           version: '2.7'
       - run: echo "Ruby 2.7 has been installed"
+      - run:
+          name: Install groff
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y groff
       - run:
           name: Get Sonatype Credentials
           command: |

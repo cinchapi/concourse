@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,5 +19,7 @@ package com.cinchapi.concourse.cli;
  * A holder class for CLI's that don't take additional options.
  * 
  * @author Jeff Nelson
+ * @deprecated use {@link com.cinchapi.lib.cli.NoOptions#instance()} instead.
  */
-public class NoOptions extends Options {/* no-op */}
+@Deprecated
+public class NoOptions extends com.cinchapi.lib.cli.NoOptions {/* no-op */}

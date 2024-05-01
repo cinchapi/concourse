@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,93 +15,17 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-import java.io.File;
-
-import org.junit.Ignore;
-import org.junit.Test;
-
-import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.time.Time;
-import com.cinchapi.concourse.util.TestData;
-
 /**
- * Unit tests for an
- * {@link com.cinchapi.concourse.server.storage.AtomicOperation} that commits to
- * a
- * {@link com.cinchapi.concourse.server.storage.Transaction}
+ * Unit tests for an {@link AtomicOperation} that commits to a
+ * {@link Transaction}
  *
  * @author Jeff Nelson
  */
-public class TransactionAtomicOperationTest extends AtomicOperationTest {
-
-    private String directory;
-    private Engine engine;
+public class TransactionAtomicOperationTest extends NestedAtomicOperationTest {
 
     @Override
-    protected Transaction getDestination() {
-        directory = TestData.DATA_DIR + File.separator + Time.now();
-        engine = new Engine(directory + File.separator + "buffer",
-                directory + File.separator + "database");
-        engine.start(); // Start the engine manually because
-                        // AtomicOperation#start does not do it
+    protected AtomicSupport getDestination(Engine engine) {
         return Transaction.start(engine);
-    }
-
-    @Override
-    protected void cleanup(Store store) {
-        engine.stop();
-        FileSystem.deleteDirectory(directory);
-    }
-
-    @Test
-    @Ignore
-    public void testNoChangesPersistOnFailure() {
-        // This test does not make sense since Transactions and their spawned
-        // atomic operations are isolated
-    }
-
-    @Test
-    @Ignore
-    public void testCommitFailsIfVersionChanges() {
-        // This test does not make sense since Transactions and their spawned
-        // atomic operations are isolated
-    }
-
-    @Test
-    @Ignore
-    public void testFailureIfWriteToRecordThatIsRead()
-            throws InterruptedException {
-        // This test does not make sense since Transactions and their spawned
-        // atomic operations are isolated
-    }
-
-    @Test
-    @Ignore
-    public void testOnlyOneSuccessDuringRaceConditionWithConflict()
-            throws InterruptedException {
-        // This test does not make sense since Transactions and their spawned
-        // atomic operations are isolated
-    }
-
-    @Test
-    @Ignore
-    public void testFailureIfWriteToKeyInRecordThatIsRead()
-            throws InterruptedException {
-        // This test does not make sense since Transactions and their spawned
-        // atomic operations are isolated
-    }
-
-    @Test
-    @Ignore
-    public void testRangeReadInterruptedByWrite() {
-        // This test knowingly fails for Transaction Atomic Operations
-    }
-
-    @Test
-    @Ignore
-    public void testAllAtomicOperationsEventuallyTerminate() {
-        // This test knowing fails for Transaction Atomic Operations because it
-        // does not support spawning multiple concurrent atomic operations.
     }
 
 }

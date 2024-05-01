@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.Experimental;
 import com.cinchapi.concourse.annotate.NonPreference;
-import com.cinchapi.concourse.config.ConcourseServerPreferences;
+import com.cinchapi.concourse.config.ConcourseServerConfiguration;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.util.Networking;
@@ -87,8 +87,8 @@ public final class GlobalState extends Constants {
      * 2. Find the PREF READING BLOCK and attempt to read the value from the
      * prefs file, while supplying the variable you made in Step 1 as the
      * defaultValue.
-     * 3. Add a placeholder for the new preference to the stock concourse.prefs
-     * file in conf/concourse.prefs.
+     * 3. Add a placeholder for the new preference to the stock configuration
+     * file within the "conf" directory.
      */
 
     /**
@@ -286,6 +286,18 @@ public final class GlobalState extends Constants {
     public static int MAX_SEARCH_SUBSTRING_LENGTH = -1;
 
     /**
+     * The password that is assigned to the root administrator account when
+     * Concourse Server first starts.
+     */
+    public static String INIT_ROOT_PASSWORD = "admin";
+
+    /**
+     * The username that is assigned to the root administrator account when
+     * Concourse Server first starts.
+     */
+    public static String INIT_ROOT_USERNAME = "admin";
+
+    /**
      * Automatically use a combination of defragmentation, garbage collection
      * and load balancing within the data files to optimize storage for read
      * performance.
@@ -331,8 +343,10 @@ public final class GlobalState extends Constants {
     static {
         List<String> files = ImmutableList.of(
                 "conf" + File.separator + "concourse.prefs",
-                "conf" + File.separator + "concourse.prefs.dev");
-        ConcourseServerPreferences config = ConcourseServerPreferences
+                "conf" + File.separator + "concourse.yaml",
+                "conf" + File.separator + "concourse.prefs.dev",
+                "conf" + File.separator + "concourse.yaml.dev");
+        ConcourseServerConfiguration config = ConcourseServerConfiguration
                 .from(files.stream()
                         .map(file -> Paths.get(FileSystem.expandPath(file)))
                         .collect(Collectors.toList())
@@ -406,6 +420,12 @@ public final class GlobalState extends Constants {
 
         ENABLE_VERIFY_BY_LOOKUP = config.getOrDefault("enable_verify_by_lookup",
                 ENABLE_VERIFY_BY_LOOKUP);
+
+        INIT_ROOT_PASSWORD = config.getOrDefault("init.root.password",
+                config.getOrDefault("init_root_password", "admin"));
+
+        INIT_ROOT_USERNAME = config.getOrDefault("init.root.username",
+                config.getOrDefault("init_root_username", "admin"));
         // =================== PREF READING BLOCK ====================
     }
 

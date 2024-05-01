@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -285,7 +285,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
 
     /**
      * Return a dump of the revisions in the {@link Chunk} as a String. This
-     * method primarily exists for debugging using the {@link ManageDataCli}
+     * method primarily exists for debugging using the
+     * {@link com.cinchapi.concourse.server.cli.data.ListDataCli ListDataCli}
      * tool.
      * 
      * @return a string dump
@@ -405,9 +406,9 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     }
 
     /**
-     * If it possible that they exist, look for any {@link Revision revisions}
-     * that match the {@code composite} and {@link Record#append(Revision)
-     * append} hem to the {@code record}.
+     * If it is possible that they exist, look for any {@link Revision
+     * revisions} that match the {@code composite} and
+     * {@link Record#append(Revision) append} hem to the {@code record}.
      * 
      * @param composite
      * @param record

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import org.apache.thrift.transport.TTransportException;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 import com.cinchapi.concourse.data.transform.DataColumn;
 import com.cinchapi.concourse.data.transform.DataIndex;
 import com.cinchapi.concourse.data.transform.DataProjection;
@@ -87,9 +87,9 @@ class ConcourseThriftDriver extends Concourse {
     private static int SERVER_PORT;
     private static String USERNAME;
     static {
-        // If there is a concourse_client.prefs file located in the working
+        // If there is a concourse_client.yaml file located in the working
         // directory, parse it and use its values as defaults.
-        ConcourseClientPreferences config = ConcourseClientPreferences
+        ConcourseClientConfiguration config = ConcourseClientConfiguration
                 .fromCurrentWorkingDirectory();
         SERVER_HOST = config.getHost();
         SERVER_PORT = config.getPort();
@@ -117,7 +117,7 @@ class ConcourseThriftDriver extends Concourse {
      * The client keeps a copy of its {@link AccessToken} and passes it to
      * the server for each remote procedure call. The client will
      * re-authenticate when necessary using the username/password read from
-     * the prefs file.
+     * the configuration.
      */
     private AccessToken creds = null;
 
@@ -165,9 +165,10 @@ class ConcourseThriftDriver extends Concourse {
 
     /**
      * Create a new Client connection to the environment of the Concourse
-     * Server described in {@code concourse_client.prefs} (or the default
-     * environment and server if the prefs file does not exist) and return a
-     * handler to facilitate database interaction.
+     * Server described in the client configuration (e.g.,
+     * {@code concourse_client.yaml}) or the default
+     * environment and server if the configuration file does not exist, and
+     * return a handler to facilitate database interaction.
      */
     public ConcourseThriftDriver() {
         this(ENVIRONMENT);
@@ -175,9 +176,10 @@ class ConcourseThriftDriver extends Concourse {
 
     /**
      * Create a new Client connection to the specified {@code environment}
-     * of the Concourse Server described in {@code concourse_client.prefs}
-     * (or the default server if the prefs file does not exist) and return a
-     * handler to facilitate database interaction.
+     * of the Concourse Server described in the client configuration (e.g.,
+     * {@code concourse_client.yaml}) or the default
+     * environment and server if the configuration file does not exist) and
+     * return a handler to facilitate database interaction.
      * 
      * @param environment
      */

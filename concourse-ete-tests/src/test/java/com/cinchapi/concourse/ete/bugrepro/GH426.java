@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,16 @@ package com.cinchapi.concourse.ete.bugrepro;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.process.Processes;
+import com.cinchapi.common.process.Processes.ProcessResult;
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.server.ManagedConcourseServer;
-import com.cinchapi.concourse.util.ConcourseCodebase;
-import com.cinchapi.concourse.util.Processes;
+import com.cinchapi.concourse.automation.developer.ConcourseCodebase;
+import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
 import com.google.common.io.Files;
 
 /**
@@ -36,10 +38,10 @@ public class GH426 {
 
     @Test
     public void testReproGH426() {
-        ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
-        String installer = codebase.buildInstaller();
+        ConcourseCodebase codebase = ConcourseCodebase.get();
+        Path installer = codebase.installer();
         ManagedConcourseServer server = ManagedConcourseServer
-                .manageNewServer(new File(installer));
+                .install(installer);
         server.start();
         Concourse client = server.connect();
         long record = client.add("name", "jeff");
@@ -51,30 +53,27 @@ public class GH426 {
         // Ensure that commit 237556de81031c919fc8add3b773618ef750ca48 still
         // works as expected
         ManagedConcourseServer server = ManagedConcourseServer
-                .manageNewServer("0.10.5");
+                .install("0.11.4");
         server.start();
         Concourse client = server.connect();
         long record = client.add("name", "jeff");
         server.stop();
-        String directory = server.getInstallDirectory();
-        ConcourseCodebase codebase = ConcourseCodebase.cloneFromGithub();
-        String installer = codebase.buildInstaller();
-        File src = new File(installer);
-        File dest = new File(
-                server.getInstallDirectory() + "/concourse-server.bin");
+        Path directory = server.directory();
+        ConcourseCodebase codebase = ConcourseCodebase.get();
+        Path installer = codebase.installer();
+        File src = installer.toFile();
+        File dest = directory.resolve("concourse-server.bin").toFile();
         Files.copy(src, dest);
         // Run the upgrade from the installer
         System.out.println("Upgrading Concourse Server...");
         Process proc = new ProcessBuilder("sh", dest.getAbsolutePath(), "--",
-                "skip-integration")
-                        .directory(new File(server.getInstallDirectory()))
+                "skip-integration").directory(server.directory().toFile())
                         .start();
-
-        Processes.waitForSuccessfulCompletion(proc);
-        for (String line : Processes.getStdOut(proc)) {
+        ProcessResult result = Processes.waitForSuccessfulCompletion(proc);
+        for (String line : result.out()) {
             System.out.println(line);
         }
-        server = ManagedConcourseServer.manageExistingServer(directory);
+        server = ManagedConcourseServer.open(directory);
         server.start();
         client = server.connect();
         Assert.assertEquals("jeff", client.get("name", record));

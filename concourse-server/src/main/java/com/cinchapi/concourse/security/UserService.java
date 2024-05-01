@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,15 @@
  */
 package com.cinchapi.concourse.security;
 
+import static com.cinchapi.concourse.server.GlobalState.INIT_ROOT_PASSWORD;
+import static com.cinchapi.concourse.server.GlobalState.INIT_ROOT_USERNAME;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +67,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.primitives.Longs;
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 /**
  * The {@link UserService} controls access to the server by keeping tracking
@@ -74,62 +77,11 @@ import edu.emory.mathcs.backport.java.util.Arrays;
 public class UserService {
 
     /**
-     * The number of hours for which an AccessToken is valid.
-     */
-    private static final int ACCESS_TOKEN_TTL = 24;
-
-    /**
-     * The unit of time for which an AccessToken is valid.
-     */
-    private static final TimeUnit ACCESS_TOKEN_TTL_UNIT = TimeUnit.HOURS;
-
-    /**
-     * The default admin password. If the AccessManager does not have any users,
-     * it will automatically create an admin with this password.
-     */
-    private static final String DEFAULT_ADMIN_PASSWORD = ByteBuffers
-            .encodeAsHexString(ByteBuffer.wrap("admin".getBytes()));
-
-    /**
-     * The default admin username. If the AccessManager does not have any users,
-     * it will automatically create an admin with this username.
-     */
-    private static final String DEFAULT_ADMIN_USERNAME = ByteBuffers
-            .encodeAsHexString(ByteBuffer.wrap("admin".getBytes()));
-
-    /**
-     * The minimum number of character that must be contained in a password.
-     */
-    private static final int MIN_PASSWORD_LENGTH = 3;
-
-    /**
-     * A randomly chosen username for AccessToken's that act as service token's
-     * for plugins and other non-user processes. The randomly generated name is
-     * chosen so that it is impossible for it to conflict with an actual
-     * username, based on the rules that govern valid usernames (e.g. usernames
-     * cannot contain spaces)
-     */
-    private static final String SERVICE_USERNAME_STRING = Random
-            .getSimpleString() + " " + Random.getSimpleString();
-
-    /**
-     * A {@link ByteBuffer} containing the {@link #SERVICE_USERNAME_STRING}.
-     */
-    private static final ByteBuffer SERVICE_USERNAME_BYTES = ByteBuffers
-            .fromUtf8String(SERVICE_USERNAME_STRING);
-
-    /**
-     * Hex version of the UTF-8 bytes from {@link SERVICE_USERNAME}.
-     */
-    private static final String SERVICE_USERNAME_HEX = ByteBuffers
-            .encodeAsHexString(SERVICE_USERNAME_BYTES);
-
-    /**
-     * Create a new AccessManager that stores its credentials in
+     * Create a new {@link UserService} that stores its credentials in
      * {@code backingStore}.
      * 
      * @param backingStore
-     * @return the AccessManager
+     * @return the {@link UserService}
      */
     public static UserService create(String backingStore) {
         return new UserService(backingStore, ACCESS_TOKEN_TTL,
@@ -137,13 +89,13 @@ public class UserService {
     }
 
     /**
-     * Create an AccessManager with the specified TTL for access tokens. This
-     * method should only be used for testing.
+     * Create an {@link UserService} with the specified TTL for access tokens.
+     * This method should only be used for testing.
      * 
      * @param backingStore
      * @param accessTokenTtl
      * @param accessTokeTtlUnit
-     * @return the AccessManager
+     * @return the {@link UserService}
      */
     @Restricted
     protected static UserService createForTesting(String backingStore,
@@ -196,6 +148,57 @@ public class UserService {
         }
         return false;
     }
+
+    /**
+     * The number of hours for which an AccessToken is valid.
+     */
+    private static final int ACCESS_TOKEN_TTL = 24;
+
+    /**
+     * The unit of time for which an AccessToken is valid.
+     */
+    private static final TimeUnit ACCESS_TOKEN_TTL_UNIT = TimeUnit.HOURS;
+
+    /**
+     * The default admin password. If the {@link UserService} does not have any
+     * users, it will automatically create an admin with this password.
+     */
+    private static final String DEFAULT_ADMIN_PASSWORD = ByteBuffers
+            .encodeAsHexString(ByteBuffer.wrap(INIT_ROOT_PASSWORD.getBytes()));
+
+    /**
+     * The default admin username. If the {@link UserService} does not have any
+     * users, it will automatically create an admin with this username.
+     */
+    private static final String DEFAULT_ADMIN_USERNAME = ByteBuffers
+            .encodeAsHexString(ByteBuffer.wrap(INIT_ROOT_USERNAME.getBytes()));
+
+    /**
+     * The minimum number of character that must be contained in a password.
+     */
+    private static final int MIN_PASSWORD_LENGTH = 3;
+
+    /**
+     * A randomly chosen username for AccessToken's that act as service token's
+     * for plugins and other non-user processes. The randomly generated name is
+     * chosen so that it is impossible for it to conflict with an actual
+     * username, based on the rules that govern valid usernames (e.g. usernames
+     * cannot contain spaces)
+     */
+    private static final String SERVICE_USERNAME_STRING = Random
+            .getSimpleString() + " " + Random.getSimpleString();
+
+    /**
+     * A {@link ByteBuffer} containing the {@link #SERVICE_USERNAME_STRING}.
+     */
+    private static final ByteBuffer SERVICE_USERNAME_BYTES = ByteBuffers
+            .fromUtf8String(SERVICE_USERNAME_STRING);
+
+    /**
+     * Hex version of the UTF-8 bytes from {@link SERVICE_USERNAME}.
+     */
+    private static final String SERVICE_USERNAME_HEX = ByteBuffers
+            .encodeAsHexString(SERVICE_USERNAME_BYTES);
 
     /**
      * An interface for managing tokens that are issued to perform actions on
@@ -986,6 +989,25 @@ public class UserService {
         }
 
         /**
+         * Return a new service token.
+         * 
+         * <p>
+         * A service token is an {@link AccessToken} that is not associated with
+         * an actual user, but is instead generated based on the
+         * {@link #SERVICE_USERNAME_STRING} and can be assigned to a non-user
+         * service or process.
+         * </p>
+         * <p>
+         * Service tokens do not expire!
+         * </p>
+         * 
+         * @return the new service token
+         */
+        public AccessToken issueServiceToken() {
+            return issue(SERVICE_USERNAME_BYTES);
+        }
+
+        /**
          * Return {@code true} if {@code token} is valid.
          * 
          * @param token
@@ -1010,25 +1032,6 @@ public class UserService {
                 UserService.this.lock.readLock().unlock();
             }
         }
-
-        /**
-         * Return a new service token.
-         * 
-         * <p>
-         * A service token is an {@link AccessToken} that is not associated with
-         * an actual user, but is instead generated based on the
-         * {@link #SERVICE_USERNAME_STRING} and can be assigned to a non-user
-         * service or process.
-         * </p>
-         * <p>
-         * Service tokens do not expire!
-         * </p>
-         * 
-         * @return the new service token
-         */
-        public AccessToken issueServiceToken() {
-            return issue(SERVICE_USERNAME_BYTES);
-        }
     }
 
     /**
@@ -1050,18 +1053,6 @@ public class UserService {
             Comparable<AccessTokenWrapper> {
 
         /**
-         * The formatter that is used to when constructing a human readable
-         * description of the access token.
-         */
-        private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
-                .appendMonthOfYearShortText().appendLiteral(" ")
-                .appendDayOfMonth(1).appendLiteral(", ").appendYear(4, 4)
-                .appendLiteral(" at ").appendHourOfDay(1).appendLiteral(":")
-                .appendMinuteOfHour(2).appendLiteral(":")
-                .appendSecondOfMinute(2).appendLiteral(" ")
-                .appendHalfdayOfDayText().toFormatter();
-
-        /**
          * Create a new {@link AccessTokenWrapper} that wraps {@code token} for
          * {@code username} at {@code timestamp}.
          * 
@@ -1074,6 +1065,18 @@ public class UserService {
                 String username, long timestamp) {
             return new AccessTokenWrapper(token, username, timestamp);
         }
+
+        /**
+         * The formatter that is used to when constructing a human readable
+         * description of the access token.
+         */
+        private static final DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+                .appendMonthOfYearShortText().appendLiteral(" ")
+                .appendDayOfMonth(1).appendLiteral(", ").appendYear(4, 4)
+                .appendLiteral(" at ").appendHourOfDay(1).appendLiteral(":")
+                .appendMinuteOfHour(2).appendLiteral(":")
+                .appendSecondOfMinute(2).appendLiteral(" ")
+                .appendHalfdayOfDayText().toFormatter();
 
         private final long timestamp;
         private final AccessToken token;
@@ -1221,7 +1224,6 @@ public class UserService {
          * 
          * @return the account attributes
          */
-        @SuppressWarnings("unchecked")
         public static List<AccountAttribute> all() {
             return Arrays.asList(AccountAttribute.values());
         }
@@ -1335,6 +1337,26 @@ public class UserService {
         }
 
         /**
+         * Grant the {@code permission} in {@code environment} to this
+         * {@link User}
+         * 
+         * @param permission
+         * @param environment
+         */
+        @SuppressWarnings("unchecked")
+        private void grant(Permission permission, String environment) {
+            Map<String, Permission> permissions = (Map<String, Permission>) accounts
+                    .get(id, AccountAttribute.PERMISSIONS.key());
+            if(permissions == null) {
+                permissions = Maps.newHashMap();
+                accounts.put(id, AccountAttribute.PERMISSIONS.key(),
+                        permissions);
+            }
+            permissions.put(environment, permission);
+            flush();
+        }
+
+        /**
          * Return the user's id.
          * 
          * @return the id
@@ -1355,26 +1377,6 @@ public class UserService {
                 accounts.put(id, AccountAttribute.ENABLED.key(), enabled);
             }
             return (boolean) enabled;
-        }
-
-        /**
-         * Grant the {@code permission} in {@code environment} to this
-         * {@link User}
-         * 
-         * @param permission
-         * @param environment
-         */
-        @SuppressWarnings("unchecked")
-        private void grant(Permission permission, String environment) {
-            Map<String, Permission> permissions = (Map<String, Permission>) accounts
-                    .get(id, AccountAttribute.PERMISSIONS.key());
-            if(permissions == null) {
-                permissions = Maps.newHashMap();
-                accounts.put(id, AccountAttribute.PERMISSIONS.key(),
-                        permissions);
-            }
-            permissions.put(environment, permission);
-            flush();
         }
 
         /**

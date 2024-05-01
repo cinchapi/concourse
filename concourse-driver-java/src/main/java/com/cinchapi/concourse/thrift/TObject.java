@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,9 +65,6 @@ public class TObject implements
      * @return a {@link TObject} {@link Comparator}
      */
     public static Comparator<TObject> comparator() {
-        // TODO: This is based on the Value#Sorter defined in concourse-server.
-        // At some point, it will make sense to use this as a canonical base and
-        // implement the Value comparator using this one.
         return (v1, v2) -> {
             if((v1 == POSITIVE_INFINITY && v2 == POSITIVE_INFINITY)
                     || (v1 == NEGATIVE_INFINITY && v2 == NEGATIVE_INFINITY)) {
@@ -103,6 +100,15 @@ public class TObject implements
                 else if(o1 instanceof Timestamp && o2 instanceof Timestamp) {
                     return Longs.compare(((Timestamp) o1).getMicros(),
                             ((Timestamp) o2).getMicros());
+                }
+                else if(o1 == null || o2 == null) {
+                    return 0;
+                }
+                else if(o1 == null) {
+                    return -1;
+                }
+                else if(o2 == null) {
+                    return 1;
                 }
                 else {
                     // NOTE: Timestamp's #toString may change depending upon the

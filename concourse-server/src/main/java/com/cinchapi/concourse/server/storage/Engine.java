@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -40,9 +39,9 @@ import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
-import com.cinchapi.concourse.server.concurrent.LockService;
+import com.cinchapi.concourse.server.concurrent.LockBroker;
+import com.cinchapi.concourse.server.concurrent.LockBroker.Permit;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
-import com.cinchapi.concourse.server.concurrent.RangeLockService;
 import com.cinchapi.concourse.server.concurrent.RangeToken;
 import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -57,6 +56,7 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
+import com.cinchapi.concourse.util.Transformers;
 import com.google.common.annotations.VisibleForTesting;
 
 /**
@@ -175,15 +175,9 @@ public final class Engine extends BufferedStore implements
     protected final Inventory inventory; // visible for testing
 
     /**
-     * The {@link LockService} that is used to coordinate concurrent operations.
+     * The {@link LockBroker} that is used to coordinate concurrent operations.
      */
-    protected final LockService lockService; // exposed for Transaction
-
-    /**
-     * The {@link RangeLockService} that is used to coordinate concurrent
-     * operations.
-     */
-    protected final RangeLockService rangeLockService; // exposed for Transction
+    protected final LockBroker broker; // exposed for Transaction
 
     /**
      * The location where transaction backups are stored.
@@ -303,8 +297,7 @@ public final class Engine extends BufferedStore implements
     @Authorized
     private Engine(Buffer buffer, Database database, String environment) {
         super(buffer, database);
-        this.lockService = LockService.create();
-        this.rangeLockService = RangeLockService.create();
+        this.broker = LockBroker.create();
         this.environment = environment;
         this.transactionStore = buffer.getBackingStore() + File.separator
                 + "txn"; /* (authorized) */
@@ -355,16 +348,14 @@ public final class Engine extends BufferedStore implements
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
-        boolean accepted;
-        if(write.getType() == Action.ADD) {
-            accepted = addUnlocked(write, sync ? Sync.YES : Sync.NO,
-                    sharedToken, writeToken, rangeToken);
+        boolean accepted = write.getType() == Action.ADD
+                ? addUnlocked(write, Sync.of(sync))
+                : removeUnlocked(write, Sync.of(sync));
+        if(accepted) {
+            announce(sharedToken, writeToken, rangeToken);
+            Logger.debug("'{}' was accepted by the Engine", write);
         }
         else {
-            accepted = removeUnlocked(write, sync ? Sync.YES : Sync.NO,
-                    sharedToken, writeToken, rangeToken);
-        }
-        if(!accepted) {
             Logger.warn(
                     "Write {} was rejected by the Engine "
                             + "because it was previously accepted "
@@ -374,9 +365,6 @@ public final class Engine extends BufferedStore implements
                             + "itself from backup and finish committing.",
                     write);
         }
-        else {
-            Logger.debug("'{}' was accepted by the Engine", write);
-        }
     }
 
     @Override
@@ -385,20 +373,22 @@ public final class Engine extends BufferedStore implements
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
-        Lock shared = lockService.getWriteLock(sharedToken);
-        Lock write = lockService.getWriteLock(writeToken);
-        Lock range = rangeLockService.getWriteLock(rangeToken);
-        shared.lock();
-        write.lock();
-        range.lock();
+        Permit shared = broker.writeLock(sharedToken);
+        Permit write = broker.writeLock(writeToken);
+        Permit range = broker.writeLock(rangeToken);
         try {
-            return addUnlocked(Write.add(key, value, record), Sync.YES,
-                    sharedToken, writeToken, rangeToken);
+            if(addUnlocked(Write.add(key, value, record), Sync.YES)) {
+                announce(sharedToken, writeToken, rangeToken);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         finally {
-            shared.unlock();
-            write.unlock();
-            range.unlock();
+            shared.release();
+            write.release();
+            range.release();
         }
     }
 
@@ -422,15 +412,15 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         transportLock.readLock().lock();
-        Lock range = rangeLockService.getReadLock(Text.wrapCached(key),
+        RangeToken token = RangeToken.forReading(Text.wrapCached(key),
                 Operator.BETWEEN, Value.NEGATIVE_INFINITY,
                 Value.POSITIVE_INFINITY);
-        range.lock();
+        Permit range = broker.readLock(token);
         try {
             return super.browse(key);
         }
         finally {
-            range.unlock();
+            range.release();
             transportLock.readLock().unlock();
         }
     }
@@ -461,13 +451,13 @@ public final class Engine extends BufferedStore implements
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(record);
-        read.lock();
+        Token token = Token.wrap(record);
+        Permit read = broker.readLock(token);
         try {
             return super.chronologize(key, record, start, end);
         }
         finally {
-            read.unlock();
+            read.release();
             transportLock.readLock().unlock();
         }
     }
@@ -513,14 +503,15 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<Long, Set<TObject>> explore(String key, Aliases aliases) {
         transportLock.readLock().lock();
-        Lock range = rangeLockService.getReadLock(key, aliases.operator(),
-                aliases.values());
-        range.lock();
+        RangeToken token = RangeToken.forReading(Text.wrapCached(key),
+                aliases.operator(), Transformers.transformArray(
+                        aliases.values(), Value::wrap, Value.class));
+        Permit range = broker.readLock(token);
         try {
             return super.explore(key, aliases);
         }
         finally {
-            range.unlock();
+            range.release();
             transportLock.readLock().unlock();
         }
     }
@@ -552,13 +543,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Set<TObject> gather(String key, long record) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(key, record);
-        read.lock();
+        Token token = Token.wrap(key, record);
+        Permit read = broker.readLock(token);
         try {
             return super.gather(key, record);
         }
         finally {
-            read.unlock();
+            read.release();
             transportLock.readLock().unlock();
         }
     }
@@ -616,20 +607,22 @@ public final class Engine extends BufferedStore implements
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
-        Lock shared = lockService.getWriteLock(sharedToken);
-        Lock write = lockService.getWriteLock(writeToken);
-        Lock range = rangeLockService.getWriteLock(rangeToken);
-        shared.lock();
-        write.lock();
-        range.lock();
+        Permit shared = broker.writeLock(sharedToken);
+        Permit write = broker.writeLock(writeToken);
+        Permit range = broker.writeLock(rangeToken);
         try {
-            return removeUnlocked(Write.remove(key, value, record), Sync.YES,
-                    sharedToken, writeToken, rangeToken);
+            if(removeUnlocked(Write.remove(key, value, record), Sync.YES)) {
+                announce(sharedToken, writeToken, rangeToken);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         finally {
-            shared.unlock();
-            write.unlock();
-            range.unlock();
+            shared.release();
+            write.release();
+            range.release();
         }
     }
 
@@ -650,13 +643,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<Long, List<String>> review(long record) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(Token.shareable(record));
-        read.lock();
+        Token token = Token.shareable(record);
+        Permit read = broker.readLock(token);
         try {
             return super.review(record);
         }
         finally {
-            read.unlock();
+            read.release();
             transportLock.readLock().unlock();
         }
     }
@@ -664,13 +657,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<Long, List<String>> review(String key, long record) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(key, record);
-        read.lock();
+        Token token = Token.wrap(key, record);
+        Permit read = broker.readLock(token);
         try {
             return super.review(key, record);
         }
         finally {
-            read.unlock();
+            read.release();
             transportLock.readLock().unlock();
         }
     }
@@ -715,13 +708,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Map<String, Set<TObject>> select(long record) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(Token.shareable(record));
-        read.lock();
+        Token token = Token.shareable(record);
+        Permit read = broker.readLock(token);
         try {
             return super.select(record);
         }
         finally {
-            read.unlock();
+            read.release();
             transportLock.readLock().unlock();
         }
     }
@@ -740,13 +733,13 @@ public final class Engine extends BufferedStore implements
     @Override
     public Set<TObject> select(String key, long record) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(key, record);
-        read.lock();
+        Token token = Token.wrap(key, record);
+        Permit read = broker.readLock(token);
         try {
             return super.select(key, record);
         }
         finally {
-            read.unlock();
+            read.release();
             transportLock.readLock().unlock();
         }
     }
@@ -790,20 +783,17 @@ public final class Engine extends BufferedStore implements
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
                 Value.wrap(value));
-        Lock shared = lockService.getWriteLock(sharedToken);
-        Lock write = lockService.getWriteLock(writeToken);
-        Lock range = rangeLockService.getWriteLock(rangeToken);
-        shared.lock();
-        write.lock();
-        range.lock();
+        Permit shared = broker.writeLock(sharedToken);
+        Permit write = broker.writeLock(writeToken);
+        Permit range = broker.writeLock(rangeToken);
         try {
             super.set(key, value, record);
-            announce(writeToken, sharedToken, rangeToken);
+            announce(sharedToken, writeToken, rangeToken);
         }
         finally {
-            shared.unlock();
-            write.unlock();
-            range.unlock();
+            shared.release();
+            write.release();
+            range.release();
         }
     }
 
@@ -843,7 +833,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public AtomicOperation startAtomicOperation() {
-        return AtomicOperation.start(this, lockService, rangeLockService);
+        return AtomicOperation.start(this, broker);
     }
 
     @Override
@@ -859,8 +849,7 @@ public final class Engine extends BufferedStore implements
             limbo.stop();
             bufferTransportThread.interrupt();
             durable.stop();
-            lockService.shutdown();
-            rangeLockService.shutdown();
+            broker.shutdown();
             observers.clear();
         }
     }
@@ -885,14 +874,14 @@ public final class Engine extends BufferedStore implements
     @Override
     public boolean verify(Write write) {
         transportLock.readLock().lock();
-        Lock read = lockService.getReadLock(write.getKey().toString(),
+        Token token = Token.wrap(write.getKey().toString(),
                 write.getRecord().longValue());
-        read.lock();
+        Permit read = broker.readLock(token);
         try {
             return super.verify(write);
         }
         finally {
-            read.unlock();
+            read.release();
             transportLock.readLock().unlock();
         }
     }
@@ -940,20 +929,13 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
-     * Add {@code key} as {@code value} to {@code record} WITHOUT grabbing any
-     * locks. This method is ONLY appropriate to call from the
-     * {@link #accept(Write)} method that processes transaction commits since,
-     * in that case, the appropriate locks have already been grabbed.
+     * Add the {@code write} WITHOUT grabbing any locks.
      * 
      * @param write
      * @param sync
-     * @param sharedToken - {@link LockToken} for record
-     * @param writeToken - {@link LockToken} for key in record
-     * @param rangeToken - {@link RangeToken} for writing value to key
      * @return {@code true} if the add was successful
      */
-    private boolean addUnlocked(Write write, Sync sync, Token sharedToken,
-            Token writeToken, RangeToken rangeToken) {
+    private boolean addUnlocked(Write write, Sync sync) {
         // NOTE: #sync ends up being NO when the Engine accepts
         // Writes that are transported from a committing AtomicOperation
         // or Transaction, in which case passing this boolean along to
@@ -961,11 +943,7 @@ public final class Engine extends BufferedStore implements
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        if(super.add(write, sync, verify)) {
-            announce(writeToken, sharedToken, rangeToken);
-            return true;
-        }
-        return false;
+        return super.add(write, sync, verify);
     }
 
     /**
@@ -993,22 +971,13 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
-     * Remove {@code key} as {@code value} from {@code record} WITHOUT grabbing
-     * any locks. This method is ONLY appropriate to call from the
-     * {@link #accept(Write)} method that processes transaction commits since,
-     * in that case, the appropriate locks have already been grabbed.
+     * Remove the {@code write} WITHOUT grabbing any locks.
      * 
-     * @param key
-     * @param value
-     * @param record
+     * @param write
      * @param sync
-     * @param sharedToken - {@link LockToken} for record
-     * @param writeToken - {@link LockToken} for key in record
-     * @param rangeToken - {@link RangeToken} for writing value to key
      * @return {@code true} if the remove was successful
      */
-    private boolean removeUnlocked(Write write, Sync sync, Token sharedToken,
-            Token writeToken, RangeToken rangeToken) {
+    private boolean removeUnlocked(Write write, Sync sync) {
         // NOTE: #sync ends up being NO when the Engine accepts
         // Writes that are transported from a committing AtomicOperation
         // or Transaction, in which case passing this boolean along to
@@ -1016,11 +985,7 @@ public final class Engine extends BufferedStore implements
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
         Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        if(super.remove(write, sync, verify)) {
-            announce(writeToken, sharedToken, rangeToken);
-            return true;
-        }
-        return false;
+        return super.remove(write, sync, verify);
     }
 
     /**

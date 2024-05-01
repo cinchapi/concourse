@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Queue;
 import java.util.Set;
@@ -23,7 +24,7 @@ import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.cinchapi.concourse.config.ConcourseClientPreferences;
+import com.cinchapi.concourse.config.ConcourseClientConfiguration;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
@@ -65,9 +66,11 @@ public abstract class ConnectionPool implements AutoCloseable {
     protected static final int DEFAULT_POOL_SIZE = 10;
 
     /**
-     * The default preferences file to use if none is specified.
+     * The default configuration files to use if none are specified.
      */
-    private static final String DEFAULT_PREFS_FILE = "concourse_client.prefs";
+    private static final Path[] DEFAULT_CONFIG_FILES = new Path[] {
+            Paths.get("concourse_client.prefs"),
+            Paths.get("concourse_client.yaml") };
 
     /**
      * Return a {@link ConnectionPool} that has no limit on the number of
@@ -80,25 +83,39 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return the ConnectionPool
      */
     public static ConnectionPool newCachedConnectionPool() {
-        return newCachedConnectionPool(DEFAULT_PREFS_FILE);
+        return newCachedConnectionPool(DEFAULT_CONFIG_FILES);
     }
 
     /**
      * Return a {@link ConnectionPool} that has no limit on the number of
-     * connections it can manage to the Concourse instance at {@code host}:
-     * {@code port} on behalf of the user identified by {@code username} and
-     * {@code password}, but will try to use previously created connections
-     * before establishing new ones for any request.
+     * connections it can manage to the Concourse instance described in the
+     * {@code config} on behalf of the user identified in the {@code config},
+     * but will try to use previously created connections before establishing
+     * new ones for any request.
      * 
-     * @param prefs
+     * @param config
      * @return the ConnectionPool
      */
-    public static ConnectionPool newCachedConnectionPool(String prefs) {
-        ConcourseClientPreferences cp = ConcourseClientPreferences
-                .from(Paths.get(prefs));
-        return new CachedConnectionPool(cp.getHost(), cp.getPort(),
-                cp.getUsername(), new String(cp.getPassword()),
-                cp.getEnvironment(), DEFAULT_POOL_SIZE);
+    public static ConnectionPool newCachedConnectionPool(String config) {
+        return newCachedConnectionPool(Paths.get(config));
+    }
+
+    /**
+     * Return a {@link ConnectionPool} that has no limit on the number of
+     * connections it can manage to the Concourse instance described in the
+     * {@code configFiles} on behalf of the user identified in the
+     * {@code configFiles}, but will try to use previously created connections
+     * before establishing new ones for any request.
+     * 
+     * @param config
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newCachedConnectionPool(Path... configFiles) {
+        ConcourseClientConfiguration config = ConcourseClientConfiguration
+                .from(configFiles);
+        return new CachedConnectionPool(config.getHost(), config.getPort(),
+                config.getUsername(), new String(config.getPassword()),
+                config.getEnvironment(), DEFAULT_POOL_SIZE);
     }
 
     /**
@@ -227,29 +244,47 @@ public abstract class ConnectionPool implements AutoCloseable {
      * @return the ConnectionPool
      */
     public static ConnectionPool newFixedConnectionPool(int poolSize) {
-        return newFixedConnectionPool(DEFAULT_PREFS_FILE, poolSize);
+        return newFixedConnectionPool(poolSize, DEFAULT_CONFIG_FILES);
     }
 
     /**
      * Return a new {@link ConnectionPool} with a fixed number of
-     * connections to the Concourse instance defined in the client {@code prefs}
-     * on behalf of the user defined in the client {@code prefs}.
+     * connections to the Concourse instance defined in the {@code configFiles}
+     * on behalf of the user defined in the {@code configFiles}.
      * <p>
      * If all the connections from the pool are active, subsequent request
      * attempts will block until a connection is returned.
      * </p>
      * 
-     * @param prefs
+     * @param config
      * @param poolSize
      * @return the ConnectionPool
      */
-    public static ConnectionPool newFixedConnectionPool(String prefs,
+    public static ConnectionPool newFixedConnectionPool(String config,
             int poolSize) {
-        ConcourseClientPreferences cp = ConcourseClientPreferences
-                .from(Paths.get(prefs));
-        return new FixedConnectionPool(cp.getHost(), cp.getPort(),
-                cp.getUsername(), new String(cp.getPassword()),
-                cp.getEnvironment(), poolSize);
+        return newFixedConnectionPool(poolSize, Paths.get(config));
+    }
+
+    /**
+     * Return a new {@link ConnectionPool} with a fixed number of
+     * connections to the Concourse instance defined in the {@code configFiles}
+     * on behalf of the user defined in the {@code configFiles}.
+     * <p>
+     * If all the connections from the pool are active, subsequent request
+     * attempts will block until a connection is returned.
+     * </p>
+     * 
+     * @param poolSize
+     * @param config
+     * @return the ConnectionPool
+     */
+    public static ConnectionPool newFixedConnectionPool(int poolSize,
+            Path... configFiles) {
+        ConcourseClientConfiguration config = ConcourseClientConfiguration
+                .from(configFiles);
+        return new FixedConnectionPool(config.getHost(), config.getPort(),
+                config.getUsername(), new String(config.getPassword()),
+                config.getEnvironment(), poolSize);
     }
 
     /**

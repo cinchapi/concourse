@@ -2,13 +2,72 @@
 
 #### Version 0.12.0 (TBD)
 
-##### Optimizations
-* Improved the scalability and memory efficiency of the Just-in-Time (JIT) locking protocol by eliminating redundant logic and localizing the determination of when an Atomic Operation or Transaction becomes preempted by another commit. Previously that determination was managed globally in the Engine and relied on the JVM garbage collector (GC) to remove terminated operations from listening for data conflicts. Under contention, If many terminated operations accumulated between GC cycles, write performance could become degraded for hot data topics.
+##### Locking Optimizations
+We made several changes to improve the safety, scalability and operational efficiency of the Just-in-Time (JIT) locking protocol:
 
-#### Version 0.11.5 (TBD)
+* Eliminated redundant logic and localized the determination of when an Atomic Operation or Transaction becomes preempted by another commit. Previously that determination was managed globally in the Engine and relied on the JVM garbage collector (GC) to remove terminated operations from listening for data conflicts. Under contention, If many terminated operations accumulated between GC cycles, write performance could become degraded for hot data topics. As a result of this change, JIT locking is generally more memory efficient.
+* Reduced lock metadata by consolidating the provisioning for all locks to a single broker. Previously, range locks and granular locks were issued and managed independently by different services. 
+* Improved the CPU efficiency of range locks by scheduling range blocked operations to park instead of busy waiting.
+* Eliminated a known race condition that made it possible for two different conflicting commits to violate ACID semantics by concurrently acquiring different locks for the same resource.
+* Switched the basis for all storage engine locks from `java.util.concurrent.locks.ReenteantReadWriteLock` to either `java.util.concurrent.locks.StampedLock` or other synchronization primitives that are generally shown to have better throughput.
+
+##### YAML Configuration
+* Concourse now supports YAML configuration files. Going forward, YAML files are preferred over preferences files for configuration.
+	* Concourse Server can be configured with `concourse.yaml` and `concourse.yaml.dev` files.
+	* Concourse Shell and other Java Driver based clients can be configured with a `concourse_client.yaml` file.
+	* Usage of `concourse.prefs`, `concourse.prefs.dev` and `concourse_client.prefs` is now deprecated.
+* Existing configuration defined in `.prefs` files is still recognized and backwards compatability is fully preserved.
+* Configuration that is defined in `.yaml` files take precedence over configuration defined in `.prefs` files, with the exception that `concourse.prefs.dev` takes precedence over `concourse.yaml` to honor the convention of prioritizing dev configuration.
+* The stock `concourse.prefs` file will no longer be updated when new configuration options are available. All new configuration templates will be defined in the stock `concourse.yaml` file.
+* Concourse Server will not automatically migrate custom configuration from `.prefs` files to the corresponding `.yaml` files. While `.prefs` files are still functional, users are encouraged to manually copy custom configuration to the new format in case support for `.prefs` files goes away at a future date.
+* `concourse.yaml` supports an option to specify custom credentials for the root administrator account under the `init.root` object. If either `init.root.username` or `init.root.password` is provided, it takes precedence over any value provided for `init_root_username` or `init_root_password`, respectively.
+
+##### Concourse Automation Framework
+* Added the `concourse-automation` framework to provide a central set of tools to programatically interact with the Concourse codebase and release artifacts in automated tests and devops workflows. For the most part, the `concourse-automation` framework is comprised of tools that were previously available in the `concourse-ete-test-core` framework.
+	* `ConcourseCodebase` - Provides programmatic interaction with a local copy of the Concourse source code. Can be used to build installer artifacts.
+	* `ConcourseArtifacts` - Provides factory methods to retrieve local copies of Concourse artifacts for any version. Can be used to download the installer for a released version.
+	* `ManagedConcourseServer` - Provdes the ability to control an external Concourse Server process within another application.
+
+##### Bug Fixes
+* [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
+* [GH-491](https://github.com/cinchapi/concourse/issues/491) Fixed a race condition that made it possible for a range bloked operation to spurriously be allowed to proceed if it was waiting to acquire a range lock whose intended scope of protection intersected the scope of a range lock that was concurrently released.  
+* Fixed a bug that caused range locks to protect an inadequate scope of data once acquired.
+* [GH-490](https://github.com/cinchapi/concourse/issues/490): Fixed a bug that made it possible for a write to a key within a record (e.g., key `A` in record `1`) to erroneously block a concurrent write to a different key in the same record (e.g., key `B` in record `1`). The practial consquence of this bug was that more Atomic Operations and Transactions failed than actually necessary. 
+
+##### API Breaks and Deprecations
+* Concourse CLIs have been updated to leverage the `lib-cli` framework. There are no changes in functionality, however, in the `concourse-cli` framework, the following classes have been deprecated:
+	* `CommandLineInterface` in favor of `ConcourseCommandLineInterface`
+	* `CommandLineInterfaceRunner` in favor of `com.cinchapi.lib.cli.CommandLineInterfaceRunner` from the `lib-cli` framework.
+	* `NoOptions` in favor of creating a new `Options` object.
+	* `Options` in favor of `com.cinchapi.lib.cli.Options` from the `lib-cli` framework.
+* As a result of Concourse's new support for YAML configuration:
+	* Usage of `concourse.prefs`, `concourse.prefs.dev` and `concourse_client.prefs` is deprecated in favor of `concourse.yaml`, `concourse.yaml.dev` and `concourse_client.yaml` respectively.
+	* The `ConcourseServerPreferences` handler is deprecated in favor of using `ConcourseServerConfiguration`, which provides the same functionality.
+	* The `ConcourseClientPreferences` handler is deprecated in favor of using `ConcourseClientConfiguration`, which provides the same functionality.
+	* `ManagedConcourseServer#prefs()` is deprecated in favor of `ManagedConcourseServer#config()`.
+	* The `Concourse#connectWithPrefs` methods have been deprecated in favor of `Concourse#connect` methods that take one or more configuration file `Path`s or a `ConcourseClientConfiguration` handler, respectively.
+* With the introduction of the `concourse-automation` framework, duplicate classes in the `concourse-ete-test-core` framework have been deprecated:
+	* `com.cinchapi.concourse.util.ConcourseCodebase` has been deprecated in favor of using `com.cinchapi.concourse.automation.developer.ConcourseCodebase` which provides the same functionality, but some methods have been renamed for clarity.
+	* `ConcourseServerDownloader` has been deprecated in favor of using `ConcourseArtifacts` which provides the same functionality, but some methods have been renamed for clarity.
+	* `com.cinchapi.concourse.server.ManagedConcourseServer` has been deprecated in favor of using `com.cinchapi.concourse.automation.server.ManagedConcourseServer` which provides the same functionality, but some methods have been renamed for clarity.
+* The `com.cinchapi.concourse.util.Processes` utility class has been removed in favor of using `com.cinchapi.common.process` from `accent4j`.
+	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
+	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
+
+#### Version 0.11.6 (TBD)
+* Added new configuration options for initializing Concourse Server with custom admin credentials upon first run. These options enhance security by allowing a non-default usernames and passwords before starting the server.
+	* The `init_root_username` option in `concourse.prefs` can be used to specify the username for the initial administrator account.
+	* The `init_root_password` option in `concourse.prefs` can be used to specify the password for the initial administrator account
+* Exposed the default JMX port, `9010`, in the `Dockerfile`.
+* Fixed a bug that kept HELP documentation from being packaged with Concourse Shell and prevented it from being displayed.
+* Added a fallback option to display Concourse Shell HELP documentation in contexts when the `less` command isn't available (e.g., IDEs).
+* Fixed a bug that caused Concourse Server to unnecessarily add error logging whenever a client disconnected.
+
+#### Version 0.11.5 (November 5, 2022)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).
 * Fixed a bug that allowed a Transaction's atomic operations (e.g., `verifyAndSwap`) to ignore range conflicts stemming from writes committed in other operations. As a result, the atomic operation would successfully commit to its a Transaction, but the Transaction would inevitably fail due to the aforementioned conflict. The correct (and now current) behaviour is that the atomic operation fails (so it can be retried) without dooming the entire Transaction to failure.
-* Fixed a bug that caused Concourse Server to unnecessarily add error logging whenever a client disconnected.
+* Fixed a bug that caused an innocuous Exception to be thrown when importing CSV data using the interactive input feature of `concourse import` CLI.
+* Fixed a bug that caused an inexplicable failure to occur when invoking a plugin method that indirectly depended on result set sorting.
 
 #### Version 0.11.4 (July 4, 2022)
 * Slightly improved the performance of result sorting by removing unnecessary intermediate data gathering.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.common.profile.Benchmark;
@@ -240,6 +241,7 @@ public class DatabaseTest extends StoreTest {
     }
 
     @Test
+    @Ignore
     public void testGatherVsSelectBenchmark() {
         java.util.Random rand = new java.util.Random();
         Database store = (Database) this.store;

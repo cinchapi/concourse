@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import com.cinchapi.etl.Transformer;
 import com.cinchapi.etl.Transformers;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -196,8 +197,12 @@ public abstract class DelimitedLineImporter extends Importer implements
                 objects.add(object);
             }
         });
-        Set<Long> records = concourse.insert(objects);
-        return records;
+        if(!objects.isEmpty()) {
+            return concourse.insert(objects);
+        }
+        else {
+            return ImmutableSet.of();
+        }
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,16 @@
  */
 package com.cinchapi.concourse.server.cli.env;
 
-import com.cinchapi.concourse.server.cli.core.OptionalArgsCli;
-import com.cinchapi.concourse.server.cli.core.Options;
-import com.google.common.base.CaseFormat;
+import com.cinchapi.concourse.server.cli.core.ManagementCommandLineInterface;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 
 /**
- * Marker class for CLIs that should be invokable from the main
- * {@link ManageEnvironmentsCli}.
+ * Entry point for management CLIs that add/modify/remove Concourse Server
+ * environments.
  * 
  * @author Jeff Nelson
  */
-public abstract class EnvironmentCli extends OptionalArgsCli {
-
-    /**
-     * Return the command that can be passed to the
-     * {@link ManageEnvironmentsCli} to
-     * invoke this particular cli.
-     * 
-     * @return the command
-     */
-    public static String getCommand(Class<? extends EnvironmentCli> clazz) {
-        return CaseFormat.UPPER_CAMEL
-                .to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName())
-                .split("_")[0];
-    }
+public abstract class EnvironmentCli extends ManagementCommandLineInterface {
 
     /**
      * Construct a new instance.
@@ -46,32 +32,23 @@ public abstract class EnvironmentCli extends OptionalArgsCli {
      * @param options
      * @param args
      */
-    public EnvironmentCli(Options options, String[] args) {
-        super(options, args);
+    public EnvironmentCli(String[] args) {
+        super(args);
     }
 
     /**
-     * Special options for the environment cli.
-     * 
-     * @author Jeff Nelson
+     * {@inheritDoc}
+     * <p>
+     * <strong>NOTE:</strong> Do not use
+     * {@link com.cinchapi.concourse.server.cli.core.EnvironmentManagementOptions
+     * EnvironmentManagementOptions} here because the target environment for any
+     * management actions that are executed against it (e.g., delete) should be
+     * specified as an arg instead of an parameter.
+     * </p>
      */
-    protected static class EnvironmentOptions extends Options {} // NOTE: not
-                                                                 // extending
-                                                                 // EnvironmentOptions
-                                                                 // because any
-                                                                 // management
-                                                                 // options that
-                                                                 // we take on
-                                                                 // an
-                                                                 // environment
-                                                                 // (i.e.
-                                                                 // delete)
-                                                                 // should be
-                                                                 // specified as
-                                                                 // --delete
-                                                                 // <env>
-                                                                 // instead of
-                                                                 // --delete -e
-                                                                 // <env>
+    @Override
+    protected ManagementOptions getOptions() {
+        return new ManagementOptions();
+    }
 
 }

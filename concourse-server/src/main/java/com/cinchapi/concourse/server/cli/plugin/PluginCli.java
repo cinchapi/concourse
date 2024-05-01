@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,15 @@
  */
 package com.cinchapi.concourse.server.cli.plugin;
 
-import com.cinchapi.concourse.server.cli.core.OptionalArgsCli;
-import com.cinchapi.concourse.server.cli.core.Options;
-import com.google.common.base.CaseFormat;
+import com.cinchapi.concourse.server.cli.core.ManagementCommandLineInterface;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 
 /**
- * Marker class for CLIs that should be invokable from the main
- * {@link ManagePluginsCli}.
+ * Entry point for management CLIs to add/remove/upgrade/etc plugins.
  * 
  * @author Jeff Nelson
  */
-public abstract class PluginCli extends OptionalArgsCli {
-
-    /**
-     * Return the command that can be passed to the {@link ManagePluginsCli} to
-     * invoke this particular cli.
-     * 
-     * @return the command
-     */
-    public static String getCommand(Class<? extends PluginCli> clazz) {
-        return CaseFormat.UPPER_CAMEL
-                .to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName())
-                .split("_")[0];
-    }
+public abstract class PluginCli extends ManagementCommandLineInterface {
 
     /**
      * Construct a new instance.
@@ -45,15 +31,13 @@ public abstract class PluginCli extends OptionalArgsCli {
      * @param options
      * @param args
      */
-    public PluginCli(Options options, String[] args) {
-        super(options, args);
+    public PluginCli(String[] args) {
+        super(args);
     }
 
-    /**
-     * Special options for the plugin cli.
-     * 
-     * @author Jeff Nelson
-     */
-    protected static class PluginOptions extends Options {}
+    @Override
+    protected ManagementOptions getOptions() {
+        return new ManagementOptions();
+    }
 
 }

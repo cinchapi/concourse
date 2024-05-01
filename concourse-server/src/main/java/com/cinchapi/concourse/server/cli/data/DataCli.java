@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,16 @@
  */
 package com.cinchapi.concourse.server.cli.data;
 
-import com.cinchapi.concourse.server.cli.core.EnvironmentOptions;
-import com.cinchapi.concourse.server.cli.core.OptionalArgsCli;
-import com.cinchapi.concourse.server.cli.core.Options;
-import com.google.common.base.CaseFormat;
+import com.cinchapi.concourse.server.cli.core.EnvironmentManagementOptions;
+import com.cinchapi.concourse.server.cli.core.ManagementCommandLineInterface;
 
 /**
- * Marker class for CLIs that should be invokable from the main
- * {@link ManageDataCli}.
+ * Entry point for management CLIs that provide facilities to debug and manage
+ * Concourse Server data files.
  * 
  * @author Jeff Nelson
  */
-public abstract class DataCli extends OptionalArgsCli {
-
-    /**
-     * Return the command that can be passed to the {@link ManageDatasCli} to
-     * invoke this particular cli.
-     * 
-     * @return the command
-     */
-    public static String getCommand(Class<? extends DataCli> clazz) {
-        return CaseFormat.UPPER_CAMEL
-                .to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName())
-                .split("_")[0];
-    }
+public abstract class DataCli extends ManagementCommandLineInterface {
 
     /**
      * Construct a new instance.
@@ -46,14 +32,13 @@ public abstract class DataCli extends OptionalArgsCli {
      * @param options
      * @param args
      */
-    public DataCli(Options options, String[] args) {
-        super(options, args);
+    public DataCli(String... args) {
+        super(args);
     }
 
-    /**
-     * Special options for the data cli.
-     * 
-     * @author Jeff Nelson
-     */
-    protected static class DataOptions extends EnvironmentOptions {}
+    @Override
+    protected EnvironmentManagementOptions getOptions() {
+        return new EnvironmentManagementOptions();
+    }
+
 }

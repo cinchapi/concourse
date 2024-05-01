@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +15,25 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.annotate.Restricted;
-import com.cinchapi.concourse.server.concurrent.LockService;
-import com.cinchapi.concourse.server.concurrent.RangeLockService;
-import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.temp.Queue;
 import com.cinchapi.concourse.server.storage.temp.ToggleQueue;
 import com.cinchapi.concourse.server.storage.temp.Write;
-import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
-import com.google.common.collect.Maps;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
@@ -56,11 +45,8 @@ import com.google.common.collect.Maps;
  * 
  * @author Jeff Nelson
  */
-public final class Transaction extends AtomicOperation implements
-        AtomicSupport {
-    // NOTE: Because Transaction's rely on JIT locking, the unsafe methods call
-    // the safe counterparts in the super class (AtomicOperation) because those
-    // have logic to tell the BufferedStore class to perform unsafe reads.
+@NotThreadSafe
+public final class Transaction extends AtomicOperation {
 
     /**
      * Return the Transaction for {@code destination} that is backed up to
@@ -76,10 +62,10 @@ public final class Transaction extends AtomicOperation implements
             ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
             Transaction transaction = new Transaction(destination, bytes);
-            transaction.invokeSuperDoCommit(true); // recovering transaction
-                                                   // must always syncAndVerify
-                                                   // to prevent possible data
-                                                   // duplication
+            transaction.invokeSuperApply(true); // recovering transaction
+                                                // must always syncAndVerify
+                                                // to prevent possible data
+                                                // duplication
             FileSystem.deleteFile(file);
         }
         catch (Exception e) {
@@ -111,56 +97,14 @@ public final class Transaction extends AtomicOperation implements
     private final String id;
 
     /**
-     * Whenever an {@link AtomicOperation} is {@link #startAtomicOperation()
-     * started}, it, by virtue of being a {@link TokenEventObserver},
-     * {@link #subscribe(TokenEventObserver) subscribes} for announcements about
-     * token events from this {@link Transaction}. The {@link Transaction}
-     * {@link #observe(TokenEvent, Token) observes} on behalf of the
-     * {@link AtomicOperation}, intercepting announcements from its own
-     * destination store (e.g., the {@link Engine}) and
-     * {@link AtomicOperation#abort() aborting} the {@link AtomicOperation} if
-     * it {@link AtomicOperation#interrupts(Token, TokenEvent) concerns} an
-     * {@link #observe(TokenEvent, Token) observed} {@link TokenEvent event} for
-     * a {@link Token}
-     * <p>
-     * This collection is non thread-safe because it is assumed that only one
-     * {@link AtomicOperation} will live at a time, so there will ever only be
-     * one {@link #observers observer}.
-     * </p>
-     */
-    private final Set<TokenEventObserver> observers = new HashSet<>(1);
-
-    /**
-     * A handler that bypasses the parent {@link AtomicOperation} logic and
-     * hooks into the "unlocked" logic of {@link BufferedStore} for read
-     * methods. This handler facilitates the methods that are defined in
-     * {@link LockFreeStore}.
-     */
-    private final BufferedStore unlocked;
-
-    /**
      * Construct a new instance.
      * 
      * @param destination
      */
     private Transaction(Engine destination) {
         super(new ToggleQueue(INITIAL_CAPACITY), destination,
-                destination.lockService, destination.rangeLockService);
+                destination.broker);
         this.id = Long.toString(Time.now());
-        this.unlocked = new BufferedStore(limbo, durable) {
-
-            @Override
-            public void start() {}
-
-            @Override
-            public void stop() {}
-
-            @Override
-            protected boolean verifyWithReentrancy(Write write) {
-                return super.verify(write);
-            }
-
-        };
     }
 
     /**
@@ -172,7 +116,7 @@ public final class Transaction extends AtomicOperation implements
     private Transaction(Engine destination, ByteBuffer bytes) {
         this(destination);
         deserialize(bytes);
-        status.set(Status.COMMITTED);
+        setStatus(Status.COMMITTED);
 
     }
 
@@ -183,170 +127,14 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    public void accept(Write write) {
-        // Accept writes from an AtomicOperation and put them in this
-        // Transaction's buffer without performing an additional #verify, but
-        // grabbing the necessary lock intentions.
-        checkArgument(write.getType() != Action.COMPARE);
-        if(write.getType() == Action.ADD) {
-            add(write, Sync.NO, Verify.NO);
-        }
-        else {
-            remove(write, Sync.NO, Verify.NO);
-        }
-    }
-
-    @Override
-    public void accept(Write write, boolean sync) {
-        accept(write);
-
-    }
-
-    @Override
-    public void announce(TokenEvent event, Token... tokens) {}
-
-    @Override
-    public Map<TObject, Set<Long>> browseUnlocked(String key) {
-        return unlocked.browse(key);
-    }
-
-    @Override
-    public Map<Long, Set<TObject>> chronologizeUnlocked(String key, long record,
-            long start, long end) {
-        return unlocked.chronologize(key, record, start, end);
-    }
-
-    @Override
-    public Map<Long, Set<TObject>> exploreUnlocked(String key,
-            Aliases aliases) {
-        return unlocked.explore(key, aliases);
-    }
-
-    @Override
-    public Set<TObject> gatherUnlocked(String key, long record) {
-        return unlocked.gather(key, record);
-    }
-
-    @Override
-    public boolean observe(TokenEvent event, Token token) {
-        // We override this method to handle the case where an Atomic Operation
-        // started from this Transaction must fail because of a version change,
-        // but that failure should not cause the transaction itself to fail
-        // (i.e. calling verifyAndSwap from a transaction and a version change
-        // causes that particular operation to fail prior to commit. The logic
-        // in this method will simply cause the invocation of verifyAndSwap to
-        // return false while this transaction would stay alive.
-        while (observers == null) {
-            // Account for a race condition where the Transaction (via
-            // AtomicOperation) subscribes for TokenEvents before the #observers
-            // collection is set during Transaction construction
-            Logger.warn("A Transaction handled by {} received a Token "
-                    + "Event announcement before it was fully initialized",
-                    Thread.currentThread());
-            Thread.yield();
-        }
-        boolean intercepted = false;
-        try {
-            for (TokenEventObserver observer : observers) {
-                AtomicOperation atomic = (AtomicOperation) observer;
-                if(atomic.preemptedBy(event, token)) {
-                    atomic.abort();
-                    intercepted = true;
-                }
-            }
-        }
-        catch (ConcurrentModificationException e) {
-            // Another asynchronous write or announcement was received while
-            // observing the token event, so a retry is necessary.
-            return observe(event, token);
-        }
-        if(intercepted) {
-            return true;
-        }
-        else {
-            return super.observe(event, token);
-        }
-    }
-
-    @Override
-    public void onCommit(AtomicOperation operation) {
-        absorb(operation);
-    }
-
-    @Override
-    public Map<Long, List<String>> reviewUnlocked(long record) {
-        return unlocked.review(record);
-    }
-
-    @Override
-    public Map<Long, List<String>> reviewUnlocked(String key, long record) {
-        return unlocked.review(key, record);
-    }
-
-    @Override
-    public Map<String, Set<TObject>> selectUnlocked(long record) {
-        return unlocked.select(record);
-    }
-
-    @Override
-    public Set<TObject> selectUnlocked(String key, long record) {
-        return unlocked.select(key, record);
-    }
-
-    @Override
-    public AtomicOperation startAtomicOperation() {
-        checkState();
-        // A Transaction is, itself, an AtomicOperation that must adhere to the
-        // JIT Locking guarantee with respect to the Engine's lock services, so
-        // if it births an AtomicOperation, it should just inherit but defer any
-        // locks needed therewithin, instead of passing the Engine's lock
-        // service on
-        return AtomicOperation.start(this, LockService.noOp(),
-                RangeLockService.noOp());
-    }
-
-    @Override
-    public void subscribe(TokenEventObserver observer) {
-        observers.add(observer);
-    }
-
-    @Override
-    public void sync() {/* no-op */}
-
-    @Override
     public String toString() {
         return id;
     }
 
     @Override
-    public void unsubscribe(TokenEventObserver observer) {
-        observers.remove(observer);
-    }
-
-    @Override
-    public boolean verifyUnlocked(String key, TObject value, long record) {
-        return unlocked.verify(key, value, record);
-    }
-
-    @Override
-    public boolean verifyUnlocked(Write write) {
-        return unlocked.verify(write);
-    }
-
-    @Override
-    protected void checkState() throws AtomicStateException {
-        try {
-            super.checkState();
-        }
-        catch (AtomicStateException e) {
-            throw new TransactionStateException();
-        }
-    }
-
-    @Override
-    protected void doCommit() {
+    protected void apply() {
         if(isReadOnly()) {
-            invokeSuperDoCommit(false);
+            invokeSuperApply(false);
         }
         else {
             String file = ((Engine) durable).transactionStore + File.separator
@@ -357,7 +145,7 @@ public final class Transaction extends AtomicOperation implements
                 channel.force(true);
                 Logger.info("Created backup for transaction {} at '{}'", this,
                         file);
-                invokeSuperDoCommit(false);
+                invokeSuperApply(false);
                 FileSystem.deleteFile(file);
             }
             catch (IOException e) {
@@ -370,14 +158,8 @@ public final class Transaction extends AtomicOperation implements
     }
 
     @Override
-    @Restricted
-    protected boolean preemptedBy(TokenEvent event, Token token) {
-        for (TokenEventObserver observer : observers) {
-            if(((AtomicOperation) observer).preemptedBy(event, token)) {
-                return true;
-            }
-        }
-        return super.preemptedBy(event, token);
+    protected void throwAtomicStateException() {
+        throw new TransactionStateException();
     }
 
     /**
@@ -386,13 +168,14 @@ public final class Transaction extends AtomicOperation implements
      * @param bytes
      */
     private void deserialize(ByteBuffer bytes) {
-        locks = Maps.newHashMap();
+        locks = new HashSet<>();
         Iterator<ByteBuffer> it = ByteableCollections
                 .iterator(ByteBuffers.slice(bytes, bytes.getInt()));
         while (it.hasNext()) {
             LockDescription lock = LockDescription.fromByteBuffer(it.next(),
-                    lockService, rangeLockService);
-            locks.put(lock.getToken(), lock);
+                    broker);
+            // TODO: grab the lock?
+            locks.add(lock);
         }
         it = ByteableCollections.iterator(bytes);
         while (it.hasNext()) {
@@ -402,16 +185,16 @@ public final class Transaction extends AtomicOperation implements
     }
 
     /**
-     * Invoke {@link #doCommit()} that is defined in the super class. This
+     * Invoke {@link #apply()} that is defined in the super class. This
      * method should only be called when it is desirable to doCommit without
      * performing a backup (i.e. when restoring from a backup in a static
      * method).
      * 
      * @param syncAndVerify a flag that is passed onto the
-     *            {@link AtomicOperation#doCommit(boolean)} method
+     *            {@link AtomicOperation#apply(boolean)} method
      */
-    private void invokeSuperDoCommit(boolean syncAndVerify) {
-        super.doCommit(syncAndVerify);
+    private void invokeSuperApply(boolean syncAndVerify) {
+        super.apply(syncAndVerify);
         Logger.info("Finalized commit for Transaction {}", this);
     }
 
@@ -426,7 +209,7 @@ public final class Transaction extends AtomicOperation implements
      * @return the ByteBuffer representation
      */
     private ByteBuffer serialize() {
-        ByteBuffer _locks = ByteableCollections.toByteBuffer(locks.values());
+        ByteBuffer _locks = ByteableCollections.toByteBuffer(locks);
         ByteBuffer _writes = ByteableCollections
                 .toByteBuffer(((Queue) limbo).getWrites());
         ByteBuffer bytes = ByteBuffer
@@ -437,4 +220,5 @@ public final class Transaction extends AtomicOperation implements
         bytes.rewind();
         return bytes;
     }
+
 }

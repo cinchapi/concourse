@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package com.cinchapi.concourse.server.cli.user;
 import org.apache.thrift.TException;
 
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
-import com.cinchapi.concourse.server.cli.core.Options;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A cli for deleting users.
@@ -37,12 +37,7 @@ public class DeleteUserCli extends UserCli {
      * @param args
      */
     public DeleteUserCli(String[] args) {
-        super(new Options() {}, args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+        super(args);
     }
 
     @Override
@@ -66,12 +61,16 @@ public class DeleteUserCli extends UserCli {
             }
         }
         catch (TException e) {
-            die("Cannot delete user");
+            halt("Cannot delete user", e);
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
+    }
 
+    @Override
+    protected ManagementOptions getOptions() {
+        return new ManagementOptions();
     }
 
 }

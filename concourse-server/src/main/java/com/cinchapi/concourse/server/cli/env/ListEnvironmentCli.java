@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package com.cinchapi.concourse.server.cli.env;
 
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A cli for listing environments.
@@ -33,12 +33,7 @@ public class ListEnvironmentCli extends EnvironmentCli {
      * @param args
      */
     public ListEnvironmentCli(String[] args) {
-        super(new EnvironmentOptions(), args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+        super(args);
     }
 
     @Override
@@ -50,7 +45,7 @@ public class ListEnvironmentCli extends EnvironmentCli {
             System.out.println(environments);
         }
         catch (Exception e) {
-            die(e.getMessage());
+            halt(e.getMessage(), e);
         }
 
     }

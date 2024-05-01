@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.cinchapi.concourse.server.concurrent;
 import java.nio.ByteBuffer;
 
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.annotate.PackagePrivate;
 import com.cinchapi.concourse.server.io.ByteSink;
 import com.cinchapi.concourse.server.io.ByteSinks;
 import com.cinchapi.concourse.server.io.Byteable;
@@ -62,8 +61,7 @@ public class Token implements Byteable {
      * @return the {@link Token}
      */
     public static Token shareable(long object) {
-        Token token = wrap(object);
-        token.upgrade();
+        Token token = new SharedToken(TArrays.hash(object));
         return token;
     }
 
@@ -75,7 +73,6 @@ public class Token implements Byteable {
      */
     public static Token wrap(Object... objects) {
         Token token = new Token(TArrays.hash(objects));
-        token.cardinality = objects.length;
         return token;
     }
 
@@ -91,7 +88,6 @@ public class Token implements Byteable {
         Token token = cache.get(key);
         if(token == null) {
             token = new Token(TArrays.hash(key));
-            token.cardinality = 1;
             cache.put(key, token);
         }
         return token;
@@ -101,13 +97,6 @@ public class Token implements Byteable {
      * The sequence of bytes is a 128-bit (16 byte) hash.
      */
     private final ByteBuffer bytes;
-
-    /**
-     * The number of objects that are embedded within the token. This is only
-     * used by {@link TokenReadWriteLock} to determine lock granularity.
-     */
-    @PackagePrivate
-    int cardinality = 1;
 
     /**
      * Construct a new instance.
@@ -150,13 +139,6 @@ public class Token implements Byteable {
     public String toString() {
         return BaseEncoding.base16()
                 .encode(ByteBuffers.getByteArray(getBytes())).toLowerCase();
-    }
-
-    /**
-     * "Upgrade" this token by ensuring that the cardinality is greater than 1.
-     */
-    public void upgrade() {
-        this.cardinality += 1;
     }
 
 }

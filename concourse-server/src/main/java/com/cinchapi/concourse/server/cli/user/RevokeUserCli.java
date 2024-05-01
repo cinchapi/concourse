@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import java.nio.ByteBuffer;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
-import com.cinchapi.concourse.server.cli.core.CommandLineInterfaceInformation;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 import com.cinchapi.concourse.server.management.ConcourseManagementService.Client;
+import com.cinchapi.lib.cli.CommandLineInterfaceInformation;
 
 /**
  * A CLI for granting user permissions.
@@ -32,12 +33,7 @@ import com.cinchapi.concourse.server.management.ConcourseManagementService.Clien
 public class RevokeUserCli extends UserCli {
 
     public RevokeUserCli(String[] args) {
-        super(new PermissionOptions(), args);
-    }
-
-    @Override
-    protected boolean requireArgs() {
-        return false;
+        super(args);
     }
 
     @Override
@@ -63,6 +59,11 @@ public class RevokeUserCli extends UserCli {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
 
+    }
+
+    @Override
+    protected ManagementOptions getOptions() {
+        return new PermissionOptions();
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,16 @@
 package com.cinchapi.concourse.server.cli.user;
 
 import com.beust.jcommander.Parameter;
-import com.cinchapi.concourse.server.cli.core.OptionalArgsCli;
-import com.cinchapi.concourse.server.cli.core.Options;
-import com.google.common.base.CaseFormat;
+import com.cinchapi.concourse.server.cli.core.ManagementCommandLineInterface;
+import com.cinchapi.concourse.server.cli.core.ManagementOptions;
 
 /**
- * Marker class for CLIs that should be invokable from the main
- * {@link ManageUsersCli}.
+ * Entry point for management CLIs to add/modify/remove user access to the
+ * server.
  * 
  * @author Jeff Nelson
  */
-public abstract class UserCli extends OptionalArgsCli {
-
-    /**
-     * Return the command that can be passed to the {@link ManageUsersCli} to
-     * invoke this particular cli.
-     * 
-     * @return the command
-     */
-    public static String getCommand(Class<? extends UserCli> clazz) {
-        return CaseFormat.UPPER_CAMEL
-                .to(CaseFormat.LOWER_UNDERSCORE, clazz.getSimpleName())
-                .split("_")[0];
-    }
+public abstract class UserCli extends ManagementCommandLineInterface {
 
     /**
      * Construct a new instance.
@@ -46,8 +33,8 @@ public abstract class UserCli extends OptionalArgsCli {
      * @param options
      * @param args
      */
-    public UserCli(Options options, String[] args) {
-        super(options, args);
+    public UserCli(String[] args) {
+        super(args);
     }
 
     /**
@@ -55,7 +42,7 @@ public abstract class UserCli extends OptionalArgsCli {
      * 
      * @author Jeff Nelson
      */
-    protected static class UserPasswordOptions extends Options {
+    protected static class UserPasswordOptions extends ManagementOptions {
 
         @Parameter(names = {
                 "--set-password" }, description = "Password of the user that is being managed (e.g. the non-invoking user)")
@@ -80,7 +67,7 @@ public abstract class UserCli extends OptionalArgsCli {
      *
      * @author Jeff Nelson
      */
-    protected static class PermissionOptions extends Options {
+    protected static class PermissionOptions extends ManagementOptions {
 
         @Parameter(names = { "-e",
                 "--environment" }, description = "The environment in which the permission is granted (if not specified, the default environment is used)")

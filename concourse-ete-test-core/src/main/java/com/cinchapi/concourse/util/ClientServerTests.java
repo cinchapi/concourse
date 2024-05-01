@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.server.ManagedConcourseServer;
+import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
 
 /**
  * Utility functions for {@link ClientServerTest} and descendant classes.

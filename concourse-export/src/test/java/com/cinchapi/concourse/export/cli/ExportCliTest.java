@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2022 Cinchapi Inc.
+ * Copyright (c) 2013-2024 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ public class ExportCliTest extends ClientServerTest {
         String[] args = generateCliArgs(
                 "--select undergraduate_population --order undergraduate_population");
         ExportCli cli = new ExportCli(args);
-        cli.run();
+        cli.exec();
         Collection<Object> expected = client.get("undergraduate_population",
                 client.inventory(), Sort.by("undergraduate_population"))
                 .values();
@@ -116,7 +116,7 @@ public class ExportCliTest extends ClientServerTest {
         String[] args = generateCliArgs(
                 "--select undergraduate_population --size 10");
         ExportCli cli = new ExportCli(args);
-        cli.run();
+        cli.exec();
         Assert.assertEquals(11, $output().size()); // size includes the header
     }
 
@@ -125,7 +125,7 @@ public class ExportCliTest extends ClientServerTest {
         String[] args = generateCliArgs(
                 "--where \"percent_undergrad_asian > 50\"");
         ExportCli cli = new ExportCli(args);
-        cli.run();
+        cli.exec();
         Map<Long, Object> data = client.get("ipeds_id",
                 "percent_undergrad_asian > 50");
         String output = FileOps.read(this.output);

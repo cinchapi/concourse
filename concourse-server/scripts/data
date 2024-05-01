@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #?Manage and debug the Concourse data files
 
-# Copyright (c) 2013-2022 Cinchapi Inc.
+# Copyright (c) 2013-2024 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,5 +19,9 @@
 # pthats are proper
 . "`dirname "$0"`/.env"
 
+# Specify the fully qualified name of the java CLI class to run.
+PACKAGE="com.cinchapi.concourse.server.cli.data"
+CLI="DataCli"
+
 # run the program
-exec $JAVACMD -classpath "$CLASSPATH" com.cinchapi.concourse.server.cli.ManageDataCli "$@"
+exec $JAVACMD -classpath "$CLASSPATH" -Dcom.cinchapi.lib.cli.reflectionScannerPackagePrefix=$PACKAGE com.cinchapi.lib.cli.HierarchicalCommandLineInterfaceRunner $PACKAGE.$CLI "$@"
