@@ -2473,6 +2473,16 @@ class ConcourseThriftDriver extends Concourse {
     }
 
     @Override
+    public boolean ping() {
+        try {
+            return execute(() -> core.ping(creds, transaction, environment));
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
     public Map<Long, Boolean> ping(Collection<Long> records) {
         return execute(() -> core.pingRecords(Collections.toLongList(records),
                 creds, transaction, environment));

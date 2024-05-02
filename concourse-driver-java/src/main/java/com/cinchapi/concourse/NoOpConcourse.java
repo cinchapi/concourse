@@ -1069,6 +1069,11 @@ public class NoOpConcourse extends Concourse {
     }
 
     @Override
+    public boolean ping() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Map<Long, Boolean> ping(Collection<Long> records) {
         throw new UnsupportedOperationException();
     }
