@@ -5124,6 +5124,18 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
+     * Test the connection to the server.
+     * <p>
+     * Check if this client is still connected to the server by sending an echo
+     * request and awaiting a response. This can be used to ensure subsequent
+     * communication with the server is possible. If the connection is broken,
+     * it will be necessary to establish a new connection.
+     * 
+     * @return boolean - {@code true} if the connection is still alive
+     */
+    public abstract boolean ping();
+
+    /**
      * Atomically check to see if each of the {@code records} currently contains
      * any data.
      * 
