@@ -3177,10 +3177,6 @@ abstract class StatefulConcourseService {
         throw new UnsupportedOperationException();
     }
 
-    public boolean ping() {
-        throw new UnsupportedOperationException();
-    }
-
     public Object sumKeyRecord(String key, long record) {
         throw new UnsupportedOperationException();
     }
