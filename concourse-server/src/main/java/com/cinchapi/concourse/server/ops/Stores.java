@@ -219,6 +219,11 @@ public final class Stores {
             }
             return records;
         }
+        /*
+         * else if operator is search operator and values.length is only 1 and
+         * timestamp == Time.NONE
+         * return store.search(key, values[0])
+         */
         else {
             return timestamp == Time.NONE ? store.find(key, operator, values)
                     : store.find(timestamp, key, operator, values);
