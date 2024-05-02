@@ -6556,14 +6556,4 @@ service ConcourseService {
     1: exceptions.SecurityException ex,
     2: exceptions.ManagementException ex2,
   );
-
-  bool ping(
-    1: shared.AccessToken creds,
-    2: shared.TransactionToken transaction,
-    3: string environment
-  )
-  throws (
-    1: exceptions.SecurityException ex
-    2: exceptions.PermissionException ex2
-  )
 }
