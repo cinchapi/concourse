@@ -2291,7 +2291,7 @@ public final class ManagedConcourseServer {
             return invoke("navigate", String.class, String.class,
                     Timestamp.class).with(key, ccl, timestamp);
         }
-        
+
         @Override
         public boolean ping() {
             return invoke("ping").with();

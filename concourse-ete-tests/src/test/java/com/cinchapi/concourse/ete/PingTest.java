@@ -21,7 +21,6 @@ import org.junit.Test;
 import com.cinchapi.concourse.test.ClientServerTest;
 import com.google.common.collect.ImmutableSet;
 
-
 /**
  * Unit tests for the ping functionality in Concourse
  *
@@ -40,14 +39,14 @@ public class PingTest extends ClientServerTest {
         server.stop();
         Assert.assertFalse(client.ping());
     }
-    
+
     @Test
     public void testPingWhenRestarted() {
         Assert.assertTrue(client.ping());
         server.restart();
         Assert.assertFalse(client.ping());
     }
-    
+
     @Test
     public void testPingWhenRestartedAndReconnected() {
         Assert.assertTrue(client.ping());
@@ -56,7 +55,7 @@ public class PingTest extends ClientServerTest {
         client = server.connect();
         Assert.assertTrue(client.ping());
     }
-    
+
     @Test
     public void testPingExemptFromExceptions() {
         Assert.assertTrue(client.ping());
@@ -66,7 +65,7 @@ public class PingTest extends ClientServerTest {
             client.inventory();
             Assert.fail();
         }
-        catch(Exception e) {
+        catch (Exception e) {
             Assert.assertTrue(true);
         }
         Assert.assertFalse(client.ping());
