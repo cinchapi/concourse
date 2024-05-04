@@ -39,13 +39,13 @@ import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.db.Database;
+import com.cinchapi.concourse.server.storage.search.Infingram;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.TMaps;
-import com.cinchapi.concourse.util.TStrings;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -520,9 +520,8 @@ public abstract class Limbo implements Store, Iterable<Write> {
     @Override
     public Set<Long> search(String key, String query) {
         Map<Long, Set<Value>> matches = Maps.newHashMap();
-        String[] needle = TStrings
-                .stripStopWordsAndTokenize(query.toLowerCase());
-        if(needle.length > 0) {
+        Infingram needle = new Infingram(query.toLowerCase());
+        if(needle.numTokens() > 0) {
             for (Iterator<Write> it = getSearchIterator(key); it.hasNext();) {
                 Write write = it.next();
                 Value value = write.getValue();
@@ -540,11 +539,8 @@ public abstract class Limbo implements Store, Iterable<Write> {
                      * relative position of the query.
                      */
                     // CON-10: compare lowercase for case insensitive search
-                    String stored = (String) (value.getObject());
-                    String[] haystack = TStrings
-                            .stripStopWordsAndTokenize(stored.toLowerCase());
-                    if(haystack.length > 0
-                            && TStrings.isInfixSearchMatch(needle, haystack)) {
+                    String haystack = ((String) value.getObject()).toLowerCase();
+                    if(needle.in(haystack)) {
                         Set<Value> values = matches.computeIfAbsent(record,
                                 $ -> new HashSet<>());
                         if(write.getType() == Action.REMOVE) {
@@ -558,7 +554,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
             }
         }
         // FIXME sort search results based on frequency (see
-        // SearchRecord#search())
+        // CorpusRecord#search())
         return Sets.newLinkedHashSet(
                 Maps.filterValues(matches, emptySetFilter).keySet());
     }

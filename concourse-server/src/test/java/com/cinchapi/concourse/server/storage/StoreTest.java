@@ -45,6 +45,7 @@ import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Value;
+import com.cinchapi.concourse.server.storage.search.Infingram;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -1499,14 +1500,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
         for (long i = 0; i < 10; i++) {
             String word = null;
             while (Strings.isNullOrEmpty(word)
-                    || TStrings.isInfixSearchMatch(query, word)) {
+                    || new Infingram(query).in(word)) {
                 word = TestData.getString();
             }
             for (long j = 0; j <= i; j++) {
                 word += " " + query;
                 String other = null;
                 while (Strings.isNullOrEmpty(other)
-                        || TStrings.isInfixSearchMatch(query, other)) {
+                        || new Infingram(query).in(other)) {
                     other = TestData.getString();
                 }
                 word += " " + other;
@@ -2064,7 +2065,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             for (long record : recordSource) {
                 if(otherSource != null) {
                     String other = otherSource.get(i);
-                    boolean matches = TStrings.isInfixSearchMatch(query, other);
+                    boolean matches = new Infingram(query).in(other);
                     SearchTestItem sti = Variables.register("sti_" + record,
                             new SearchTestItem(key, Convert.javaToThrift(other),
                                     record, query, matches));
@@ -2076,8 +2077,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 else {
                     String other = null;
                     while (other == null || other.equals(query)
-                            || TStrings.isInfixSearchMatch(query, other)
-                            || TStrings.isInfixSearchMatch(other, query)
+                            || new Infingram(query).in(other)
+                            || new Infingram(other).in(query)
                             || Strings.isNullOrEmpty(
                                     TStrings.stripStopWords(other))) {
                         other = TestData.getString();
