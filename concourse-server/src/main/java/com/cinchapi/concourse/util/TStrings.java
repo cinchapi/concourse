@@ -73,7 +73,7 @@ public final class TStrings {
         }
         return toks.length() > 0 ? toks.build() : Array.containing();
     }
-    
+
     // public static char[] stripStopWordsAndGatherChars(String string)
 
     /**

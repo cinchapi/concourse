@@ -539,7 +539,8 @@ public abstract class Limbo implements Store, Iterable<Write> {
                      * relative position of the query.
                      */
                     // CON-10: compare lowercase for case insensitive search
-                    String haystack = ((String) value.getObject()).toLowerCase();
+                    String haystack = ((String) value.getObject())
+                            .toLowerCase();
                     if(needle.in(haystack)) {
                         Set<Value> values = matches.computeIfAbsent(record,
                                 $ -> new HashSet<>());
