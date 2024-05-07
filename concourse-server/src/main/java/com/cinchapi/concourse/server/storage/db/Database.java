@@ -690,15 +690,7 @@ public final class Database implements DurableStore {
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             Multimap<Identifier, Integer> reference = ImmutableMultimap.of();
             boolean initial = true;
-            int offset = 0;
             for (String word : words) {
-                if(GlobalState.STOPWORDS.contains(word)) {
-                    // When skipping a stop word, we must record an offset to
-                    // correctly determine if the next term match is in the
-                    // correct relative position to the previous term match
-                    ++offset;
-                    continue;
-                }
                 Text K = Text.wrap(word);
                 CorpusRecord corpus = getCorpusRecord(L, K);
                 Set<Position> appearances = corpus.get(K);
@@ -711,7 +703,7 @@ public final class Database implements DurableStore {
                     }
                     else {
                         for (int current : reference.get(record)) {
-                            if(position == current + 1 + offset) {
+                            if(position == current + 1) {
                                 temp.put(record, position);
                             }
                         }
@@ -719,7 +711,6 @@ public final class Database implements DurableStore {
                 }
                 initial = false;
                 reference = temp;
-                offset = 0;
             }
 
             // Result Scoring: Scoring is simply the number of times the query

@@ -590,13 +590,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testCaseInsensitiveSearchLower() { // CON-10
         String key = Variables.register("key", "foo");
         TObject value = null;
-        while (value == null || GlobalState.STOPWORDS.contains(value.toString())
-                || GlobalState.STOPWORDS
-                        .contains(value.toString().toUpperCase())
-                || GlobalState.STOPWORDS
-                        .contains(value.toString().toLowerCase())
-                || Strings.isNullOrEmpty(
-                        TStrings.stripStopWords(value.toString()))) {
+        while (value == null || Strings.isNullOrEmpty(value.toString())) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toUpperCase()));
         }
@@ -623,13 +617,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testCaseInsensitiveSearchUpper() {
         String key = Variables.register("key", "foo");
         TObject value = null;
-        while (value == null || GlobalState.STOPWORDS.contains(value.toString())
-                || GlobalState.STOPWORDS
-                        .contains(value.toString().toLowerCase())
-                || GlobalState.STOPWORDS
-                        .contains(value.toString().toUpperCase())
-                || Strings.isNullOrEmpty(
-                        TStrings.stripStopWords(value.toString()))) {
+        while (value == null || Strings.isNullOrEmpty(value.toString())) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toLowerCase()));
         }
@@ -2059,7 +2047,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         && recordSource.size() == otherSource.size()));
         Set<Long> records = Sets.newHashSet();
         recordSource = recordSource == null ? getRecords() : recordSource;
-        if(!Strings.isNullOrEmpty(TStrings.stripStopWords(query))) {
+        if(!Strings.isNullOrEmpty(query)) {
             int i = 0;
             for (long record : recordSource) {
                 if(otherSource != null) {
@@ -2078,8 +2066,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
                     while (other == null || other.equals(query)
                             || TStrings.isInfixSearchMatch(query, other)
                             || TStrings.isInfixSearchMatch(other, query)
-                            || Strings.isNullOrEmpty(
-                                    TStrings.stripStopWords(other))) {
+                            || Strings.isNullOrEmpty(other)) {
                         other = TestData.getString();
                     }
                     boolean match = TestData.getInt() % 3 == 0;

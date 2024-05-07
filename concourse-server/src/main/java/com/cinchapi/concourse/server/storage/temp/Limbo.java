@@ -520,8 +520,8 @@ public abstract class Limbo implements Store, Iterable<Write> {
     @Override
     public Set<Long> search(String key, String query) {
         Map<Long, Set<Value>> matches = Maps.newHashMap();
-        String[] needle = TStrings
-                .stripStopWordsAndTokenize(query.toLowerCase());
+        String[] needle = query.toLowerCase()
+                .split(TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
         if(needle.length > 0) {
             for (Iterator<Write> it = getSearchIterator(key); it.hasNext();) {
                 Write write = it.next();
@@ -541,8 +541,8 @@ public abstract class Limbo implements Store, Iterable<Write> {
                      */
                     // CON-10: compare lowercase for case insensitive search
                     String stored = (String) (value.getObject());
-                    String[] haystack = TStrings
-                            .stripStopWordsAndTokenize(stored.toLowerCase());
+                    String[] haystack = stored.toLowerCase().split(
+                            TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
                     if(haystack.length > 0
                             && TStrings.isInfixSearchMatch(needle, haystack)) {
                         Set<Value> values = matches.computeIfAbsent(record,
