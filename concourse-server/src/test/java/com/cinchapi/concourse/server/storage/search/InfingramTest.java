@@ -28,6 +28,12 @@ import com.cinchapi.concourse.util.TestData;
 public class InfingramTest {
 
     @Test
+    public void foo() {
+        Infingram needle = new Infingram("complex the complex");
+        Assert.assertTrue(needle.in("complex simplethesimple complex"));
+    }
+
+    @Test
     public void testInEmptyString() {
         Infingram infingram = new Infingram("");
         Assert.assertFalse(infingram.in("foo bar"));
@@ -168,7 +174,8 @@ public class InfingramTest {
 
     @Test
     public void testInPrefixInfixMatchWithStopwords() {
-        Infingram infingram = new Infingram("ground rese prov evid anci civi");
+        Infingram infingram = new Infingram(
+                "ground rese prov evid of anci civi");
         Assert.assertTrue(infingram.in(
                 "groundbreaking research provides evidence of ancient civilization"));
     }
@@ -232,6 +239,13 @@ public class InfingramTest {
         Infingram infingram = new Infingram("the and is of");
         Assert.assertFalse(infingram.in(
                 "controversial theory sparks intense debate scientific community"));
+    }
+
+    @Test
+    public void testReproA() {
+        Infingram infingram = new Infingram("w  8");
+        Assert.assertTrue(infingram.in(
+                "uo0qgmr6r66mfuligawh08f33ce63uubwuaue186r6x0g9bwwqg9c4wooctgu72a5kksbepajevzkfpjny2osj6pu0ryk3o"));
     }
 
 }

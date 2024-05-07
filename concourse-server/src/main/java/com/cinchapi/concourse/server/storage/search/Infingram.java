@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.StringSplitter;
-import com.cinchapi.concourse.server.GlobalState;
 
 /**
  * An {@link Infingram} is a sequence of tokens (e.g., words), within another
@@ -202,8 +201,7 @@ public final class Infingram {
         StringSplitter it = new StringSplitter(value, ' ');
         while (it.hasNext()) {
             String token = it.next();
-            if(!StringUtils.isBlank(token)
-                    && !GlobalState.STOPWORDS.contains(token)) {
+            if(!StringUtils.isBlank(token)) {
                 tokens.add(token.toCharArray());
             }
         }

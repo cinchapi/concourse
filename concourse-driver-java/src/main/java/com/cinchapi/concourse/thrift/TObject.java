@@ -702,6 +702,42 @@ public class TObject implements
         case NOT_REGEX:
             return !Convert.thriftToJava(this).toString()
                     .matches(Convert.thriftToJava(v1).toString());
+        case CONTAINS:
+        case NOT_CONTAINS:
+            if(getType() == Type.STRING) {
+                // Infingram needle = new
+                // Infingram(Convert.thriftToJava(v1).toString());
+                // String haystack = Convert.possibleThriftToJava(this);
+                // if(operator == Operator.CONTAINS) {
+                // return needle.in(haystack);
+                // }
+                // else {
+                // return !needle.in(haystack);
+                // }
+                return false;
+            }
+            else {
+                throw new UnsupportedOperationException();
+            }
+            /*
+             * TODO
+             * Add case for CONTAINS AND NOT_CONTAINS. Verify that v1 is a
+             * TObject.getType() == Type.SEARCH and do logic to check if v1 is a
+             * search match. When converting v1 to Java it should access the
+             * cache
+             * of the tokens..
+             * * In the TObject is method do
+             * if(getType() == Type.STRING) { // remember TAGs are not
+             * searchable
+             * String[] needle = Convert.thriftToJava(v1) // the Convert routine
+             * // should return an array of strings that
+             * // are split with
+             * // String[] needle = TStrings
+             * .stripStopWordsAndTokenize(query.toLowerCase());
+             * String value = (String) Convert.thriftToJava(this).getObject()
+             * return foo(needle, value)
+             * }
+             */
         default:
             throw new UnsupportedOperationException();
         }

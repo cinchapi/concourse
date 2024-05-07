@@ -39,13 +39,13 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.server.storage.search.Infingram;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
@@ -1500,14 +1500,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
         for (long i = 0; i < 10; i++) {
             String word = null;
             while (Strings.isNullOrEmpty(word)
-                    || new Infingram(query).in(word)) {
+                    || isInfixSearchMatch(query, word)) {
                 word = TestData.getString();
             }
             for (long j = 0; j <= i; j++) {
                 word += " " + query;
                 String other = null;
                 while (Strings.isNullOrEmpty(other)
-                        || new Infingram(query).in(other)) {
+                        || isInfixSearchMatch(query, other)) {
                     other = TestData.getString();
                 }
                 word += " " + other;
@@ -1871,6 +1871,47 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     }
 
+    @Test
+    public void testSearchStopWordCornerCase() {
+        String haystack = "complex simplethesimple complex";
+        String needle = "complex the complex";
+        String key = "text";
+        long record = 1;
+        add(key, Convert.javaToThrift(haystack), record);
+        Assert.assertTrue(store.search(key, needle).contains(record));
+    }
+
+    @Test
+    public void testSearchStopWordCornerCaseB() {
+        String haystack = "complex complex";
+        String needle = "complex the complex";
+        String key = "text";
+        long record = 1;
+        add(key, Convert.javaToThrift(haystack), record);
+        Assert.assertFalse(store.search(key, needle).contains(record));
+    }
+
+    @Test
+    public void testSearchReproGCornerCase() {
+        String haystack = "uo0qgmr6r66mfuligawh08f33ce63uubwuaue186r6x0g9bwwqg9c4wooctgu72a5kksbepajevzkfpjny2osj6pu0ryk3o";
+        String needle = "w  8";
+        String key = "text";
+        long record = 1;
+        add(key, Convert.javaToThrift(haystack), record);
+        Assert.assertTrue(store.search(key, needle).contains(record));
+    }
+
+    // @Test
+    // public void testSearchStopWordCornerCaseNeedle() {
+    // String haystack = "controversial theory sparks intense debate scientific
+    // community";
+    // String needle = "the and is of";
+    // String key = "text";
+    // long record = 1;
+    // add(key, Convert.javaToThrift(haystack), record);
+    // Assert.assertTrue(store.search(key, needle).contains(record));
+    // }
+
     /**
      * Add {@code key} as {@code value} to {@code record} in the {@code store}.
      * 
@@ -2040,6 +2081,43 @@ public abstract class StoreTest extends ConcourseBaseTest {
         return setupSearchTest(key, query, type, null, null);
     }
 
+    private final boolean isInfixSearchMatch(String needle, String haystack) {
+        String[] ntoks = TStrings
+                .stripStopWordsAndTokenize(needle.toLowerCase());
+        String[] htoks = TStrings
+                .stripStopWordsAndTokenize(haystack.toLowerCase());
+        int npos = 0;
+        int hpos = 0;
+        while (hpos < htoks.length && npos < ntoks.length) {
+            if(htoks.length - hpos < ntoks.length - npos) {
+                // If the number of remaining haystack tokens is less than the
+                // number of remaining needle tokens, then we can exit
+                // immediately because it is not possible for the needle to be
+                // fond in the haystack
+                return false;
+            }
+            String n = ntoks[npos];
+            String h = htoks[hpos];
+            if(AnyStrings.isSubString(n, h)) {
+                ++npos;
+                ++hpos;
+            }
+            else {
+                // If the needle position is greater than 0, then we must keep
+                // the haystack position constant so that we can use it as the
+                // new starting point to see if the needle can be found in the
+                // remaining tokens.
+                if(npos > 0) {
+                    npos = 0;
+                }
+                else {
+                    ++hpos;
+                }
+            }
+        }
+        return npos == ntoks.length;
+    }
+
     /**
      * Setup a search test by adding some matches for {@code query} that
      * obey search {@code type} for {@code key} in some of the records from
@@ -2065,7 +2143,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             for (long record : recordSource) {
                 if(otherSource != null) {
                     String other = otherSource.get(i);
-                    boolean matches = new Infingram(query).in(other);
+                    boolean matches = isInfixSearchMatch(query, other);
                     SearchTestItem sti = Variables.register("sti_" + record,
                             new SearchTestItem(key, Convert.javaToThrift(other),
                                     record, query, matches));
@@ -2077,8 +2155,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 else {
                     String other = null;
                     while (other == null || other.equals(query)
-                            || new Infingram(query).in(other)
-                            || new Infingram(other).in(query)
+                            || isInfixSearchMatch(query, other)
+                            || isInfixSearchMatch(other, query)
                             || Strings.isNullOrEmpty(
                                     TStrings.stripStopWords(other))) {
                         other = TestData.getString();

@@ -490,6 +490,27 @@ public final class IndexRecord extends Record<Text, Value, Identifier> {
                     }
                 }
             }
+            /*
+             * TODO
+             * go through each Value and do similar logic as TObject:is...
+             * Substring needle = new Substring(value.getObject().toString());
+             * for(Value stored : historical ? history.keySet() :
+             * present.keySet()) {
+             * if(value.getType() == Type.STRING && s.isContainedWithin) {
+             * String[] haystack = TStrings
+             * .stripStopWordsAndTokenize(stored.getObject().toString().
+             * toLowerCase());
+             * Search search = needle.searchWithin(haystack);
+             * if(needle.isFoundWithin(stored.getObject.toString()) {
+             * if(search.found()) {
+             * for(Identifier record : historical ? get(stored, timestamp) :
+             * get(stored)) {
+             * MultimapViews.put(data, record, stored);
+             * }
+             * }
+             * }
+             * }
+             */
             else {
                 throw new UnsupportedOperationException();
             }
