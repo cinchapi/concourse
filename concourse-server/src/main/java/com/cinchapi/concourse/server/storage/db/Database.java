@@ -644,8 +644,7 @@ public final class Database implements DurableStore {
                     Segment segment = segments.get(i);
                     Segment clean = deduped.get(segment);
                     if(clean != null) {
-                        clean.transfer(storage.directory()
-                                .resolve(UUID.randomUUID() + ".seg"));
+                        storage.save(clean);
                         segments.set(i, clean);
                         segment.delete();
                     }
@@ -1443,6 +1442,7 @@ public final class Database implements DurableStore {
          * 
          * @return the storage directory
          */
+        @SuppressWarnings("unused")
         public Path directory() {
             return directory;
         }
