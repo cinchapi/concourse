@@ -631,6 +631,37 @@ public final class Database implements DurableStore {
         }
     }
 
+    /**
+     * {@link Segment#reindex() Reindex} every {@link Segment} in the
+     * {@link Database}.
+     * <p>
+     * This operation will block reads and writes until it finishes.
+     * </p>
+     */
+    public void reindex() {
+        masterLock.writeLock().lock();
+        try {
+            for (int i = 0; i < segments.size(); ++i) {
+                Segment current = segments.get(i);
+                Segment updated = current.reindex();
+                if(current == seg0) {
+                    seg0 = updated;
+                }
+                else {
+                    storage.save(updated);
+                    current.delete();
+                }
+                segments.set(i, updated);
+                Logger.info(
+                        "Reindexed Segment {}. The data is now available in Segment {}",
+                        current.id(), updated);
+            }
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
+    }
+
     @Override
     public void repair() {
         masterLock.writeLock().lock();
