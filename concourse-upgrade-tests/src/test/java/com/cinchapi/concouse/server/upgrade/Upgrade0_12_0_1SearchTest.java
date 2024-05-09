@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author Jeff Nelson
  */
-public class Upgrade0_12_0_1Test extends UpgradeTest {
+public class Upgrade0_12_0_1SearchTest extends UpgradeTest {
 
     /**
      * The key under which values are stored.
