@@ -45,6 +45,7 @@ public class Upgrade0_11_0_1Test extends UpgradeTest {
     private String[] envs;
     Map<String, Consumer<Concourse>> tests = Maps.newHashMap();
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void preUpgradeActions() {
         envs = new String[] { "foo", "bar" };
