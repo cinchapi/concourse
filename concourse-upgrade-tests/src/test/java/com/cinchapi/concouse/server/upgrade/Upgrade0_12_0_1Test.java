@@ -60,6 +60,12 @@ public class Upgrade0_12_0_1Test extends UpgradeTest {
                 Attribute.EXPECTED_0_11, true, 
                 Attribute.EXPECTED_0_12, true
         ));
+        data.add(ImmutableMap.of(
+                Attribute.HAYSTACK, "the quick brown fox jumps over the fence", 
+                Attribute.NEEDLE, "th qui brown fo", 
+                Attribute.EXPECTED_0_11, false, 
+                Attribute.EXPECTED_0_12, true
+        ));
         // @formatter:on
     }
 
@@ -79,7 +85,6 @@ public class Upgrade0_12_0_1Test extends UpgradeTest {
         ClientServerTests.insertRandomDataInStorageFormatV3(server, "default");
         insertSearchData(); // add matches to buffer
         testSearchMatchesInVersion(Attribute.EXPECTED_0_11);
-
     }
 
     /**
