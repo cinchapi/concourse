@@ -171,8 +171,8 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * indexing.
      * <p>
      * The service is static (and therefore shared by each {@link CorpusChunk})
-     * because
-     * only one segment at a time should be mutable and able to process inserts.
+     * because only one segment at a time should be mutable and able to process
+     * inserts.
      * </p>
      * <p>
      * If multiple environments are active, they can all use this shared INDEXER
