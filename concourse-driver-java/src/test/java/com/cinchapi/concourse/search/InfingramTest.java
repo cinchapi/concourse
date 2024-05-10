@@ -29,25 +29,25 @@ public class InfingramTest {
 
     @Test
     public void foo() {
-        Infingram needle = new Infingram("complex the complex");
+        Infingram needle = createInfingram("complex the complex");
         Assert.assertTrue(needle.in("complex simplethesimple complex"));
     }
 
     @Test
     public void testInEmptyString() {
-        Infingram infingram = new Infingram("");
+        Infingram infingram = createInfingram("");
         Assert.assertFalse(infingram.in("foo bar"));
     }
 
     @Test
     public void testNumTokens() {
-        Infingram infingram = new Infingram("foo bar baz");
+        Infingram infingram = createInfingram("foo bar baz");
         Assert.assertEquals(3, infingram.numTokens());
     }
 
     @Test
     public void testNumTokensEmpty() {
-        Infingram infingram = new Infingram("");
+        Infingram infingram = createInfingram("");
         Assert.assertEquals(0, infingram.numTokens());
     }
 
@@ -58,20 +58,20 @@ public class InfingramTest {
         while (haystack.contains(needle)) {
             needle = Random.getString();
         }
-        Infingram infingram = new Infingram(needle);
+        Infingram infingram = createInfingram(needle);
         Assert.assertFalse(infingram.in(haystack));
     }
 
     @Test
     public void testInEmptyHaystack() {
         String needle = Random.getSimpleString();
-        Infingram infingram = new Infingram(needle);
+        Infingram infingram = createInfingram(needle);
         Assert.assertFalse(infingram.in(""));
     }
 
     @Test
     public void testInExactMatch() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "adventurous explorer discovers hidden");
         Assert.assertTrue(infingram
                 .in("The adventurous explorer discovers hidden treasures"));
@@ -79,28 +79,28 @@ public class InfingramTest {
 
     @Test
     public void testInPrefixMatch() {
-        Infingram infingram = new Infingram("advent explo disco hidd");
+        Infingram infingram = createInfingram("advent explo disco hidd");
         Assert.assertTrue(infingram
                 .in("The adventurous explorer discovers hidden treasures"));
     }
 
     @Test
     public void testInInfixMatch() {
-        Infingram infingram = new Infingram("ventu plore scove dden");
+        Infingram infingram = createInfingram("ventu plore scove dden");
         Assert.assertTrue(infingram
                 .in("The adventurous explorer discovers hidden treasures"));
     }
 
     @Test
     public void testInPrefixInfixMatch() {
-        Infingram infingram = new Infingram("adv exp dis hid");
+        Infingram infingram = createInfingram("adv exp dis hid");
         Assert.assertTrue(infingram
                 .in("The adventurous explorer discovers hidden treasures"));
     }
 
     @Test
     public void testInScatteredMatch() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "adventurous discovers explorer hidden");
         Assert.assertFalse(infingram
                 .in("The adventurous explorer discovers hidden treasures"));
@@ -108,13 +108,13 @@ public class InfingramTest {
 
     @Test
     public void testInNoMatch() {
-        Infingram infingram = new Infingram("hidden explorer treasures");
+        Infingram infingram = createInfingram("hidden explorer treasures");
         Assert.assertFalse(infingram.in("The adventurous discoverer"));
     }
 
     @Test
     public void testInMultiplePhrases() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "fearless adventurer explores uncharted regions");
         Assert.assertTrue(infingram.in(
                 "The fearless adventurer explores uncharted regions with determination"));
@@ -122,21 +122,21 @@ public class InfingramTest {
 
     @Test
     public void testInPartialPhraseMatch() {
-        Infingram infingram = new Infingram("advent explo disco hidd treas");
+        Infingram infingram = createInfingram("advent explo disco hidd treas");
         Assert.assertTrue(infingram
                 .in("The adventurous explorer discovers hidden treasures"));
     }
 
     @Test
     public void testInNonContiguousMatch() {
-        Infingram infingram = new Infingram("majestic eagle soars");
+        Infingram infingram = createInfingram("majestic eagle soars");
         Assert.assertFalse(infingram
                 .in("The majestic eagle flies high and soars through the sky"));
     }
 
     @Test
     public void testInCaseInsensitiveMatch() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "harmony and tranquility serenity reigns");
         Assert.assertTrue(infingram.in(
                 "In the garden of harmony and tranquility, serenity reigns supreme"));
@@ -144,7 +144,7 @@ public class InfingramTest {
 
     @Test
     public void testInExactMatchWithStopwords() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "mysterious ancient artifact discovered remote location");
         Assert.assertFalse(infingram.in(
                 "mysterious ancient artifact was discovered in a remote location"));
@@ -152,7 +152,7 @@ public class InfingramTest {
 
     @Test
     public void testInExactMatchWithStopwordsInBoth() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "mysterious ancient artifact discovered in a remote location");
         Assert.assertFalse(infingram.in(
                 "mysterious ancient artifact was discovered in a remote location"));
@@ -160,21 +160,21 @@ public class InfingramTest {
 
     @Test
     public void testInPrefixMatchWithStopwords() {
-        Infingram infingram = new Infingram("scie break unlo secr to univ");
+        Infingram infingram = createInfingram("scie break unlo secr to univ");
         Assert.assertTrue(infingram
                 .in("scientists breakthrough unlocks secrets to universe"));
     }
 
     @Test
     public void testInInfixMatchWithStopwords() {
-        Infingram infingram = new Infingram("ste crim mast elud auth f dec");
+        Infingram infingram = createInfingram("ste crim mast elud auth f dec");
         Assert.assertTrue(infingram.in(
                 "master criminal mastermind eludes authorities for decades"));
     }
 
     @Test
     public void testInPrefixInfixMatchWithStopwords() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "ground rese prov evid of anci civi");
         Assert.assertTrue(infingram.in(
                 "groundbreaking research provides evidence of ancient civilization"));
@@ -182,7 +182,7 @@ public class InfingramTest {
 
     @Test
     public void testInNoMatchWithStopwords() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "innovative technology revolutionizes healthcare industry");
         Assert.assertFalse(infingram.in(
                 "cutting edge advancements transform the education sector"));
@@ -190,7 +190,7 @@ public class InfingramTest {
 
     @Test
     public void testInMultiplePhrasesWithStopwords() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "renowned chef creates culinary masterpiece the");
         Assert.assertFalse(infingram.in(
                 "renowned chef creates a culinary masterpiece that leaves diners awestruck"));
@@ -198,14 +198,14 @@ public class InfingramTest {
 
     @Test
     public void testInPartialPhraseMatchWithStopwords() {
-        Infingram infingram = new Infingram("natu wond insp art cen");
+        Infingram infingram = createInfingram("natu wond insp art cen");
         Assert.assertTrue(
                 infingram.in("natural wonders inspire artists centuries"));
     }
 
     @Test
     public void testInNonContiguousMatchWithStopword() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "historic landmark attracts tourists worldwide");
         Assert.assertFalse(
                 infingram.in("historic site worldwide attracts tourists"));
@@ -213,7 +213,7 @@ public class InfingramTest {
 
     @Test
     public void testInCaseInsensitiveMatchWithStopwords() {
-        Infingram infingram = new Infingram(
+        Infingram infingram = createInfingram(
                 "Dedicated Scientists Unravel COMPLEX Mysteries".toLowerCase());
         Assert.assertTrue(infingram
                 .in("dedicated scientists unravel coMPlex mysteries nature"
@@ -222,30 +222,40 @@ public class InfingramTest {
 
     @Test
     public void testInEmptyInfingram() {
-        Infingram infingram = new Infingram("");
+        Infingram infingram = createInfingram("");
         Assert.assertFalse(infingram
                 .in("rare astronomical event captivates stargazers worldwide"));
     }
 
     @Test
     public void testInSingleTokenInfingram() {
-        Infingram infingram = new Infingram("phenomenon");
+        Infingram infingram = createInfingram("phenomenon");
         Assert.assertTrue(
                 infingram.in("rare phenomenon baffles scientists worldwide"));
     }
 
     @Test
     public void testInStopwordsOnlyInfingram() {
-        Infingram infingram = new Infingram("the and is of");
+        Infingram infingram = createInfingram("the and is of");
         Assert.assertFalse(infingram.in(
                 "controversial theory sparks intense debate scientific community"));
     }
 
     @Test
     public void testReproA() {
-        Infingram infingram = new Infingram("w  8");
+        Infingram infingram = createInfingram("w  8");
         Assert.assertFalse(infingram.in(
                 "uo0qgmr6r66mfuligawh08f33ce63uubwuaue186r6x0g9bwwqg9c4wooctgu72a5kksbepajevzkfpjny2osj6pu0ryk3o"));
+    }
+
+    /**
+     * Return a new {@link Infingram}.
+     * 
+     * @param string
+     * @return the created {@link Infingram}
+     */
+    protected Infingram createInfingram(String string) {
+        return new Infingram(string);
     }
 
 }

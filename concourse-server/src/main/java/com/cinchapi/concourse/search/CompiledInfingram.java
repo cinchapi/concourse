@@ -144,8 +144,10 @@ public class CompiledInfingram extends Infingram {
             // Optimize with Boyer-Moore string search algorithm
             char[] haystack = value.toLowerCase().toCharArray();
             char[] needle = tokens[0];
-            if(needle.length == 0) {
-                return true;
+            if(needle.length == 0 || haystack.length == 0) {
+                // By convention, empty strings are never considered search
+                // matches.
+                return false;
             }
             for (int i = needle.length - 1, j; i < haystack.length;) {
                 for (j = needle.length

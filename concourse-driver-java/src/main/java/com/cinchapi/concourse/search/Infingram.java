@@ -15,10 +15,9 @@
  */
 package com.cinchapi.concourse.search;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.Arrays;
 
 import com.cinchapi.common.base.ArrayBuilder;
-import com.cinchapi.common.base.StringSplitter;
 
 /**
  * An {@link Infingram} is a sequence of tokens (e.g., words), within another
@@ -37,7 +36,7 @@ import com.cinchapi.common.base.StringSplitter;
  *
  * @author Jeff Nelson
  */
-public final class Infingram {
+public class Infingram {
 
     /**
      * Empty tokens.
@@ -51,7 +50,7 @@ public final class Infingram {
      * can match as an infix, meaning it can appear anywhere within the target
      * string but must maintain the relative order specified in this array.
      */
-    private final char[][] tokens;
+    final char[][] tokens;
 
     /**
      * Construct a new instance.
@@ -104,7 +103,7 @@ public final class Infingram {
                     // If the number of remaining haystack tokens is less than
                     // the number of remaining needle tokens, then we can exit
                     // immediately because it is not possible for the needle to
-                    // be fond in the haystack
+                    // be found in the haystack
                     return false;
                 }
                 char[] n = needle[npos];
@@ -136,7 +135,7 @@ public final class Infingram {
      * 
      * @return the number of tokens
      */
-    public int numTokens() {
+    public final int numTokens() {
         return tokens.length;
     }
 
@@ -152,7 +151,6 @@ public final class Infingram {
      * @return {@code true} if {@code needle} is a substring
      */
     private boolean isSubstring(char[] needle, char[] haystack) {
-        // TODO: switch out with Boyer Moore??
         if(needle.length > haystack.length) {
             return false;
         }
@@ -190,19 +188,31 @@ public final class Infingram {
     }
 
     /**
-     * Split {@code value} into tokens and remove {@link GlobalState#STOPWORDS
-     * stopwords}.
+     * Split {@code value} into tokens by word boundary.
      * 
      * @param value
      * @return an array of character arrays, each representing a token.
      */
     private char[][] tokenize(String value) {
         ArrayBuilder<char[]> tokens = ArrayBuilder.builder();
-        StringSplitter it = new StringSplitter(value.toLowerCase(), ' ');
-        while (it.hasNext()) {
-            String token = it.next();
-            if(!StringUtils.isBlank(token)) {
-                tokens.add(token.toCharArray());
+        int start = 0;
+        char[] chars = value.toCharArray();
+        for (int i = 0; i < chars.length; ++i) {
+            char c = chars[i];
+            if(!Character.isLowerCase(c)) {
+                chars[i] = Character.toLowerCase(chars[i]);
+            }
+            if(Character.isWhitespace(c)) {
+                if(i > start) {
+                    tokens.add(Arrays.copyOfRange(chars, start, i));
+                }
+                start = i + 1;
+            }
+            else if(i == chars.length - 1) {
+                tokens.add(Arrays.copyOfRange(chars, start, i + 1));
+            }
+            else {
+                continue;
             }
         }
         return tokens.length() > 0 ? tokens.build() : EMPTY;
