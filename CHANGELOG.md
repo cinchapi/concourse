@@ -2,6 +2,15 @@
 
 #### Version 0.12.0 (TBD)
 
+##### Search
+We made several changes to improve search performance and accuracy:
+
+###### Preserving Stopwords in Indexing and Searching
+Stopwords are now preserved when indexing and searching. This change ensures that searches containing stopwords may return different, yet more accurate and contextually relevant results.
+* **Previous Configuration**: In earlier versions, Concourse Server could be configured using the `conf/stopwords.txt` file to exclude common stopwords from indexing and search operations. This approach was designed to reduce storage requirements and improve search performance by removing frequently occurring, but generally less significant words.
+* **Rationale for Change**: Preserving stopwords is crucial for maintaining context, which can significantly enhance the accuracy of search results and the effectiveness of ranking algorithms. Resource usage is no longer a concern since affordable storage and computational resources are more abundant. So, it makes more sense to prioritze better search accuracy and system robustness. Lastly, preserving stopwords eliminates corner case bugs that are inherent to the way Concourse's search algorithm interacts with the buffered storage system.
+* **Upgrade Implications**: Upon upgrading to this version, an automatic reindexing task will be initiated to ensure that all previously indexed data conforms to the new no-stopword-removal policy. It's important to plan for increased storage needs due to the inclusion of stopwords in the search corpus.
+
 ##### Locking Optimizations
 We made several changes to improve the safety, scalability and operational efficiency of the Just-in-Time (JIT) locking protocol:
 
@@ -35,10 +44,6 @@ We made several changes to improve the safety, scalability and operational effic
 * [GH-490](https://github.com/cinchapi/concourse/issues/490): Fixed a bug that made it possible for a write to a key within a record (e.g., key `A` in record `1`) to erroneously block a concurrent write to a different key in the same record (e.g., key `B` in record `1`). The practial consquence of this bug was that more Atomic Operations and Transactions failed than actually necessary. 
 
 ##### API Breaks and Deprecations
-* **Preservation of Stopwords in Indexing and Search**: Stopwords are now preserved when indexing and searching. This change ensures that searches containing stopwords may return different, yet more accurate and contextually relevant results.
-  * **Previous Configuration**: In earlier versions, Concourse Server could be configured using the `conf/stopwords.txt` file to exclude common stopwords from indexing and search operations. This approach was designed to reduce storage requirements and improve search performance by removing frequently occurring, but generally less significant words.
-  * **Rationale for Change**: Preserving stopwords is crucial for maintaining context, which can significantly enhance the accuracy of search results and the effectiveness of ranking algorithms. Resource usage is no longer a concern since affordable storage and computational resources are more abundant. So, it makes more sense to prioritze better search accuracy and system robustness. Lastly, preserving stopwords eliminates corner case bugs that are inherent to the way Concourse's search algorithm interacts with the buffered storage system.
-  * **Upgrade Implications**: Upon upgrading to this version, an automatic reindexing task will be initiated to ensure that all previously indexed data conforms to the new no-stopword-removal policy. It's important to plan for increased storage needs due to the inclusion of stopwords in the search corpus.
 * Concourse CLIs have been updated to leverage the `lib-cli` framework. There are no changes in functionality, however, in the `concourse-cli` framework, the following classes have been deprecated:
 	* `CommandLineInterface` in favor of `ConcourseCommandLineInterface`
 	* `CommandLineInterfaceRunner` in favor of `com.cinchapi.lib.cli.CommandLineInterfaceRunner` from the `lib-cli` framework.
