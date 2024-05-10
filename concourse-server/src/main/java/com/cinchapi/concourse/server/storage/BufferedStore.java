@@ -126,10 +126,6 @@ public abstract class BufferedStore implements Store {
             throw new ReferentialIntegrityException(
                     "A record cannot link to itself");
         }
-        else if(value.getType() == Type.SEARCH) {
-            throw new IllegalArgumentException(
-                    "Cannot use a SEARCH value for " + key);
-        }
     }
 
     /**
