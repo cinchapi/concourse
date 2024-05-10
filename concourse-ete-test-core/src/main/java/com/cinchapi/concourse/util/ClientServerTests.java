@@ -30,20 +30,62 @@ import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
  */
 public final class ClientServerTests {
 
-    private ClientServerTests() {/* no-op */}
-
     /**
      * A utility method to populate the test server with random data.
      * 
      * @param server the {@link ManagedConcourseServer} used in the test
      * @param environments the environments in which random data should be
      *            inserted
+     * @deprecated use
+     *             {@link #insertRandomDataInStorageFormatV2(ManagedConcourseServer, String...)
+     *             instead}
      */
+    @Deprecated
     public static void insertRandomData(ManagedConcourseServer server,
             String... environments) {
+        insertRandomDataInStorageFormatV2(server, environments);
+    }
+
+    /**
+     * A utility method to populate the test server with random data in Storage
+     * Format V3.
+     * 
+     * @param server the {@link ManagedConcourseServer} used in the test
+     * @param environments the environments in which random data should be
+     *            inserted
+     */
+    public static void insertRandomDataInStorageFormatV2(
+            ManagedConcourseServer server, String... environments) {
+        insertRandomDataInStorage("cpb", server, environments);
+    }
+
+    /**
+     * A utility method to populate the test server with random data in Storage
+     * Format V3.
+     * 
+     * @param server the {@link ManagedConcourseServer} used in the test
+     * @param environments the environments in which random data should be
+     *            inserted
+     */
+    public static void insertRandomDataInStorageFormatV3(
+            ManagedConcourseServer server, String... environments) {
+        insertRandomDataInStorage("segments", server, environments);
+    }
+
+    /**
+     * Insert random data in the provided {@code dir} and wait until there is a
+     * random number of storage files, which signifies that there is data in the
+     * database (and not just the buffer).
+     * 
+     * @param dir
+     * @param server
+     * @param environments
+     */
+    private static void insertRandomDataInStorage(String dir,
+            ManagedConcourseServer server, String... environments) {
         for (String environment : environments) {
             Path directory = server.getDatabaseDirectory().resolve(environment)
-                    .resolve("cpb");
+                    .resolve(dir);
             Concourse client = server.connect("admin", "admin", environment);
             try {
                 int count = Random.getScaleCount();
@@ -67,5 +109,7 @@ public final class ClientServerTests {
             }
         }
     }
+
+    private ClientServerTests() {/* no-op */}
 
 }

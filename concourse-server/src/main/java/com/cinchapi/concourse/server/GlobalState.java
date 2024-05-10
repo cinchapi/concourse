@@ -15,16 +15,11 @@
  */
 package com.cinchapi.concourse.server;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
@@ -34,7 +29,6 @@ import javax.annotation.Nullable;
 import ch.qos.logback.classic.Level;
 
 import com.cinchapi.common.base.Array;
-import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
@@ -47,7 +41,6 @@ import com.cinchapi.concourse.util.Networking;
 import com.cinchapi.lib.config.read.Interpreters;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 
 /**
  * Contains configuration and state that must be accessible to various parts of
@@ -427,28 +420,6 @@ public final class GlobalState extends Constants {
         INIT_ROOT_USERNAME = config.getOrDefault("init.root.username",
                 config.getOrDefault("init_root_username", "admin"));
         // =================== PREF READING BLOCK ====================
-    }
-
-    /**
-     * The list of words that are omitted from search indexes to increase speed
-     * and improve space efficiency.
-     */
-    @NonPreference
-    public static final Set<String> STOPWORDS = Sets.newHashSet();
-    static {
-        try {
-            BufferedReader reader = new BufferedReader(
-                    new FileReader("conf" + File.separator + "stopwords.txt"));
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                STOPWORDS.add(line);
-            }
-            reader.close();
-        }
-        catch (FileNotFoundException e) {}
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
     }
 
     /**

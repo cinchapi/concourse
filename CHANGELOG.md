@@ -2,6 +2,14 @@
 
 #### Version 0.12.0 (TBD)
 
+##### Search
+We made several changes to improve search performance and accuracy:
+
+* **Preservation of Stopwords in Indexing and Search**: Stopwords are no longer removed. As a result, searches that contain stopwords may return different, yet more accurate and contextually relevant results.
+  * **Previous Configuration**: In earlier versions, Concourse Server could be configured using the `conf/stopwords.txt` file to exclude common stopwords from indexing and search operations. This approach was designed to reduce storage requirements and improve search performance by removing frequently occurring, but generally less significant words.
+  * **Rationale for Change**: Preserving stopwords is crucial for maintaining context, which can significantly enhance the accuracy of search results and the effectiveness of ranking algorithms. Since affordable storage and computational resources are more abundant, resource usage is no longer a concern and it makes more sense to prioritze better search accuracy and system robustness. Lastly, preserving stopwords eliminates corner case bugs that are inherent to the way Concourse's search algorithm interacts with the buffered storage system.
+  * **Upgrade Implications**: Upon upgrading to this version, an automatic reindexing task will be initiated to ensure that all previously indexed data conforms to the new no-stopword-removal policy. It's important to allocate downtime for this reindexing to occur. And, it is wise to anticipate more storage spaced being used due to stopwords being included in the search corpus.
+
 ##### Locking Optimizations
 We made several changes to improve the safety, scalability and operational efficiency of the Just-in-Time (JIT) locking protocol:
 

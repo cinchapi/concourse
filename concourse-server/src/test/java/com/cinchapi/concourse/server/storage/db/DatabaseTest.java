@@ -486,6 +486,56 @@ public class DatabaseTest extends StoreTest {
         }
     }
 
+    @Test
+    public void testVerifyDataAfterReindexNoStop() {
+        Database db = (Database) store;
+        List<Write> writes = Lists.newArrayList();
+        for (int i = 0; i < TestData.getScaleCount() * 3; ++i) {
+            String key = TestData.getSimpleString();
+            TObject value = TestData.getTObject();
+            long record = (Math.abs(TestData.getInt()) % 10) + 1;
+            add(key, value, record);
+            writes.add(Write.add(key, value, record));
+            if(Math.abs(TestData.getInt()) % 3 == 0) {
+                db.sync();
+            }
+        }
+        db.reindex();
+        Iterator<Write> it = writes.iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            Assert.assertTrue(db.verify(write.getKey().toString(),
+                    write.getValue().getTObject(),
+                    write.getRecord().longValue()));
+        }
+    }
+
+    @Test
+    public void testVerifyDataAfterReindexStop() {
+        Database db = (Database) store;
+        List<Write> writes = Lists.newArrayList();
+        for (int i = 0; i < TestData.getScaleCount() * 3; ++i) {
+            String key = TestData.getSimpleString();
+            TObject value = TestData.getTObject();
+            long record = (Math.abs(TestData.getInt()) % 10) + 1;
+            add(key, value, record);
+            writes.add(Write.add(key, value, record));
+            if(Math.abs(TestData.getInt()) % 3 == 0) {
+                db.sync();
+            }
+        }
+        db.stop();
+        db.start();
+        db.reindex();
+        Iterator<Write> it = writes.iterator();
+        while (it.hasNext()) {
+            Write write = it.next();
+            Assert.assertTrue(db.verify(write.getKey().toString(),
+                    write.getValue().getTObject(),
+                    write.getRecord().longValue()));
+        }
+    }
+
     @Override
     protected void add(String key, TObject value, long record) {
         if(!store.verify(key, value, record)) {

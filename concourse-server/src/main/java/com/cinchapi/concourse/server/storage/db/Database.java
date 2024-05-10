@@ -631,6 +631,41 @@ public final class Database implements DurableStore {
         }
     }
 
+    /**
+     * {@link Segment#reindex() Reindex} every {@link Segment} in the
+     * {@link Database}.
+     * <p>
+     * This operation will block reads and writes until it finishes.
+     * </p>
+     */
+    public void reindex() {
+        // NOTE: Reindexing must be single threaded because there are a fixed
+        // number of dedicated threads dedicated for searching indexing (see
+        // CorpusChunk) and multiple threads enqueing here, would cause
+        // thrashing.
+        masterLock.writeLock().lock();
+        try {
+            for (int i = 0; i < segments.size(); ++i) {
+                Segment current = segments.get(i);
+                Segment updated = current.reindex();
+                if(current == seg0) {
+                    seg0 = updated;
+                }
+                else {
+                    storage.save(updated);
+                    current.delete();
+                }
+                segments.set(i, updated);
+                Logger.info(
+                        "Reindexed Segment {}. The data is now available in Segment {}",
+                        current.id(), updated);
+            }
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
+    }
+
     @Override
     public void repair() {
         masterLock.writeLock().lock();
@@ -644,8 +679,7 @@ public final class Database implements DurableStore {
                     Segment segment = segments.get(i);
                     Segment clean = deduped.get(segment);
                     if(clean != null) {
-                        clean.transfer(storage.directory()
-                                .resolve(UUID.randomUUID() + ".seg"));
+                        storage.save(clean);
                         segments.set(i, clean);
                         segment.delete();
                     }
@@ -690,15 +724,7 @@ public final class Database implements DurableStore {
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             Multimap<Identifier, Integer> reference = ImmutableMultimap.of();
             boolean initial = true;
-            int offset = 0;
             for (String word : words) {
-                if(GlobalState.STOPWORDS.contains(word)) {
-                    // When skipping a stop word, we must record an offset to
-                    // correctly determine if the next term match is in the
-                    // correct relative position to the previous term match
-                    ++offset;
-                    continue;
-                }
                 Text K = Text.wrap(word);
                 CorpusRecord corpus = getCorpusRecord(L, K);
                 Set<Position> appearances = corpus.get(K);
@@ -711,7 +737,7 @@ public final class Database implements DurableStore {
                     }
                     else {
                         for (int current : reference.get(record)) {
-                            if(position == current + 1 + offset) {
+                            if(position == current + 1) {
                                 temp.put(record, position);
                             }
                         }
@@ -719,7 +745,6 @@ public final class Database implements DurableStore {
                 }
                 initial = false;
                 reference = temp;
-                offset = 0;
             }
 
             // Result Scoring: Scoring is simply the number of times the query
@@ -1452,6 +1477,7 @@ public final class Database implements DurableStore {
          * 
          * @return the storage directory
          */
+        @SuppressWarnings("unused")
         public Path directory() {
             return directory;
         }
