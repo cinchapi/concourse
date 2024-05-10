@@ -15,12 +15,8 @@
  */
 package com.cinchapi.concourse.util;
 
-import org.apache.commons.lang.StringUtils;
+import com.cinchapi.common.base.AnyStrings;
 
-import com.cinchapi.common.base.Array;
-import com.cinchapi.common.base.ArrayBuilder;
-import com.cinchapi.common.base.StringSplitter;
-import com.cinchapi.concourse.server.GlobalState;
 
 /**
  * String based utility functions that depend on proprietary information that is
@@ -35,43 +31,102 @@ import com.cinchapi.concourse.server.GlobalState;
 public final class TStrings {
 
     /**
-     * Return a copy of {@code string} with all of the stopwords removed. This
-     * method depends on the stopwords defined in {@link GlobalState#STOPWORDS}.
+     * <p>
+     * Unlike {@link #isInfixSearchMatch(String, String)} this method assumes
+     * that the two parameters are tokens of strings that have had stop words
+     * removed using the {@link #stripStopWordsAndTokenize(String)} method.
+     * </p>
+     * Return {@code true} if {@code haystack} is an <strong>infix
+     * search match</strong> for {@code needle}. If {@code haystack} is an infix
+     * search match, it means that it contains a sequence of terms where each
+     * term or a substring of the term matches the term in the same relative
+     * position in {@code needle}.
+     * <p>
+     * <ul>
+     * <li><em>foo bar</em> (haystack) <strong>IS</strong> a match for
+     * <em>foo bar</em> (needle)</li>
+     * <li><em>foo bar</em> (haystack) <strong>IS</strong> a match for
+     * <em>f bar</em> (needle)</li>
+     * <li><em>foo bar</em> (haystack) <strong>IS</strong> a match for
+     * <em>oo a</em> (needle)</li>
+     * <li><em>f b</em> (haystack) <strong>IS</strong> a match for
+     * <em>f bar</em> (needle)</li>
+     * <li><em>barfoobar foobarfoo</em> (haystack) <strong>IS</strong> a match
+     * for <em>f bar</em> (needle)</li>
+     * </ul>
+     * </p>
      * 
-     * @param string
-     * @return A copy of {@code string} without stopwords
+     * @param needle
+     * @param haystack
+     * @return {@code true} if {@code haystack} is an infix search match for
+     *         {@code needle}.
      */
-    public static String stripStopWords(String string) {
-        String[] toks = string
-                .split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-        StringBuilder sb = new StringBuilder();
-        for (String tok : toks) {
-            if(!GlobalState.STOPWORDS.contains(tok)) {
-                sb.append(tok);
-                sb.append(" ");
+    public static boolean isInfixSearchMatch(String[] needle,
+            String[] haystack) {
+        int npos = 0;
+        int hpos = 0;
+        while (hpos < haystack.length && npos < needle.length) {
+            if(haystack.length - hpos < needle.length - npos) {
+                // If the number of remaining haystack tokens is less than the
+                // number of remaining needle tokens, then we can exit
+                // immediately because it is not possible for the needle to be
+                // fond in the haystack
+                return false;
+            }
+            String n = needle[npos];
+            String h = haystack[hpos];
+            if(AnyStrings.isSubString(n, h)) {
+                ++npos;
+                ++hpos;
+            }
+            else {
+                // If the needle position is greater than 0, then we must keep
+                // the haystack position constant so that we can use it as the
+                // new starting point to see if the needle can be found in the
+                // remaining tokens.
+                if(npos > 0) {
+                    npos = 0;
+                }
+                else {
+                    ++hpos;
+                }
             }
         }
-        return sb.toString().trim();
+        return npos == needle.length;
     }
 
     /**
-     * Tokenize the {@code string} and return an array of tokens where all the
-     * stopwords are removed.
+     * Return {@code true} if {@code haystack} is an <strong>infix
+     * search match</strong> for {@code needle}. If {@code haystack} is an infix
+     * search match, it means that it contains a sequence of terms where each
+     * term or a substring of the term matches the term in the same relative
+     * position in {@code needle}.
+     * <p>
+     * <ul>
+     * <li><em>foo bar</em> (haystack) <strong>IS</strong> a match for
+     * <em>foo bar</em> (needle)</li>
+     * <li><em>foo bar</em> (haystack) <strong>IS</strong> a match for
+     * <em>f bar</em> (needle)</li>
+     * <li><em>foo bar</em> (haystack) <strong>IS</strong> a match for
+     * <em>oo a</em> (needle)</li>
+     * <li><em>f b</em> (haystack) <strong>IS</strong> a match for
+     * <em>f bar</em> (needle)</li>
+     * <li><em>barfoobar foobarfoo</em> (haystack) <strong>IS</strong> a match
+     * for <em>f bar</em> (needle)</li>
+     * </ul>
+     * </p>
      * 
-     * @param string
-     * @return the tokens without stopwords
+     * @param needle
+     * @param haystack
+     * @return {@code true} if {@code haystack} is an infix search match for
+     *         {@code needle}.
      */
-    public static String[] stripStopWordsAndTokenize(String string) {
-        ArrayBuilder<String> toks = ArrayBuilder.builder();
-        StringSplitter it = new StringSplitter(string, ' ');
-        while (it.hasNext()) {
-            String next = it.next();
-            if(!StringUtils.isBlank(next)
-                    && !GlobalState.STOPWORDS.contains(next)) {
-                toks.add(next);
-            }
-        }
-        return toks.length() > 0 ? toks.build() : Array.containing();
+    public static boolean isInfixSearchMatch(String needle, String haystack) {
+        String[] ntoks = needle
+                .split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+        String[] htoks = haystack
+                .split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+        return isInfixSearchMatch(ntoks, htoks);
     }
 
     // public static char[] stripStopWordsAndGatherChars(String string)

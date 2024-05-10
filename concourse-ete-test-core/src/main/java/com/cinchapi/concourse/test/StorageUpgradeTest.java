@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concouse.server.upgrade;
+package com.cinchapi.concourse.test;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,39 +24,58 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.concourse.Concourse;
-import com.cinchapi.concourse.test.UpgradeTest;
 import com.cinchapi.concourse.util.ClientServerTests;
-import com.cinchapi.concourse.util.TestData;
+import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.Maps;
 
 /**
- * Upgrade task to ensure that data in Blocks is properly transferred to segment
- * files.
+ * An {@link UpgradeTest} that inserts random data prior to upgrade and verifies
+ * that the same data is returned post upgrade.
  *
  * @author Jeff Nelson
  */
-public class Upgrade0_11_0_1Test extends UpgradeTest {
+public abstract class StorageUpgradeTest extends UpgradeTest {
 
-    @Override
-    protected String getInitialServerVersion() {
-        return "0.10.6";
+    /**
+     * A mapping from each of the {@link #envs() test environments} to a
+     * {@link Consumer} that contains the test case.
+     */
+    protected final Map<String, Consumer<Concourse>> tests = Maps.newHashMap();
+
+    @Test
+    public void testPostUpgradeDataValidity() {
+        for (String env : envs()) {
+            Concourse concourse = server.connect("admin", "admin", env);
+            try {
+                tests.get(env).accept(concourse);
+            }
+            finally {
+                concourse.close();
+            }
+        }
     }
 
-    private String[] envs;
-    Map<String, Consumer<Concourse>> tests = Maps.newHashMap();
+    /**
+     * Return the environments to incorporate into the test.
+     * <p>
+     * Random data will be inserted and validated in each environment.
+     * </p>
+     * 
+     * @return the environments to test
+     */
+    protected abstract String[] envs();
 
-    @SuppressWarnings("deprecation")
     @Override
-    protected void preUpgradeActions() {
-        envs = new String[] { "foo", "bar" };
-        ClientServerTests.insertRandomData(server, envs);
+    protected final void preUpgradeActions() {
+        String[] envs = envs();
+        ClientServerTests.insertRandomDataInStorageFormatV3(server, envs);
         for (String env : envs) {
             Concourse concourse = server.connect("admin", "admin", env);
             try {
                 Set<Long> inventory = concourse.inventory();
                 Map<Long, Map<String, Set<Object>>> records = Maps.newHashMap();
                 for (long record : inventory) {
-                    if(TestData.getScaleCount() % 3 == 0) {
+                    if(Random.getScaleCount() % 3 == 0) {
                         records.put(record, concourse.select(record));
                     }
                 }
@@ -64,7 +83,7 @@ public class Upgrade0_11_0_1Test extends UpgradeTest {
                         .newLinkedHashMap();
                 Set<String> keys = concourse.describe();
                 for (String key : concourse.describe()) {
-                    if(TestData.getScaleCount() % 3 == 0) {
+                    if(Random.getScaleCount() % 3 == 0) {
                         indexes.put(key, concourse.browse(key));
                     }
                 }
@@ -88,19 +107,6 @@ public class Upgrade0_11_0_1Test extends UpgradeTest {
                         Assert.assertEquals(expected, con.browse(key));
                     }
                 });
-            }
-            finally {
-                concourse.close();
-            }
-        }
-    }
-
-    @Test
-    public void testTransferBlockDataToSegments() {
-        for (String env : envs) {
-            Concourse concourse = server.connect("admin", "admin", env);
-            try {
-                tests.get(env).accept(concourse);
             }
             finally {
                 concourse.close();
