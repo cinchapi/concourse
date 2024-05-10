@@ -17,7 +17,6 @@ package com.cinchapi.concourse.util;
 
 import com.cinchapi.common.base.AnyStrings;
 
-
 /**
  * String based utility functions that depend on proprietary information that is
  * specific to Concourse (i.e. the stopwords defined for a Concourse Server

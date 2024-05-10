@@ -2070,6 +2070,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     /**
      * Return {@code true} if {@code needle} is an infix for {@code haystack}.
+     * 
      * @param needle
      * @param haystack
      * @return {@code true} if this is an infix search match

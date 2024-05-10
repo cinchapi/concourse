@@ -31,6 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.collect.Iterators;
+import com.cinchapi.concourse.search.Infingram;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
@@ -39,7 +40,6 @@ import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.db.Database;
-import com.cinchapi.concourse.server.storage.search.Infingram;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
@@ -520,7 +520,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
     @Override
     public Set<Long> search(String key, String query) {
         Map<Long, Set<Value>> matches = Maps.newHashMap();
-        Infingram needle = new Infingram(query.toLowerCase());
+        Infingram needle = new Infingram(query);
         if(needle.numTokens() > 0) {
             for (Iterator<Write> it = getSearchIterator(key); it.hasNext();) {
                 Write write = it.next();
@@ -539,8 +539,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                      * relative position of the query.
                      */
                     // CON-10: compare lowercase for case insensitive search
-                    String haystack = ((String) value.getObject())
-                            .toLowerCase();
+                    String haystack = ((String) value.getObject());
                     if(needle.in(haystack)) {
                         Set<Value> values = matches.computeIfAbsent(record,
                                 $ -> new HashSet<>());

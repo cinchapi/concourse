@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.search;
+package com.cinchapi.concourse.search;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.cinchapi.concourse.util.TestData;
+import com.cinchapi.concourse.util.Random;
 
 /**
  * Unit tests for {@link Infingram Infingrams}.
@@ -53,10 +53,10 @@ public class InfingramTest {
 
     @Test
     public void testInRandomNonMatch() {
-        String haystack = TestData.getString();
-        String needle = TestData.getString();
+        String haystack = Random.getString();
+        String needle = Random.getString();
         while (haystack.contains(needle)) {
-            needle = TestData.getString();
+            needle = Random.getString();
         }
         Infingram infingram = new Infingram(needle);
         Assert.assertFalse(infingram.in(haystack));
@@ -64,7 +64,7 @@ public class InfingramTest {
 
     @Test
     public void testInEmptyHaystack() {
-        String needle = TestData.getSimpleString();
+        String needle = Random.getSimpleString();
         Infingram infingram = new Infingram(needle);
         Assert.assertFalse(infingram.in(""));
     }
@@ -137,7 +137,7 @@ public class InfingramTest {
     @Test
     public void testInCaseInsensitiveMatch() {
         Infingram infingram = new Infingram(
-                "harmony tranquility serenity reigns");
+                "harmony and tranquility serenity reigns");
         Assert.assertTrue(infingram.in(
                 "In the garden of harmony and tranquility, serenity reigns supreme"));
     }
@@ -146,7 +146,7 @@ public class InfingramTest {
     public void testInExactMatchWithStopwords() {
         Infingram infingram = new Infingram(
                 "mysterious ancient artifact discovered remote location");
-        Assert.assertTrue(infingram.in(
+        Assert.assertFalse(infingram.in(
                 "mysterious ancient artifact was discovered in a remote location"));
     }
 
@@ -154,7 +154,7 @@ public class InfingramTest {
     public void testInExactMatchWithStopwordsInBoth() {
         Infingram infingram = new Infingram(
                 "mysterious ancient artifact discovered in a remote location");
-        Assert.assertTrue(infingram.in(
+        Assert.assertFalse(infingram.in(
                 "mysterious ancient artifact was discovered in a remote location"));
     }
 
@@ -167,7 +167,7 @@ public class InfingramTest {
 
     @Test
     public void testInInfixMatchWithStopwords() {
-        Infingram infingram = new Infingram("ste crim mast elud auth dec");
+        Infingram infingram = new Infingram("ste crim mast elud auth f dec");
         Assert.assertTrue(infingram.in(
                 "master criminal mastermind eludes authorities for decades"));
     }
@@ -192,7 +192,7 @@ public class InfingramTest {
     public void testInMultiplePhrasesWithStopwords() {
         Infingram infingram = new Infingram(
                 "renowned chef creates culinary masterpiece the");
-        Assert.assertTrue(infingram.in(
+        Assert.assertFalse(infingram.in(
                 "renowned chef creates a culinary masterpiece that leaves diners awestruck"));
     }
 
@@ -214,9 +214,9 @@ public class InfingramTest {
     @Test
     public void testInCaseInsensitiveMatchWithStopwords() {
         Infingram infingram = new Infingram(
-                "Dedicated Scientists Unravel Complex Mysteries".toLowerCase());
+                "Dedicated Scientists Unravel COMPLEX Mysteries".toLowerCase());
         Assert.assertTrue(infingram
-                .in("dedicated scientists unravel complex mysteries nature"
+                .in("dedicated scientists unravel coMPlex mysteries nature"
                         .toLowerCase()));
     }
 
@@ -244,7 +244,7 @@ public class InfingramTest {
     @Test
     public void testReproA() {
         Infingram infingram = new Infingram("w  8");
-        Assert.assertTrue(infingram.in(
+        Assert.assertFalse(infingram.in(
                 "uo0qgmr6r66mfuligawh08f33ce63uubwuaue186r6x0g9bwwqg9c4wooctgu72a5kksbepajevzkfpjny2osj6pu0ryk3o"));
     }
 

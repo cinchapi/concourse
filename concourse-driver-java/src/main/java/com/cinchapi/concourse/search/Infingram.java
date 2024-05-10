@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.search;
+package com.cinchapi.concourse.search;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -198,7 +198,7 @@ public final class Infingram {
      */
     private char[][] tokenize(String value) {
         ArrayBuilder<char[]> tokens = ArrayBuilder.builder();
-        StringSplitter it = new StringSplitter(value, ' ');
+        StringSplitter it = new StringSplitter(value.toLowerCase(), ' ');
         while (it.hasNext()) {
             String token = it.next();
             if(!StringUtils.isBlank(token)) {
