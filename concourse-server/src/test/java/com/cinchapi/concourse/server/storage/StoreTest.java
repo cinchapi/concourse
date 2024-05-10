@@ -1888,16 +1888,15 @@ public abstract class StoreTest extends ConcourseBaseTest {
         Assert.assertFalse(store.search(key, needle).contains(record));
     }
 
-    // @Test
-    // public void testSearchStopWordCornerCaseNeedle() {
-    // String haystack = "controversial theory sparks intense debate scientific
-    // community";
-    // String needle = "the and is of";
-    // String key = "text";
-    // long record = 1;
-    // add(key, Convert.javaToThrift(haystack), record);
-    // Assert.assertTrue(store.search(key, needle).contains(record));
-    // }
+    @Test
+    public void testFindSearch() {
+        String key = "foo";
+        String needle = "fect the tech";
+        String haystack = "jeffective sthent  techniques";
+        add(key, Convert.javaToThrift(haystack), 1);
+        Assert.assertEquals(store.search(key, needle), store.find(key,
+                Operator.CONTAINS, Convert.javaToThrift(needle)));
+    }
 
     /**
      * Add {@code key} as {@code value} to {@code record} in the {@code store}.
