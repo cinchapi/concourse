@@ -88,6 +88,9 @@ public abstract class Limbo implements Store, Iterable<Write> {
      */
     protected static boolean matches(Value input, Operator operator,
             TObject... values) {
+        // TODO: if operator is CONTAINS OR NOT_CONTAINS replace values[0] with
+        // a CompiledInfingram and compare it against the Value (if it is a a
+        // STRING type)
         return input.getTObject().isIgnoreCase(operator, values);
     }
 
