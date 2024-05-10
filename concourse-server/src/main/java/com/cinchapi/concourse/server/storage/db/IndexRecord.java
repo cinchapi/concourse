@@ -34,12 +34,14 @@ import com.cinchapi.common.collect.CoalescableTreeMap;
 import com.cinchapi.common.collect.lazy.LazyTransformSet;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.PackagePrivate;
+import com.cinchapi.concourse.search.Infingram;
 import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Versioned;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.google.common.base.Preconditions;
@@ -490,27 +492,23 @@ public final class IndexRecord extends Record<Text, Value, Identifier> {
                     }
                 }
             }
-            /*
-             * TODO
-             * go through each Value and do similar logic as TObject:is...
-             * Substring needle = new Substring(value.getObject().toString());
-             * for(Value stored : historical ? history.keySet() :
-             * present.keySet()) {
-             * if(value.getType() == Type.STRING && s.isContainedWithin) {
-             * String[] haystack = TStrings
-             * .stripStopWordsAndTokenize(stored.getObject().toString().
-             * toLowerCase());
-             * Search search = needle.searchWithin(haystack);
-             * if(needle.isFoundWithin(stored.getObject.toString()) {
-             * if(search.found()) {
-             * for(Identifier record : historical ? get(stored, timestamp) :
-             * get(stored)) {
-             * MultimapViews.put(data, record, stored);
-             * }
-             * }
-             * }
-             * }
-             */
+            else if(operator == Operator.CONTAINS
+                    || operator == Operator.NOT_CONTAINS) {
+                Infingram needle = new Infingram(value.getObject().toString());
+                for (Value stored : historical ? history.keySet()
+                        : present.keySet()) {
+                    if(stored.getType() == Type.STRING) {
+                        boolean in = needle.in(stored.getObject().toString());
+                        if(in && operator == Operator.CONTAINS || !in) {
+                            for (Identifier record : historical
+                                    ? get(stored, timestamp)
+                                    : get(stored)) {
+                                MultimapViews.put(data, record, stored);
+                            }
+                        }
+                    }
+                }
+            }
             else {
                 throw new UnsupportedOperationException();
             }

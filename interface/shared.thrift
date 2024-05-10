@@ -68,7 +68,6 @@ enum Type {
   NULL = 9,
   TIMESTAMP = 10,
   FUNCTION = 11,
-  SEARCH = 12,
 }
 
 /** When re-constructing the state of a record/field/index from some base state,

@@ -128,8 +128,6 @@ public final class TStrings {
         return isInfixSearchMatch(ntoks, htoks);
     }
 
-    // public static char[] stripStopWordsAndGatherChars(String string)
-
     /**
      * Match a group of one or more whitespace characters including space, tab
      * and newline. This is typically used to split a string into distinct

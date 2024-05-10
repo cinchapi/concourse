@@ -778,14 +778,6 @@ public final class Convert {
                     break;
                 }
                 break;
-            /*
-             * TODO
-             * case SEARCH
-             * java =
-             * TStrings.stripStopWordsAndTokenize(ByteBuffers.getUtf8String(
-             * buffer).toLowerCase());
-             * set the java format?
-             */
             case NULL:
                 java = null;
                 break;

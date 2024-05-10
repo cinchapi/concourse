@@ -219,11 +219,17 @@ public final class Stores {
             }
             return records;
         }
-        /*
-         * else if operator is search operator and values.length is only 1 and
-         * timestamp == Time.NONE
-         * return store.search(key, values[0])
-         */
+        else if((operator == Operator.CONTAINS
+                || operator == Operator.NOT_CONTAINS) && timestamp == Time.NONE
+                && Keys.isWritable(key)) {
+            Set<Long> matches = store.search(key, values[0]);
+            if(operator == Operator.CONTAINS) {
+                return matches;
+            }
+            else {
+                return Sets.difference(store.getAllRecords(), matches);
+            }
+        }
         else {
             return timestamp == Time.NONE ? store.find(key, operator, values)
                     : store.find(timestamp, key, operator, values);

@@ -30,8 +30,7 @@ public enum Type implements org.apache.thrift.TEnum {
     TAG(8),
     NULL(9),
     TIMESTAMP(10),
-    FUNCTION(11),
-    SEARCH(12);
+    FUNCTION(11);
 
     private final int value;
 
@@ -77,8 +76,6 @@ public enum Type implements org.apache.thrift.TEnum {
             return TIMESTAMP;
         case 11:
             return FUNCTION;
-        case 12:
-            return SEARCH;
         default:
             return null;
         }
