@@ -639,6 +639,10 @@ public final class Database implements DurableStore {
      * </p>
      */
     public void reindex() {
+        // NOTE: Reindexing must be single threaded because there are a fixed
+        // number of dedicated threads dedicated for searching indexing (see
+        // CorpusChunk) and multiple threads enqueing here, would cause
+        // thrashing.
         masterLock.writeLock().lock();
         try {
             for (int i = 0; i < segments.size(); ++i) {
