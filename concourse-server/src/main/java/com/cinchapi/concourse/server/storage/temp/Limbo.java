@@ -31,6 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.TernaryTruth;
 import com.cinchapi.concourse.collect.Iterators;
+import com.cinchapi.concourse.search.CompiledInfingram;
 import com.cinchapi.concourse.search.Infingram;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Text;
@@ -520,7 +521,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
     @Override
     public Set<Long> search(String key, String query) {
         Map<Long, Set<Value>> matches = Maps.newHashMap();
-        Infingram needle = new Infingram(query);
+        Infingram needle = new CompiledInfingram(query);
         if(needle.numTokens() > 0) {
             for (Iterator<Write> it = getSearchIterator(key); it.hasNext();) {
                 Write write = it.next();
