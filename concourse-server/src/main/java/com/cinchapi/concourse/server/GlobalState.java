@@ -276,7 +276,7 @@ public final class GlobalState extends Constants {
      * is about 40 characters long.
      * </p>
      */
-    public static int MAX_SEARCH_SUBSTRING_LENGTH = 40;
+    public static int MAX_SEARCH_SUBSTRING_LENGTH = -1;
 
     /**
      * The password that is assigned to the root administrator account when
