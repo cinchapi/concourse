@@ -128,6 +128,18 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
     }
 
     /**
+     * {@link #append(Revision) Append} every {@link Fragment#revisions()
+     * revision} from each of the {@code fragments}.
+     * 
+     * @param fragments
+     */
+    public void append(Fragment<L, K, V>... fragments) {
+        for (Fragment<L, K, V> fragment : fragments) {
+            fragment.revisions().forEach(this::append);
+        }
+    }
+
+    /**
      * Append {@code revision} to the record by updating the in-memory indices.
      * The {@code revision} must have:
      * <ul>
