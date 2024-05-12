@@ -291,6 +291,28 @@ public final class GlobalState extends Constants {
     public static String INIT_ROOT_USERNAME = "admin";
 
     /**
+     * Potentially use multiple threads to asynchronously read data from disk.
+     * <p>
+     * When enabled, reads will typically be faster when accessing data too
+     * large to fit in memory or no longer cached due to memory constraints.
+     * </p>
+     * <p>
+     * This setting is particularly useful for search data since those indexes
+     * are not cached by default (unless {@link #ENABLE_SEARCH_CACHE} is
+     * enabled). Even if search records are cached, this setting may still
+     * provide a performance boost if the size of some search metadata exceeds
+     * the limits of what is cacheable in memory.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> There might be some overhead that could make some
+     * reads slower if all their relevant segment metadata is cached and there
+     * is high contention.
+     * </p>
+     */
+    @Experimental
+    public static boolean ENABLE_ASYNC_DATA_READS = false;
+
+    /**
      * Automatically use a combination of defragmentation, garbage collection
      * and load balancing within the data files to optimize storage for read
      * performance.
@@ -404,6 +426,9 @@ public final class GlobalState extends Constants {
 
         MAX_SEARCH_SUBSTRING_LENGTH = config.getOrDefault(
                 "max_search_substring_length", MAX_SEARCH_SUBSTRING_LENGTH);
+
+        ENABLE_ASYNC_DATA_READS = config.getOrDefault("enable_async_data_reads",
+                ENABLE_ASYNC_DATA_READS);
 
         ENABLE_COMPACTION = config.getOrDefault("enable_compaction",
                 ENABLE_COMPACTION);
