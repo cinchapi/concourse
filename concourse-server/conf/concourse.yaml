@@ -175,9 +175,7 @@ log_level:
 # length of the longest possible word in the search language. For example, the longest 
 # possible word in English is about 40 characters long.
 #
-# By default, search substrings are not limited.
-#
-# DEFAULT: no limit
+# DEFAULT: 40
 max_search_substring_length:
 
 # The listener port (1-65535) for shutdown commands. Choose a port between
