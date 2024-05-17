@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -35,7 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
@@ -136,23 +135,13 @@ public class Manifest extends TransferableByteSequence {
      * Returned from {@link #lookup(Composite)} when an associated entry does
      * not exist.
      */
-    private static final Range NULL_RANGE = new Range() {
-
-        @Override
-        public long end() {
-            return NO_ENTRY;
-        }
-
-        @Override
-        public long start() {
-            return NO_ENTRY;
-        }
-
-    };
+    private static final Range NULL_RANGE = new Range();
 
     /**
-     * A {@link SoftReference} to the entries contained in the {@link Manifest}
-     * that is used to reduce memory overhead.
+     * A {@link SoftReference} to the entries contained in the {@link Manifest}.
+     * After the {@link Manifest}'s memory is {@link {@link #free() freed}, this
+     * reference is populated to opportunistically keep the entries in memory if
+     * there is room to do so.
      * 
      * <p>
      * It is {@code null} until the {@link Manifest} is {@link #flush(ByteSink)
@@ -160,20 +149,29 @@ public class Manifest extends TransferableByteSequence {
      * </p>
      */
     @Nullable
-    private SoftReference<Map<Composite, Entry>> $entries;
+    private SoftReference<Map<Composite, Range>> $entries;
 
     /**
      * The entries contained in the {@link Manifest}.
      * <p>
+     * Entries are represented as a mapping from a lookup {@link Composite key}
+     * to a {@link Range} that encapsulates a start and end position of a
+     * specific data block in a {@link Chunk}.
+     * </p>
+     * <p>
      * It is {@code null} if the
-     * {@link Manifest} has been {@link #freeze(Path, long) frozen}.
+     * {@link Manifest}'s memory has been {@link #free() freed} or the
+     * {@link Manifest} has been loaded from disk. The intent is to only keep
+     * the entries in memory for a {@link Manifest} that is being actively
+     * updated.
      * </p>
      */
     @Nullable
-    private Map<Composite, Entry> entries;
+    private Map<Composite, Range> entries;
 
     /**
-     * The running size of the {@link Manifest} in bytes.
+     * The running size of the {@link Manifest} in bytes. Incremented as entries
+     * are {@link #putStart(long, Composite) record}.
      */
     private long length = 0;
 
@@ -245,30 +243,29 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * Return the {@link Entry} which contains the start and end positions of
+     * Return the {@link Range} which contains the start and end positions of
      * data related to the {@code byteables}, if data was recorded using
      * {@link #putStart(long, Byteable...)} and
      * {@link #putEnd(long, Byteable...)}.
      * 
      * @param composite
-     * @return the {@link Entry} containing the start and end positions
+     * @return the {@link Range} containing the start and end positions
      */
     public Range lookup(Byteable... bytables) {
         return lookup(Composite.create(bytables));
     }
 
     /**
-     * Return the {@link Entry} which contains the start and end positions of
+     * Return the {@link Range} which contains the start and end positions of
      * data related to the {@code composite}, if data was recorded using
      * {@link #putStart(long, Byteable...)} and
      * {@link #putEnd(long, Byteable...)}.
      * 
      * @param composite
-     * @return the {@link Entry} containing the start and end positions
+     * @return the {@link Range} containing the start and end positions
      */
     public Range lookup(Composite composite) {
-        Entry entry = entries(composite).get(composite);
-        return entry != null ? new EntryRange(entry) : NULL_RANGE;
+        return entries(composite).getOrDefault(composite, NULL_RANGE);
     }
 
     /**
@@ -291,12 +288,12 @@ public class Manifest extends TransferableByteSequence {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
         Preconditions.checkState(isMutable());
-        Entry entry = entries.get(composite);
-        Preconditions.checkState(entry != null,
+        Range range = entries.get(composite);
+        Preconditions.checkState(range != null,
                 "Cannot set the end position before setting "
                         + "the start position. Tried to put %s",
                 end);
-        entry.setEnd(end);
+        range.end = end;
     }
 
     /**
@@ -319,26 +316,35 @@ public class Manifest extends TransferableByteSequence {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
         Preconditions.checkState(isMutable());
-        Entry entry = entries.get(composite);
-        if(entry == null) {
-            entry = new Entry(composite);
-            entries.put(composite, entry);
-            length += entry.size() + 4;
+        Range range = entries.get(composite);
+        if(range == null) {
+            range = new Range();
+            entries.put(composite, range);
+            // @formatter:off
+            length += composite.size() + 
+                    Range.CONSTANT_SIZE + 
+                    4; // (each entry is preceded by 4 bytes that gives the overall length)
+            // @formatter:on
         }
-        entry.setStart(start);
+        range.start = start;
     }
 
     @Override
     protected void flush(ByteSink sink) {
-        for (Entry entry : entries().values()) {
-            sink.putInt(entry.size());
-            entry.copyTo(sink);
+        for (Entry<Composite, Range> entry : entries().entrySet()) {
+            Composite key = entry.getKey();
+            Range range = entry.getValue();
+            int size = Range.CONSTANT_SIZE + key.size();
+            sink.putInt(size);
+            sink.putLong(range.start);
+            sink.putLong(range.end);
+            key.copyTo(sink);
         }
     }
 
     @Override
     protected void free() {
-        this.$entries = new SoftReference<Map<Composite, Entry>>(entries);
+        this.$entries = new SoftReference<Map<Composite, Range>>(entries);
         this.entries = null; // Make eligible for GC
     }
 
@@ -358,7 +364,7 @@ public class Manifest extends TransferableByteSequence {
      * 
      * @return the entries
      */
-    private synchronized Map<Composite, Entry> entries() {
+    private synchronized Map<Composite, Range> entries() {
         return entries(null);
     }
 
@@ -380,7 +386,7 @@ public class Manifest extends TransferableByteSequence {
      *            {@link Map#get(Object)}
      * @return the entries
      */
-    private synchronized Map<Composite, Entry> entries(
+    private synchronized Map<Composite, Range> entries(
             @Nullable Composite composite) {
         if(entries != null) {
             return entries;
@@ -389,7 +395,7 @@ public class Manifest extends TransferableByteSequence {
             return $entries.get();
         }
         else {
-            Map<Composite, Entry> entries = new StreamedEntries();
+            Map<Composite, Range> entries = new StreamedEntries();
             // If the Manifest is small enough to fit comfortably into memory,
             // eagerly load all of the entries instead of streaming them from
             // disk one-by-one (as is done in the StreamedEntries).
@@ -398,21 +404,20 @@ public class Manifest extends TransferableByteSequence {
                 // forking the job to a background thread which listens for the
                 // sought #composite to be found and returned immediately while
                 // the other entries continue to be read
-                BlockingQueue<Map<Composite, Entry>> queue = new ArrayBlockingQueue<>(
+                BlockingQueue<Map<Composite, Range>> queue = new ArrayBlockingQueue<>(
                         1);
                 // @formatter:off
                 Executor executor = composite != null 
                         ? ASYNC_BACKGROUND_LOADER
                         : MoreExecutors.directExecutor();
                 // @formatter:on
-                Map<Composite, Entry> heapEntries = new HashMap<>(
-                        (int) length / Entry.CONSTANT_SIZE);
+                Map<Composite, Range> heapEntries = new HashMap<>(
+                        (int) length / (4 + Range.CONSTANT_SIZE));
                 executor.execute(() -> {
                     boolean found = false;
-                    for (Map.Entry<Composite, Entry> entry : entries
-                            .entrySet()) {
+                    for (Entry<Composite, Range> entry : entries.entrySet()) {
                         Composite key = entry.getKey();
-                        Entry value = entry.getValue();
+                        Range value = entry.getValue();
                         heapEntries.put(key, value);
                         if(composite != null && !found
                                 && key.equals(composite)) {
@@ -422,7 +427,7 @@ public class Manifest extends TransferableByteSequence {
                     }
                     queue.offer(composite != null ? Collections.emptyMap()
                             : heapEntries);
-                    $entries = new SoftReference<Map<Composite, Entry>>(
+                    $entries = new SoftReference<Map<Composite, Range>>(
                             heapEntries);
                 });
                 try {
@@ -439,180 +444,61 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * Contains the start and end positions for an entry in the
-     * {@link Manifest}.
+     * The start and end markers for an entry in a {@link Manifest}.
      *
      * @author Jeff Nelson
      */
-    @Immutable
-    public static abstract class Range {
-
-        // This class is returned from the #lookup methods to provide a clean
-        // interface to callers without exposing the totality of what is
-        // encapsulated in each Entry.
+    static class Range {
 
         /**
-         * Return the end position. If it has not been recorded, return
-         * {@link Manifest#NO_ENTRY}.
-         * 
-         * @return the end position
+         * The number of bytes required to record each {@link Range}.
          */
-        public abstract long end();
-
-        /**
-         * Return the start position. If it has not been recorded, return
-         * {@link Manifest#NO_ENTRY}.
-         * 
-         * @return the start position
-         */
-        public abstract long start();
-    }
-
-    /**
-     * Represents a single entry in the {@link Manifest}.
-     * 
-     * @author Jeff Nelson
-     */
-    private final class Entry implements Byteable {
-
         private static final int CONSTANT_SIZE = 16; // start(8), end(8)
 
-        private long end = NO_ENTRY;
-        private final Composite key;
-        private long start = NO_ENTRY;
+        /**
+         * The start position of the corresponding data block.
+         */
+        private long start;
 
         /**
-         * Construct an instance that represents an existing Entry from a
-         * ByteBuffer. This constructor is public so as to comply with the
-         * {@link Byteable} interface. Calling this constructor directly is not
-         * recommend. Use {@link #fromByteBuffer(ByteBuffer)} instead to take
-         * advantage of reference caching.
-         * 
-         * @param bytes
+         * The end position of the corresponding data block.
          */
-        public Entry(ByteBuffer bytes) {
-            this.start = bytes.getLong();
-            this.end = bytes.getLong();
-            this.key = Composite.load(bytes);
-        }
+        private long end;
 
         /**
          * Construct a new instance.
-         * 
-         * @param key
          */
-        public Entry(Composite key) {
-            this.key = key;
-        }
-
-        @Override
-        public void copyTo(ByteSink sink) {
-            sink.putLong(start);
-            sink.putLong(end);
-            key.copyTo(sink);
+        Range() {
+            this.start = NO_ENTRY;
+            this.end = NO_ENTRY;
         }
 
         /**
-         * Return the end position.
+         * Load an existing instance.
          * 
-         * @return the end
+         * @param bytes
          */
-        public long end() {
-            return end;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if(obj instanceof Entry) {
-                Entry other = (Entry) obj;
-                return start == other.start && end == other.end
-                        && key.equals(other.key);
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(key, start, end);
-        }
-
-        /**
-         * Return the entry key
-         * 
-         * @return the key
-         */
-        public Composite key() {
-            return key;
-        }
-
-        /**
-         * Set the end position.
-         * 
-         * @param end the end to set
-         */
-        public void setEnd(long end) {
-            this.end = end;
-        }
-
-        /**
-         * Set the start position.
-         * 
-         * @param start the start to set
-         */
-        public void setStart(long start) {
-            this.start = start;
-        }
-
-        @Override
-        public int size() {
-            return CONSTANT_SIZE + key.size();
+        Range(ByteBuffer bytes) {
+            this.start = bytes.getLong();
+            this.end = bytes.getLong();
         }
 
         /**
          * Return the start position.
          * 
-         * @return the start
+         * @return the start position
          */
         public long start() {
             return start;
         }
 
-    }
-
-    /**
-     * A {@link Range} backed by an {@link Entry}.
-     */
-    @Immutable
-    private final class EntryRange extends Range {
-
         /**
-         * The underlying {@link Entry}.
-         */
-        private final Entry entry;
-
-        private EntryRange() {
-            this.entry = null;
-        };
-
-        /**
-         * Construct a new instance.
+         * Return the end position.
          * 
-         * @param entry
+         * @return the end position
          */
-        private EntryRange(Entry entry) {
-            this.entry = entry;
-        }
-
-        @Override
         public long end() {
-            return entry.end();
-        }
-
-        @Override
-        public long start() {
-            return entry.start();
+            return end;
         }
     }
 
@@ -662,18 +548,18 @@ public class Manifest extends TransferableByteSequence {
      *
      * @author Jeff Nelson
      */
-    private final class StreamedEntries extends AbstractMap<Composite, Entry> {
+    private final class StreamedEntries extends AbstractMap<Composite, Range> {
 
         @Override
-        public Set<Entry<Composite, Manifest.Entry>> entrySet() {
+        public Set<Entry<Composite, Range>> entrySet() {
             // It is assumed that the return #entrySet is only used to
             // facilitate streaming all the entries, so it is not appropriate to
             // perform query operations (e.g. get()) directly on it.
-            return new AbstractSet<Entry<Composite, Manifest.Entry>>() {
+            return new AbstractSet<Entry<Composite, Range>>() {
 
                 @Override
-                public Iterator<Entry<Composite, Manifest.Entry>> iterator() {
-                    return new Iterator<Entry<Composite, Manifest.Entry>>() {
+                public Iterator<Entry<Composite, Range>> iterator() {
+                    return new Iterator<Entry<Composite, Range>>() {
 
                         Iterator<ByteBuffer> it = ByteableCollections.stream(
                                 channel(), position(), length,
@@ -684,7 +570,7 @@ public class Manifest extends TransferableByteSequence {
                          * returned on each call to {@link #next()} so that we
                          * don't create unnecessary temporary objects.
                          */
-                        ReusableMapEntry<Composite, Manifest.Entry> reusable = new ReusableMapEntry<>();
+                        ReusableMapEntry<Composite, Range> reusable = new ReusableMapEntry<>();
 
                         @Override
                         public boolean hasNext() {
@@ -692,11 +578,12 @@ public class Manifest extends TransferableByteSequence {
                         }
 
                         @Override
-                        public Entry<Composite, Manifest.Entry> next() {
-                            Manifest.Entry entry = new Manifest.Entry(
-                                    it.next());
-                            reusable.setKey(entry.key());
-                            reusable.setValue(entry);
+                        public Entry<Composite, Range> next() {
+                            ByteBuffer next = it.next();
+                            Range range = new Range(next);
+                            Composite key = Composite.load(next);
+                            reusable.setKey(key);
+                            reusable.setValue(range);
                             return reusable;
                         }
 
@@ -713,14 +600,14 @@ public class Manifest extends TransferableByteSequence {
 
         @Override
         public void forEach(
-                BiConsumer<? super Composite, ? super Manifest.Entry> action) {
-            for (Entry<Composite, Manifest.Entry> entry : entrySet()) {
+                BiConsumer<? super Composite, ? super Range> action) {
+            for (Entry<Composite, Range> entry : entrySet()) {
                 action.accept(entry.getKey(), entry.getValue());
             }
         }
 
         @Override
-        public Manifest.Entry get(Object o) {
+        public Range get(Object o) {
             if(o instanceof Composite) {
                 Composite key = (Composite) o;
                 Iterator<ByteBuffer> it = ByteableCollections.stream(channel(),
@@ -729,7 +616,7 @@ public class Manifest extends TransferableByteSequence {
                 while (it.hasNext()) {
                     ByteBuffer next = it.next();
                     if(equals(keyBytes, next)) {
-                        return new Manifest.Entry(next);
+                        return new Range(next);
                     }
                 }
 
@@ -747,10 +634,9 @@ public class Manifest extends TransferableByteSequence {
          * @return {@code true} if there is a match
          */
         private boolean equals(ByteBuffer key, ByteBuffer next) {
-            if(key.remaining() + Manifest.Entry.CONSTANT_SIZE == next
-                    .remaining()) {
+            if(key.remaining() + Range.CONSTANT_SIZE == next.remaining()) {
                 next.mark();
-                next.position(next.position() + Manifest.Entry.CONSTANT_SIZE);
+                next.position(next.position() + Range.CONSTANT_SIZE);
                 if(key.equals(next)) {
                     next.reset();
                     return true;
