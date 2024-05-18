@@ -138,6 +138,17 @@ public class Manifest extends TransferableByteSequence {
     private static final Range NULL_RANGE = new Range();
 
     /**
+     * The estimated number of bytes required to store an entry. This
+     * calculation is based on the variable range of {@link Composite} lengths.
+     */
+    // @formatter:off
+    private static final int ESTIMATED_ENTRY_SIZE_IN_BYTES = 
+            ((Range.CONSTANT_SIZE + 1) + 
+            (Range.CONSTANT_SIZE + Composite.MAX_SIZE)) 
+            / 2;
+    //@formatter:on
+
+    /**
      * A {@link SoftReference} to the entries contained in the {@link Manifest}.
      * After the {@link Manifest}'s memory is {@link {@link #free() freed}, this
      * reference is populated to opportunistically keep the entries in memory if
@@ -411,8 +422,9 @@ public class Manifest extends TransferableByteSequence {
                         ? ASYNC_BACKGROUND_LOADER
                         : MoreExecutors.directExecutor();
                 // @formatter:on
-                Map<Composite, Range> heapEntries = new HashMap<>(
-                        (int) length / (4 + Range.CONSTANT_SIZE));
+                int capacity = (int) length
+                        / (4 + ESTIMATED_ENTRY_SIZE_IN_BYTES);
+                Map<Composite, Range> heapEntries = new HashMap<>(capacity);
                 executor.execute(() -> {
                     boolean found = false;
                     for (Entry<Composite, Range> entry : entries.entrySet()) {
@@ -484,21 +496,21 @@ public class Manifest extends TransferableByteSequence {
         }
 
         /**
-         * Return the start position.
-         * 
-         * @return the start position
-         */
-        public long start() {
-            return start;
-        }
-
-        /**
          * Return the end position.
          * 
          * @return the end position
          */
         public long end() {
             return end;
+        }
+
+        /**
+         * Return the start position.
+         * 
+         * @return the start position
+         */
+        public long start() {
+            return start;
         }
     }
 
@@ -526,16 +538,16 @@ public class Manifest extends TransferableByteSequence {
             return value;
         }
 
+        public K setKey(K key) {
+            K old = key;
+            this.key = key;
+            return old;
+        }
+
         @Override
         public V setValue(V value) {
             V old = value;
             this.value = value;
-            return old;
-        }
-
-        public K setKey(K key) {
-            K old = key;
-            this.key = key;
             return old;
         }
 
