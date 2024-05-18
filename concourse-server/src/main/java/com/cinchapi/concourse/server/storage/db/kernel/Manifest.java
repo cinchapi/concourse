@@ -658,8 +658,7 @@ public class Manifest extends TransferableByteSequence {
         @Override
         public Range get(Object key) {
             if(key instanceof Composite) {
-                byte[] k = ((Composite) key).bytes();
-                byte[] value = internal.get(k);
+                byte[] value = internal.get(((Composite) key).bytes());
                 if(value != null) {
                     return new Range(value);
                 }
