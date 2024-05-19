@@ -23,6 +23,7 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -205,7 +206,9 @@ public class Manifest extends TransferableByteSequence {
     private Manifest(int expectedInsertions) {
         super();
         this.length = 0;
-        this.entries = new HeapEntries(expectedInsertions);
+        this.entries = GlobalState.ENABLE_MINIMIZED_METADATA
+                ? new HeapEntries(expectedInsertions)
+                : new HashMap<>(expectedInsertions);
         this.$entries = null;
     }
 
@@ -427,7 +430,9 @@ public class Manifest extends TransferableByteSequence {
                 // @formatter:on
                 int capacity = (int) length
                         / (4 + ESTIMATED_ENTRY_SIZE_IN_BYTES);
-                Map<Composite, Range> heapEntries = new HeapEntries(capacity);
+                Map<Composite, Range> heapEntries = GlobalState.ENABLE_MINIMIZED_METADATA
+                        ? new HeapEntries(capacity)
+                        : new HashMap<>(capacity);
                 executor.execute(() -> {
                     boolean found = false;
                     for (Entry<Composite, Range> entry : entries.entrySet()) {

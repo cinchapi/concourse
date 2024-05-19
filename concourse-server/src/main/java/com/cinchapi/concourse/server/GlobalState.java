@@ -333,6 +333,16 @@ public final class GlobalState extends Constants {
     @Experimental
     public static boolean ENABLE_VERIFY_BY_LOOKUP = false;
 
+    /**
+     * Use a more efficient representation for in-memory storage metadata to
+     * reduce heap utilization by approximately one-third, on average. Enabling
+     * this setting may improve overall system performance by reducing garbage
+     * collection pauses. However, it may increase CPU usage and slightly impact
+     * per-operation performance due to weaker metadata reference locality.
+     */
+    @Experimental
+    public static boolean ENABLE_MINIMIZED_METADATA = false;
+
     static {
         List<String> files = ImmutableList.of(
                 "conf" + File.separator + "concourse.prefs",
@@ -419,6 +429,9 @@ public final class GlobalState extends Constants {
 
         INIT_ROOT_USERNAME = config.getOrDefault("init.root.username",
                 config.getOrDefault("init_root_username", "admin"));
+
+        ENABLE_MINIMIZED_METADATA = config.getOrDefault(
+                "enable_minimized_metadata", ENABLE_MINIMIZED_METADATA);
         // =================== PREF READING BLOCK ====================
     }
 
