@@ -35,6 +35,9 @@ namespace php concourse.thrift.exceptions
 # thrift -out concourse-driver-ruby/lib/ -gen rb:namespaced interface/exceptions.thrift
 namespace rb concourse
 
+# To generate Node source code run:
+# thrift -out concourse-driver-node/lib/thrift -gen js:node interface/exceptions.thrift
+
 /**
  * Signals that an attempt to conditionally add or insert data based on a
  * condition that should be unique, cannot happen because the condition is not
