@@ -75,21 +75,21 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
-     * Return a {@link ConnectionPool} that is populated with handlers that
+     * Returns a {@link ConnectionPool} populated with handlers that
      * {@link Concourse#copyExistingConnection(Concourse) copy} the connection
-     * information of the provided {@code concourse} instance. The pool will
-     * have no limit on the number of connections it can manage, but will try to
-     * use previously created connections before establishing new ones on
-     * request.
+     * information of the provided {@code concourse} instance. The pool has no
+     * limit on the number of connections it can manage, but will attempt to use
+     * previously created connections before establishing new ones on request.
+     *
      * <p>
      * <strong>NOTE:</strong> The provided {@code concourse} connection will not
      * be a member of the returned {@link ConnectionPool} and its status will
      * not affect the status of any connections managed by the pool.
      * </p>
-     * 
+     *
      * @param concourse the {@link Concourse} connection to copy when populating
      *            the {@link ConnectionPool}
-     * @return the {@link ConnectionPool}
+     * @return the populated {@link ConnectionPool}
      */
     public static ConnectionPool newCachedConnectionPool(Concourse concourse) {
         Supplier<Concourse> supplier = () -> concourse.copyConnection();
@@ -244,22 +244,22 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
-     * Return a {@link ConnectionPool} that is populated with handlers that
+     * Returns a {@link ConnectionPool} populated with handlers that
      * {@link Concourse#copyExistingConnection(Concourse) copy} the connection
-     * information of the provided {@code concourse} instance. The poll will
-     * contain {@code poolSize} connections. If all the connections from the
-     * pool are active, subsequent request attempts will block until a
-     * connection is returned.
+     * information of the provided {@code concourse} instance. The pool will
+     * contain {@code poolSize} connections. If all connections are active,
+     * subsequent requests will block until a connection is returned.
+     *
      * <p>
      * <strong>NOTE:</strong> The provided {@code concourse} connection will not
      * be a member of the returned {@link ConnectionPool} and its status will
      * not affect the status of any connections managed by the pool.
      * </p>
-     * 
+     *
      * @param concourse the {@link Concourse} connection to copy when populating
      *            the {@link ConnectionPool}
-     * @param poolSize
-     * @return the {@link ConnectionPool}
+     * @param poolSize the number of connections in the pool
+     * @return the populated {@link ConnectionPool}
      */
     public static ConnectionPool newFixedConnectionPool(Concourse concourse,
             int poolSize) {
