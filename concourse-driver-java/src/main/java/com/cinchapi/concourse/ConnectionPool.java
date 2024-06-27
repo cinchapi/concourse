@@ -75,6 +75,28 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
+     * Return a {@link ConnectionPool} that is populated with handlers that
+     * {@link Concourse#copyExistingConnection(Concourse) copy} the connection
+     * information of the provided {@code concourse} instance. The pool will
+     * have no limit on the number of connections it can manage, but will try to
+     * use previously created connections before establishing new ones on
+     * request.
+     * <p>
+     * <strong>NOTE:</strong> The provided {@code concourse} connection will not
+     * be a member of the returned {@link ConnectionPool} and its status will
+     * not affect the status of any connections managed by the pool.
+     * </p>
+     * 
+     * @param concourse the {@link Concourse} connection to copy when populating
+     *            the {@link ConnectionPool}
+     * @return the {@link ConnectionPool}
+     */
+    public static ConnectionPool newCachedConnectionPool(Concourse concourse) {
+        Supplier<Concourse> supplier = () -> concourse.copyConnection();
+        return new CachedConnectionPool(supplier, DEFAULT_POOL_SIZE);
+    }
+
+    /**
      * Return a {@link ConnectionPool} that has no limit on the number of
      * connections it can manage to the Concourse instance described in the
      * {@code configFiles} on behalf of the user identified in the
@@ -219,6 +241,30 @@ public abstract class ConnectionPool implements AutoCloseable {
     public static ConnectionPool newConnectionPool(String host, int port,
             String username, String password, int poolSize) {
         return newFixedConnectionPool(host, port, username, password, poolSize);
+    }
+
+    /**
+     * Return a {@link ConnectionPool} that is populated with handlers that
+     * {@link Concourse#copyExistingConnection(Concourse) copy} the connection
+     * information of the provided {@code concourse} instance. The poll will
+     * contain {@code poolSize} connections. If all the connections from the
+     * pool are active, subsequent request attempts will block until a
+     * connection is returned.
+     * <p>
+     * <strong>NOTE:</strong> The provided {@code concourse} connection will not
+     * be a member of the returned {@link ConnectionPool} and its status will
+     * not affect the status of any connections managed by the pool.
+     * </p>
+     * 
+     * @param concourse the {@link Concourse} connection to copy when populating
+     *            the {@link ConnectionPool}
+     * @param poolSize
+     * @return the {@link ConnectionPool}
+     */
+    public static ConnectionPool newFixedConnectionPool(Concourse concourse,
+            int poolSize) {
+        Supplier<Concourse> supplier = () -> concourse.copyConnection();
+        return new FixedConnectionPool(supplier, poolSize);
     }
 
     /**
@@ -377,6 +423,23 @@ public abstract class ConnectionPool implements AutoCloseable {
      * The {@link Supplier} of {@link Concourse} connections.
      */
     protected final Supplier<Concourse> supplier;
+
+    /**
+     * Construct a new instance that provides {@link Concourse} connections that
+     * copy the connection information from the provided {@code concourse}
+     * handler.
+     * <p>
+     * <strong>NOTE:</strong>This constructor is provided for subclasses to
+     * conveniently implement connection copying while abstracting away the
+     * details of how to construct an appropriate {@link Supplier}.
+     * </p>
+     * 
+     * @param concourse
+     * @param poolSize
+     */
+    protected ConnectionPool(Concourse concourse, int poolSize) {
+        this(() -> concourse.copyConnection(), poolSize);
+    }
 
     /**
      * Construct a new instance.
