@@ -520,6 +520,10 @@ public class Manifest extends TransferableByteSequence {
     /**
      * A {@link Map} that stores {@link Manifest} entries on heap in a
      * memory-efficient manner.
+     * <p>
+     * Used instead of a normal {@link HashMap} when
+     * {@link GlobalState#ENABLE_EFFICIENT_METADATA} is {@code true}.
+     * </p>
      *
      * @author Jeff Nelson
      */
