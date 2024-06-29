@@ -140,7 +140,19 @@ public class Manifest extends TransferableByteSequence {
      * Returned from {@link #lookup(Composite)} when an associated entry does
      * not exist.
      */
-    private static final Range NULL_RANGE = new Range();
+    private static final Range NULL_RANGE = new Range() {
+
+        @Override
+        public long end() {
+            return NO_ENTRY;
+        }
+
+        @Override
+        public long start() {
+            return NO_ENTRY;
+        }
+
+    };
 
     /**
      * The estimated number of bytes required to store an entry. This
@@ -207,7 +219,7 @@ public class Manifest extends TransferableByteSequence {
         super();
         this.length = 0;
         this.entries = GlobalState.ENABLE_EFFICIENT_METADATA
-                ? new HeapEntries(expectedInsertions)
+                ? new BinaryHashMap(expectedInsertions)
                 : new HashMap<>(expectedInsertions);
         this.$entries = null;
     }
@@ -431,7 +443,7 @@ public class Manifest extends TransferableByteSequence {
                 int capacity = (int) length
                         / (4 + ESTIMATED_ENTRY_SIZE_IN_BYTES);
                 Map<Composite, Range> heapEntries = GlobalState.ENABLE_EFFICIENT_METADATA
-                        ? new HeapEntries(capacity)
+                        ? new BinaryHashMap(capacity)
                         : new HashMap<>(capacity);
                 executor.execute(() -> {
                     boolean found = false;
@@ -520,6 +532,25 @@ public class Manifest extends TransferableByteSequence {
             return read(8);
         }
 
+        @Override
+        public boolean equals(Object obj) {
+            if(this == obj) {
+                return true;
+            }
+            else if(obj instanceof Range) {
+                Range other = (Range) obj;
+                return Arrays.equals(bytes, other.bytes);
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(bytes);
+        }
+
         /**
          * Set the end position to {@code value}.
          * 
@@ -556,13 +587,13 @@ public class Manifest extends TransferableByteSequence {
          */
         private long read(int index) {
             return ((long) bytes[index] << 56)
-                    | ((long) (bytes[index + 1] & 0xFF) << 48)
-                    | ((long) (bytes[index + 2] & 0xFF) << 40)
-                    | ((long) (bytes[index + 3] & 0xFF) << 32)
-                    | ((long) (bytes[index + 4] & 0xFF) << 24)
-                    | ((long) (bytes[index + 5] & 0xFF) << 16)
-                    | ((long) (bytes[index + 6] & 0xFF) << 8)
-                    | ((long) (bytes[index + 7] & 0xFF));
+                    | ((long) (bytes[index + 1] & 0xff) << 48)
+                    | ((long) (bytes[index + 2] & 0xff) << 40)
+                    | ((long) (bytes[index + 3] & 0xff) << 32)
+                    | ((long) (bytes[index + 4] & 0xff) << 24)
+                    | ((long) (bytes[index + 5] & 0xff) << 16)
+                    | ((long) (bytes[index + 6] & 0xff) << 8)
+                    | ((long) (bytes[index + 7] & 0xff));
         }
 
         /**
@@ -589,7 +620,7 @@ public class Manifest extends TransferableByteSequence {
      *
      * @author Jeff Nelson
      */
-    private final static class HeapEntries
+    private final static class BinaryHashMap
             extends AbstractMap<Composite, Range> {
 
         /**
@@ -632,7 +663,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @param initialCapacity
          */
-        private HeapEntries(int initialCapacity) {
+        private BinaryHashMap(int initialCapacity) {
             this.internal = new Object2ObjectOpenCustomHashMap<>(
                     initialCapacity, HASH_STRATEGY);
         }
