@@ -206,7 +206,7 @@ public class Manifest extends TransferableByteSequence {
     private Manifest(int expectedInsertions) {
         super();
         this.length = 0;
-        this.entries = GlobalState.ENABLE_MINIMIZED_METADATA
+        this.entries = GlobalState.ENABLE_EFFICIENT_METADATA
                 ? new HeapEntries(expectedInsertions)
                 : new HashMap<>(expectedInsertions);
         this.$entries = null;
@@ -430,7 +430,7 @@ public class Manifest extends TransferableByteSequence {
                 // @formatter:on
                 int capacity = (int) length
                         / (4 + ESTIMATED_ENTRY_SIZE_IN_BYTES);
-                Map<Composite, Range> heapEntries = GlobalState.ENABLE_MINIMIZED_METADATA
+                Map<Composite, Range> heapEntries = GlobalState.ENABLE_EFFICIENT_METADATA
                         ? new HeapEntries(capacity)
                         : new HashMap<>(capacity);
                 executor.execute(() -> {

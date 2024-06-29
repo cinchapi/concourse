@@ -334,14 +334,19 @@ public final class GlobalState extends Constants {
     public static boolean ENABLE_VERIFY_BY_LOOKUP = false;
 
     /**
-     * Use a more efficient representation for in-memory storage metadata to
-     * reduce heap utilization by approximately one-third, on average. Enabling
-     * this setting may improve overall system performance by reducing garbage
-     * collection pauses. However, it may increase CPU usage and slightly impact
-     * per-operation performance due to weaker metadata reference locality.
+     * Use a more memory-efficient representation for storage metadata.
+     * <p>
+     * On average, enabling this setting will reduce the amount of heap space
+     * needed for essential metadata by 33%. As a result, overall system
+     * performance may improve due to a reduction in garbage collection pauses.
+     * </p>
+     * <p>
+     * However, this setting may increase CPU usage and slightly impact
+     * per-operation performance due to weaker reference locality.
+     * </p>
      */
     @Experimental
-    public static boolean ENABLE_MINIMIZED_METADATA = false;
+    public static boolean ENABLE_EFFICIENT_METADATA = false;
 
     static {
         List<String> files = ImmutableList.of(
@@ -430,8 +435,8 @@ public final class GlobalState extends Constants {
         INIT_ROOT_USERNAME = config.getOrDefault("init.root.username",
                 config.getOrDefault("init_root_username", INIT_ROOT_USERNAME));
 
-        ENABLE_MINIMIZED_METADATA = config.getOrDefault(
-                "enable_minimized_metadata", ENABLE_MINIMIZED_METADATA);
+        ENABLE_EFFICIENT_METADATA = config.getOrDefault(
+                "enable_efficient_metadata", ENABLE_EFFICIENT_METADATA);
         // =================== PREF READING BLOCK ====================
     }
 
