@@ -295,7 +295,8 @@ public class Manifest extends TransferableByteSequence {
      * @return the {@link Range} containing the start and end positions
      */
     public Range lookup(Composite composite) {
-        return entries(composite).getOrDefault(composite, NULL_RANGE);
+        Range range = entries(composite).get(composite);
+        return range != null ? range : NULL_RANGE;
     }
 
     /**
