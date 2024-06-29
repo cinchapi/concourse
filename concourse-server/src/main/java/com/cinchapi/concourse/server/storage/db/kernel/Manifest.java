@@ -497,7 +497,11 @@ public class Manifest extends TransferableByteSequence {
          */
         Range() {
             this.bytes = new byte[CONSTANT_SIZE];
-            ByteBuffer.wrap(bytes).putLong(NO_ENTRY).putLong(NO_ENTRY);
+            long value = NO_ENTRY;
+            for (int i = 7; i >= 0; i--) {
+                bytes[i] = bytes[i + 8] = (byte) (value & 0xFF);
+                value >>= 8;
+            }
         }
 
         /**
