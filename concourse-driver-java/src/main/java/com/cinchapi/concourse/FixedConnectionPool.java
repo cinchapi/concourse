@@ -18,6 +18,7 @@ package com.cinchapi.concourse;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Supplier;
 
 import com.cinchapi.common.base.CheckedExceptions;
 
@@ -33,31 +34,11 @@ class FixedConnectionPool extends ConnectionPool {
     /**
      * Construct a new instance.
      * 
-     * @param host
-     * @param port
-     * @param username
-     * @param password
+     * @param supplier
      * @param poolSize
      */
-    protected FixedConnectionPool(String host, int port, String username,
-            String password, int poolSize) {
-        this(host, port, username, password, "", poolSize);
-    }
-
-    /**
-     * Construct a new instance.
-     * 
-     * @param host
-     * @param port
-     * @param username
-     * @param password
-     * @param environment
-     * @param poolSize
-     */
-    protected FixedConnectionPool(String host, int port, String username,
-            String password, String environment, int poolSize) {
-        super(() -> Concourse.connect(host, port, username, password,
-                environment), poolSize);
+    protected FixedConnectionPool(Supplier<Concourse> supplier, int poolSize) {
+        super(supplier, poolSize);
     }
 
     @Override

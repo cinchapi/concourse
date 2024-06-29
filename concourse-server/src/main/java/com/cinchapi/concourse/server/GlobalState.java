@@ -425,10 +425,10 @@ public final class GlobalState extends Constants {
                 ENABLE_VERIFY_BY_LOOKUP);
 
         INIT_ROOT_PASSWORD = config.getOrDefault("init.root.password",
-                config.getOrDefault("init_root_password", "admin"));
+                config.getOrDefault("init_root_password", INIT_ROOT_PASSWORD));
 
         INIT_ROOT_USERNAME = config.getOrDefault("init.root.username",
-                config.getOrDefault("init_root_username", "admin"));
+                config.getOrDefault("init_root_username", INIT_ROOT_USERNAME));
 
         ENABLE_MINIMIZED_METADATA = config.getOrDefault(
                 "enable_minimized_metadata", ENABLE_MINIMIZED_METADATA);

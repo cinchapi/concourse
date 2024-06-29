@@ -83,4 +83,9 @@ public class FixedConnectionPoolTest extends ConnectionPoolTest {
                 USERNAME, PASSWORD, env, POOL_SIZE);
     }
 
+    @Override
+    protected ConnectionPool getConnectionPool(Concourse concourse) {
+        return ConnectionPool.newFixedConnectionPool(concourse, POOL_SIZE);
+    }
+
 }
