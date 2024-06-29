@@ -148,6 +148,16 @@ public class Manifest extends TransferableByteSequence {
         }
 
         @Override
+        public void setEnd(long end) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setStart(long start) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public long start() {
             return NO_ENTRY;
         }
@@ -281,7 +291,7 @@ public class Manifest extends TransferableByteSequence {
      * @param composite
      * @return the {@link Range} containing the start and end positions
      */
-    public Range lookup(Byteable... bytables) {
+    public Span lookup(Byteable... bytables) {
         return lookup(Composite.create(bytables));
     }
 
@@ -294,7 +304,7 @@ public class Manifest extends TransferableByteSequence {
      * @param composite
      * @return the {@link Range} containing the start and end positions
      */
-    public Range lookup(Composite composite) {
+    public Span lookup(Composite composite) {
         Range range = entries(composite).get(composite);
         return range != null ? range : NULL_RANGE;
     }
@@ -349,7 +359,11 @@ public class Manifest extends TransferableByteSequence {
         Preconditions.checkState(isMutable());
         Range range = entries.get(composite);
         if(range == null) {
-            range = new Range();
+            // @formatter:off
+            range = GlobalState.ENABLE_EFFICIENT_METADATA 
+                    ? new BinaryRange()
+                    : new LongRange();
+            // @formatter:on
             entries.put(composite, range);
             // @formatter:off
             length += composite.size() + 
@@ -367,7 +381,7 @@ public class Manifest extends TransferableByteSequence {
             Range range = entry.getValue();
             int size = Range.CONSTANT_SIZE + key.size();
             sink.putInt(size);
-            sink.put(range.bytes);
+            sink.put(range.bytes());
             key.copyTo(sink);
         }
     }
@@ -481,142 +495,22 @@ public class Manifest extends TransferableByteSequence {
      *
      * @author Jeff Nelson
      */
-    static class Range {
-
-        /**
-         * The number of bytes required to record each {@link Range}.
-         */
-        private static final int CONSTANT_SIZE = 16; // start(8), end(8)
-
-        /**
-         * The bytes for each marker.
-         */
-        private byte[] bytes;
-
-        /**
-         * Construct a new instance.
-         */
-        Range() {
-            this.bytes = new byte[CONSTANT_SIZE];
-            long value = NO_ENTRY;
-            for (int i = 7; i >= 0; i--) {
-                bytes[i] = bytes[i + 8] = (byte) (value & 0xFF);
-                value >>= 8;
-            }
-        }
-
-        /**
-         * Load an existing instance.
-         * 
-         * @param bytes
-         */
-        Range(ByteBuffer bytes) {
-            this.bytes = new byte[CONSTANT_SIZE];
-            bytes.get(this.bytes);
-        }
-
-        /**
-         * Construct a new ad-hoc instance.
-         * 
-         * @param bytes
-         */
-        private Range(byte[] bytes) {
-            // This constructor should only be used to construct ad ad-hoc Range
-            // from a byte array that is already stored in a HeapEntries
-            // instance.
-            Preconditions.checkArgument(bytes.length == CONSTANT_SIZE);
-            this.bytes = bytes;
-        }
+    public static interface Span {
 
         /**
          * Return the end position.
          * 
          * @return the end position
          */
-        public long end() {
-            return read(8);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if(this == obj) {
-                return true;
-            }
-            else if(obj instanceof Range) {
-                Range other = (Range) obj;
-                return Arrays.equals(bytes, other.bytes);
-            }
-            else {
-                return false;
-            }
-        }
-
-        @Override
-        public int hashCode() {
-            return Arrays.hashCode(bytes);
-        }
-
-        /**
-         * Set the end position to {@code value}.
-         * 
-         * @param value
-         */
-        public void setEnd(long value) {
-            write(8, value);
-        }
-
-        /**
-         * Set the start position to {@code value}.
-         * 
-         * @param value
-         */
-        public void setStart(long value) {
-            write(0, value);
-        }
+        public long end();
 
         /**
          * Return the start position.
          * 
          * @return the start position
          */
-        public long start() {
-            return read(0);
-        }
+        public long start();
 
-        /**
-         * Read 8 of the {@link #bytes} starting at {@code index} and return
-         * the corresponding long.
-         * 
-         * @param index
-         * @return the read value
-         */
-        private long read(int index) {
-            return ((long) bytes[index] << 56)
-                    | ((long) (bytes[index + 1] & 0xff) << 48)
-                    | ((long) (bytes[index + 2] & 0xff) << 40)
-                    | ((long) (bytes[index + 3] & 0xff) << 32)
-                    | ((long) (bytes[index + 4] & 0xff) << 24)
-                    | ((long) (bytes[index + 5] & 0xff) << 16)
-                    | ((long) (bytes[index + 6] & 0xff) << 8)
-                    | ((long) (bytes[index + 7] & 0xff));
-        }
-
-        /**
-         * Write {@code value} to {@link #bytes} starting at {@code index}.
-         * 
-         * @param index
-         * @param value
-         */
-        private void write(int index, long value) {
-            bytes[index] = (byte) (value >> 56);
-            bytes[index + 1] = (byte) (value >> 48);
-            bytes[index + 2] = (byte) (value >> 40);
-            bytes[index + 3] = (byte) (value >> 32);
-            bytes[index + 4] = (byte) (value >> 24);
-            bytes[index + 5] = (byte) (value >> 16);
-            bytes[index + 6] = (byte) (value >> 8);
-            bytes[index + 7] = (byte) value;
-        }
     }
 
     /**
@@ -683,7 +577,7 @@ public class Manifest extends TransferableByteSequence {
                             entry -> {
                                 Composite key = Composite
                                         .load(ByteBuffer.wrap(entry.getKey()));
-                                Range value = new Range(entry.getValue());
+                                Range value = new BinaryRange(entry.getValue());
                                 return new SimpleImmutableEntry<>(key, value);
                             });
                 }
@@ -701,7 +595,7 @@ public class Manifest extends TransferableByteSequence {
             if(key instanceof Composite) {
                 byte[] value = internal.get(((Composite) key).bytes());
                 if(value != null) {
-                    return new Range(value);
+                    return new BinaryRange(value);
                 }
             }
             return null;
@@ -715,15 +609,245 @@ public class Manifest extends TransferableByteSequence {
         @Override
         public Range put(Composite key, Range value) {
             byte[] k = key.bytes();
-            byte[] v = value.bytes;
+            byte[] v = value.bytes();
             byte[] prev = internal.put(k, v);
-            return prev != null ? new Range(prev) : null;
+            return prev != null ? new BinaryRange(prev) : null;
         }
 
         @Override
         public int size() {
             return internal.size();
         }
+
+    }
+
+    /**
+     * A {@link Range} that stores positions in a byte array.
+     *
+     * @author Jeff Nelson
+     */
+    private static class BinaryRange implements Range {
+
+        /**
+         * The bytes for each marker.
+         */
+        private byte[] bytes;
+
+        /**
+         * Construct a new instance.
+         */
+        BinaryRange() {
+            this.bytes = new byte[CONSTANT_SIZE];
+            long value = NO_ENTRY;
+            for (int i = 7; i >= 0; i--) {
+                bytes[i] = bytes[i + 8] = (byte) (value & 0xFF);
+                value >>= 8;
+            }
+        }
+
+        /**
+         * Load an existing instance.
+         * 
+         * @param bytes
+         */
+        BinaryRange(ByteBuffer bytes) {
+            this.bytes = new byte[CONSTANT_SIZE];
+            bytes.get(this.bytes);
+        }
+
+        /**
+         * Construct a new ad-hoc instance.
+         * 
+         * @param bytes
+         */
+        private BinaryRange(byte[] bytes) {
+            // This constructor should only be used to construct ad ad-hoc Range
+            // from a byte array that is already stored in a HeapEntries
+            // instance.
+            Preconditions.checkArgument(bytes.length == CONSTANT_SIZE);
+            this.bytes = bytes;
+        }
+
+        @Override
+        public byte[] bytes() {
+            return bytes;
+        }
+
+        @Override
+        public long end() {
+            return read(8);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(this == obj) {
+                return true;
+            }
+            else if(obj instanceof Range) {
+                Range other = (Range) obj;
+                return Arrays.equals(bytes, other.bytes());
+            }
+            else {
+                return false;
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(bytes);
+        }
+
+        @Override
+        public void setEnd(long value) {
+            write(8, value);
+        }
+
+        @Override
+        public void setStart(long value) {
+            write(0, value);
+        }
+
+        @Override
+        public long start() {
+            return read(0);
+        }
+
+        /**
+         * Read 8 of the {@link #bytes} starting at {@code index} and return
+         * the corresponding long.
+         * 
+         * @param index
+         * @return the read value
+         */
+        private long read(int index) {
+            return ((long) bytes[index] << 56)
+                    | ((long) (bytes[index + 1] & 0xff) << 48)
+                    | ((long) (bytes[index + 2] & 0xff) << 40)
+                    | ((long) (bytes[index + 3] & 0xff) << 32)
+                    | ((long) (bytes[index + 4] & 0xff) << 24)
+                    | ((long) (bytes[index + 5] & 0xff) << 16)
+                    | ((long) (bytes[index + 6] & 0xff) << 8)
+                    | ((long) (bytes[index + 7] & 0xff));
+        }
+
+        /**
+         * Write {@code value} to {@link #bytes} starting at {@code index}.
+         * 
+         * @param index
+         * @param value
+         */
+        private void write(int index, long value) {
+            bytes[index] = (byte) (value >> 56);
+            bytes[index + 1] = (byte) (value >> 48);
+            bytes[index + 2] = (byte) (value >> 40);
+            bytes[index + 3] = (byte) (value >> 32);
+            bytes[index + 4] = (byte) (value >> 24);
+            bytes[index + 5] = (byte) (value >> 16);
+            bytes[index + 6] = (byte) (value >> 8);
+            bytes[index + 7] = (byte) value;
+        }
+    }
+
+    /**
+     * A {@link Range} that stores positions as 64-bit long values.
+     *
+     * @author Jeff Nelson
+     */
+    private static class LongRange implements Range {
+
+        /**
+         * The start position.
+         */
+        private long start;
+
+        /**
+         * The end position.
+         */
+        private long end;
+
+        /**
+         * Construct a new instance.
+         */
+        LongRange() {
+            this.start = NO_ENTRY;
+            this.end = NO_ENTRY;
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param bytes
+         */
+        LongRange(ByteBuffer bytes) {
+            this.start = bytes.getLong();
+            this.end = bytes.getLong();
+        }
+
+        @Override
+        public long end() {
+            return end;
+        }
+
+        @Override
+        public void setEnd(long end) {
+            this.end = end;
+        }
+
+        @Override
+        public void setStart(long start) {
+            this.start = start;
+        }
+
+        @Override
+        public long start() {
+            return start;
+        }
+
+    }
+
+    /**
+     * The start and end markers for an entry in a {@link Manifest}.
+     *
+     * @author Jeff Nelson
+     */
+    private static interface Range extends Span {
+
+        /**
+         * The number of bytes required to record each {@link Range}.
+         */
+        static final int CONSTANT_SIZE = 16; // start(8), end(8)
+
+        /**
+         * Return the binary representation of this {@link Range}.
+         * 
+         * @return the {@link Range} bytes
+         */
+        public default byte[] bytes() {
+            byte[] bytes = new byte[CONSTANT_SIZE];
+            long start = start();
+            long end = end();
+            for (int i = 7; i >= 0; i--) {
+                bytes[i] = (byte) (start & 0xFF);
+                bytes[i + 8] = (byte) (end & 0xFF);
+                start >>= 8;
+                end >>= 8;
+            }
+            return bytes;
+        }
+
+        /**
+         * Set the end position to {@code value}.
+         * 
+         * @param value
+         */
+        void setEnd(long end);
+
+        /**
+         * Set the start position to {@code value}.
+         * 
+         * @param value
+         */
+        void setStart(long start);
 
     }
 
@@ -805,7 +929,9 @@ public class Manifest extends TransferableByteSequence {
                         @Override
                         public Entry<Composite, Range> next() {
                             ByteBuffer next = it.next();
-                            Range range = new Range(next);
+                            Range range = GlobalState.ENABLE_EFFICIENT_METADATA
+                                    ? new BinaryRange(next)
+                                    : new LongRange(next);
                             Composite key = Composite.load(next);
                             reusable.setKey(key);
                             reusable.setValue(range);
@@ -841,7 +967,9 @@ public class Manifest extends TransferableByteSequence {
                 while (it.hasNext()) {
                     ByteBuffer next = it.next();
                     if(equals(keyBytes, next)) {
-                        return new Range(next);
+                        return GlobalState.ENABLE_EFFICIENT_METADATA
+                                ? new BinaryRange(next)
+                                : new LongRange(next);
                     }
                 }
 

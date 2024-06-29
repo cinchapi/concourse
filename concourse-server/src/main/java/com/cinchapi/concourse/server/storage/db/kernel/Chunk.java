@@ -47,7 +47,7 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Range;
+import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Span;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.lib.offheap.collect.OffHeapSortedSet;
 import com.cinchapi.lib.offheap.io.Serializer;
@@ -447,7 +447,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                     }
                 }
                 else {
-                    Range range = manifest.lookup(composite);
+                    Span range = manifest.lookup(composite);
                     long start = range.start();
                     long length = range.end() - (start - 1);
                     if(start != Manifest.NO_ENTRY && length > 0) {
