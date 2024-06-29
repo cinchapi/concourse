@@ -33,6 +33,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 import javax.annotation.Nullable;
@@ -481,6 +482,8 @@ public class Manifest extends TransferableByteSequence {
      * @author Jeff Nelson
      */
     static class Range {
+        
+        AtomicInteger counter = new AtomicInteger(0);
 
         /**
          * The number of bytes required to record each {@link Range}.
@@ -575,6 +578,7 @@ public class Manifest extends TransferableByteSequence {
          * @return the start position
          */
         public long start() {
+            System.out.println(counter.incrementAndGet());
             return read(0);
         }
 
