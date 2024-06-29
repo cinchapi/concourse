@@ -76,6 +76,16 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
         /**
          * Construct a new instance.
          * 
+         * @param concourse
+         * @param poolSize
+         */
+        public CustomConnectionPool(Concourse concourse, int poolSize) {
+            super(concourse, poolSize);
+        }
+
+        /**
+         * Construct a new instance.
+         * 
          * @param host
          * @param port
          * @param username
@@ -112,6 +122,11 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
             return available.poll();
         }
 
+    }
+
+    @Override
+    protected ConnectionPool getConnectionPool(Concourse concourse) {
+        return new CustomConnectionPool(concourse, 10);
     }
 
 }
