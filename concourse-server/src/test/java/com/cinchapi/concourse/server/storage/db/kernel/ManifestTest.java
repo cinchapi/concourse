@@ -34,7 +34,7 @@ import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
-import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Span;
+import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Range;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Random;
@@ -97,7 +97,7 @@ public class ManifestTest extends ConcourseBaseTest {
         Assert.assertTrue(manifest.isLoaded());
         for (int i = 0; i < count; i++) {
             Identifier key = Identifier.of(count);
-            Span range = manifest.lookup(key);
+            Range range = manifest.lookup(key);
             Assert.assertEquals(count, range.start());
             Assert.assertEquals(count * 2, range.end());
         }
@@ -110,7 +110,7 @@ public class ManifestTest extends ConcourseBaseTest {
         Identifier key = Identifier.of(count);
         manifest.putStart(count, key);
         manifest.putEnd(count * 2, key);
-        Span range = manifest.lookup(key);
+        Range range = manifest.lookup(key);
         Assert.assertEquals(count, range.start());
         Assert.assertEquals(count * 2, range.end());
         manifest.transfer(file);
@@ -129,13 +129,13 @@ public class ManifestTest extends ConcourseBaseTest {
             Text text = Text.wrap(Random.getString());
             int count = 0;
             int start = 0;
-            Map<Composite, Span> expected = Maps.newHashMap();
+            Map<Composite, Range> expected = Maps.newHashMap();
             while (manifest
                     .length() < Manifest.MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD) {
                 Identifier record = Identifier.of(count);
                 int $start = start;
                 int end = start + TestData.getScaleCount();
-                Span range = new Manifest.Span() {
+                Range range = new Manifest.Range() {
 
                     @Override
                     public long start() {
@@ -159,7 +159,7 @@ public class ManifestTest extends ConcourseBaseTest {
             Manifest $manifest = Manifest.load(file, 0,
                     FileSystem.getFileSize(file.toString()));
             expected.forEach((composite, range) -> {
-                Span actual = $manifest.lookup(composite);
+                Range actual = $manifest.lookup(composite);
                 Assert.assertEquals(range.start(), actual.start());
                 Assert.assertEquals(range.end(), actual.end());
             });
