@@ -506,8 +506,9 @@ public class Manifest extends TransferableByteSequence {
          * @param bytes
          */
         Range(ByteBuffer bytes) {
-            this.bytes = new byte[CONSTANT_SIZE];
-            bytes.get(this.bytes);
+//            this.bytes = new byte[CONSTANT_SIZE];
+//            bytes.get(this.bytes);
+            this.bytes = bytes.array();
         }
 
         /**
