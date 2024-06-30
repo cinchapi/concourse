@@ -34,7 +34,6 @@ import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
-import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Range;
 import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Random;
@@ -135,7 +134,7 @@ public class ManifestTest extends ConcourseBaseTest {
                 Identifier record = Identifier.of(count);
                 int $start = start;
                 int end = start + TestData.getScaleCount();
-                Range range = new Manifest.Range() {
+                Range range = new Range() {
 
                     @Override
                     public long start() {
