@@ -39,6 +39,8 @@ We made several changes to improve the safety, scalability and operational effic
 
 ##### New Functionality
 * Added the ability to create `ConnectionPool`s that copy the credentials and connection information from an existing handler These copying connection pools can be created by using the respective "cached" or "fixed" factory methods in the `ConnectionPool` class that take a `Concourse` parameter.
+* Reduced the amount of heap space required for essential storage metadata.
+* Added the `enable_efficient_metadata` configuration option to further reduce the amount of heap space required for essential storage metadata. When this option is set to `true`, metadata will occupy approximately one-third less heap space and likely improve overall system performance due to a decrease in garbage collection pauses (although per-operation performance may be slightly affected by additional overhead).
 
 ##### Bug Fixes
 * [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
