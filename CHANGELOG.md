@@ -37,8 +37,7 @@ We made several changes to improve the safety, scalability and operational effic
 	* `ConcourseArtifacts` - Provides factory methods to retrieve local copies of Concourse artifacts for any version. Can be used to download the installer for a released version.
 	* `ManagedConcourseServer` - Provdes the ability to control an external Concourse Server process within another application.
 
-##### New Functionality
-* Added the ability to create `ConnectionPool`s that copy the credentials and connection information from an existing handler These copying connection pools can be created by using the respective "cached" or "fixed" factory methods in the `ConnectionPool` class that take a `Concourse` parameter.
+##### New Functionality and Enhancements
 * Reduced the amount of heap space required for essential storage metadata.
 * Added the `enable_efficient_metadata` configuration option to further reduce the amount of heap space required for essential storage metadata. When this option is set to `true`, metadata will occupy approximately one-third less heap space and likely improve overall system performance due to a decrease in garbage collection pauses (although per-operation performance may be slightly affected by additional overhead).
 
@@ -76,6 +75,7 @@ We made several changes to improve the safety, scalability and operational effic
 * Fixed a bug that kept HELP documentation from being packaged with Concourse Shell and prevented it from being displayed.
 * Added a fallback option to display Concourse Shell HELP documentation in contexts when the `less` command isn't available (e.g., IDEs).
 * Fixed a bug that caused Concourse Server to unnecessarily add error logging whenever a client disconnected.
+* Added the ability to create `ConnectionPool`s that copy the credentials and connection information from an existing handler These copying connection pools can be created by using the respective "cached" or "fixed" factory methods in the `ConnectionPool` class that take a `Concourse` parameter.
 
 #### Version 0.11.5 (November 5, 2022)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).
