@@ -140,7 +140,7 @@ public class Manifest extends TransferableByteSequence {
      * Returned from {@link #lookup(Composite)} when an associated entry does
      * not exist.
      */
-    private static final MutableRange NULL_RANGE = new MutableRange() {
+    private static final Span NULL_RANGE = new Span() {
 
         @Override
         public long end() {
@@ -170,8 +170,8 @@ public class Manifest extends TransferableByteSequence {
      */
     // @formatter:off
     private static final int ESTIMATED_ENTRY_SIZE_IN_BYTES = 
-            ((MutableRange.CONSTANT_SIZE + 1) + 
-            (MutableRange.CONSTANT_SIZE + Composite.MAX_SIZE)) 
+            ((Span.CONSTANT_SIZE + 1) + 
+            (Span.CONSTANT_SIZE + Composite.MAX_SIZE)) 
             / 2;
     //@formatter:on
 
@@ -187,13 +187,13 @@ public class Manifest extends TransferableByteSequence {
      * </p>
      */
     @Nullable
-    private SoftReference<Map<Composite, MutableRange>> $entries;
+    private SoftReference<Map<Composite, Span>> $entries;
 
     /**
      * The entries contained in the {@link Manifest}.
      * <p>
      * Entries are represented as a mapping from a lookup {@link Composite key}
-     * to a {@link MutableRange} that encapsulates a start and end position of a
+     * to a {@link Span} that encapsulates a start and end position of a
      * specific data block in a {@link Chunk}.
      * </p>
      * <p>
@@ -205,7 +205,7 @@ public class Manifest extends TransferableByteSequence {
      * </p>
      */
     @Nullable
-    private Map<Composite, MutableRange> entries;
+    private Map<Composite, Span> entries;
 
     /**
      * The running size of the {@link Manifest} in bytes. Incremented as entries
@@ -283,31 +283,31 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * Return the {@link MutableRange} which contains the start and end
+     * Return the {@link Span} which contains the start and end
      * positions of
      * data related to the {@code byteables}, if data was recorded using
      * {@link #putStart(long, Byteable...)} and
      * {@link #putEnd(long, Byteable...)}.
      * 
      * @param composite
-     * @return the {@link MutableRange} containing the start and end positions
+     * @return the {@link Span} containing the start and end positions
      */
     public Range lookup(Byteable... bytables) {
         return lookup(Composite.create(bytables));
     }
 
     /**
-     * Return the {@link MutableRange} which contains the start and end
+     * Return the {@link Span} which contains the start and end
      * positions of
      * data related to the {@code composite}, if data was recorded using
      * {@link #putStart(long, Byteable...)} and
      * {@link #putEnd(long, Byteable...)}.
      * 
      * @param composite
-     * @return the {@link MutableRange} containing the start and end positions
+     * @return the {@link Span} containing the start and end positions
      */
     public Range lookup(Composite composite) {
-        MutableRange range = entries(composite).get(composite);
+        Span range = entries(composite).get(composite);
         return range != null ? range : NULL_RANGE;
     }
 
@@ -331,7 +331,7 @@ public class Manifest extends TransferableByteSequence {
         Preconditions.checkArgument(end >= 0,
                 "Cannot have negative index. Tried to put %s", end);
         Preconditions.checkState(isMutable());
-        MutableRange range = entries.get(composite);
+        Span range = entries.get(composite);
         Preconditions.checkState(range != null,
                 "Cannot set the end position before setting "
                         + "the start position. Tried to put %s",
@@ -359,17 +359,17 @@ public class Manifest extends TransferableByteSequence {
         Preconditions.checkArgument(start >= 0,
                 "Cannot have negative index. Tried to put %s", start);
         Preconditions.checkState(isMutable());
-        MutableRange range = entries.get(composite);
+        Span range = entries.get(composite);
         if(range == null) {
             // @formatter:off
             range = GlobalState.ENABLE_EFFICIENT_METADATA 
-                    ? new BinaryRange()
-                    : new LongRange();
+                    ? new BinarySpan()
+                    : new LongSpan();
             // @formatter:on
             entries.put(composite, range);
             // @formatter:off
             length += composite.size() + 
-                    MutableRange.CONSTANT_SIZE + 
+                    Span.CONSTANT_SIZE + 
                     4; // (each entry is preceded by 4 bytes that gives the overall length)
             // @formatter:on
         }
@@ -378,10 +378,10 @@ public class Manifest extends TransferableByteSequence {
 
     @Override
     protected void flush(ByteSink sink) {
-        for (Entry<Composite, MutableRange> entry : entries().entrySet()) {
+        for (Entry<Composite, Span> entry : entries().entrySet()) {
             Composite key = entry.getKey();
-            MutableRange range = entry.getValue();
-            int size = MutableRange.CONSTANT_SIZE + key.size();
+            Span range = entry.getValue();
+            int size = Span.CONSTANT_SIZE + key.size();
             sink.putInt(size);
             sink.put(range.bytes());
             key.copyTo(sink);
@@ -390,7 +390,7 @@ public class Manifest extends TransferableByteSequence {
 
     @Override
     protected void free() {
-        this.$entries = new SoftReference<Map<Composite, MutableRange>>(
+        this.$entries = new SoftReference<Map<Composite, Span>>(
                 entries);
         this.entries = null; // Make eligible for GC
     }
@@ -411,7 +411,7 @@ public class Manifest extends TransferableByteSequence {
      * 
      * @return the entries
      */
-    private synchronized Map<Composite, MutableRange> entries() {
+    private synchronized Map<Composite, Span> entries() {
         return entries(null);
     }
 
@@ -433,7 +433,7 @@ public class Manifest extends TransferableByteSequence {
      *            {@link Map#get(Object)}
      * @return the entries
      */
-    private synchronized Map<Composite, MutableRange> entries(
+    private synchronized Map<Composite, Span> entries(
             @Nullable Composite composite) {
         if(entries != null) {
             return entries;
@@ -442,7 +442,7 @@ public class Manifest extends TransferableByteSequence {
             return $entries.get();
         }
         else {
-            Map<Composite, MutableRange> entries = new StreamedEntries();
+            Map<Composite, Span> entries = new StreamedEntries();
             // If the Manifest is small enough to fit comfortably into memory,
             // eagerly load all of the entries instead of streaming them from
             // disk one-by-one (as is done in the StreamedEntries).
@@ -451,7 +451,7 @@ public class Manifest extends TransferableByteSequence {
                 // forking the job to a background thread which listens for the
                 // sought #composite to be found and returned immediately while
                 // the other entries continue to be read
-                BlockingQueue<Map<Composite, MutableRange>> queue = new ArrayBlockingQueue<>(
+                BlockingQueue<Map<Composite, Span>> queue = new ArrayBlockingQueue<>(
                         1);
                 // @formatter:off
                 Executor executor = composite != null 
@@ -460,15 +460,15 @@ public class Manifest extends TransferableByteSequence {
                 // @formatter:on
                 int capacity = (int) length
                         / (4 + ESTIMATED_ENTRY_SIZE_IN_BYTES);
-                Map<Composite, MutableRange> heapEntries = GlobalState.ENABLE_EFFICIENT_METADATA
+                Map<Composite, Span> heapEntries = GlobalState.ENABLE_EFFICIENT_METADATA
                         ? new BinaryHashMap(capacity)
                         : new HashMap<>(capacity);
                 executor.execute(() -> {
                     boolean found = false;
-                    for (Entry<Composite, MutableRange> entry : entries
+                    for (Entry<Composite, Span> entry : entries
                             .entrySet()) {
                         Composite key = entry.getKey();
-                        MutableRange value = entry.getValue();
+                        Span value = entry.getValue();
                         heapEntries.put(key, value);
                         if(composite != null && !found
                                 && key.equals(composite)) {
@@ -478,7 +478,7 @@ public class Manifest extends TransferableByteSequence {
                     }
                     queue.offer(composite != null ? Collections.emptyMap()
                             : heapEntries);
-                    $entries = new SoftReference<Map<Composite, MutableRange>>(
+                    $entries = new SoftReference<Map<Composite, Span>>(
                             heapEntries);
                 });
                 try {
@@ -528,7 +528,7 @@ public class Manifest extends TransferableByteSequence {
      * @author Jeff Nelson
      */
     private final static class BinaryHashMap
-            extends AbstractMap<Composite, MutableRange> {
+            extends AbstractMap<Composite, Span> {
 
         /**
          * Strategy used to correctly determine hash codes and equality among
@@ -553,14 +553,14 @@ public class Manifest extends TransferableByteSequence {
          * <p>
          * An entry is represented as the mapping between two byte arrays to
          * avoid memory overhead that would accompany the storage of
-         * {@link Composite} and {@link MutableRange} objects directly. This is
+         * {@link Composite} and {@link Span} objects directly. This is
          * necessary because the storage overhead (especially in the case of a
-         * {@link MutableRange}) would equal or exceed the amount of memory
+         * {@link Span}) would equal or exceed the amount of memory
          * needed for
          * the essence of the data).
          * </p>
          * <p>
-         * Ad hoc, {@link Composite} and {@link MutableRange} objects are read
+         * Ad hoc, {@link Composite} and {@link Span} objects are read
          * and
          * constructed on the fly, as necessary.
          * </p>
@@ -578,16 +578,16 @@ public class Manifest extends TransferableByteSequence {
         }
 
         @Override
-        public Set<Entry<Composite, MutableRange>> entrySet() {
-            return new AbstractSet<Entry<Composite, MutableRange>>() {
+        public Set<Entry<Composite, Span>> entrySet() {
+            return new AbstractSet<Entry<Composite, Span>>() {
 
                 @Override
-                public Iterator<Entry<Composite, MutableRange>> iterator() {
+                public Iterator<Entry<Composite, Span>> iterator() {
                     return Iterators.transform(internal.entrySet().iterator(),
                             entry -> {
                                 Composite key = Composite
                                         .load(ByteBuffer.wrap(entry.getKey()));
-                                MutableRange value = new BinaryRange(
+                                Span value = new BinarySpan(
                                         entry.getValue());
                                 return new SimpleImmutableEntry<>(key, value);
                             });
@@ -602,11 +602,11 @@ public class Manifest extends TransferableByteSequence {
         }
 
         @Override
-        public MutableRange get(Object key) {
+        public Span get(Object key) {
             if(key instanceof Composite) {
                 byte[] value = internal.get(((Composite) key).bytes());
                 if(value != null) {
-                    return new BinaryRange(value);
+                    return new BinarySpan(value);
                 }
             }
             return null;
@@ -618,11 +618,11 @@ public class Manifest extends TransferableByteSequence {
         }
 
         @Override
-        public MutableRange put(Composite key, MutableRange value) {
+        public Span put(Composite key, Span value) {
             byte[] k = key.bytes();
             byte[] v = value.bytes();
             byte[] prev = internal.put(k, v);
-            return prev != null ? new BinaryRange(prev) : null;
+            return prev != null ? new BinarySpan(prev) : null;
         }
 
         @Override
@@ -633,11 +633,11 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * A {@link MutableRange} that stores positions in a byte array.
+     * A {@link Span} that stores positions in a byte array.
      *
      * @author Jeff Nelson
      */
-    private static class BinaryRange implements MutableRange {
+    private static class BinarySpan implements Span {
 
         /**
          * The bytes for each marker.
@@ -647,7 +647,7 @@ public class Manifest extends TransferableByteSequence {
         /**
          * Construct a new instance.
          */
-        BinaryRange() {
+        BinarySpan() {
             this.bytes = new byte[CONSTANT_SIZE];
             long value = NO_ENTRY;
             for (int i = 7; i >= 0; i--) {
@@ -661,7 +661,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @param bytes
          */
-        BinaryRange(ByteBuffer bytes) {
+        BinarySpan(ByteBuffer bytes) {
             this.bytes = new byte[CONSTANT_SIZE];
             bytes.get(this.bytes);
         }
@@ -671,7 +671,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @param bytes
          */
-        private BinaryRange(byte[] bytes) {
+        private BinarySpan(byte[] bytes) {
             // This constructor should only be used to construct ad ad-hoc Range
             // from a byte array that is already stored in a HeapEntries
             // instance.
@@ -694,8 +694,8 @@ public class Manifest extends TransferableByteSequence {
             if(this == obj) {
                 return true;
             }
-            else if(obj instanceof MutableRange) {
-                MutableRange other = (MutableRange) obj;
+            else if(obj instanceof Span) {
+                Span other = (Span) obj;
                 return Arrays.equals(bytes, other.bytes());
             }
             else {
@@ -760,11 +760,11 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * A {@link MutableRange} that stores positions as 64-bit long values.
+     * A {@link Span} that stores positions as 64-bit long values.
      *
      * @author Jeff Nelson
      */
-    private static class LongRange implements MutableRange {
+    private static class LongSpan implements Span {
 
         /**
          * The start position.
@@ -779,7 +779,7 @@ public class Manifest extends TransferableByteSequence {
         /**
          * Construct a new instance.
          */
-        LongRange() {
+        LongSpan() {
             this.start = NO_ENTRY;
             this.end = NO_ENTRY;
         }
@@ -789,7 +789,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @param bytes
          */
-        LongRange(ByteBuffer bytes) {
+        LongSpan(ByteBuffer bytes) {
             this.start = bytes.getLong();
             this.end = bytes.getLong();
         }
@@ -813,52 +813,6 @@ public class Manifest extends TransferableByteSequence {
         public long start() {
             return start;
         }
-
-    }
-
-    /**
-     * A {@link Range} that can be mutated.
-     *
-     * @author Jeff Nelson
-     */
-    private static interface MutableRange extends Range {
-
-        /**
-         * The number of bytes required to record each {@link MutableRange}.
-         */
-        static final int CONSTANT_SIZE = 16; // start(8), end(8)
-
-        /**
-         * Return the binary representation of this {@link MutableRange}.
-         * 
-         * @return the {@link MutableRange} bytes
-         */
-        public default byte[] bytes() {
-            byte[] bytes = new byte[CONSTANT_SIZE];
-            long start = start();
-            long end = end();
-            for (int i = 7; i >= 0; i--) {
-                bytes[i] = (byte) (start & 0xFF);
-                bytes[i + 8] = (byte) (end & 0xFF);
-                start >>= 8;
-                end >>= 8;
-            }
-            return bytes;
-        }
-
-        /**
-         * Set the end position to {@code value}.
-         * 
-         * @param value
-         */
-        void setEnd(long end);
-
-        /**
-         * Set the start position to {@code value}.
-         * 
-         * @param value
-         */
-        void setStart(long start);
 
     }
 
@@ -902,6 +856,52 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
+     * A {@link Range} that can be mutated.
+     *
+     * @author Jeff Nelson
+     */
+    private static interface Span extends Range {
+
+        /**
+         * The number of bytes required to record each {@link Span}.
+         */
+        static final int CONSTANT_SIZE = 16; // start(8), end(8)
+
+        /**
+         * Return the binary representation of this {@link Span}.
+         * 
+         * @return the {@link Span} bytes
+         */
+        public default byte[] bytes() {
+            byte[] bytes = new byte[CONSTANT_SIZE];
+            long start = start();
+            long end = end();
+            for (int i = 7; i >= 0; i--) {
+                bytes[i] = (byte) (start & 0xFF);
+                bytes[i + 8] = (byte) (end & 0xFF);
+                start >>= 8;
+                end >>= 8;
+            }
+            return bytes;
+        }
+
+        /**
+         * Set the end position to {@code value}.
+         * 
+         * @param value
+         */
+        void setEnd(long end);
+
+        /**
+         * Set the start position to {@code value}.
+         * 
+         * @param value
+         */
+        void setStart(long start);
+
+    }
+
+    /**
      * A {@link Map} that reads the {@link Entry entries} from disk one-by-one.
      * This should be used for an immutable {@link Manifest} that is larger than
      * {@link #MANIFEST_LENGTH_ENTRY_STREAMING_THRESHOLD}.
@@ -909,18 +909,18 @@ public class Manifest extends TransferableByteSequence {
      * @author Jeff Nelson
      */
     private final class StreamedEntries
-            extends AbstractMap<Composite, MutableRange> {
+            extends AbstractMap<Composite, Span> {
 
         @Override
-        public Set<Entry<Composite, MutableRange>> entrySet() {
+        public Set<Entry<Composite, Span>> entrySet() {
             // It is assumed that the return #entrySet is only used to
             // facilitate streaming all the entries, so it is not appropriate to
             // perform query operations (e.g. get()) directly on it.
-            return new AbstractSet<Entry<Composite, MutableRange>>() {
+            return new AbstractSet<Entry<Composite, Span>>() {
 
                 @Override
-                public Iterator<Entry<Composite, MutableRange>> iterator() {
-                    return new Iterator<Entry<Composite, MutableRange>>() {
+                public Iterator<Entry<Composite, Span>> iterator() {
+                    return new Iterator<Entry<Composite, Span>>() {
 
                         Iterator<ByteBuffer> it = ByteableCollections.stream(
                                 channel(), position(), length,
@@ -931,7 +931,7 @@ public class Manifest extends TransferableByteSequence {
                          * returned on each call to {@link #next()} so that we
                          * don't create unnecessary temporary objects.
                          */
-                        ReusableMapEntry<Composite, MutableRange> reusable = new ReusableMapEntry<>();
+                        ReusableMapEntry<Composite, Span> reusable = new ReusableMapEntry<>();
 
                         @Override
                         public boolean hasNext() {
@@ -939,11 +939,11 @@ public class Manifest extends TransferableByteSequence {
                         }
 
                         @Override
-                        public Entry<Composite, MutableRange> next() {
+                        public Entry<Composite, Span> next() {
                             ByteBuffer next = it.next();
-                            MutableRange range = GlobalState.ENABLE_EFFICIENT_METADATA
-                                    ? new BinaryRange(next)
-                                    : new LongRange(next);
+                            Span range = GlobalState.ENABLE_EFFICIENT_METADATA
+                                    ? new BinarySpan(next)
+                                    : new LongSpan(next);
                             Composite key = Composite.load(next);
                             reusable.setKey(key);
                             reusable.setValue(range);
@@ -963,14 +963,14 @@ public class Manifest extends TransferableByteSequence {
 
         @Override
         public void forEach(
-                BiConsumer<? super Composite, ? super MutableRange> action) {
-            for (Entry<Composite, MutableRange> entry : entrySet()) {
+                BiConsumer<? super Composite, ? super Span> action) {
+            for (Entry<Composite, Span> entry : entrySet()) {
                 action.accept(entry.getKey(), entry.getValue());
             }
         }
 
         @Override
-        public MutableRange get(Object o) {
+        public Span get(Object o) {
             if(o instanceof Composite) {
                 Composite key = (Composite) o;
                 Iterator<ByteBuffer> it = ByteableCollections.stream(channel(),
@@ -980,8 +980,8 @@ public class Manifest extends TransferableByteSequence {
                     ByteBuffer next = it.next();
                     if(equals(keyBytes, next)) {
                         return GlobalState.ENABLE_EFFICIENT_METADATA
-                                ? new BinaryRange(next)
-                                : new LongRange(next);
+                                ? new BinarySpan(next)
+                                : new LongSpan(next);
                     }
                 }
 
@@ -999,10 +999,10 @@ public class Manifest extends TransferableByteSequence {
          * @return {@code true} if there is a match
          */
         private boolean equals(ByteBuffer key, ByteBuffer next) {
-            if(key.remaining() + MutableRange.CONSTANT_SIZE == next
+            if(key.remaining() + Span.CONSTANT_SIZE == next
                     .remaining()) {
                 next.mark();
-                next.position(next.position() + MutableRange.CONSTANT_SIZE);
+                next.position(next.position() + Span.CONSTANT_SIZE);
                 if(key.equals(next)) {
                     next.reset();
                     return true;
