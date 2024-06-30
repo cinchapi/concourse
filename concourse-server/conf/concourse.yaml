@@ -212,11 +212,11 @@ enable_compaction:
 # Use a more memory-efficient representation for storage metadata.
 #
 # On average, enabling this setting will reduce the amount of heap space needed
-# for essential metadata by 33%. As a result, overall system performance may
+# for essential metadata by a third. As a result, overall system performance may
 # improve due to a reduction in garbage collection pauses.
 #
-# However, this setting may increase CPU usage and slightly impact per-operation
-# performance due to weaker reference locality.
+# However, this setting may increase CPU usage and slightly reduce peak performance
+# on a per-operation basis due to weaker reference locality.
 #
 # DEFAULT: false
 enable_efficient_metadata:

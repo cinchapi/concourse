@@ -341,8 +341,9 @@ public final class GlobalState extends Constants {
      * performance may improve due to a reduction in garbage collection pauses.
      * </p>
      * <p>
-     * However, this setting may increase CPU usage and slightly impact
-     * per-operation performance due to weaker reference locality.
+     * However, this setting may increase CPU usage and slightly reduce
+     * peak performance on a per-operation basis due to weaker reference
+     * locality.
      * </p>
      */
     @Experimental
