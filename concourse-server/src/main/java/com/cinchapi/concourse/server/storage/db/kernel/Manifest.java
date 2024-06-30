@@ -140,21 +140,11 @@ public class Manifest extends TransferableByteSequence {
      * Returned from {@link #lookup(Composite)} when an associated entry does
      * not exist.
      */
-    private static final Span NULL_RANGE = new Span() {
+    private static final Range NULL_RANGE = new Range() {
 
         @Override
         public long end() {
             return NO_ENTRY;
-        }
-
-        @Override
-        public void setEnd(long end) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setStart(long start) {
-            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -283,28 +273,26 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * Return the {@link Span} which contains the start and end
-     * positions of
-     * data related to the {@code byteables}, if data was recorded using
-     * {@link #putStart(long, Byteable...)} and
+     * Return the {@link Range} which contains the start and end
+     * positions of data related to the {@code byteables}, if data was recorded
+     * using {@link #putStart(long, Byteable...)} and
      * {@link #putEnd(long, Byteable...)}.
      * 
      * @param composite
-     * @return the {@link Span} containing the start and end positions
+     * @return the {@link Range} containing the start and end positions
      */
     public Range lookup(Byteable... bytables) {
         return lookup(Composite.create(bytables));
     }
 
     /**
-     * Return the {@link Span} which contains the start and end
-     * positions of
-     * data related to the {@code composite}, if data was recorded using
-     * {@link #putStart(long, Byteable...)} and
+     * Return the {@link Range} which contains the start and end
+     * positions of data related to the {@code composite}, if data was recorded
+     * using {@link #putStart(long, Byteable...)} and
      * {@link #putEnd(long, Byteable...)}.
      * 
      * @param composite
-     * @return the {@link Span} containing the start and end positions
+     * @return the {@link Range} containing the start and end positions
      */
     public Range lookup(Composite composite) {
         Span range = entries(composite).get(composite);
