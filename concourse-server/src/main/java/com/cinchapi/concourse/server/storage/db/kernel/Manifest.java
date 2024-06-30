@@ -273,13 +273,15 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * Return the {@link Range} which contains the start and end
-     * positions of data related to the {@code byteables}, if data was recorded
-     * using {@link #putStart(long, Byteable...)} and
+     * Return the {@link com.cinchapi.concourse.server.storage.db.kernel.Range
+     * Range} which contains the start and end positions of data related to the
+     * {@code byteables}, if data was recorded using
+     * {@link #putStart(long, Byteable...)} and
      * {@link #putEnd(long, Byteable...)}.
      * 
      * @param composite
-     * @return the {@link Range} containing the start and end positions
+     * @return the {@link com.cinchapi.concourse.server.storage.db.kernel.Range
+     *         Range} containing the start and end positions
      */
     public com.cinchapi.concourse.server.storage.db.kernel.Range lookup(
             Byteable... bytables) {
@@ -287,13 +289,15 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * Return the {@link Range} which contains the start and end
-     * positions of data related to the {@code composite}, if data was recorded
-     * using {@link #putStart(long, Byteable...)} and
+     * Return the {@link com.cinchapi.concourse.server.storage.db.kernel.Range
+     * Range} which contains the start and end positions of data related to the
+     * {@code composite}, if data was recorded using
+     * {@link #putStart(long, Byteable...)} and
      * {@link #putEnd(long, Byteable...)}.
      * 
      * @param composite
-     * @return the {@link Range} containing the start and end positions
+     * @return the {@link com.cinchapi.concourse.server.storage.db.kernel.Range
+     *         Range} containing the start and end positions
      */
     public com.cinchapi.concourse.server.storage.db.kernel.Range lookup(
             Composite composite) {
@@ -353,8 +357,8 @@ public class Manifest extends TransferableByteSequence {
         if(range == null) {
             // @formatter:off
             range = GlobalState.ENABLE_EFFICIENT_METADATA 
-                    ? new BinarySpan()
-                    : new LongSpan();
+                    ? new BinaryRange()
+                    : new LongRange();
             // @formatter:on
             entries.put(composite, range);
             // @formatter:off
@@ -552,7 +556,7 @@ public class Manifest extends TransferableByteSequence {
                             entry -> {
                                 Composite key = Composite
                                         .load(ByteBuffer.wrap(entry.getKey()));
-                                Range value = new BinarySpan(entry.getValue());
+                                Range value = new BinaryRange(entry.getValue());
                                 return new SimpleImmutableEntry<>(key, value);
                             });
                 }
@@ -570,7 +574,7 @@ public class Manifest extends TransferableByteSequence {
             if(key instanceof Composite) {
                 byte[] value = internal.get(((Composite) key).bytes());
                 if(value != null) {
-                    return new BinarySpan(value);
+                    return new BinaryRange(value);
                 }
             }
             return null;
@@ -586,7 +590,7 @@ public class Manifest extends TransferableByteSequence {
             byte[] k = key.bytes();
             byte[] v = value.bytes();
             byte[] prev = internal.put(k, v);
-            return prev != null ? new BinarySpan(prev) : null;
+            return prev != null ? new BinaryRange(prev) : null;
         }
 
         @Override
@@ -601,7 +605,7 @@ public class Manifest extends TransferableByteSequence {
      *
      * @author Jeff Nelson
      */
-    private static class BinarySpan implements Range {
+    private static class BinaryRange implements Range {
 
         /**
          * The bytes for each marker.
@@ -611,7 +615,7 @@ public class Manifest extends TransferableByteSequence {
         /**
          * Construct a new instance.
          */
-        BinarySpan() {
+        BinaryRange() {
             this.bytes = new byte[CONSTANT_SIZE];
             long value = NO_ENTRY;
             for (int i = 7; i >= 0; i--) {
@@ -625,7 +629,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @param bytes
          */
-        BinarySpan(ByteBuffer bytes) {
+        BinaryRange(ByteBuffer bytes) {
             this.bytes = new byte[CONSTANT_SIZE];
             bytes.get(this.bytes);
         }
@@ -635,7 +639,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @param bytes
          */
-        private BinarySpan(byte[] bytes) {
+        private BinaryRange(byte[] bytes) {
             // This constructor should only be used to construct ad ad-hoc Range
             // from a byte array that is already stored in a HeapEntries
             // instance.
@@ -728,7 +732,7 @@ public class Manifest extends TransferableByteSequence {
      *
      * @author Jeff Nelson
      */
-    private static class LongSpan implements Range {
+    private static class LongRange implements Range {
 
         /**
          * The start position.
@@ -743,7 +747,7 @@ public class Manifest extends TransferableByteSequence {
         /**
          * Construct a new instance.
          */
-        LongSpan() {
+        LongRange() {
             this.start = NO_ENTRY;
             this.end = NO_ENTRY;
         }
@@ -753,7 +757,7 @@ public class Manifest extends TransferableByteSequence {
          * 
          * @param bytes
          */
-        LongSpan(ByteBuffer bytes) {
+        LongRange(ByteBuffer bytes) {
             this.start = bytes.getLong();
             this.end = bytes.getLong();
         }
@@ -781,7 +785,8 @@ public class Manifest extends TransferableByteSequence {
     }
 
     /**
-     * A {@link Range} that can be mutated.
+     * A {@link com.cinchapi.concourse.server.storage.db.kernel.Range Range} for
+     * {@link Manifest} entries.
      *
      * @author Jeff Nelson
      */
@@ -906,8 +911,8 @@ public class Manifest extends TransferableByteSequence {
                         public Entry<Composite, Range> next() {
                             ByteBuffer next = it.next();
                             Range range = GlobalState.ENABLE_EFFICIENT_METADATA
-                                    ? new BinarySpan(next)
-                                    : new LongSpan(next);
+                                    ? new BinaryRange(next)
+                                    : new LongRange(next);
                             Composite key = Composite.load(next);
                             reusable.setKey(key);
                             reusable.setValue(range);
@@ -944,8 +949,8 @@ public class Manifest extends TransferableByteSequence {
                     ByteBuffer next = it.next();
                     if(equals(keyBytes, next)) {
                         return GlobalState.ENABLE_EFFICIENT_METADATA
-                                ? new BinarySpan(next)
-                                : new LongSpan(next);
+                                ? new BinaryRange(next)
+                                : new LongRange(next);
                     }
                 }
 
