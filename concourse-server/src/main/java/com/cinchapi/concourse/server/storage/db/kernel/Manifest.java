@@ -958,6 +958,12 @@ public class Manifest extends TransferableByteSequence {
             return null;
         }
 
+        @Override
+        public Range getOrDefault(Object key, Range defaultValue) {
+            Range value = get(key);
+            return value != null ? value : defaultValue;
+        }
+
         /**
          * Assuming {@code key} is the {@link Composite#getBytes() byte buffer}
          * of a {@link Composite}, return {@code true} if the {@link Composite}
