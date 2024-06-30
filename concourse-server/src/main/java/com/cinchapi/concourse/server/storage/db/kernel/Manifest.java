@@ -390,8 +390,7 @@ public class Manifest extends TransferableByteSequence {
 
     @Override
     protected void free() {
-        this.$entries = new SoftReference<Map<Composite, Span>>(
-                entries);
+        this.$entries = new SoftReference<Map<Composite, Span>>(entries);
         this.entries = null; // Make eligible for GC
     }
 
@@ -465,8 +464,7 @@ public class Manifest extends TransferableByteSequence {
                         : new HashMap<>(capacity);
                 executor.execute(() -> {
                     boolean found = false;
-                    for (Entry<Composite, Span> entry : entries
-                            .entrySet()) {
+                    for (Entry<Composite, Span> entry : entries.entrySet()) {
                         Composite key = entry.getKey();
                         Span value = entry.getValue();
                         heapEntries.put(key, value);
@@ -587,8 +585,7 @@ public class Manifest extends TransferableByteSequence {
                             entry -> {
                                 Composite key = Composite
                                         .load(ByteBuffer.wrap(entry.getKey()));
-                                Span value = new BinarySpan(
-                                        entry.getValue());
+                                Span value = new BinarySpan(entry.getValue());
                                 return new SimpleImmutableEntry<>(key, value);
                             });
                 }
@@ -908,8 +905,7 @@ public class Manifest extends TransferableByteSequence {
      *
      * @author Jeff Nelson
      */
-    private final class StreamedEntries
-            extends AbstractMap<Composite, Span> {
+    private final class StreamedEntries extends AbstractMap<Composite, Span> {
 
         @Override
         public Set<Entry<Composite, Span>> entrySet() {
@@ -999,8 +995,7 @@ public class Manifest extends TransferableByteSequence {
          * @return {@code true} if there is a match
          */
         private boolean equals(ByteBuffer key, ByteBuffer next) {
-            if(key.remaining() + Span.CONSTANT_SIZE == next
-                    .remaining()) {
+            if(key.remaining() + Span.CONSTANT_SIZE == next.remaining()) {
                 next.mark();
                 next.position(next.position() + Span.CONSTANT_SIZE);
                 if(key.equals(next)) {
