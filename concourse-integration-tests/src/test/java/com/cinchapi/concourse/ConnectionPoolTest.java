@@ -25,6 +25,7 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Environments;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -193,6 +194,33 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
         });
     }
 
+    @Test
+    public void testCopyConnectionPoolIndependentOfCopiedHandler()
+            throws Exception {
+        Concourse concourse = Concourse.connect(SERVER_HOST, SERVER_PORT,
+                USERNAME, PASSWORD, Random.getSimpleString());
+        ConnectionPool pool = getConnectionPool(concourse);
+        try {
+            concourse.exit();
+            try {
+                concourse.inventory();
+                Assert.fail();
+            }
+            catch (Exception e) {
+                Assert.assertTrue(true);
+            }
+            for (int i = 0; i < TestData.getScaleCount(); ++i) {
+                Concourse connection = pool.request();
+                connection.inventory();
+                Assert.assertTrue(true);
+                pool.release(connection);
+            }
+        }
+        finally {
+            pool.close();
+        }
+    }
+
     /**
      * Return a {@link com.cinchapi.concourse.ConnectionPool} to use in a unit
      * test.
@@ -210,5 +238,13 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
      * @return the ConnectionPool
      */
     protected abstract ConnectionPool getConnectionPool(String env);
+
+    /**
+     * Return a {@link ConnectionPool} to use in a unit test.
+     * 
+     * @param concourse
+     * @return the {@link ConnectionPool}
+     */
+    protected abstract ConnectionPool getConnectionPool(Concourse concourse);
 
 }

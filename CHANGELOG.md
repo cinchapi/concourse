@@ -8,6 +8,7 @@
 * Fixed a bug that kept HELP documentation from being packaged with Concourse Shell and prevented it from being displayed.
 * Added a fallback option to display Concourse Shell HELP documentation in contexts when the `less` command isn't available (e.g., IDEs).
 * Fixed a bug that caused Concourse Server to unnecessarily add error logging whenever a client disconnected.
+* Added the ability to create `ConnectionPool`s that copy the credentials and connection information from an existing handler These copying connection pools can be created by using the respective "cached" or "fixed" factory methods in the `ConnectionPool` class that take a `Concourse` parameter.
 
 #### Version 0.11.5 (November 5, 2022)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).

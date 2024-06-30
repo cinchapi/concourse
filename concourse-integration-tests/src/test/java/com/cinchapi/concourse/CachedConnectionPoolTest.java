@@ -56,4 +56,9 @@ public class CachedConnectionPoolTest extends ConnectionPoolTest {
                 USERNAME, PASSWORD, env);
     }
 
+    @Override
+    protected ConnectionPool getConnectionPool(Concourse concourse) {
+        return ConnectionPool.newCachedConnectionPool(concourse);
+    }
+
 }

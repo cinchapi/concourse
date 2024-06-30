@@ -301,6 +301,52 @@ public abstract class ConnectionPool implements AutoCloseable {
     }
 
     /**
+     * Returns a {@link ConnectionPool} populated with handlers that
+     * {@link Concourse#copyExistingConnection(Concourse) copy} the connection
+     * information of the provided {@code concourse} instance. The pool has no
+     * limit on the number of connections it can manage, but will attempt to use
+     * previously created connections before establishing new ones on request.
+     *
+     * <p>
+     * <strong>NOTE:</strong> The provided {@code concourse} connection will not
+     * be a member of the returned {@link ConnectionPool} and its status will
+     * not affect the status of any connections managed by the pool.
+     * </p>
+     *
+     * @param concourse the {@link Concourse} connection to copy when populating
+     *            the {@link ConnectionPool}
+     * @return the populated {@link ConnectionPool}
+     */
+    public static ConnectionPool newCachedConnectionPool(Concourse concourse) {
+        return new CachedConnectionPool(() -> concourse.copyConnection(),
+                DEFAULT_POOL_SIZE);
+    }
+
+    /**
+     * Returns a {@link ConnectionPool} populated with handlers that
+     * {@link Concourse#copyExistingConnection(Concourse) copy} the connection
+     * information of the provided {@code concourse} instance. The pool will
+     * contain {@code poolSize} connections. If all connections are active,
+     * subsequent requests will block until a connection is returned.
+     *
+     * <p>
+     * <strong>NOTE:</strong> The provided {@code concourse} connection will not
+     * be a member of the returned {@link ConnectionPool} and its status will
+     * not affect the status of any connections managed by the pool.
+     * </p>
+     *
+     * @param concourse the {@link Concourse} connection to copy when populating
+     *            the {@link ConnectionPool}
+     * @param poolSize the number of connections in the pool
+     * @return the populated {@link ConnectionPool}
+     */
+    public static ConnectionPool newFixedConnectionPool(Concourse concourse,
+            int poolSize) {
+        Supplier<Concourse> supplier = () -> concourse.copyConnection();
+        return new FixedConnectionPool(supplier, poolSize);
+    }
+
+    /**
      * A FIFO queue of connections that are available to be leased.
      */
     protected final Queue<Concourse> available;

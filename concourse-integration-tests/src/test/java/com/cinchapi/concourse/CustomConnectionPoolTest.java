@@ -16,6 +16,7 @@
 package com.cinchapi.concourse;
 
 import java.util.Queue;
+import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,6 +40,11 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
     protected ConnectionPool getConnectionPool(String env) {
         return new CustomConnectionPool(SERVER_HOST, SERVER_PORT, USERNAME,
                 PASSWORD, env, 10);
+    }
+
+    @Override
+    protected ConnectionPool getConnectionPool(Concourse concourse) {
+        return new CustomConnectionPool(() -> concourse.copyConnection(), 10);
     }
 
     @Test
@@ -72,6 +78,17 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
     }
 
     static class CustomConnectionPool extends ConnectionPool {
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param concourse
+         * @param poolSize
+         */
+        public CustomConnectionPool(Supplier<Concourse> concourse,
+                int poolSize) {
+            super(concourse, poolSize);
+        }
 
         /**
          * Construct a new instance.
