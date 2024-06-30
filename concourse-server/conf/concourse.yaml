@@ -175,9 +175,7 @@ log_level:
 # the length of the longest possible word in the search language. For example,
 # the longest possible word in English is about 40 characters long.
 #
-# By default, search substrings are not limited.
-#
-# DEFAULT: no limit
+# DEFAULT: 40
 max_search_substring_length:
 
 # The listener port (1-65535) for shutdown commands. Choose a port between
@@ -203,8 +201,8 @@ remote_debugger_port:
 
 # Potentially use multiple threads to asynchronously read data from disk.
 #
-# When enabled, reads will typically be faster when accessing data too large to
-# fit in memory or no longer cached due to memory constraints.
+# When enabled, reads will typically be faster when accessing data that is too
+# large to ever fit in memory or no longer cached due to memory constraints.
 #
 # This setting is particularly useful for search data since those indexes are
 # not cached by default (unless ENABLE_SEARCH_CACHE is enabled). Even if search
@@ -212,7 +210,7 @@ remote_debugger_port:
 # size of some search metadata exceeds the limits of what is cacheable in
 # memory.
 #
-# Note: There might be some overhead that could make some reads slower if all
+# NOTE: There might be some overhead that could make some reads slower if all
 # their relevant segment metadata is cached and there is high contention.
 #
 # DEFAULT: false
@@ -229,6 +227,18 @@ enable_async_data_reads:
 #
 # DEFAULT: false
 enable_compaction:
+
+# Use a more memory-efficient representation for storage metadata.
+#
+# On average, enabling this setting will reduce the amount of heap space needed
+# for essential metadata by a third. As a result, overall system performance may
+# improve due to a reduction in garbage collection pauses.
+#
+# However, this setting may increase CPU usage and slightly reduce peak
+# performance on a per-operation basis due to weaker reference locality.
+#
+# DEFAULT: false
+enable_efficient_metadata:
 
 # Maintain and in-memory cache of the data indexes used to respond to search
 # commands. Search indexes tend to be much larger than those used for primary

@@ -9,6 +9,7 @@ We made several changes to improve search performance and accuracy:
   * **Previous Configuration**: In earlier versions, Concourse Server could be configured using the `conf/stopwords.txt` file to exclude common stopwords from indexing and search operations. This approach was designed to reduce storage requirements and improve search performance by removing frequently occurring, but generally less significant words.
   * **Rationale for Change**: Preserving stopwords is crucial for maintaining context, which can significantly enhance the accuracy of search results and the effectiveness of ranking algorithms. Since affordable storage and computational resources are more abundant, resource usage is no longer a concern and it makes more sense to prioritze better search accuracy and system robustness. Lastly, preserving stopwords eliminates corner case bugs that are inherent to the way Concourse's search algorithm interacts with the buffered storage system.
   * **Upgrade Implications**: Upon upgrading to this version, an automatic reindexing task will be initiated to ensure that all previously indexed data conforms to the new no-stopword-removal policy. It's important to allocate downtime for this reindexing to occur. And, it is wise to anticipate more storage spaced being used due to stopwords being included in the search corpus.
+* Changed the default value of the `max_search_substring_length` configuration option to `40`. The previous default allowed unlimited substring lengths, which increased search index size and hurt performance. Existing explicit configurations for this option remain unchanged.
 
 ##### Locking Optimizations
 We made several changes to improve the safety, scalability and operational efficiency of the Just-in-Time (JIT) locking protocol:
@@ -35,6 +36,11 @@ We made several changes to improve the safety, scalability and operational effic
 	* `ConcourseCodebase` - Provides programmatic interaction with a local copy of the Concourse source code. Can be used to build installer artifacts.
 	* `ConcourseArtifacts` - Provides factory methods to retrieve local copies of Concourse artifacts for any version. Can be used to download the installer for a released version.
 	* `ManagedConcourseServer` - Provdes the ability to control an external Concourse Server process within another application.
+
+##### New Functionality
+* Added the ability to create `ConnectionPool`s that copy the credentials and connection information from an existing handler These copying connection pools can be created by using the respective "cached" or "fixed" factory methods in the `ConnectionPool` class that take a `Concourse` parameter.
+* Reduced the amount of heap space required for essential storage metadata.
+* Added the `enable_efficient_metadata` configuration option to further reduce the amount of heap space required for essential storage metadata. When this option is set to `true`, metadata will occupy approximately one-third less heap space and likely improve overall system performance due to a decrease in garbage collection pauses (although per-operation performance may be slightly affected by additional overhead).
 
 ##### Bug Fixes
 * [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
