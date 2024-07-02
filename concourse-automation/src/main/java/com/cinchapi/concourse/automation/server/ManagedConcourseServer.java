@@ -974,6 +974,19 @@ public final class ManagedConcourseServer {
         }
 
         /**
+         * Constructor for {@link #copyConnection()}.
+         * 
+         * @param clazz
+         * @param delegate
+         * @param loader
+         */
+        private Client(Class<?> clazz, Object delegate, ClassLoader loader) {
+            this.clazz = clazz;
+            this.delegate = delegate;
+            this.loader = loader;
+        }
+
+        /**
          * Construct a new instance.
          * 
          * @param username
@@ -3045,7 +3058,7 @@ public final class ManagedConcourseServer {
 
         @Override
         protected Concourse copyConnection() {
-            throw new UnsupportedOperationException();
+            return new Client(clazz, invoke("copyConnection").with(), loader);
         }
 
         /**
