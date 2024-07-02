@@ -33,6 +33,7 @@ import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.server.ManagedConcourseServer.ReflectiveClient;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.util.ConcourseCodebase;
+import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -192,6 +193,15 @@ public class ManagedConcourseServerTest {
         Concourse concourse = server.connect();
         concourse.select(ImmutableList.of(1L, 2L), Page.of(1, 1));
         Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Test
+    public void testCopyClientConnection() {
+        server.start();
+        Concourse a = server.connect("admin", "admin",
+                Random.getSimpleString());
+        Concourse b = Concourse.copyExistingConnection(a);
+        Assert.assertEquals(a.getServerEnvironment(), b.getServerEnvironment());
     }
 
 }
