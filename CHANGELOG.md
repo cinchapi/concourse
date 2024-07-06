@@ -1,6 +1,6 @@
 ## Changelog
 
-#### Version 0.11.6 (TBD)
+#### Version 0.11.6 (July 6, 2024)
 * Added new configuration options for initializing Concourse Server with custom admin credentials upon first run. These options enhance security by allowing a non-default usernames and passwords before starting the server.
 	* The `init_root_username` option in `concourse.prefs` can be used to specify the username for the initial administrator account.
 	* The `init_root_password` option in `concourse.prefs` can be used to specify the password for the initial administrator account
