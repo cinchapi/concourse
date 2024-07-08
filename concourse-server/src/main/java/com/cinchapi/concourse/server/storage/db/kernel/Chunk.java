@@ -47,7 +47,6 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Record;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.kernel.Manifest.Range;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.lib.offheap.collect.OffHeapSortedSet;
 import com.cinchapi.lib.offheap.io.Serializer;

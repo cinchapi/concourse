@@ -276,7 +276,7 @@ public final class GlobalState extends Constants {
      * is about 40 characters long.
      * </p>
      */
-    public static int MAX_SEARCH_SUBSTRING_LENGTH = -1;
+    public static int MAX_SEARCH_SUBSTRING_LENGTH = 40;
 
     /**
      * The password that is assigned to the root administrator account when
@@ -332,6 +332,22 @@ public final class GlobalState extends Constants {
      */
     @Experimental
     public static boolean ENABLE_VERIFY_BY_LOOKUP = false;
+
+    /**
+     * Use a more memory-efficient representation for storage metadata.
+     * <p>
+     * On average, enabling this setting will reduce the amount of heap space
+     * needed for essential metadata by 33%. As a result, overall system
+     * performance may improve due to a reduction in garbage collection pauses.
+     * </p>
+     * <p>
+     * However, this setting may increase CPU usage and slightly reduce
+     * peak performance on a per-operation basis due to weaker reference
+     * locality.
+     * </p>
+     */
+    @Experimental
+    public static boolean ENABLE_EFFICIENT_METADATA = false;
 
     static {
         List<String> files = ImmutableList.of(
@@ -415,10 +431,13 @@ public final class GlobalState extends Constants {
                 ENABLE_VERIFY_BY_LOOKUP);
 
         INIT_ROOT_PASSWORD = config.getOrDefault("init.root.password",
-                config.getOrDefault("init_root_password", "admin"));
+                config.getOrDefault("init_root_password", INIT_ROOT_PASSWORD));
 
         INIT_ROOT_USERNAME = config.getOrDefault("init.root.username",
-                config.getOrDefault("init_root_username", "admin"));
+                config.getOrDefault("init_root_username", INIT_ROOT_USERNAME));
+
+        ENABLE_EFFICIENT_METADATA = config.getOrDefault(
+                "enable_efficient_metadata", ENABLE_EFFICIENT_METADATA);
         // =================== PREF READING BLOCK ====================
     }
 
