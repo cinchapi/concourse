@@ -94,7 +94,6 @@ public class IndexRecordTest extends RecordTest<Text, Value, Identifier> {
             else {
                 Assert.assertFalse(data.containsKey(pk));
             }
-
         }
     }
 
@@ -111,6 +110,22 @@ public class IndexRecordTest extends RecordTest<Text, Value, Identifier> {
         IndexRecord index = (IndexRecord) record;
         Map<Identifier, Set<Value>> data = index.findAndGet(Operator.REGEX,
                 Value.wrap(Convert.javaToThrift(".*business.*")));
+        Assert.assertFalse(data.isEmpty());
+    }
+
+    @Test
+    public void testContains() {
+        Text locator = Text.wrap("major");
+        record = getRecord(locator);
+        record.append(getRevision(locator,
+                Value.wrap(Convert.javaToThrift("Business Management")),
+                Identifier.of(1)));
+        record.append(getRevision(locator,
+                Value.wrap(Convert.javaToThrift("business management")),
+                Identifier.of(2)));
+        IndexRecord index = (IndexRecord) record;
+        Map<Identifier, Set<Value>> data = index.findAndGet(Operator.CONTAINS,
+                Value.wrap(Convert.javaToThrift("business")));
         Assert.assertFalse(data.isEmpty());
     }
 }

@@ -48,6 +48,7 @@ dependencies {
     testCompile 'com.carrotsearch:junit-benchmarks:0.7.2'
     testCompile 'io.takari.junit:takari-cpsuite:1.2.7'
     testCompile project(':concourse-unit-test-core')
+    testCompile project(path: ':concourse-driver-java', configuration: 'testArtifacts')
 }
 
 test {
