@@ -1092,6 +1092,11 @@ public abstract class ForwardingConcourse extends Concourse {
     }
 
     @Override
+    public boolean ping() {
+        return concourse.ping();
+    }
+
+    @Override
     public Map<Long, Boolean> ping(Collection<Long> records) {
         return concourse.ping(records);
     }
