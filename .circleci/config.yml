@@ -35,7 +35,7 @@ jobs:
       - checkout:
           path: ~/$CIRCLE_PROJECT_REPONAME
       - setup_remote_docker:
-          version: 17.09.0-ce
+          version: default
           docker_layer_caching: true
       - ruby/install:
           version: '2.7'
