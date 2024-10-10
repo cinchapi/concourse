@@ -1,5 +1,8 @@
 ## Changelog
 
+#### Version 0.11.7 (TBD)
+* Fixed a bug that made it possible to leak filesystem resources by opening duplicate file descriptors for the same Segment file. At scale, this could prematurely lead to "too many open files" errors.
+
 #### Version 0.11.6 (July 6, 2024)
 * Added new configuration options for initializing Concourse Server with custom admin credentials upon first run. These options enhance security by allowing a non-default usernames and passwords before starting the server.
 	* The `init_root_username` option in `concourse.prefs` can be used to specify the username for the initial administrator account.
