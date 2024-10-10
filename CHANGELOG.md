@@ -67,6 +67,9 @@ We made several changes to improve the safety, scalability and operational effic
 	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
 	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
 
+#### Version 0.11.7 (TBD)
+* Fixed a bug that made it possible to leak filesystem resources by opening duplicate file descriptors for the same Segment file. At scale, this could prematurely lead to "too many open files" errors.
+
 #### Version 0.11.6 (July 6, 2024)
 * Added new configuration options for initializing Concourse Server with custom admin credentials upon first run. These options enhance security by allowing a non-default usernames and passwords before starting the server.
 	* The `init_root_username` option in `concourse.prefs` can be used to specify the username for the initial administrator account.
