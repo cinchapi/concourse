@@ -119,8 +119,8 @@ public class Queue extends Limbo {
     @Override
     public Set<String> describe(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        if(context.isEmpty() && table != null && timestamp == Time.NONE) {
-            return table.select(record).keySet();
+        if(context.isEmpty() && timestamp == Time.NONE && isReadOptimized()) {
+            return table().select(record).keySet();
         }
         else {
             return super.describe(record, timestamp, context);
@@ -157,11 +157,10 @@ public class Queue extends Limbo {
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        Table table = table();
-        if(context.isEmpty() && table != null && timestamp == Time.NONE) {
+        if(context.isEmpty() && timestamp == Time.NONE && isReadOptimized()) {
             Map<String, Set<TObject>> data = new TreeMap<>(
                     (s1, s2) -> s1.compareToIgnoreCase(s2));
-            data.putAll(table.select(record));
+            data.putAll(table().select(record));
             return data;
         }
         else {
@@ -172,9 +171,8 @@ public class Queue extends Limbo {
     @Override
     public Set<TObject> select(String key, long record, long timestamp,
             Set<TObject> context) {
-        Table table = table();
-        if(context.isEmpty() && table != null && timestamp == Time.NONE) {
-            return table.lookup(record, key);
+        if(context.isEmpty() && timestamp == Time.NONE && isReadOptimized()) {
+            return table().lookup(record, key);
         }
         else {
             return super.select(key, record, timestamp, context);
@@ -226,10 +224,9 @@ public class Queue extends Limbo {
 
     @Override
     public boolean verify(Write write, long timestamp) {
-        BloomFilter filter = filter();
-        if(filter == null
-                || (filter != null && filter.mightContainCached(write.getKey(),
-                        write.getValue(), write.getRecord()))) {
+        if(!isReadOptimized()
+                || (isReadOptimized() && filter().mightContainCached(
+                        write.getKey(), write.getValue(), write.getRecord()))) {
             return super.verify(write, timestamp);
         }
         else {
@@ -240,9 +237,9 @@ public class Queue extends Limbo {
     @Override
     @Nullable
     protected Action getLastWriteAction(Write write, long timestamp) {
-        if(filter == null
-                || (filter != null && filter.mightContainCached(write.getKey(),
-                        write.getValue(), write.getRecord()))) {
+        if(!isReadOptimized()
+                || (isReadOptimized() && filter().mightContainCached(
+                        write.getKey(), write.getValue(), write.getRecord()))) {
             return super.getLastWriteAction(write, timestamp);
         }
         else {
