@@ -26,6 +26,7 @@ import java.util.Set;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
+import com.google.common.base.MoreObjects;
 
 /**
  * A structured data view that organizes {@link Write Writes} into a tabular
@@ -42,6 +43,17 @@ import com.cinchapi.concourse.thrift.TObject;
  */
 public class Table {
 
+    /**
+     * The underlying data structure that stores the table's contents.
+     * <p>
+     * The structure is organized as follows:
+     * - The outer Map uses record IDs (Long) as keys
+     * - The middle Map uses column names (String) as keys
+     * - The innermost Set stores the actual values (TObject) for each cell
+     * <p>
+     * Using LinkedHashSet for values ensures insertion order is preserved while
+     * preventing duplicate entries.
+     */
     private final Map<Long, Map<String, Set<TObject>>> data;
 
     /**
@@ -94,17 +106,16 @@ public class Table {
         Objects.requireNonNull(record, "Record cannot be null");
         Objects.requireNonNull(key, "Key cannot be null");
 
-        Map<String, Set<TObject>> recordMap = data.get(record);
-        if(recordMap == null) {
+        Map<String, Set<TObject>> column = data.get(record);
+        if(column == null) {
             return Collections.emptySet();
         }
 
-        Set<TObject> removed = recordMap.remove(key);
-        if(recordMap.isEmpty()) {
+        Set<TObject> removed = column.remove(key);
+        if(column.isEmpty()) {
             data.remove(record);
         }
-        return removed != null ? Collections.unmodifiableSet(removed)
-                : Collections.emptySet();
+        return MoreObjects.firstNonNull(removed, Collections.emptySet());
     }
 
     /**
@@ -118,15 +129,7 @@ public class Table {
     public Map<String, Set<TObject>> delete(Long record) {
         Objects.requireNonNull(record, "Record cannot be null");
         Map<String, Set<TObject>> removed = data.remove(record);
-        if(removed == null) {
-            return Collections.emptyMap();
-        }
-
-        // Create unmodifiable view with unmodifiable sets
-        Map<String, Set<TObject>> unmodifiableMap = new HashMap<>();
-        removed.forEach((key, value) -> unmodifiableMap.put(key,
-                Collections.unmodifiableSet(value)));
-        return Collections.unmodifiableMap(unmodifiableMap);
+        return MoreObjects.firstNonNull(removed, Collections.emptyMap());
     }
 
     @Override
@@ -169,9 +172,8 @@ public class Table {
         Objects.requireNonNull(record, "Record cannot be null");
         Objects.requireNonNull(key, "Key cannot be null");
 
-        return Collections.unmodifiableSet(
-                data.getOrDefault(record, Collections.emptyMap())
-                        .getOrDefault(key, Collections.emptySet()));
+        return data.getOrDefault(record, Collections.emptyMap())
+                .getOrDefault(key, Collections.emptySet());
     }
 
     /**
@@ -211,17 +213,17 @@ public class Table {
         Objects.requireNonNull(key, "Key cannot be null");
         Objects.requireNonNull(value, "Value cannot be null");
 
-        return data.computeIfPresent(record, (recordKey, recordMap) -> {
-            boolean removed = Optional.ofNullable(recordMap.get(key))
+        return data.computeIfPresent(record, (k, column) -> {
+            boolean removed = Optional.ofNullable(column.get(key))
                     .map(values -> values.remove(value)).orElse(false);
 
             if(removed) {
-                if(recordMap.get(key).isEmpty()) {
-                    recordMap.remove(key);
+                if(column.get(key).isEmpty()) {
+                    column.remove(key);
                 }
-                return recordMap.isEmpty() ? null : recordMap;
+                return column.isEmpty() ? null : column;
             }
-            return recordMap;
+            return column;
         }) != null;
     }
 
@@ -231,7 +233,7 @@ public class Table {
      * @return An unmodifiable view of all record identifiers
      */
     public Set<Long> rows() {
-        return Collections.unmodifiableSet(data.keySet());
+        return new LinkedHashSet<>(data.keySet());
     }
 
     /**
@@ -246,12 +248,16 @@ public class Table {
     public Map<String, Set<TObject>> select(Long record) {
         Objects.requireNonNull(record, "Record cannot be null");
 
-        return Collections.unmodifiableMap(data
-                .getOrDefault(record, Collections.emptyMap()).entrySet()
-                .stream().collect(HashMap::new,
-                        (m, e) -> m.put(e.getKey(),
-                                Collections.unmodifiableSet(e.getValue())),
-                        HashMap::putAll));
+        Map<String, Set<TObject>> row = data.getOrDefault(record,
+                Collections.emptyMap());
+        if(row.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, Set<TObject>> result = new HashMap<>();
+        row.forEach(
+                (key, value) -> result.put(key, new LinkedHashSet<>(value)));
+        return result;
     }
 
     /**
