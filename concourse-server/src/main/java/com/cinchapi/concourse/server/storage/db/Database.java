@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -237,12 +237,14 @@ public final class Database implements DurableStore {
 
     /**
      * Corpus Cache
-     * ------------
+     * <hr />
+     * <p>
      * Caching for {@link CorpusRecord CorpusRecords} are segmented by key. This
      * is done in an attempt to avoid attempting cache updates for every infix
      * of a value when it is known that no search caches exist for the key from
      * which the value is mapped (e.g. we are indexing a term for a key that
      * isn't being searched).
+     * </p>
      */
     private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
             ? new ConcurrentHashMap<>()
@@ -265,16 +267,19 @@ public final class Database implements DurableStore {
 
     /**
      * Index Cache
-     * -----------
+     * <hr />
+     * <p>
      * Records are cached in memory to reduce the number of seeks required. When
      * writing new revisions, we check the appropriate caches for relevant
      * records and append the new revision so that the cached data doesn't grow
      * stale.
-     * 
+     * </p>
+     * <p>
      * The caches are only populated if the Database is #running (see
      * #accept(Write)). Attempts to get a Record when the Database is not
      * running will ignore the cache by virtue of an internal wrapper that has
      * the appropriate detection.
+     * </p>
      */
     private final Cache<Composite, IndexRecord> indexCache = buildCache();
 
@@ -293,6 +298,7 @@ public final class Database implements DurableStore {
      * A flag to indicate if the Buffer is running or not.
      */
     private transient boolean running = false;
+
     /**
      * We hold direct references to the current Segment. This pointer changes
      * whenever the database triggers a sync operation.
@@ -322,31 +328,37 @@ public final class Database implements DurableStore {
 
     /**
      * Table Cache
-     * -----------
+     * <hr />
+     * <p>
      * Records are cached in memory to reduce the number of seeks required. When
      * writing new revisions, we check the appropriate caches for relevant
      * records and append the new revision so that the cached data doesn't grow
      * stale.
-     * 
+     * </p>
+     * <p>
      * The caches are only populated if the Database is #running (see
      * #accept(Write)). Attempts to get a Record when the Database is not
      * running will ignore the cache by virtue of an internal wrapper that has
      * the appropriate detection.
+     * </p>
      */
     private final Cache<Composite, TableRecord> tableCache = buildCache();
 
     /**
      * Partial Table Cache
-     * -------------------
+     * <hr />
+     * <p>
      * Records are cached in memory to reduce the number of seeks required. When
      * writing new revisions, we check the appropriate caches for relevant
      * records and append the new revision so that the cached data doesn't grow
      * stale.
-     * 
+     * </p>
+     * <p>
      * The caches are only populated if the Database is #running (see
      * #accept(Write)). Attempts to get a Record when the Database is not
      * running will ignore the cache by virtue of an internal wrapper that has
      * the appropriate detection.
+     * </p>
      */
     private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
 
@@ -619,6 +631,41 @@ public final class Database implements DurableStore {
         }
     }
 
+    /**
+     * {@link Segment#reindex() Reindex} every {@link Segment} in the
+     * {@link Database}.
+     * <p>
+     * This operation will block reads and writes until it finishes.
+     * </p>
+     */
+    public void reindex() {
+        // NOTE: Reindexing must be single threaded because there are a fixed
+        // number of dedicated threads dedicated for searching indexing (see
+        // CorpusChunk) and multiple threads enqueing here, would cause
+        // thrashing.
+        masterLock.writeLock().lock();
+        try {
+            for (int i = 0; i < segments.size(); ++i) {
+                Segment current = segments.get(i);
+                Segment updated = current.reindex();
+                if(current == seg0) {
+                    seg0 = updated;
+                }
+                else {
+                    storage.save(updated);
+                    current.delete();
+                }
+                segments.set(i, updated);
+                Logger.info(
+                        "Reindexed Segment {}. The data is now available in Segment {}",
+                        current.id(), updated);
+            }
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
+    }
+
     @Override
     public void repair() {
         masterLock.writeLock().lock();
@@ -632,8 +679,7 @@ public final class Database implements DurableStore {
                     Segment segment = segments.get(i);
                     Segment clean = deduped.get(segment);
                     if(clean != null) {
-                        clean.transfer(storage.directory()
-                                .resolve(UUID.randomUUID() + ".seg"));
+                        storage.save(clean);
                         segments.set(i, clean);
                         segment.delete();
                     }
@@ -678,15 +724,7 @@ public final class Database implements DurableStore {
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
             Multimap<Identifier, Integer> reference = ImmutableMultimap.of();
             boolean initial = true;
-            int offset = 0;
             for (String word : words) {
-                if(GlobalState.STOPWORDS.contains(word)) {
-                    // When skipping a stop word, we must record an offset to
-                    // correctly determine if the next term match is in the
-                    // correct relative position to the previous term match
-                    ++offset;
-                    continue;
-                }
                 Text K = Text.wrap(word);
                 CorpusRecord corpus = getCorpusRecord(L, K);
                 Set<Position> appearances = corpus.get(K);
@@ -699,7 +737,7 @@ public final class Database implements DurableStore {
                     }
                     else {
                         for (int current : reference.get(record)) {
-                            if(position == current + 1 + offset) {
+                            if(position == current + 1) {
                                 temp.put(record, position);
                             }
                         }
@@ -707,7 +745,6 @@ public final class Database implements DurableStore {
                 }
                 initial = false;
                 reference = temp;
-                offset = 0;
             }
 
             // Result Scoring: Scoring is simply the number of times the query
@@ -949,7 +986,7 @@ public final class Database implements DurableStore {
      * 
      * @return the cache
      */
-    private <T> Cache<Composite, T> buildCache() {
+    private <T extends Record<?, ?, ?>> Cache<Composite, T> buildCache() {
         Cache<Composite, T> cache = CacheBuilder.newBuilder()
                 .maximumSize(100000).softValues().build();
         return new RunningAwareCache<>(cache);
@@ -1440,6 +1477,7 @@ public final class Database implements DurableStore {
          * 
          * @return the storage directory
          */
+        @SuppressWarnings("unused")
         public Path directory() {
             return directory;
         }

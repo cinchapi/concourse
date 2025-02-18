@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.io.Composite;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Identifier;
@@ -47,7 +46,6 @@ import com.cinchapi.concourse.util.Resources;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.TestData;
 import com.cinchapi.lib.offheap.memory.OffHeapMemory;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
@@ -122,8 +120,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
             position = 0;
             for (String string : value.getObject().toString().split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
-                if(!GlobalState.STOPWORDS.contains(string)
-                        && !Strings.isNullOrEmpty(string)) {
+                if(!Strings.isNullOrEmpty(string)) {
                     term = Text.wrap(string);
                     break;
                 }
@@ -137,7 +134,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
                 getRecord(), position);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testMightContainLocatorKeyValueReproCON_1() {
         doTestMightContainLocatorKeyValue(
                 Text.wrap("eqcicldw12dsowa7it4vi0pnqgewxci4c3ihyzf"),
@@ -156,8 +153,7 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
             position = 0;
             for (String string : value.getObject().toString().split(
                     TStrings.REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS)) {
-                if(!GlobalState.STOPWORDS.contains(string)
-                        && !Strings.isNullOrEmpty(string)) {
+                if(!Strings.isNullOrEmpty(string)) {
                     term = Text.wrap(string);
                     break;
                 }
@@ -359,8 +355,6 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
      */
     private void doTestMightContainLocatorKeyValue(Text locator, Value value,
             Text term, Identifier record, int position) {
-        Preconditions.checkArgument(
-                !GlobalState.STOPWORDS.contains(term.toString()));
         Variables.register("locator", locator);
         Variables.register("value", value);
         Variables.register("term", term);

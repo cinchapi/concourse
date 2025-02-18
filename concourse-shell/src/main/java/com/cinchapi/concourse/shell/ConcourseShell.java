@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.process.Processes;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Link;
@@ -190,6 +191,17 @@ public final class ConcourseShell {
                                     .exec(new String[] { "sh", "-c", "echo \""
                                             + text + "\" | less > /dev/tty" });
                             p.waitFor();
+                            if(p.exitValue() != 0) {
+                                // There was an error trying to use 'less' so
+                                // fallback to outputting the help text directly
+                                Processes.getStdErr(p).stream()
+                                        .forEach(System.err::println);
+                                System.err.println("The 'less' command is not "
+                                        + "available to display documentation. A "
+                                        + "fallback display method will be used, "
+                                        + "which may have limited functionality.");
+                                cash.displayNavigavbleText(text);
+                            }
                         }
                         cash.console.getHistory().removeLast();
                     }
@@ -787,6 +799,66 @@ public final class ConcourseShell {
      */
     public void setExpandEvents(boolean bool) {
         console.setExpandEvents(bool);
+    }
+
+    /**
+     * Display the {@code text} in the shell in a way the allows navigation and
+     * traversal using vim-like inputs.
+     * 
+     * @param text
+     */
+    private void displayNavigavbleText(String text) {
+        String[] lines = text.split("\n");
+        int index = 0;
+        int linesPerPage = console.getTerminal().getHeight() - 2;
+        while (true) {
+            if(index >= lines.length - linesPerPage) {
+                break; // Exit if the end is reached
+            }
+            try {
+                console.clearScreen();
+                for (int i = index; i < lines.length
+                        && i < index + linesPerPage; i++) {
+                    console.println(lines[i]);
+                }
+                console.flush();
+                console.print(":");
+                console.flush();
+                int ch = console.readCharacter();
+                console.accept();
+                if(ch == 'q' || ch == 'Q') {
+                    break;
+                }
+                else if(ch == '\n' || ch == '\r' || ch == '\033') {
+                    // Check for navigation key presses
+                    // Attempt to detect down arrow specifically if possible
+                    if(ch == '\033') { // Escape sequence detected, could be
+                                       // arrow key
+                        console.readCharacter(); // Skip '[' or 'O' depending on
+                                                 // the terminal
+                        char direction = (char) console.readCharacter();
+                        if(direction == 'A') { // 'A' for up arrow in VT100
+                            index = Math.max(0, index - 1); // Move up a line
+                            continue;
+                        }
+                        else if(direction == 'C') { // 'C' for left arrow
+                            // TODO: reserve for horizontal scroll
+                            continue;
+                        }
+                        else if(direction == 'D') { // 'D' for right arrow
+                            // TODO: reserve for horizontal scroll
+                            continue;
+                        }
+
+                    }
+                    // 'B' for down arrow or ENTER pressed
+                    index = Math.min(lines.length - linesPerPage, index + 1);
+                }
+
+            }
+            catch (IOException e) {}
+        }
+
     }
 
     /**

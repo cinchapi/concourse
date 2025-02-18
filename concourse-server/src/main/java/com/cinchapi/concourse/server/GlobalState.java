@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,11 @@
  */
 package com.cinchapi.concourse.server;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
@@ -34,7 +29,6 @@ import javax.annotation.Nullable;
 import ch.qos.logback.classic.Level;
 
 import com.cinchapi.common.base.Array;
-import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
@@ -48,7 +42,6 @@ import com.cinchapi.concourse.util.Networking;
 import com.cinchapi.lib.config.read.Interpreters;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 
 /**
  * Contains configuration and state that must be accessible to various parts of
@@ -284,7 +277,19 @@ public final class GlobalState extends Constants {
      * is about 40 characters long.
      * </p>
      */
-    public static int MAX_SEARCH_SUBSTRING_LENGTH = -1;
+    public static int MAX_SEARCH_SUBSTRING_LENGTH = 40;
+
+    /**
+     * The password that is assigned to the root administrator account when
+     * Concourse Server first starts.
+     */
+    public static String INIT_ROOT_PASSWORD = "admin";
+
+    /**
+     * The username that is assigned to the root administrator account when
+     * Concourse Server first starts.
+     */
+    public static String INIT_ROOT_USERNAME = "admin";
 
     /**
      * Automatically use a combination of defragmentation, garbage collection
@@ -335,6 +340,22 @@ public final class GlobalState extends Constants {
      */
     @Experimental
     public static ConcourseClusterSpecification CLUSTER = ConcourseClusterSpecification.UNDEFINED;
+
+    /**
+     * Use a more memory-efficient representation for storage metadata.
+     * <p>
+     * On average, enabling this setting will reduce the amount of heap space
+     * needed for essential metadata by 33%. As a result, overall system
+     * performance may improve due to a reduction in garbage collection pauses.
+     * </p>
+     * <p>
+     * However, this setting may increase CPU usage and slightly reduce
+     * peak performance on a per-operation basis due to weaker reference
+     * locality.
+     * </p>
+     */
+    @Experimental
+    public static boolean ENABLE_EFFICIENT_METADATA = false;
 
     static {
         List<String> files = ImmutableList.of(
@@ -418,29 +439,16 @@ public final class GlobalState extends Constants {
                 ENABLE_VERIFY_BY_LOOKUP);
 
         CLUSTER = ConcourseClusterSpecification.from(config);
-        // =================== PREF READING BLOCK ====================
-    }
 
-    /**
-     * The list of words that are omitted from search indexes to increase speed
-     * and improve space efficiency.
-     */
-    @NonPreference
-    public static final Set<String> STOPWORDS = Sets.newHashSet();
-    static {
-        try {
-            BufferedReader reader = new BufferedReader(
-                    new FileReader("conf" + File.separator + "stopwords.txt"));
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                STOPWORDS.add(line);
-            }
-            reader.close();
-        }
-        catch (FileNotFoundException e) {}
-        catch (IOException e) {
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
+        INIT_ROOT_PASSWORD = config.getOrDefault("init.root.password",
+                config.getOrDefault("init_root_password", INIT_ROOT_PASSWORD));
+
+        INIT_ROOT_USERNAME = config.getOrDefault("init.root.username",
+                config.getOrDefault("init_root_username", INIT_ROOT_USERNAME));
+
+        ENABLE_EFFICIENT_METADATA = config.getOrDefault(
+                "enable_efficient_metadata", ENABLE_EFFICIENT_METADATA);
+        // =================== PREF READING BLOCK ====================
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
@@ -30,9 +31,12 @@ import org.slf4j.LoggerFactory;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.common.base.Verify;
 import com.cinchapi.concourse.Concourse;
+import com.cinchapi.concourse.automation.developer.ConcourseArtifacts;
 import com.cinchapi.concourse.automation.developer.ConcourseCodebase;
 import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
+import com.cinchapi.concourse.config.ConcourseServerConfiguration;
 import com.cinchapi.concourse.plugin.build.PluginBundleGenerator;
 import com.google.common.base.Strings;
 
@@ -65,6 +69,12 @@ public abstract class ClientServerTest {
     public final static String LATEST_SNAPSHOT_VERSION = "latest";
 
     /**
+     * The default initialization hook for installed
+     * {@link ManagedConcourseServer servers}.
+     */
+    private static final Consumer<ConcourseServerConfiguration> SERVER_NO_OP_INITIALIZER = config -> {};
+
+    /**
      * The client allows the subclass to define tests that perform actions
      * against the test {@link #server} using the public API.
      */
@@ -78,16 +88,18 @@ public abstract class ClientServerTest {
     protected ManagedConcourseServer server = null;
 
     /**
+     * A cache of the {@link Path} to the provided, downloaded or generated
+     * installer file. This is determined based on what is returned from
+     * {@link #getServerVersion()}.
+     */
+    private Path installerPath = null;
+
+    /**
      * This watcher clears previously registered {@link Variables} on startup
      * and dumps them in the event of failure.
      */
     @Rule
     public final TestWatcher __watcher = new TestWatcher() {
-
-        @Override
-        protected void succeeded(Description description) {
-            server.destroy();
-        }
 
         @Override
         protected void failed(Throwable t, Description description) {
@@ -119,62 +131,54 @@ public abstract class ClientServerTest {
         @Override
         protected void starting(Description description) {
             Variables.clear();
-            Path path = Paths.get(getServerVersion());
-            if(Files.exists(path)) { // if
-                                     // #getServerVersion
-                                     // returns a valid
-                                     // path, then
-                                     // assume its an
-                                     // installer and
-                                     // pass it along for
-                                     // construction
-                server = ManagedConcourseServer.install(path);
-            }
-            else if(getServerVersion()
-                    .equalsIgnoreCase(LATEST_SNAPSHOT_VERSION)) {
-                ConcourseCodebase codebase = ConcourseCodebase.get();
-                try {
-                    log.info(
-                            "Creating an installer for the latest "
-                                    + "version using the code in {}",
-                            codebase.path());
-                    Path installer = codebase.installer();
-                    if(!Strings.isNullOrEmpty(installer.toString())) {
-                        server = ManagedConcourseServer.install(installer);
+            if(installerPath == null) {
+                String serverVersion = getServerVersion();
+                Path path = Paths.get(serverVersion);
+                if(Files.exists(path)) {
+                    // if #getServerVersion returns a valid path, then assume
+                    // its an installer and pass it along for construction
+                    installerPath = path;
+                }
+                else if(serverVersion
+                        .equalsIgnoreCase(LATEST_SNAPSHOT_VERSION)) {
+                    ConcourseCodebase codebase = ConcourseCodebase.get();
+                    try {
+                        log.info(
+                                "Creating an installer for the latest version using the code in {}",
+                                codebase.path());
+                        installerPath = codebase.installer();
+                        if(Strings.isNullOrEmpty(installerPath.toString())) {
+                            throw new RuntimeException(
+                                    "An unknown error occurred when trying to build the installer");
+                        }
                     }
-                    else {
-                        throw new RuntimeException(
-                                "An unknown error occurred when trying to build the installer");
+                    catch (Exception e) {
+                        throw CheckedExceptions.wrapAsRuntimeException(e);
                     }
                 }
-                catch (Exception e) {
-                    throw CheckedExceptions.wrapAsRuntimeException(e);
+                else if(installerPath() == null) {
+                    installerPath = ConcourseArtifacts.installer(serverVersion);
+                }
+                else {
+                    installerPath = installerPath().toPath();
                 }
             }
-            else if(installerPath() == null) {
-                server = ManagedConcourseServer.install(getServerVersion());
-            }
-            else {
-                server = ManagedConcourseServer
-                        .install(installerPath().toPath());
-            }
-            Path pluginBundlePath = null;
-            if(PluginTest.class
-                    .isAssignableFrom(ClientServerTest.this.getClass())) {
-                // Turn the current codebase into a plugin bundle and place it
-                // inside the install directory
-                log.info("Generating plugin to install in Concourse Server");
-                pluginBundlePath = PluginBundleGenerator.generateBundleZip();
-            }
-            server.start();
-            if(pluginBundlePath != null) {
-                server.installPlugin(pluginBundlePath);
-            }
+            server = installServer(SERVER_NO_OP_INITIALIZER);
             client = server.connect();
             beforeEachTest();
         }
 
+        @Override
+        protected void succeeded(Description description) {
+            server.destroy();
+        }
+
     };
+
+    /**
+     * A {@link Logger} to print information about the test case.
+     */
+    protected Logger log = LoggerFactory.getLogger(getClass());
 
     /**
      * This method is provided for the subclass to specify additional behaviour
@@ -216,8 +220,82 @@ public abstract class ClientServerTest {
     }
 
     /**
-     * A {@link Logger} to print information about the test case.
+     * Reinstall the {@link ManagedConcourseServer} and update the
+     * {@link #server} to reference reflect the new instance.
+     * <p>
+     * The existing server is stopped and destroyed before a new server is
+     * installed and started.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> Reinstalling the server will reset any changes to
+     * configuration and data.
+     * </p>
      */
-    protected Logger log = LoggerFactory.getLogger(getClass());
+    protected final ManagedConcourseServer reinstallServer() {
+        return reinstallServer(SERVER_NO_OP_INITIALIZER);
+    }
+
+    /**
+     * Reinstall the {@link ManagedConcourseServer} and update the
+     * {@link #server} to reference reflect the new instance.
+     * <p>
+     * The existing server is stopped and destroyed before a new server is
+     * installed and started.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> Reinstalling the server will reset any changes to
+     * configuration and data.
+     * </p>
+     * 
+     * @param initializer a {@link Consumer} that is run on the newly
+     *            installed server's configuration <strong>BEFORE</strong> it is
+     *            started; useful for setting initial state
+     */
+    protected final ManagedConcourseServer reinstallServer(
+            Consumer<ConcourseServerConfiguration> initializer) {
+        server.stop();
+        server.destroy();
+        server = installServer(initializer);
+        return server;
+    }
+
+    /**
+     * Install a new {@link ManagedConcourseServer} (as well as any plugins if
+     * this is a {@link PluginTest}). Afterwards, run the {@code initializer}
+     * and {@link ManagedConcourseServer#start() start} the server.
+     * <p>
+     * Successful installation requires that the {@link #installerPath} has been
+     * set and the {@link #server} is null.
+     * </p>
+     * <p>
+     * The return {@link ManagedConcourseServer server} will be
+     * {@link ManagedConcourseServer#start() started}, so if actions are
+     * required prior to starting, define them in the {@code #initializer}.
+     * </p>
+     * 
+     * @param initializer a {@link Consumer} that is run on the newly
+     *            installed server's configuration <strong>BEFORE</strong> it is
+     *            started; useful for setting initial state
+     */
+    private ManagedConcourseServer installServer(
+            Consumer<ConcourseServerConfiguration> initializer) {
+        Verify.that(installerPath != null, "Invalid installer path");
+        ManagedConcourseServer server = ManagedConcourseServer
+                .install(installerPath);
+        Path pluginBundlePath = null;
+        if(PluginTest.class
+                .isAssignableFrom(ClientServerTest.this.getClass())) {
+            // Turn the current codebase into a plugin bundle and place it
+            // inside the install directory
+            log.info("Generating plugin to install in Concourse Server");
+            pluginBundlePath = PluginBundleGenerator.generateBundleZip();
+        }
+        initializer.accept(server.config());
+        server.start();
+        if(pluginBundlePath != null) {
+            server.installPlugin(pluginBundlePath);
+        }
+        return server;
+    }
 
 }

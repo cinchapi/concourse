@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,7 @@
  */
 package com.cinchapi.concourse.util;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.cinchapi.common.base.AnyStrings;
-import com.cinchapi.common.base.Array;
-import com.cinchapi.common.base.ArrayBuilder;
-import com.cinchapi.common.base.StringSplitter;
-import com.cinchapi.concourse.server.GlobalState;
 
 /**
  * String based utility functions that depend on proprietary information that is
@@ -127,49 +121,11 @@ public final class TStrings {
      *         {@code needle}.
      */
     public static boolean isInfixSearchMatch(String needle, String haystack) {
-        String[] ntoks = stripStopWordsAndTokenize(needle.toLowerCase());
-        String[] htoks = stripStopWordsAndTokenize(haystack.toLowerCase());
-        return isInfixSearchMatch(ntoks, htoks);
-    }
-
-    /**
-     * Return a copy of {@code string} with all of the stopwords removed. This
-     * method depends on the stopwords defined in {@link GlobalState#STOPWORDS}.
-     * 
-     * @param string
-     * @return A copy of {@code string} without stopwords
-     */
-    public static String stripStopWords(String string) {
-        String[] toks = string
+        String[] ntoks = needle
                 .split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
-        StringBuilder sb = new StringBuilder();
-        for (String tok : toks) {
-            if(!GlobalState.STOPWORDS.contains(tok)) {
-                sb.append(tok);
-                sb.append(" ");
-            }
-        }
-        return sb.toString().trim();
-    }
-
-    /**
-     * Tokenize the {@code string} and return an array of tokens where all the
-     * stopwords are removed.
-     * 
-     * @param string
-     * @return the tokens without stopwords
-     */
-    public static String[] stripStopWordsAndTokenize(String string) {
-        ArrayBuilder<String> toks = ArrayBuilder.builder();
-        StringSplitter it = new StringSplitter(string, ' ');
-        while (it.hasNext()) {
-            String next = it.next();
-            if(!StringUtils.isBlank(next)
-                    && !GlobalState.STOPWORDS.contains(next)) {
-                toks.add(next);
-            }
-        }
-        return toks.length() > 0 ? toks.build() : Array.containing();
+        String[] htoks = haystack
+                .split(REGEX_GROUP_OF_ONE_OR_MORE_WHITESPACE_CHARS);
+        return isInfixSearchMatch(ntoks, htoks);
     }
 
     /**

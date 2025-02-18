@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.cinchapi.concourse.lang.Criteria;
 import com.cinchapi.concourse.lang.paginate.Page;
 import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -190,6 +191,15 @@ public class ManagedConcourseServerTest {
         Concourse concourse = server.connect();
         concourse.select(ImmutableList.of(1L, 2L), Page.of(1, 1));
         Assert.assertTrue(true); // lack of Exception means the test passes
+    }
+
+    @Test
+    public void testCopyClientConnection() {
+        server.start();
+        Concourse a = server.connect("admin", "admin",
+                Random.getSimpleString());
+        Concourse b = Concourse.copyExistingConnection(a);
+        Assert.assertEquals(a.getServerEnvironment(), b.getServerEnvironment());
     }
 
 }

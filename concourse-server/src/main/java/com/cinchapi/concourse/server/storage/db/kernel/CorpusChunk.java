@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@ import java.nio.file.Path;
 import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -74,16 +72,6 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * {@link #index(Text, Text, Position, long, Action, Collection) indexing}.
      */
     private final static boolean TRACK_ARTIFACTS = GlobalState.ENABLE_SEARCH_CACHE;
-
-    /**
-     * {@link GlobalState#STOPWORDS} mapped to {@link Text} so that they can be
-     * used in the
-     * {@link #prepare(CountUpLatch, Text, String, Identifier, int, long, Action, Collection)}
-     * method.
-     */
-    private final static Set<Text> STOPWORDS = GlobalState.STOPWORDS.stream()
-            .map(Text::wrap)
-            .collect(Collectors.toCollection(LinkedHashSet::new));
 
     /**
      * Return a new {@link CorpusChunk}.
@@ -183,8 +171,8 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
      * indexing.
      * <p>
      * The service is static (and therefore shared by each {@link CorpusChunk})
-     * because
-     * only one segment at a time should be mutable and able to process inserts.
+     * because only one segment at a time should be mutable and able to process
+     * inserts.
      * </p>
      * <p>
      * If multiple environments are active, they can all use this shared INDEXER
@@ -360,58 +348,55 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             Identifier record, int position, long version, Action type,
             Collection<CorpusArtifact> artifacts) {
         int count = 0;
-        if(!GlobalState.STOPWORDS.contains(term)) {
-            Position pos = Position.of(record, position);
-            int length = term.length();
-            int upperBound = upperBoundOfPossibleSubstrings(length);
+        Position pos = Position.of(record, position);
+        int length = term.length();
+        int upperBound = upperBoundOfPossibleSubstrings(length);
 
-            // Detect if the #term is large enough to likely cause OOMs when
-            // indexing and prepare the appropriate precautions.
-            boolean isLargeTerm = upperBound > 5000000;
+        // Detect if the #term is large enough to likely cause OOMs when
+        // indexing and prepare the appropriate precautions.
+        boolean isLargeTerm = upperBound > 5000000;
 
-            // A flag that indicates whether the {@link #prepare(CountUpLatch,
-            // Text, String, PrimaryKey, int, long, Action) prepare} function
-            // should limit the length of substrings that are indexed.
-            // Generally, this value is {@code true} if the configuration has a
-            // value for {@link GlobalState#MAX_SEARCH_SUBSTRING_LENGTH} that is
-            // greater than 0.
-            // NOTE: This is NOT static because unit tests sequencing would
-            // cause this to fail :-/
-            boolean shouldLimitSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
+        // A flag that indicates whether the {@link #prepare(CountUpLatch,
+        // Text, String, PrimaryKey, int, long, Action) prepare} function
+        // should limit the length of substrings that are indexed.
+        // Generally, this value is {@code true} if the configuration has a
+        // value for {@link GlobalState#MAX_SEARCH_SUBSTRING_LENGTH} that is
+        // greater than 0.
+        // NOTE: This is NOT static because unit tests sequencing would
+        // cause this to fail :-/
+        boolean shouldLimitSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
 
-            // The set of substrings that have been indexed from {@code term} at
-            // {@code position} for {@code key} in {@code record} at {@code
-            // version}. This is used to ensure that we do not add duplicate
-            // indexes (i.e. 'abrakadabra')
-            // @formatter:off
+        // The set of substrings that have been indexed from {@code term} at
+        // {@code position} for {@code key} in {@code record} at {@code
+        // version}. This is used to ensure that we do not add duplicate
+        // indexes (i.e. 'abrakadabra')
+        // @formatter:off
             Set<Text> indexed = isLargeTerm 
                     ? OffHeapTextSet.create(upperBound)
                     : Sets.newHashSetWithExpectedSize(upperBound);
             // @formatter:on
-            final char[] chars = isLargeTerm ? term.toCharArray() : null;
-            for (int i = 0; i < length; ++i) {
-                int start = i + 1;
-                int limit = (shouldLimitSubstringLength
-                        ? Math.min(length,
-                                start + GlobalState.MAX_SEARCH_SUBSTRING_LENGTH)
-                        : length) + 1;
-                for (int j = start; j < limit; ++j) {
-                    // @formatter:off
+        final char[] chars = isLargeTerm ? term.toCharArray() : null;
+        for (int i = 0; i < length; ++i) {
+            int start = i + 1;
+            int limit = (shouldLimitSubstringLength
+                    ? Math.min(length,
+                            start + GlobalState.MAX_SEARCH_SUBSTRING_LENGTH)
+                    : length) + 1;
+            for (int j = start; j < limit; ++j) {
+                // @formatter:off
                     Text infix = (isLargeTerm 
                             ? Text.wrap(chars, i, j)
                             : Text.wrap(term.substring(i, j))).trim();
                     // @formatter:on
-                    if(!infix.isEmpty() && !STOPWORDS.contains(infix)
-                            && indexed.add(infix)) {
-                        INDEXER.enqueue(this, tracker, key, infix, pos, version,
-                                type, artifacts);
-                        ++count;
-                    }
+                if(!infix.isEmpty() && indexed.add(infix)) {
+                    INDEXER.enqueue(this, tracker, key, infix, pos, version,
+                            type, artifacts);
+                    ++count;
                 }
             }
-            PossibleCloseables.tryCloseQuietly(indexed);
-            indexed = null; // make eligible for immediate GC
         }
+        PossibleCloseables.tryCloseQuietly(indexed);
+        indexed = null; // make eligible for immediate GC
         return count;
     }
 

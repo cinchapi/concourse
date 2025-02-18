@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -220,8 +220,8 @@ class ConcourseThriftDriver extends Concourse {
         this.username = ClientSecurity.encrypt(username);
         this.password = ClientSecurity.encrypt(password);
         this.environment = environment;
-        final TTransport transport = new TSocket(host, port);
         try {
+            final TTransport transport = new TSocket(host, port);
             transport.open();
             this.protocol = new TBinaryProtocol(transport);
             this.core = new ConcourseService.Client(

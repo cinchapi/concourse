@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2024 Cinchapi Inc.
+# Copyright (c) 2013-2025 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,11 +35,16 @@ jobs:
       - checkout:
           path: ~/$CIRCLE_PROJECT_REPONAME
       - setup_remote_docker:
-          version: 17.09.0-ce
+          version: default
           docker_layer_caching: true
       - ruby/install:
           version: '2.7'
       - run: echo "Ruby 2.7 has been installed"
+      - run:
+          name: Install groff
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y groff
       - run:
           name: Get Sonatype Credentials
           command: |

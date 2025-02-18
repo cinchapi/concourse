@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -733,6 +733,15 @@ public final class ManagedConcourseServer {
     }
 
     /**
+     * Restart the server.
+     */
+    public void restart() {
+        stop();
+        start();
+
+    }
+
+    /**
      * Set a flag that determines whether this instance will be destroyed on
      * exit.
      * 
@@ -975,6 +984,19 @@ public final class ManagedConcourseServer {
         }
 
         /**
+         * Constructor for {@link #copyConnection()}.
+         * 
+         * @param clazz
+         * @param delegate
+         * @param loader
+         */
+        private Client(Class<?> clazz, Object delegate, ClassLoader loader) {
+            this.clazz = clazz;
+            this.delegate = delegate;
+            this.loader = loader;
+        }
+
+        /**
          * Construct a new instance.
          * 
          * @param username
@@ -1022,7 +1044,7 @@ public final class ManagedConcourseServer {
                         catch (InterruptedException t) {/* ignore */}
                     }
                     else {
-                        throw CheckedExceptions.throwAsRuntimeException(e);
+                        throw CheckedExceptions.throwAsRuntimeException(target);
                     }
                 }
                 catch (Exception e) {
@@ -3051,7 +3073,7 @@ public final class ManagedConcourseServer {
 
         @Override
         protected Concourse copyConnection() {
-            throw new UnsupportedOperationException();
+            return new Client(clazz, invoke("copyConnection").with(), loader);
         }
 
         /**

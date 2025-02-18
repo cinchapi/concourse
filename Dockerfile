@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2024 Cinchapi Inc.
+# Copyright (c) 2013-2025 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ MAINTAINER Cinchapi Inc. <opensource@cinchapi.com>
 # Install depdenencies:
 # - sudo because some of the Concourse scripts require it
 # - ruby to generate CaSH docs
+# - less to display CaSH docs
 RUN apt-get update && \
     apt-get -y --no-install-recommends install sudo && \
     apt-get -y --no-install-recommends install ruby-full && \
+    apt-get -y --no-install-recommends install less && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the application source to the container
@@ -29,7 +31,11 @@ WORKDIR /usr/src/app
 COPY . /usr/src/app
 
 # Build the installer, if necessary
-RUN if ls concourse-server/build/distributions 2>/dev/null | grep .bin; then echo 'Installer already exists!'; else ./gradlew installer; fi
+RUN if [ -f concourse-server/build/distributions/*.bin ]; then \
+        echo 'Installer already exists!'; \
+    else \
+        ./gradlew installer; \
+    fi
 
 # Copy the installer to the /opt directory
 RUN \
@@ -70,5 +76,6 @@ CMD ["console"]
 # Expose the TCP and HTTP ports
 EXPOSE 1717
 EXPOSE 3434
+EXPOSE 9010
 
 

@@ -2,6 +2,15 @@
 
 #### Version 0.12.0 (TBD)
 
+##### Search
+We made several changes to improve search performance and accuracy:
+
+* **Preservation of Stopwords in Indexing and Search**: Stopwords are no longer removed. As a result, searches that contain stopwords may return different, yet more accurate and contextually relevant results.
+  * **Previous Configuration**: In earlier versions, Concourse Server could be configured using the `conf/stopwords.txt` file to exclude common stopwords from indexing and search operations. This approach was designed to reduce storage requirements and improve search performance by removing frequently occurring, but generally less significant words.
+  * **Rationale for Change**: Preserving stopwords is crucial for maintaining context, which can significantly enhance the accuracy of search results and the effectiveness of ranking algorithms. Since affordable storage and computational resources are more abundant, resource usage is no longer a concern and it makes more sense to prioritze better search accuracy and system robustness. Lastly, preserving stopwords eliminates corner case bugs that are inherent to the way Concourse's search algorithm interacts with the buffered storage system.
+  * **Upgrade Implications**: Upon upgrading to this version, an automatic reindexing task will be initiated to ensure that all previously indexed data conforms to the new no-stopword-removal policy. It's important to allocate downtime for this reindexing to occur. And, it is wise to anticipate more storage spaced being used due to stopwords being included in the search corpus.
+* Changed the default value of the `max_search_substring_length` configuration option to `40`. The previous default allowed unlimited substring lengths, which increased search index size and hurt performance. Existing explicit configurations for this option remain unchanged.
+
 ##### Locking Optimizations
 We made several changes to improve the safety, scalability and operational efficiency of the Just-in-Time (JIT) locking protocol:
 
@@ -20,12 +29,17 @@ We made several changes to improve the safety, scalability and operational effic
 * Configuration that is defined in `.yaml` files take precedence over configuration defined in `.prefs` files, with the exception that `concourse.prefs.dev` takes precedence over `concourse.yaml` to honor the convention of prioritizing dev configuration.
 * The stock `concourse.prefs` file will no longer be updated when new configuration options are available. All new configuration templates will be defined in the stock `concourse.yaml` file.
 * Concourse Server will not automatically migrate custom configuration from `.prefs` files to the corresponding `.yaml` files. While `.prefs` files are still functional, users are encouraged to manually copy custom configuration to the new format in case support for `.prefs` files goes away at a future date.
+* `concourse.yaml` supports an option to specify custom credentials for the root administrator account under the `init.root` object. If either `init.root.username` or `init.root.password` is provided, it takes precedence over any value provided for `init_root_username` or `init_root_password`, respectively.
 
 ##### Concourse Automation Framework
 * Added the `concourse-automation` framework to provide a central set of tools to programatically interact with the Concourse codebase and release artifacts in automated tests and devops workflows. For the most part, the `concourse-automation` framework is comprised of tools that were previously available in the `concourse-ete-test-core` framework.
 	* `ConcourseCodebase` - Provides programmatic interaction with a local copy of the Concourse source code. Can be used to build installer artifacts.
-	* `ConcourseArtifacts` - Provides factory methods to retrieve local copies of Concourse artifacts for any version. Can  be used to download the installer for a released version.
+	* `ConcourseArtifacts` - Provides factory methods to retrieve local copies of Concourse artifacts for any version. Can be used to download the installer for a released version.
 	* `ManagedConcourseServer` - Provdes the ability to control an external Concourse Server process within another application.
+
+##### New Functionality and Enhancements
+* Reduced the amount of heap space required for essential storage metadata.
+* Added the `enable_efficient_metadata` configuration option to further reduce the amount of heap space required for essential storage metadata. When this option is set to `true`, metadata will occupy approximately one-third less heap space and likely improve overall system performance due to a decrease in garbage collection pauses (although per-operation performance may be slightly affected by additional overhead).
 
 ##### Bug Fixes
 * [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
@@ -52,6 +66,19 @@ We made several changes to improve the safety, scalability and operational effic
 * The `com.cinchapi.concourse.util.Processes` utility class has been removed in favor of using `com.cinchapi.common.process` from `accent4j`.
 	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
 	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
+
+#### Version 0.11.7 (TBD)
+* Fixed a bug that made it possible to leak filesystem resources by opening duplicate file descriptors for the same Segment file. At scale, this could prematurely lead to "too many open files" errors.
+
+#### Version 0.11.6 (July 6, 2024)
+* Added new configuration options for initializing Concourse Server with custom admin credentials upon first run. These options enhance security by allowing a non-default usernames and passwords before starting the server.
+	* The `init_root_username` option in `concourse.prefs` can be used to specify the username for the initial administrator account.
+	* The `init_root_password` option in `concourse.prefs` can be used to specify the password for the initial administrator account
+* Exposed the default JMX port, `9010`, in the `Dockerfile`.
+* Fixed a bug that kept HELP documentation from being packaged with Concourse Shell and prevented it from being displayed.
+* Added a fallback option to display Concourse Shell HELP documentation in contexts when the `less` command isn't available (e.g., IDEs).
+* Fixed a bug that caused Concourse Server to unnecessarily add error logging whenever a client disconnected.
+* Added the ability to create `ConnectionPool`s that copy the credentials and connection information from an existing handler These copying connection pools can be created by using the respective "cached" or "fixed" factory methods in the `ConnectionPool` class that take a `Concourse` parameter.
 
 #### Version 0.11.5 (November 5, 2022)
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).

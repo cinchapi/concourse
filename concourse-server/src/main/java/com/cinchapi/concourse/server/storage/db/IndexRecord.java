@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -205,7 +205,7 @@ public final class IndexRecord extends Record<Text, Value, Identifier> {
      * In the broader {@link Database} sense, this method can be used to return
      * all the data "values" that were stored within a data "record" under a
      * data "key" that is equivalent to this {@link IndexRecord
-     * SecondaryRecord's} locator at {@code timestamp} (similar to
+     * IndexRecord's} locator at {@code timestamp} (similar to
      * {@link Database#select(long, long)}).
      * </p>
      * <p>
