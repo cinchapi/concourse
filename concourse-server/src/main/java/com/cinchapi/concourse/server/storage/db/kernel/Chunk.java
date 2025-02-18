@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -857,7 +857,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
                 return new Iterator<Revision<L, K, V>>() {
 
                     private final Iterator<ByteBuffer> it = ByteableCollections
-                            .stream(file(), position(), length,
+                            .stream(channel(), position(), length,
                                     GlobalState.DISK_READ_BUFFER_SIZE);
 
                     @Override
