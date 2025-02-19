@@ -88,10 +88,32 @@ public abstract class Limbo implements Store, Iterable<Write> {
      */
     protected static boolean matches(Value input, Operator operator,
             TObject... values) {
-        // TODO: if operator is CONTAINS OR NOT_CONTAINS replace values[0] with
-        // a CompiledInfingram and compare it against the Value (if it is a a
-        // STRING type)
-        return input.getTObject().isIgnoreCase(operator, values);
+        TObject $needle;
+        if((operator == Operator.CONTAINS || operator == Operator.NOT_CONTAINS)
+                && ($needle = values[0]).isCharSequenceType()
+                && input.isCharSequenceType()) {
+            // This method is called from #explore as the Writes are iterated
+            // and each one is compared against the values. So, if the
+            // exploration is in service of a query-based search, optimize
+            // it by constructing and caching a CompiledInfingram instead of
+            // relying on TObject#is which creates a new Infingram for the same
+            // needle (values[0]) each time.
+            Infingram needle;
+            if($needle instanceof TInfingram) {
+                needle = ((TInfingram) $needle).get();
+            }
+            else {
+                needle = new CompiledInfingram(
+                        $needle.getJavaFormat().toString());
+                $needle = new TInfingram(needle);
+                values[0] = $needle;
+            }
+            String haystack = input.getObject().toString();
+            return needle.in(haystack);
+        }
+        else {
+            return input.getTObject().isIgnoreCase(operator, values);
+        }
     }
 
     /**
@@ -934,5 +956,45 @@ public abstract class Limbo implements Store, Iterable<Write> {
      */
     protected abstract boolean isPossibleSearchMatch(String key, Write write,
             Value value);
+
+    /**
+     * A specialized implementation of {@link TObject} that wraps an
+     * {@link Infingram} value for efficient
+     * {@link #matches(Value, Operator, TObject[]) matching} during
+     * {@link Limbo#explore(String, Operator, TObject...) exploration}.
+     */
+    private static class TInfingram extends TObject {
+
+        private static final long serialVersionUID = 1L;
+
+        /**
+         * The wrapped {@link Infingram}
+         */
+        private Infingram value;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param needle
+         */
+        TInfingram(Infingram needle) {
+            this.value = needle;
+        }
+
+        /**
+         * Return the wrapping {@link Infingram}.
+         * 
+         * @return
+         */
+        Infingram get() {
+            return value;
+        }
+
+        @Override
+        public boolean isCharSequenceType() {
+            return true;
+        }
+
+    }
 
 }
