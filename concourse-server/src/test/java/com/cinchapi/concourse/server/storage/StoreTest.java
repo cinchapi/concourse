@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1487,14 +1487,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
         for (long i = 0; i < 10; i++) {
             String word = null;
             while (Strings.isNullOrEmpty(word)
-                    || TStrings.isInfixSearchMatch(query, word)) {
+                    || isInfixSearchMatch(query, word)) {
                 word = TestData.getString();
             }
             for (long j = 0; j <= i; j++) {
                 word += " " + query;
                 String other = null;
                 while (Strings.isNullOrEmpty(other)
-                        || TStrings.isInfixSearchMatch(query, other)) {
+                        || isInfixSearchMatch(query, other)) {
                     other = TestData.getString();
                 }
                 word += " " + other;
@@ -1858,6 +1858,46 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     }
 
+    @Test
+    public void testSearchStopWordCornerCase() {
+        String haystack = "complex simplethesimple complex";
+        String needle = "complex the complex";
+        String key = "text";
+        long record = 1;
+        add(key, Convert.javaToThrift(haystack), record);
+        Assert.assertTrue(store.search(key, needle).contains(record));
+    }
+
+    @Test
+    public void testSearchStopWordCornerCaseB() {
+        String haystack = "complex complex";
+        String needle = "complex the complex";
+        String key = "text";
+        long record = 1;
+        add(key, Convert.javaToThrift(haystack), record);
+        Assert.assertFalse(store.search(key, needle).contains(record));
+    }
+
+    @Test
+    public void testSearchReproGCornerCase() {
+        String haystack = "uo0qgmr6r66mfuligawh08f33ce63uubwuaue186r6x0g9bwwqg9c4wooctgu72a5kksbepajevzkfpjny2osj6pu0ryk3o";
+        String needle = "w  8";
+        String key = "text";
+        long record = 1;
+        add(key, Convert.javaToThrift(haystack), record);
+        Assert.assertFalse(store.search(key, needle).contains(record));
+    }
+
+    @Test
+    public void testFindSearch() {
+        String key = "foo";
+        String needle = "fect the tech";
+        String haystack = "jeffective sthent  techniques";
+        add(key, Convert.javaToThrift(haystack), 1);
+        Assert.assertEquals(store.search(key, needle), store.find(key,
+                Operator.CONTAINS, Convert.javaToThrift(needle)));
+    }
+
     /**
      * Add {@code key} as {@code value} to {@code record} in the {@code store}.
      * 
@@ -2028,6 +2068,17 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     /**
+     * Return {@code true} if {@code needle} is an infix for {@code haystack}.
+     * 
+     * @param needle
+     * @param haystack
+     * @return {@code true} if this is an infix search match
+     */
+    private final boolean isInfixSearchMatch(String needle, String haystack) {
+        return TStrings.isInfixSearchMatch(needle, haystack);
+    }
+
+    /**
      * Setup a search test by adding some matches for {@code query} that
      * obey search {@code type} for {@code key} in some of the records from
      * {@code recordSource}.
@@ -2052,7 +2103,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
             for (long record : recordSource) {
                 if(otherSource != null) {
                     String other = otherSource.get(i);
-                    boolean matches = TStrings.isInfixSearchMatch(query, other);
+                    boolean matches = isInfixSearchMatch(query, other);
                     SearchTestItem sti = Variables.register("sti_" + record,
                             new SearchTestItem(key, Convert.javaToThrift(other),
                                     record, query, matches));
@@ -2064,8 +2115,8 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 else {
                     String other = null;
                     while (other == null || other.equals(query)
-                            || TStrings.isInfixSearchMatch(query, other)
-                            || TStrings.isInfixSearchMatch(other, query)
+                            || isInfixSearchMatch(query, other)
+                            || isInfixSearchMatch(other, query)
                             || Strings.isNullOrEmpty(other)) {
                         other = TestData.getString();
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -702,11 +702,10 @@ public class LockBroker {
                                     continue outer;
                                 }
                             }
-                            else if(Ranges.haveNonEmptyIntersection(locked,
-                                    range)
-                                    && ((mode == Mode.READ && state > 0)
-                                            || (mode == Mode.WRITE
-                                                    && state < 0))) {
+                            else if(((mode == Mode.READ && state > 0)
+                                    || (mode == Mode.WRITE && state < 0))
+                                    && Ranges.haveNonEmptyIntersection(locked,
+                                            range)) {
                                 if(ranges.replace(locked, state, state)) {
                                     return false;
                                 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,6 +218,17 @@ public final class Stores {
                 }
             }
             return records;
+        }
+        else if((operator == Operator.CONTAINS
+                || operator == Operator.NOT_CONTAINS) && timestamp == Time.NONE
+                && Keys.isWritable(key)) {
+            Set<Long> matches = store.search(key, values[0]);
+            if(operator == Operator.CONTAINS) {
+                return matches;
+            }
+            else {
+                return Sets.difference(store.getAllRecords(), matches);
+            }
         }
         else {
             return timestamp == Time.NONE ? store.find(key, operator, values)

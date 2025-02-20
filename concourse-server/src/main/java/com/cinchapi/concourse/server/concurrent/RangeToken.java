@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,7 +162,9 @@ public class RangeToken extends Token {
                 ranges.add(Range.closedOpen(a, b));
             }
         }
-        else if(operator == Operator.REGEX || operator == Operator.NOT_REGEX) {
+        else if(operator == Operator.REGEX || operator == Operator.NOT_REGEX
+                || operator == Operator.CONTAINS
+                || operator == Operator.NOT_CONTAINS) {
             ranges.add(Range.<Value> all());
         }
         else {

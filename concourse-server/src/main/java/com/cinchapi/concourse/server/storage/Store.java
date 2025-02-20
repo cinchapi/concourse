@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
+import com.cinchapi.concourse.util.Convert;
 
 /**
  * <p>
@@ -412,6 +413,22 @@ public interface Store {
      *         search
      */
     public Set<Long> search(String key, String query);
+
+    /**
+     * Search {@code key} for {@code query}.
+     * <p>
+     * This method performs a fulltext search for {@code query} in all data
+     * <em>currently</em> mapped from {@code key}.
+     * </p>
+     * 
+     * @param key
+     * @param query
+     * @return the Set of primary keys identifying the records matching the
+     *         search
+     */
+    public default Set<Long> search(String key, TObject query) {
+        return search(key, Convert.thriftToJava(query).toString());
+    }
 
     /**
      * Browse {@code record}.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -6409,12 +6409,16 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, env);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             Set<TObject> values = atomic.select(key, record);
+            boolean verified = false;
             for (TObject val : values) {
-                if(!val.equals(value)) {
+                if(val.equals(value)) {
+                    verified = true;
+                }
+                else {
                     atomic.remove(key, val, record);
                 }
             }
-            if(!atomic.verify(key, value, record)) {
+            if(!verified) {
                 atomic.add(key, value, record);
             }
         });
