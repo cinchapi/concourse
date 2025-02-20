@@ -114,8 +114,11 @@ public final class Convert {
         OPERATOR_STRINGS.put("~", Operator.CONTAINS);
         OPERATOR_STRINGS.put("search", Operator.CONTAINS);
         OPERATOR_STRINGS.put("search_match", Operator.CONTAINS);
+        OPERATOR_STRINGS.put("contains", Operator.CONTAINS);
         OPERATOR_STRINGS.put("!~", Operator.NOT_CONTAINS);
         OPERATOR_STRINGS.put("search_exclude", Operator.NOT_CONTAINS);
+        OPERATOR_STRINGS.put("not_contains", Operator.NOT_CONTAINS);
+        OPERATOR_STRINGS.put("ncontains", Operator.NOT_CONTAINS);
         for (Operator operator : Operator.values()) {
             OPERATOR_STRINGS.put(operator.name(), operator);
             OPERATOR_STRINGS.put(operator.symbol(), operator);
