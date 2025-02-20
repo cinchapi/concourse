@@ -41,6 +41,7 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
+import com.cinchapi.concourse.search.Infingram;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.RegexPatterns;
@@ -702,6 +703,22 @@ public class TObject implements
         case NOT_REGEX:
             return !Convert.thriftToJava(this).toString()
                     .matches(Convert.thriftToJava(v1).toString());
+        case CONTAINS:
+        case NOT_CONTAINS:
+            if(getType() == Type.STRING) {
+                Infingram needle = new Infingram(
+                        Convert.thriftToJava(v1).toString());
+                String haystack = Convert.possibleThriftToJava(this);
+                if(operator == Operator.CONTAINS) {
+                    return needle.in(haystack);
+                }
+                else {
+                    return !needle.in(haystack);
+                }
+            }
+            else {
+                throw new UnsupportedOperationException();
+            }
         default:
             throw new UnsupportedOperationException();
         }
