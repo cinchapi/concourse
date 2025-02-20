@@ -31,6 +31,19 @@ dependencies {
     testCompile 'com.github.marschall:memoryfilesystem:0.9.0'
 }
 
+configurations {
+    testArtifacts
+}
+
+task testJar(type: Jar) {
+    archiveClassifier.set('tests')
+    from sourceSets.test.output
+}
+
+artifacts {
+    testArtifacts testJar
+}
+
 ext.uploadEnabled = true
 ext.title = 'Concourse'
 ext.description = 'Concourse is a distributed database warehouse for transactions, search, and analytics across time. Developers use Concourse to quickly build mission critical software while also benefiting from real time insight into their most important data. With Concourse, end-to-end data management requires no extra infrastructure, no prior configuration and no additional coding–all of which greatly reduce costs and allow developers to focus on core business problems.'

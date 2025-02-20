@@ -162,7 +162,9 @@ public class RangeToken extends Token {
                 ranges.add(Range.closedOpen(a, b));
             }
         }
-        else if(operator == Operator.REGEX || operator == Operator.NOT_REGEX) {
+        else if(operator == Operator.REGEX || operator == Operator.NOT_REGEX
+                || operator == Operator.CONTAINS
+                || operator == Operator.NOT_CONTAINS) {
             ranges.add(Range.<Value> all());
         }
         else {
