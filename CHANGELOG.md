@@ -42,6 +42,7 @@ We made several changes to improve the safety, scalability and operational effic
 ##### New Functionality and Enhancements
 * Reduced the amount of heap space required for essential storage metadata.
 * Added the `enable_efficient_metadata` configuration option to further reduce the amount of heap space required for essential storage metadata. When this option is set to `true`, metadata will occupy approximately one-third less heap space and likely improve overall system performance due to a decrease in garbage collection pauses (although per-operation performance may be slightly affected by additional overhead).
+* Improved write performance of the `set` method in large transactions by creating normalized views of existing data, which are consulted during the method’s implicit `select` read operation.
 * Improved the performance of the `verifyOrSet` method by removing redundant internal verification that occurred while finalizing the write.
 
 ##### Bug Fixes
