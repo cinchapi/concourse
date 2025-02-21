@@ -127,6 +127,11 @@ public class ToggleQueue extends Queue {
 
     }
 
+    @Override
+    protected boolean isReadOptimized() {
+        return history.size() > Queue.BLOOM_FILTER_CREATION_THRESHOLD;
+    }
+
     /**
      * A {@link List} that doesn't allow duplicates. Every attempt to
      * {@link #add(Object)} an element will toggle whether it is

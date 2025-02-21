@@ -48,7 +48,7 @@ public class Queue extends Limbo {
      * The threshold at which an internal bloom filter is dynamically created to
      * speed up verifies.
      */
-    private static final int BLOOM_FILTER_CREATION_THRESHOLD = 10;
+    protected static final int BLOOM_FILTER_CREATION_THRESHOLD = 10;
 
     /**
      * A global producer that provides BloomFilters to instances that need them.
@@ -318,7 +318,7 @@ public class Queue extends Limbo {
      * 
      * @return {@code true} if this {@link Queue} is read optimized
      */
-    private boolean isReadOptimized() {
+    protected boolean isReadOptimized() {
         return writes.size() > BLOOM_FILTER_CREATION_THRESHOLD;
     }
 
