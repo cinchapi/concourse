@@ -4,7 +4,7 @@
 
 # The path to the file where access credentials for Concourse Server are
 # stored. For optimal security, this file should be placed in a separate
-# directory from Concourse Server with more restrictive operating system 
+# directory from Concourse Server with more restrictive operating system
 # permissions
 #
 # DEFAULT {$concourse.home}/.access
@@ -26,8 +26,8 @@ buffer_directory:
 buffer_page_size:
 
 # The listener port (1-65535) for client connections. Choose a port between
-# 49152 and 65535 to minimize the possibility of conflicts with other services
-# on this host.
+# 49152 and 65535 to minimize the possibility of conflicts with other
+# services on this host.
 #
 # DEFAULT: 1717
 client_port:
@@ -40,9 +40,9 @@ client_port:
 # DEFAULT: {$user.home}/concourse/db
 database_directory:
 
-# The default environment that is automatically loaded when the server
-# starts and is used whenever a client does not specify an environment
-# for the connection.
+# The default environment that is automatically loaded when the server starts
+# and is used whenever a client does not specify an environment for the
+# connection.
 #
 # DEFAULT: default
 default_environment:
@@ -53,17 +53,17 @@ default_environment:
 # DEFAULT: false
 enable_console_logging:
 
-# The amount of memory that is allocated to the Concourse Server JVM.
-# Concourse requires a minimum heap size of 256MB to start, but much
-# more is recommended to ensure that read and write operations avoid
-# expensive disk seeks where possible. Concourse generally sets both
-# the initial and maximum heap sizes to the specified value, so there
-# must be enough system memory available for Concourse Server to start.
+# The amount of memory that is allocated to the Concourse Server JVM. Concourse
+# requires a minimum heap size of 256MB to start, but much more is recommended
+# to ensure that read and write operations avoid expensive disk seeks where
+# possible. Concourse generally sets both the initial and maximum heap sizes to
+# the specified value, so there must be enough system memory available for
+# Concourse Server to start.
 #
-# Be careful and avoid setting the heap size too large because this may
-# cause longer garbage collection (gc) pauses or interfere with the ability
-# of Concourse Server to memory map (mmap) certain data files. We
-# recommend the following sizing guidelines:
+# Be careful and avoid setting the heap size too large because this may cause
+# longer garbage collection (gc) pauses or interfere with the ability of
+# Concourse Server to memory map (mmap) certain data files. We recommend the
+# following sizing guidelines:
 #
 # SYSTEM MEMORY    | Recommended heap_size
 # -----------------------------------------------------------
@@ -89,46 +89,46 @@ http_port:
 http_enable_cors:
 
 # A comma separated list of default URIs that are permitted to access HTTP
-# endpoints. By default (if enabled), the value of this preference is set
-# to the wildcard character '*' which means that any origin is allowed access.
+# endpoints. By default (if enabled), the value of this preference is set to
+# the wildcard character '*' which means that any origin is allowed access.
 # Changing this value to a discrete list will set the default origins that are
 # permitted, but individual endpoints may override this value.
 #
 # DEFAULT: (allow any origin)
 http_cors_default_allow_origin:
 
-# A comma separated list of default headers that are sent in response to a
-# CORS preflight request to indicate which HTTP headers can be used when
-# making the actual request. By default (if enabled), the value of this
-# preference is set to the wildcard character '*' which means that any headers
-# specified in the preflight request are allowed. Changing this value to a
-# discrete list will set the default headers that are permitted, but individual
-# endpoints may override this value.
+# A comma separated list of default headers that are sent in response to a CORS
+# preflight request to indicate which HTTP headers can be used when making the
+# actual request. By default (if enabled), the value of this preference is set
+# to the wildcard character '*' which means that any headers specified in the
+# preflight request are allowed. Changing this value to a discrete list will
+# set the default headers that are permitted, but individual endpoints may
+# override this value.
 #
 # DEFAULT: (allow any headers)
 http_cors_default_allow_headers:
 
 # A comma separated list of default methods that are sent in response to a
-# CORS preflight request to indicate which HTTP methods can be used when making
-# the actual request. By default (if enabled), the value of this preference is
-# set to the wildcard character '*' which means that any method specified in the
-# preflight request is allowed. Changing this value to a discrete list will set
-# the default methods that are permitted, but individual endpoints may override
-# this value.
+# CORS preflight request to indicate which HTTP methods can be used when
+# making the actual request. By default (if enabled), the value of this
+# preference is set to the wildcard character '*' which means that any method
+# specified in the preflight request is allowed. Changing this value to a
+# discrete list will set the default methods that are permitted, but individual
+# endpoints may override this value.
 #
 # DEFAULT: (allow any method)
 http_cors_default_allow_methods:
 
-# The initial root password for Concourse Server. This password is used to set 
-# up the initial administrator account when the server is first run. It is strongly
-# recommended to change this password immediately after the initial setup to maintain 
-# security.
+# The initial root password for Concourse Server. This password is used to set
+# up the initial administrator account when the server is first run. It is
+# strongly recommended to change this password immediately after the initial
+# setup to maintain security.
 #
 # DEFAULT: "admin"
 init_root_password:
 
-# The initial root username for Concourse Server. This username is associated with the
-# initial administrator account. It is strongly
+# The initial root username for Concourse Server. This username is associated
+# with the initial administrator account.
 #
 # DEFAULT: "admin"
 init_root_username:
@@ -148,8 +148,8 @@ jmx_port:
 #
 # ERROR: critical information when the system reaches a potentially fatal
 #    state and may not operate normally.
-# WARN:  useful information when the system reaches a less than ideal state but
-#    can continue to operate normally.
+# WARN:  useful information when the system reaches a less than ideal state
+#    but can continue to operate normally.
 # INFO:  status information about the system that can be used for sanity
 #     checking.
 # DEBUG: detailed information about the system that can be used to diagnose
@@ -164,16 +164,16 @@ log_level:
 
 # The length of the longest substring that will be indexed for fulltext search.
 #
-# This value does not mean that longer words will not be indexed. It simply means 
-# that, for any indexable value (e.g. a String), any substring that is longer than
-# the value of this preference will not be added to the search index. The effect is
-# that search strings containing any words with a length greater than the value of 
-# this preference will return 0 results. 
-
-# For best performance, this value should be set to the longest word length of any 
-# possible search string. To be safe, we recommend setting this value to be the 
-# length of the longest possible word in the search language. For example, the longest 
-# possible word in English is about 40 characters long.
+# This value does not mean that longer words will not be indexed. It simply
+# means that, for any indexable value (e.g. a String), any substring that is
+# longer than the value of this preference will not be added to the search
+# index. The effect is that search strings containing any words with a length
+# greater than the value of this preference will return 0 results.
+#
+# For best performance, this value should be set to the longest word length of
+# any possible search string. To be safe, we recommend setting this value to be
+# the length of the longest possible word in the search language. For example,
+# the longest possible word in English is about 40 characters long.
 #
 # DEFAULT: 40
 max_search_substring_length:
@@ -187,10 +187,10 @@ max_search_substring_length:
 # DEFAULT: automatically chosen based on the client_port
 shutdown_port:
 
-# The listener port (1-65535) for remote debugger connections. Choose a port between
-# 49152 and 65535 to minimize the possibility of conflicts with other services
-# on this host. If the value of this preference is set to 0, then remote debugging for
-# Concourse Server is disabled.
+# The listener port (1-65535) for remote debugger connections. Choose a port
+# between 49152 and 65535 to minimize the possibility of conflicts with other
+# services on this host. If the value of this preference is set to 0, then
+# remote debugging for Concourse Server is disabled.
 #
 # DEFAULT: 0
 remote_debugger_port:
@@ -199,12 +199,31 @@ remote_debugger_port:
 ###  EXPERIMENTAL CONFIGURATION FOR CONCOURSE SERVER  ###
 #########################################################
 
-# Automatically use a combination of defragmentation, garbage collection and load 
-# balancing within the data files to optimize storage for read performance.
+# Potentially use multiple threads to asynchronously read data from disk.
 #
-# The compaction process may run continuously in the background without disrupting 
-# reads or writes. The storage engine uses a specific strategy to determine how 
-# data files should be reorganized to improve the performance of read operations. 
+# When enabled, reads will typically be faster when accessing data that is too
+# large to ever fit in memory or no longer cached due to memory constraints.
+#
+# This setting is particularly useful for search data since those indexes are
+# not cached by default (unless ENABLE_SEARCH_CACHE is enabled). Even if search
+# records are cached, this setting may still provide a performance boost if the
+# size of some search metadata exceeds the limits of what is cacheable in
+# memory.
+#
+# NOTE: There might be some overhead that could make some reads slower if all
+# their relevant segment metadata is cached and there is high contention.
+#
+# DEFAULT: false
+enable_async_data_reads:
+
+# Automatically use a combination of defragmentation, garbage collection and
+# load balancing within the data files to optimize storage for read
+# performance.
+#
+# The compaction process may run continuously in the background without
+# disrupting reads or writes. The storage engine uses a specific strategy to
+# determine how data files should be reorganized to improve the performance of
+# read operations.
 #
 # DEFAULT: false
 enable_compaction:
@@ -215,29 +234,29 @@ enable_compaction:
 # for essential metadata by a third. As a result, overall system performance may
 # improve due to a reduction in garbage collection pauses.
 #
-# However, this setting may increase CPU usage and slightly reduce peak performance
-# on a per-operation basis due to weaker reference locality.
+# However, this setting may increase CPU usage and slightly reduce peak
+# performance on a per-operation basis due to weaker reference locality.
 #
 # DEFAULT: false
 enable_efficient_metadata:
 
-# Maintain and in-memory cache of the data indexes used to respond to search commands.
-# Search indexes tend to be much larger than those used for primary and secondary 
-# lookups, so enabling the search cache may cause memory issues (and overall 
-# performance degradation) if search is heavily used. Furthermore, indexing and 
-# write performance may suffer if cached search indexes must be incrementally kept 
-# current.
+# Maintain and in-memory cache of the data indexes used to respond to search
+# commands. Search indexes tend to be much larger than those used for primary
+# and secondary lookups, so enabling the search cache may cause memory issues
+# (and overall performance degradation) if search is heavily used. Furthermore,
+# indexing and write performance may suffer if cached search indexes must be
+# incrementally kept current.
 #
 # DEFAULT: false
 enable_search_cache:
 
 # Attempt to optimize verify commands by using special lookup records.
 #
-# A lookup record only contains data for a single field. The database does not cache
-# lookup records, so, while generating one is theoretically faster than generating a
-# full or partial record, repeated attempts to verify data in the same field (e.g. a 
-# counter whose value is stored against a single locator/key) or record may be slower 
-# due to lack of caching.
+# A lookup record only contains data for a single field. The database does not
+# cache lookup records, so, while generating one is theoretically faster than
+# generating a full or partial record, repeated attempts to verify data in the
+# same field (e.g. a counter whose value is stored against a single
+# locator/key) or record may be slower due to lack of caching.
 #
 # DEFAULT: false
 enable_verify_by_lookup:
@@ -264,22 +283,22 @@ cluster:
 #############################################
 init:
 
-  # Configuration for the root user. If provided, will override values for flat config
-  # options that are prefixed with "init_"
+  # Configuration for the root user. If provided, will override values for flat
+  # config options that are prefixed with "init_"
   root:
 
-    # The initial root password for Concourse Server. This password is used to set 
-    # up the initial administrator account when the server is first run. It is 
-    # strongly recommended to change this password immediately after the initial setup 
-    # to maintain security.
+    # The initial root password for Concourse Server. This password is used to
+    # set up the initial administrator account when the server is first run. It
+    # is strongly recommended to change this password immediately after the
+    # initial setup to maintain security.
     #
     # DEFAULT: the value of the init_root_password option, if available.
     # Otherwise "admin"
     password:
 
-    # The initial root username for Concourse Server. This username is associated 
-    # with the initial administrator account. It is strongly
+    # The initial root username for Concourse Server. This username is
+    # associated with the initial administrator account.
     #
-    # DEFAULT: the value of the init_root_username option, if available. 
+    # DEFAULT: the value of the init_root_username option, if available.
     # Otherwise "admin"
     username:

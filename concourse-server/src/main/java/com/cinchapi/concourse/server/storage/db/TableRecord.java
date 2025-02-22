@@ -41,8 +41,8 @@ import com.google.common.collect.Sets;
  * A logical grouping of data for a single entity.
  * <p>
  * This is the primary view of stored data within Concourse, similar to a Row in
- * a traditional database. PrimaryRecords are designed to efficiently handle
- * direct/non-query reads.
+ * a traditional database. A {@link TableRecord} is designed to efficiently
+ * handle direct/non-query reads.
  * </p>
  * 
  * @author Jeff Nelson

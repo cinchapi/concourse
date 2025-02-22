@@ -6469,12 +6469,16 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, env);
         AtomicOperations.executeWithRetry(store, (atomic) -> {
             Set<TObject> values = atomic.select(key, record);
+            boolean verified = false;
             for (TObject val : values) {
-                if(!val.equals(value)) {
+                if(val.equals(value)) {
+                    verified = true;
+                }
+                else {
                     atomic.remove(key, val, record);
                 }
             }
-            if(!atomic.verify(key, value, record)) {
+            if(!verified) {
                 atomic.add(key, value, record);
             }
         });

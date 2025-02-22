@@ -55,6 +55,7 @@ import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.base.Verify;
 import com.cinchapi.common.collect.concurrent.ThreadFactories;
+import com.cinchapi.common.concurrent.JoinableExecutorService;
 import com.cinchapi.concourse.annotate.Restricted;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
@@ -182,6 +183,12 @@ public final class Database implements DurableStore {
     private static final Cache<Composite, CorpusRecord> DISABLED_CORPUS_CACHE = new NoOpCache<>();
 
     /**
+     * Global flag to indicate if async data reads are enabled
+     */
+    // Copied here as a final variable for (hopeful) performance gains.
+    private static final boolean ENABLE_ASYNC_DATA_READS = GlobalState.ENABLE_ASYNC_DATA_READS;
+
+    /**
      * Global flag that indicates if compaction is enabled.
      */
     // Copied here as a final variable for (hopeful) performance gains.
@@ -300,6 +307,12 @@ public final class Database implements DurableStore {
     private transient boolean running = false;
 
     /**
+     * A {@link JoinableExecutorService} that facilitates
+     * {@link #ENABLE_ASYNC_DATA_READS async data reading} if enabled.
+     */
+    private transient JoinableExecutorService reader;
+
+    /**
      * We hold direct references to the current Segment. This pointer changes
      * whenever the database triggers a sync operation.
      */
@@ -372,6 +385,11 @@ public final class Database implements DurableStore {
      * writing tasks asynchronously in the background.
      */
     private transient AwaitableExecutorService writer;
+
+    /**
+     * Dynamic configuration.
+     */
+    private transient Options options = new Options();
 
     /**
      * Construct a Database that is backed by the default location which is in
@@ -919,6 +937,11 @@ public final class Database implements DurableStore {
             // @formatter:on
             Logger.info("Database is running with compaction {}.",
                     ENABLE_COMPACTION ? "ON" : "OFF");
+
+            reader = ENABLE_ASYNC_DATA_READS ? new JoinableExecutorService(
+                    Math.max(3, Runtime.getRuntime().availableProcessors()),
+                    ThreadFactories.namingThreadFactory("DatabaseReader"))
+                    : null;
         }
 
     }
@@ -944,6 +967,9 @@ public final class Database implements DurableStore {
             }
             fullCompaction.shutdownNow();
             incrementalCompaction.shutdownNow();
+            if(reader != null) {
+                reader.shutdown();
+            }
         }
     }
 
@@ -1000,6 +1026,7 @@ public final class Database implements DurableStore {
      * @param toks {@code query} split by whitespace
      * @return the CorpusRecord
      */
+    @SuppressWarnings("unchecked")
     private CorpusRecord getCorpusRecord(Text key, Text infix) {
         masterLock.readLock().lock();
         try {
@@ -1009,8 +1036,25 @@ public final class Database implements DurableStore {
                     : DISABLED_CORPUS_CACHE;
             return cache.get(composite, () -> {
                 CorpusRecord $ = CorpusRecord.createPartial(key, infix);
-                for (Segment segment : segments) {
-                    segment.corpus().seek(composite, $);
+                if(options.enableAsyncCorpusDataReads()) {
+                    int i = 0;
+                    Fragment<Text, Text, Position>[] fragments = new Fragment[segments
+                            .size()];
+                    Runnable[] tasks = new Runnable[segments.size()];
+                    for (Segment segment : segments) {
+                        Fragment<Text, Text, Position> fragment = new Fragment<>(
+                                key, infix);
+                        fragments[i] = fragment;
+                        tasks[i++] = () -> segment.corpus().seek(composite,
+                                fragment);
+                    }
+                    reader.join(tasks);
+                    $.append(fragments);
+                }
+                else {
+                    for (Segment segment : segments) {
+                        segment.corpus().seek(composite, $);
+                    }
                 }
                 return $;
             });
@@ -1029,14 +1073,32 @@ public final class Database implements DurableStore {
      * @param key
      * @return the IndexRecord
      */
+    @SuppressWarnings("unchecked")
     private IndexRecord getIndexRecord(Text key) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key);
             return indexCache.get(composite, () -> {
                 IndexRecord $ = IndexRecord.create(key);
-                for (Segment segment : segments) {
-                    segment.index().seek(composite, $);
+                if(options.enableAsyncIndexDataReads()) {
+                    int i = 0;
+                    Fragment<Text, Value, Identifier>[] fragments = new Fragment[segments
+                            .size()];
+                    Runnable[] tasks = new Runnable[segments.size()];
+                    for (Segment segment : segments) {
+                        Fragment<Text, Value, Identifier> fragment = new Fragment<>(
+                                key, null);
+                        fragments[i] = fragment;
+                        tasks[i++] = () -> segment.index().seek(composite,
+                                fragment);
+                    }
+                    reader.join(tasks);
+                    $.append(fragments);
+                }
+                else {
+                    for (Segment segment : segments) {
+                        segment.index().seek(composite, $);
+                    }
                 }
                 return $;
             });
@@ -1112,14 +1174,32 @@ public final class Database implements DurableStore {
      * @param identifier
      * @return the TableRecord
      */
+    @SuppressWarnings("unchecked")
     private TableRecord getTableRecord(Identifier identifier) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(identifier);
             return tableCache.get(composite, () -> {
                 TableRecord $ = TableRecord.create(identifier);
-                for (Segment segment : segments) {
-                    segment.table().seek(composite, $);
+                if(options.enableAsyncTableDataReads()) {
+                    int i = 0;
+                    Fragment<Identifier, Text, Value>[] fragments = new Fragment[segments
+                            .size()];
+                    Runnable[] tasks = new Runnable[segments.size()];
+                    for (Segment segment : segments) {
+                        Fragment<Identifier, Text, Value> fragment = new Fragment<>(
+                                identifier, null);
+                        fragments[i] = fragment;
+                        tasks[i++] = () -> segment.table().seek(composite,
+                                fragment);
+                    }
+                    reader.join(tasks);
+                    $.append(fragments);
+                }
+                else {
+                    for (Segment segment : segments) {
+                        segment.table().seek(composite, $);
+                    }
                 }
                 return $;
             });
@@ -1146,6 +1226,7 @@ public final class Database implements DurableStore {
      * @param key
      * @return the TableRecord
      */
+    @SuppressWarnings("unchecked")
     private TableRecord getTableRecord(Identifier identifier, Text key) {
         masterLock.readLock().lock();
         try {
@@ -1157,8 +1238,25 @@ public final class Database implements DurableStore {
                 Composite composite = Composite.create(identifier, key);
                 table = tablePartialCache.get(composite, () -> {
                     TableRecord $ = TableRecord.createPartial(identifier, key);
-                    for (Segment segment : segments) {
-                        segment.table().seek(composite, $);
+                    if(options.enableAsyncTableDataReads()) {
+                        int i = 0;
+                        Fragment<Identifier, Text, Value>[] fragments = new Fragment[segments
+                                .size()];
+                        Runnable[] tasks = new Runnable[segments.size()];
+                        for (Segment segment : segments) {
+                            Fragment<Identifier, Text, Value> fragment = new Fragment<>(
+                                    identifier, key);
+                            fragments[i] = fragment;
+                            tasks[i++] = () -> segment.table().seek(composite,
+                                    fragment);
+                        }
+                        reader.join(tasks);
+                        $.append(fragments);
+                    }
+                    else {
+                        for (Segment segment : segments) {
+                            segment.table().seek(composite, $);
+                        }
                     }
                     return $;
                 });
@@ -1310,6 +1408,44 @@ public final class Database implements DurableStore {
                     || contains(record);
         }
 
+    }
+
+    /**
+     * Dynamic runtime configuration options.
+     *
+     * @author Jeff Nelson
+     */
+    private final class Options {
+
+        /**
+         * Return {@code true} if {@link CorpusRecord corpus records} should be
+         * read from disk asynchronously.
+         * 
+         * @return the optional configuration value.
+         */
+        boolean enableAsyncCorpusDataReads() {
+            return running && ENABLE_ASYNC_DATA_READS;
+        }
+
+        /**
+         * Return {@code true} if {@link IndexRecord index records} should be
+         * read from disk asynchronously.
+         * 
+         * @return the optional configuration value.
+         */
+        boolean enableAsyncIndexDataReads() {
+            return running && ENABLE_ASYNC_DATA_READS;
+        }
+
+        /**
+         * Return {@code true} if {@link TableRecord table records} should be
+         * read from disk asynchronously.
+         * 
+         * @return the optional configuration value.
+         */
+        boolean enableAsyncTableDataReads() {
+            return running && ENABLE_ASYNC_DATA_READS;
+        }
     }
 
     /**

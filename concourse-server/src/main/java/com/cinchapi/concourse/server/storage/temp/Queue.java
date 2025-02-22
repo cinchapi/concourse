@@ -18,6 +18,9 @@ package com.cinchapi.concourse.server.storage.temp;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
@@ -26,7 +29,10 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
+import com.cinchapi.concourse.server.storage.view.Table;
+import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.Type;
+import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.EagerProducer;
 
 /**
@@ -42,7 +48,7 @@ public class Queue extends Limbo {
      * The threshold at which an internal bloom filter is dynamically created to
      * speed up verifies.
      */
-    private static final int BLOOM_FILTER_CREATION_THRESHOLD = 10;
+    protected static final int BLOOM_FILTER_CREATION_THRESHOLD = 10;
 
     /**
      * A global producer that provides BloomFilters to instances that need them.
@@ -67,6 +73,16 @@ public class Queue extends Limbo {
      * The bloom filter used to speed up verifies.
      */
     private BloomFilter filter = null;
+
+    /**
+     * A cache of the presently contained data that is used to speed up reads.
+     * <p>
+     * Since there is overhead to maintaining this data during write operations,
+     * it is only utilized if the number of {@link Write Writes} in this store
+     * exceeds {@link #BLOOM_FILTER_CREATION_THRESHOLD}.
+     * </p>
+     */
+    private Table table = null;
 
     /**
      * A cache of the {@link #getOldestWriteTimstamp() timestamp} for the oldest
@@ -100,6 +116,17 @@ public class Queue extends Limbo {
         this.writes = writes;
     }
 
+    @Override
+    public Set<String> describe(long record, long timestamp,
+            Map<String, Set<TObject>> context) {
+        if(context.isEmpty() && timestamp == Time.NONE && isReadOptimized()) {
+            return table().select(record).keySet();
+        }
+        else {
+            return super.describe(record, timestamp, context);
+        }
+    }
+
     /**
      * Return an unmodifiable copy of the writes contained in the Queue.
      * 
@@ -116,13 +143,8 @@ public class Queue extends Limbo {
             filter.putCached(write.getKey(), write.getValue(),
                     write.getRecord());
         }
-        else if(writes.size() > BLOOM_FILTER_CREATION_THRESHOLD) {
-            filter = BLOOM_FILTER_PRODUCER.consume();
-            for (int i = 0; i < writes.size(); ++i) {
-                Write stored = writes.get(i);
-                filter.put(stored.getKey(), stored.getValue(),
-                        stored.getRecord());
-            }
+        if(table != null) {
+            table.put(write);
         }
         return true;
     }
@@ -130,6 +152,31 @@ public class Queue extends Limbo {
     @Override
     public Iterator<Write> iterator() {
         return writes.iterator();
+    }
+
+    @Override
+    public Map<String, Set<TObject>> select(long record, long timestamp,
+            Map<String, Set<TObject>> context) {
+        if(context.isEmpty() && timestamp == Time.NONE && isReadOptimized()) {
+            Map<String, Set<TObject>> data = new TreeMap<>(
+                    (s1, s2) -> s1.compareToIgnoreCase(s2));
+            data.putAll(table().select(record));
+            return data;
+        }
+        else {
+            return super.select(record, timestamp, context);
+        }
+    }
+
+    @Override
+    public Set<TObject> select(String key, long record, long timestamp,
+            Set<TObject> context) {
+        if(context.isEmpty() && timestamp == Time.NONE && isReadOptimized()) {
+            return table().lookup(record, key);
+        }
+        else {
+            return super.select(key, record, timestamp, context);
+        }
     }
 
     /**
@@ -177,9 +224,9 @@ public class Queue extends Limbo {
 
     @Override
     public boolean verify(Write write, long timestamp) {
-        if(filter == null
-                || (filter != null && filter.mightContainCached(write.getKey(),
-                        write.getValue(), write.getRecord()))) {
+        if(!isReadOptimized()
+                || (isReadOptimized() && filter().mightContainCached(
+                        write.getKey(), write.getValue(), write.getRecord()))) {
             return super.verify(write, timestamp);
         }
         else {
@@ -190,9 +237,9 @@ public class Queue extends Limbo {
     @Override
     @Nullable
     protected Action getLastWriteAction(Write write, long timestamp) {
-        if(filter == null
-                || (filter != null && filter.mightContainCached(write.getKey(),
-                        write.getValue(), write.getRecord()))) {
+        if(!isReadOptimized()
+                || (isReadOptimized() && filter().mightContainCached(
+                        write.getKey(), write.getValue(), write.getRecord()))) {
             return super.getLastWriteAction(write, timestamp);
         }
         else {
@@ -227,6 +274,85 @@ public class Queue extends Limbo {
             Value value) {
         return write.getKey().toString().equals(key)
                 && value.getType() == Type.STRING;
+    }
+
+    /**
+     * Returns the {@link #filter} if this {@link Queue} is
+     * {@link #isReadOptimized() read optimized}, creating it on demand if
+     * necessary.
+     * <p>
+     * This method should <b>only</b> be used for read operations that rely on
+     * the {@link #filter}. It ensures that the table is generated and populated
+     * only when needed, preventing unnecessary memory consumption.
+     * </p>
+     * <p>
+     * <b>Important:</b> Do not use this method for write operations. Instead,
+     * access {@link #filter} directly and check for {@code null} before
+     * writing.
+     * </p>
+     * 
+     * @return the {@link #filter} if this {@link Queue} is read optimized;
+     *         otherwise, returns {@code null}.
+     */
+    @Nullable
+    private BloomFilter filter() {
+        if(isReadOptimized()) {
+            if(filter == null) {
+                filter = BLOOM_FILTER_PRODUCER.consume();
+                for (Write write : writes) {
+                    filter.putCached(write.getKey(), write.getValue(),
+                            write.getRecord());
+                }
+            }
+            return filter;
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Return a boolean that indicates whether this {@link Queue} optimizes
+     * reads by using internal structures that attempt to reduce the need for
+     * log replay.
+     * 
+     * @return {@code true} if this {@link Queue} is read optimized
+     */
+    protected boolean isReadOptimized() {
+        return writes.size() > BLOOM_FILTER_CREATION_THRESHOLD;
+    }
+
+    /**
+     * Returns the {@link #table} if this {@link Queue} is
+     * {@link #isReadOptimized() read optimized}, creating it on demand if
+     * necessary.
+     * <p>
+     * This method should <b>only</b> be used for read operations that rely on
+     * the {@link #table}. It ensures that the table is generated and populated
+     * only when needed, preventing unnecessary memory consumption.
+     * </p>
+     * <p>
+     * <b>Important:</b> Do not use this method for write operations. Instead,
+     * access {@link #table} directly and check for {@code null} before writing.
+     * </p>
+     * 
+     * @return the {@link #table} if this {@link Queue} is read optimized;
+     *         otherwise, returns {@code null}.
+     */
+    @Nullable
+    private Table table() {
+        if(isReadOptimized()) {
+            if(table == null) {
+                table = new Table();
+                for (Write write : writes) {
+                    table.put(write);
+                }
+            }
+            return table;
+        }
+        else {
+            return null;
+        }
     }
 
 }
