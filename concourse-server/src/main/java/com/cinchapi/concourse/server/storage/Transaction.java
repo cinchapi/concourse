@@ -181,7 +181,6 @@ public class Transaction extends AtomicOperation implements Distributed {
     }
 
     @Override
-
     protected void throwAtomicStateException() {
         throw new TransactionStateException();
     }
