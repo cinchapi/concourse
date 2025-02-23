@@ -31,9 +31,9 @@ import com.cinchapi.concourse.test.ConcourseClusterTest;
 import com.google.common.collect.ImmutableMap;
 
 /**
+ * Basic tests to sanity check the distributed framework.
  *
- *
- * @author jeff
+ * @author Jeff Nelson
  */
 public class ConcourseClusterSanityCheckTest extends ConcourseClusterTest {
 
@@ -84,7 +84,7 @@ public class ConcourseClusterSanityCheckTest extends ConcourseClusterTest {
         System.out.println("Using client " + client);
         client.stage();
         long record = client.add("name", "jeff");
-        client.add("age", 35, record);
+        System.out.println(client.add("age", 35, record));
         client.add("name", "jeff");
         client.find("name = jeff");
         client.set("name", "Jeff Nelson", record);
@@ -93,6 +93,7 @@ public class ConcourseClusterSanityCheckTest extends ConcourseClusterTest {
             Assert.fail();
         }
         System.out.println(record);
+        Assert.assertFalse(client.select(record).isEmpty());
         client = cluster.connect();
         List<Map<String, Set<Object>>> results = new ArrayList<>();
         for (ManagedConcourseServer node : cluster.nodes()) {
