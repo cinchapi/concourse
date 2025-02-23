@@ -199,7 +199,7 @@ class TwoPhaseCommit extends AtomicOperation {
             return true;
         }
         else {
-            return super.add(key, value, record);
+            return super.remove(key, value, record);
         }
     }
 
