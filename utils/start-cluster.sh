@@ -87,8 +87,14 @@ if [ -z "$rf" ]; then
     rf=$(( (count / 2) + 1 ))
 fi
 
-echo "Launching cluster with nodes on ports: ${nodes[*]}"
-echo "Replication Factor: $rf"
+# Define color and formatting codes
+BOLD='\033[1m'
+GREEN='\033[32m'
+RESET='\033[0m'
+
+# Update echo statements to use color and bold
+echo -e "${BOLD}${GREEN}Launching cluster with nodes on ports: ${nodes[*]}${RESET}"
+echo -e "${BOLD}${GREEN}Replication Factor: $rf${RESET}"
 
 ###############################################################################
 # Use absolute path for configctl command (assumed relative to this script)
@@ -105,7 +111,7 @@ if [ -z "${clean:-}" ] && [ -n "$existing_installer" ]; then
     installer_sh="$existing_installer"
     echo "Using existing installer: $installer_sh"
 else
-    echo "Building installer..."
+    echo -e "${BOLD}${GREEN}Building installer...${RESET}"
     pushd ".." > /dev/null
     ./gradlew clean installer
     popd > /dev/null
@@ -115,7 +121,7 @@ else
         echo "Error: Installer not found in $installer_dir after building."
         exit 1
     fi
-    echo "Installer built: $installer_sh"
+    echo -e "${BOLD}${GREEN}Installer built: $installer_sh${RESET}"
 fi
 
 ###############################################################################
@@ -183,10 +189,10 @@ jmx_ports=()
 
 for (( i=0; i<${#nodes[@]}; i++ )); do
     node_port="${nodes[$i]}"
-    echo "Setting up node on port $node_port..."
+    echo -e "${BOLD}${GREEN}Setting up node on port $node_port...${RESET}"
     tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/concourse_node.XXXXXX")
     node_dirs[$i]="$tmp_dir"
-    echo "Node directory: $tmp_dir"
+    echo -e "${BOLD}${GREEN}Node directory: $tmp_dir${RESET}"
 
     # Copy installer and run it to create the node installation (creates concourse-server/)
     cp "$installer_sh" "$tmp_dir/"
@@ -212,7 +218,7 @@ for (( i=0; i<${#nodes[@]}; i++ )); do
     jmx_port=$(get_free_port)
     "$CONFIGCTL" write -k "remote_debugger_port" -v "$debugger_port" -f "$config_file"
     "$CONFIGCTL" write -k "jmx_port" -v "$jmx_port" -f "$config_file" 
-    echo "Node on port $node_port will listen for remote debugging on port $debugger_port"
+    echo -e "${BOLD}${GREEN}Node on port $node_port will listen for remote debugging on port $debugger_port${RESET}"
 
     "$CONFIGCTL" write -k "log_level" -v "DEBUG" -f "$config_file"
     "$CONFIGCTL" write -k "client_port" -v "$node_port" -f "$config_file"
@@ -225,13 +231,21 @@ for (( i=0; i<${#nodes[@]}; i++ )); do
     # Start the node (it runs as a daemon)
     (cd "$tmp_dir/concourse-server/bin" && ./concourse start)
 
-    # Tail the node's log file (assuming logs are in concourse-server/logs)
-    log_file=$(find "$tmp_dir/concourse-server/log" -type f | head -n 1 || true)
-    if [ -n "$log_file" ]; then
-        tail -f "$log_file" | sed "s/^/[Node $node_port] /" &
-        tail_pids[$i]=$!
-    else
-        echo "Warning: No log file found for node on port $node_port"
+    # Tail all log files in the directory
+    echo "Looking for log files in: $tmp_dir/concourse-server/log"
+    while IFS= read -r log_file; do
+        if [ -n "$log_file" ]; then
+            echo "Found log file: $log_file"
+            # Extract the log file name for the prefix
+            log_name=$(basename "$log_file")
+            tail -f "$log_file" | sed "s/^/[Node $node_port - $log_name] /" &
+            tail_pids+=($!)
+        fi
+    done < <(find "$tmp_dir/concourse-server/log" -type f -name "*.log")
+
+    if [ ${#tail_pids[@]} -eq 0 ]; then
+        echo "Warning: No log files found for node on port $node_port"
+        ls -la "$tmp_dir/concourse-server/log" || echo "Log directory does not exist or is not accessible"
     fi
 
     # Store debug and jmx ports for summary
@@ -242,15 +256,44 @@ done
 ###############################################################################
 # Print summary table
 ###############################################################################
-echo -e "\nCluster Node Summary:"
-printf "%-15s %-15s %-15s %s\n" "PORT" "DEBUG PORT" "JMX PORT" "DIRECTORY"
-printf "%-15s %-15s %-15s %s\n" "----" "----------" "--------" "---------"
-for (( i=0; i<${#nodes[@]}; i++ )); do
-    printf "%-15s %-15s %-15s %s\n" "${nodes[$i]}" "${debug_ports[$i]}" "${jmx_ports[$i]}" "${node_dirs[$i]}"
-done
-echo -e "\nAll nodes started. Press Ctrl+C to stop the cluster."
+# Add these with the other formatting codes
+save_cursor='\033[s'
+restore_cursor='\033[u'
+clear_to_end='\033[J'
+
+# Function to update the summary display at the bottom
+update_summary() {
+    # Save cursor position
+    echo -en "$save_cursor"
+    
+    # Move to bottom of screen and up 6 lines (for our table)
+    tput cup $(($(tput lines) - 6)) 0
+    
+    # Clear to end of screen
+    echo -en "$clear_to_end"
+    
+    # Print summary table
+    echo -e "${BOLD}${GREEN}Cluster Node Summary:${RESET}"
+    printf "%-15s %-15s %-15s %s\n" "PORT" "DEBUG PORT" "JMX PORT" "DIRECTORY"
+    printf "%-15s %-15s %-15s %s\n" "----" "----------" "--------" "---------"
+    for (( i=0; i<${#nodes[@]}; i++ )); do
+        printf "%-15s %-15s %-15s %s\n" "${nodes[$i]}" "${debug_ports[$i]}" "${jmx_ports[$i]}" "${node_dirs[$i]}"
+    done
+    
+    # Restore cursor position
+    echo -en "$restore_cursor"
+}
+
+# Replace the existing summary printing with this
+update_summary
 
 # Wait indefinitely so that the trap can capture Ctrl+C
 while true; do sleep 1; done
+
+# # Modify the wait loop to periodically refresh the display
+# while true; do
+#     update_summary
+#     sleep 20
+# done
 
 exit 0
