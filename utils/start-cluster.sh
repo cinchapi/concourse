@@ -105,7 +105,11 @@ CONFIGCTL="configctl/configctl"
 # Determine installer status (using a .bin installer)
 ###############################################################################
 installer_dir="../concourse-server/build/distributions"
-existing_installer=$(find "$installer_dir" -maxdepth 1 -type f -name "concourse-server*.bin" | head -n 1)
+if [ -d "$installer_dir" ]; then
+    existing_installer=$(find "$installer_dir" -maxdepth 1 -type f -name "concourse-server*.bin" | head -n 1)
+else
+    existing_installer=""
+fi
 
 if [ -z "${clean:-}" ] && [ -n "$existing_installer" ]; then
     installer_sh="$existing_installer"
