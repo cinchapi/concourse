@@ -260,44 +260,21 @@ done
 ###############################################################################
 # Print summary table
 ###############################################################################
-# Add these with the other formatting codes
-save_cursor='\033[s'
-restore_cursor='\033[u'
-clear_to_end='\033[J'
-
-# Function to update the summary display at the bottom
-update_summary() {
-    # Save cursor position
-    echo -en "$save_cursor"
-    
-    # Move to bottom of screen and up 6 lines (for our table)
-    tput cup $(($(tput lines) - 6)) 0
-    
-    # Clear to end of screen
-    echo -en "$clear_to_end"
-    
-    # Print summary table
-    echo -e "${BOLD}${GREEN}Cluster Node Summary:${RESET}"
+# Function to print the summary display
+print_summary() {
+    echo -e "\n${BOLD}${GREEN}Cluster Node Summary:${RESET}"
     printf "%-15s %-15s %-15s %s\n" "PORT" "DEBUG PORT" "JMX PORT" "DIRECTORY"
     printf "%-15s %-15s %-15s %s\n" "----" "----------" "--------" "---------"
     for (( i=0; i<${#nodes[@]}; i++ )); do
         printf "%-15s %-15s %-15s %s\n" "${nodes[$i]}" "${debug_ports[$i]}" "${jmx_ports[$i]}" "${node_dirs[$i]}"
     done
-    
-    # Restore cursor position
-    echo -en "$restore_cursor"
+    echo -e "\nPress Ctrl+C to stop all nodes and clean up.\n"
 }
 
-# Replace the existing summary printing with this
-update_summary
+# Print the initial summary
+print_summary
 
 # Wait indefinitely so that the trap can capture Ctrl+C
 while true; do sleep 1; done
-
-# # Modify the wait loop to periodically refresh the display
-# while true; do
-#     update_summary
-#     sleep 20
-# done
 
 exit 0
