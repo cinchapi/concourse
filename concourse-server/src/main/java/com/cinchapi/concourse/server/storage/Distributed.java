@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.concurrent.TimeUnit;
+
 import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.server.storage.AtomicOperation.Status;
 import com.cinchapi.ensemble.Ensemble;
@@ -69,7 +71,7 @@ public interface Distributed extends AtomicSupport, Ensemble {
 
     @Override
     public default boolean $ensemblePrepareCommitAtomic(
-            EnsembleInstanceIdentifier identifier) {
+            EnsembleInstanceIdentifier identifier, long timestamp) {
         TwoPhaseCommit atomic = TwoPhaseCommit.allocator().get(this,
                 identifier);
         if(atomic.status() == Status.FINALIZING) {
@@ -78,7 +80,9 @@ public interface Distributed extends AtomicSupport, Ensemble {
             return true;
         }
         else {
-            return atomic.commit();
+            timestamp = TimeUnit.MICROSECONDS.convert(timestamp,
+                    TimeUnit.MILLISECONDS);
+            return atomic.commit(timestamp);
         }
     }
 

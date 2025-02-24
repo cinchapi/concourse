@@ -121,7 +121,7 @@ class TwoPhaseCommit extends AtomicOperation {
 
     @Override
     public boolean $ensemblePrepareCommitAtomic(
-            EnsembleInstanceIdentifier identifier) {
+            EnsembleInstanceIdentifier identifier, long timestamp) {
         return false;
     }
 
