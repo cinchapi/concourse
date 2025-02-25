@@ -6039,13 +6039,13 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
             Logger.info("Concourse Server has joined a distributed cluster");
         }
-        
+
         // Load the Engine for the default environment
         getEngine();
         for (Engine engine : engines.values()) {
             engine.start();
         }
-        
+
         httpServer.start();
         pluginManager.start();
         Thread mgmtThread = new Thread(() -> {
@@ -6656,7 +6656,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         if(CLUSTER.isDefined()) {
             EnsembleSetup.interceptLogging();
             EnsembleSetup.registerCustomSerialization();
-            
+
             LocalProcess.instance().clear();
             LocalProcess.instance().claim(port);
 

@@ -189,8 +189,10 @@ public final class Transformers {
     }
 
     /**
-     * Transform the keys in {@code original} with the {@code keyMapper} function
-     * and each of the values with the {@code valueMapper} function and return the
+     * Transform the keys in {@code original} with the {@code keyMapper}
+     * function
+     * and each of the values with the {@code valueMapper} function and return
+     * the
      * map result that is sorted according to the {@code comparator}.
      * <p>
      * <strong>WARNING:</strong> There is the potential for data loss in the

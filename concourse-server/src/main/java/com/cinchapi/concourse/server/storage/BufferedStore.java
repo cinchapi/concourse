@@ -311,12 +311,12 @@ public abstract class BufferedStore implements Store {
         Set<Long> context = durable.search(key, query);
         Set<Long> latest = limbo.search(key, query);
         Set<Long> xor = new LinkedHashSet<>();
-        for(long record : context) {
+        for (long record : context) {
             if(!latest.contains(record)) {
                 xor.add(record);
             }
         }
-        for(long record : latest) {
+        for (long record : latest) {
             if(!context.contains(record)) {
                 xor.add(record);
             }

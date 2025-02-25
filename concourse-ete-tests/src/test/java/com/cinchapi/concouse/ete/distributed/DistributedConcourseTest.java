@@ -73,25 +73,25 @@ public class DistributedConcourseTest extends ConcourseClusterTest {
         System.out.println(changes);
         Assert.assertEquals(2, changes.size());
     }
-    
+
     @Test
     public void testSearch() {
         Concourse client = cluster.connect();
         client.add("name", "jeff", 1);
         Concourse client2 = null;
-        while(client2 == null || client2.equals(client)) {
+        while (client2 == null || client2.equals(client)) {
             client2 = cluster.connect();
         }
         Set<Long> matches = client2.search("name", "jeff");
         Assert.assertTrue(matches.contains(1L));
     }
-    
+
     @Test
     public void testFindKeyOperatorValues() {
         Concourse client = cluster.connect();
         client.add("name", "jeff", 1);
         Concourse client2 = null;
-        while(client2 == null || client2.equals(client)) {
+        while (client2 == null || client2.equals(client)) {
             client2 = cluster.connect();
         }
         Set<Long> results = client2.find("name", "=", "jeff");
