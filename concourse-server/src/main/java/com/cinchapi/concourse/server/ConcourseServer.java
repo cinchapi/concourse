@@ -77,6 +77,7 @@ import com.cinchapi.concourse.server.aop.TranslateClientExceptions;
 import com.cinchapi.concourse.server.aop.VerifyAccessToken;
 import com.cinchapi.concourse.server.aop.VerifyReadPermission;
 import com.cinchapi.concourse.server.aop.VerifyWritePermission;
+import com.cinchapi.concourse.server.gossip.StartEngineGossip;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -131,7 +132,6 @@ import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
 import com.cinchapi.ensemble.Cluster;
 import com.cinchapi.ensemble.Ensemble;
-import com.cinchapi.ensemble.LoggingIntegration;
 import com.cinchapi.ensemble.core.LocalProcess;
 import com.cinchapi.ensemble.core.Node;
 import com.google.common.base.Preconditions;
@@ -310,37 +310,6 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
 
         });
-    }
-
-    /**
-     * Intercept logging from the Ensemble framework and route it to the native
-     * {@link Logger}.
-     */
-    private static void interceptEnsembleLogging() {
-        com.cinchapi.ensemble.util.Logger
-                .setLoggingIntegration(new LoggingIntegration() {
-
-                    @Override
-                    public void debug(String message, Object... params) {
-                        Logger.debug(message, params);
-                    }
-
-                    @Override
-                    public void error(String message, Object... params) {
-                        Logger.error(message, params);
-                    }
-
-                    @Override
-                    public void info(String message, Object... params) {
-                        Logger.info(message, params);
-                    }
-
-                    @Override
-                    public void warn(String message, Object... params) {
-                        Logger.warn(message, params);
-                    }
-
-                });
     }
 
     /**
@@ -6070,9 +6039,13 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
             Logger.info("Concourse Server has joined a distributed cluster");
         }
+        
+        // Load the Engine for the default environment
+        getEngine();
         for (Engine engine : engines.values()) {
             engine.start();
         }
+        
         httpServer.start();
         pluginManager.start();
         Thread mgmtThread = new Thread(() -> {
@@ -6564,6 +6537,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Engine engine = new Engine(buffer, db, env);
             if(cluster != null) {
                 engine = Ensemble.replicate(engine).across(cluster);
+                // cluster.spread(new StartEngineGossip(env));
             }
             engine.start();
             numEnginesInitialized.incrementAndGet();
@@ -6680,26 +6654,36 @@ public class ConcourseServer extends BaseConcourseServer implements
 
         // Setup the distributed cluster
         if(CLUSTER.isDefined()) {
-            interceptEnsembleLogging();
+            EnsembleSetup.interceptLogging();
+            EnsembleSetup.registerCustomSerialization();
+            
             LocalProcess.instance().clear();
             LocalProcess.instance().claim(port);
-            // TODO: register some gossip handlers when building the cluster
+
             Cluster.Builder builder = Cluster.builder();
             builder.replicationFactor(CLUSTER.replicationFactor());
-            // TODO: add a Node for this instance just incase it is defined in
-            // the config? How do I detect if it is defined in the config?
+            // TODO: add a Node for this instance just incase it isn't defined
+            // in the config? How do I detect if it is defined in the config?
             for (String address : CLUSTER.nodes()) {
                 Node node = new Node(HostAndPort.fromString(address));
                 builder.add(node);
             }
+
+            // Setup this node to receive Gossip from other nodes and handle it
+            // accordingly
+            builder.handle(StartEngineGossip.class, gossip -> {
+                Logger.debug("Heard some gossip...", "");
+                String environment = gossip.environment();
+                getEngineUnsafe(environment);
+            });
+
+            // TODO: configure clock as HybridLogicalClock of NTP
+
             this.cluster = builder.build();
         }
         else {
             this.cluster = null;
         }
-
-        // Load the Engine for the default environment
-        getEngine();
     }
 
     /**
