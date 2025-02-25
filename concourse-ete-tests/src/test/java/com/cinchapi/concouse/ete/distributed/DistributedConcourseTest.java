@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,6 +30,7 @@ import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
 import com.cinchapi.concourse.test.ClientServerTest;
 import com.cinchapi.concourse.test.ConcourseClusterTest;
 import com.cinchapi.concourse.time.Time;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Unit tests for basic operations in a distributed Concourse cluster.
@@ -70,6 +72,30 @@ public class DistributedConcourseTest extends ConcourseClusterTest {
         Map<Timestamp, List<String>> changes = client.review("name", 1);
         System.out.println(changes);
         Assert.assertEquals(2, changes.size());
+    }
+    
+    @Test
+    public void testSearch() {
+        Concourse client = cluster.connect();
+        client.add("name", "jeff", 1);
+        Concourse client2 = null;
+        while(client2 == null || client2.equals(client)) {
+            client2 = cluster.connect();
+        }
+        Set<Long> matches = client2.search("name", "jeff");
+        Assert.assertTrue(matches.contains(1L));
+    }
+    
+    @Test
+    public void testFindKeyOperatorValues() {
+        Concourse client = cluster.connect();
+        client.add("name", "jeff", 1);
+        Concourse client2 = null;
+        while(client2 == null || client2.equals(client)) {
+            client2 = cluster.connect();
+        }
+        Set<Long> results = client2.find("name", "=", "jeff");
+        Assert.assertEquals(ImmutableSet.of(1L), results);
     }
 
 }

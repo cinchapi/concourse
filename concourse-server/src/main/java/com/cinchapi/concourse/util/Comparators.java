@@ -71,6 +71,16 @@ public final class Comparators {
     }
 
     /**
+     * Return a {@link Comparator} that sorts {@link Long} values.
+     * @return the {@link Comparator}
+     */
+    @SuppressWarnings("unchecked")
+    private static final Comparator<Long> longComparator() {
+        return (Comparator<Long> & Serializable) (o1, o2) -> o1
+                .compareTo(o2);
+    }
+    
+    /**
      * Return a {@link Comparator} that sorts {@link String Strings} in a case
      * insensitive manner.
      * 
@@ -90,6 +100,11 @@ public final class Comparators {
     // returned from #caseInsensitiveStringComparator(), which casts the lambda
     // as Serializable
     public final static Comparator<String> CASE_INSENSITIVE_STRING_COMPARATOR = stringIgnoreCase();
+    
+    /**
+     * A {@link Comparator} that sorts {@link Long} values.
+     */
+    public final static Comparator<Long> LONG_COMPARATOR = longComparator();
 
     private Comparators() {/* noop */}
 

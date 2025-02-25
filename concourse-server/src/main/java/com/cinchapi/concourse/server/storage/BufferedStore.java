@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -307,9 +308,20 @@ public abstract class BufferedStore implements Store {
 
     @Override
     public Set<Long> search(String key, String query) {
-        // FIXME: should this be implemented using a context instead?
-        return Sets.symmetricDifference(limbo.search(key, query),
-                durable.search(key, query));
+        Set<Long> context = durable.search(key, query);
+        Set<Long> latest = limbo.search(key, query);
+        Set<Long> xor = new LinkedHashSet<>();
+        for(long record : context) {
+            if(!latest.contains(record)) {
+                xor.add(record);
+            }
+        }
+        for(long record : latest) {
+            if(!context.contains(record)) {
+                xor.add(record);
+            }
+        }
+        return xor;
     }
 
     @Override
