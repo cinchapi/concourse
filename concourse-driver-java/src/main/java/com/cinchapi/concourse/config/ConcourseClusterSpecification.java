@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.config;
 
 import java.util.List;
+import java.util.Map;
 
 import com.cinchapi.common.collect.Association;
 import com.google.common.collect.ImmutableList;
@@ -47,7 +48,9 @@ public class ConcourseClusterSpecification {
      */
     public static ConcourseClusterSpecification from(
             ConcourseServerConfiguration config) {
-        Association spec = Association.of(config.get(CLUSTER));
+        Map<String, Object> $config = config.get(CLUSTER);
+        Association spec = $config != null ? Association.of($config)
+                : Association.of();
         return new ConcourseClusterSpecification(spec);
     }
 
