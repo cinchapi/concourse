@@ -80,7 +80,13 @@ public class StartEngineGossip extends Gossip {
     @Override
     protected void writeTo(Serialization stream) {
         stream.writeUtf8(environment);
-
     }
+
+    @Override
+    public String toString() {
+        return "Start Engine "+environment;
+    }
+    
+    
 
 }

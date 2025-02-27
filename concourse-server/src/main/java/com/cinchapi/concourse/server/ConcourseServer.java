@@ -6537,7 +6537,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Engine engine = new Engine(buffer, db, env);
             if(cluster != null) {
                 engine = Ensemble.replicate(engine).across(cluster);
-                // cluster.spread(new StartEngineGossip(env));
+                 cluster.spread(new StartEngineGossip(env));
             }
             engine.start();
             numEnginesInitialized.incrementAndGet();
