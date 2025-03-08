@@ -42,6 +42,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.ImmutableSet;
@@ -171,7 +172,8 @@ public class EngineTest extends BufferedStoreTest {
         buffer.insert(Write.remove("name", Convert.javaToThrift("jeff"), 2));
         while (!(boolean) method.invoke(buffer)) { // Fill the page so the
                                                    // buffer can transport
-            engine.add("count", Convert.javaToThrift(Time.now()), Time.now());
+            engine.add("count", Convert.javaToThrift(Time.now()),
+                    Identifiers.next());
         }
         for (int i = 0; i < 6; ++i) {
             buffer.transport(db);
@@ -214,7 +216,8 @@ public class EngineTest extends BufferedStoreTest {
         buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 2));
         while (!(boolean) method.invoke(buffer)) { // Fill the page so the
                                                    // buffer can transport
-            engine.add("count", Convert.javaToThrift(Time.now()), Time.now());
+            engine.add("count", Convert.javaToThrift(Time.now()),
+                    Identifiers.next());
         }
         for (int i = 0; i < 4; ++i) {
             buffer.transport(db);
@@ -260,10 +263,10 @@ public class EngineTest extends BufferedStoreTest {
                 "Yale University", "Harvard University");
         for (String college : colleges) {
             engine.durable.accept(Write.add("name",
-                    Convert.javaToThrift(college), Time.now()));
+                    Convert.javaToThrift(college), Identifiers.next()));
         }
-        engine.limbo.insert(
-                Write.add("name", Convert.javaToThrift("jeffery"), Time.now()));
+        engine.limbo.insert(Write.add("name", Convert.javaToThrift("jeffery"),
+                Identifiers.next()));
         Set<TObject> keys = engine.browse("name").keySet();
         Assert.assertEquals(Convert.javaToThrift("Boston College"),
                 Iterables.get(keys, 0));
@@ -410,7 +413,7 @@ public class EngineTest extends BufferedStoreTest {
                     if(!done.get()) {
                         engine.add("foo",
                                 Convert.javaToThrift(Long.toString(Time.now())),
-                                Time.now());
+                                Identifiers.next());
                     }
                 }
             }
@@ -446,11 +449,11 @@ public class EngineTest extends BufferedStoreTest {
         Buffer buffer = (Buffer) engine.limbo;
         int count = 0;
         while (!(boolean) Reflection.call(buffer, "canTransport")) {
-            add("name", Convert.javaToThrift("Jeff"), Time.now());
+            add("name", Convert.javaToThrift("Jeff"), Identifiers.next());
             count++;
         }
         buffer.transport(engine.durable);
-        add("name", Convert.javaToThrift("Jeff"), Time.now());
+        add("name", Convert.javaToThrift("Jeff"), Identifiers.next());
         count++;
         Set<Long> matches = engine.find("name", Operator.EQUALS,
                 Convert.javaToThrift("jeff"));
@@ -514,7 +517,7 @@ public class EngineTest extends BufferedStoreTest {
         add("major", Convert.javaToThrift("business"), 2);
         Engine engine = (Engine) store;
         while (!Reflection.<Boolean> call(engine.limbo, "canTransport")) { // authorized
-            add("foo", Convert.javaToThrift(Time.now()), Time.now());
+            add("foo", Convert.javaToThrift(Time.now()), Identifiers.next());
         }
         while (Reflection.<Boolean> call(engine.limbo, "canTransport")) { // authorized
             engine.limbo.transport(engine.durable);
@@ -542,7 +545,7 @@ public class EngineTest extends BufferedStoreTest {
         add("major", Convert.javaToThrift("business"), 2);
         Engine engine = (Engine) store;
         while (!Reflection.<Boolean> call(engine.limbo, "canTransport")) { // authorized
-            add("foo", Convert.javaToThrift(Time.now()), Time.now());
+            add("foo", Convert.javaToThrift(Time.now()), Identifiers.next());
         }
         while (Reflection.<Boolean> call(engine.limbo, "canTransport")) { // authorized
             engine.limbo.transport(engine.durable);
@@ -586,7 +589,7 @@ public class EngineTest extends BufferedStoreTest {
         atomic.commit();
         long after = Time.now();
         while (!Reflection.<Boolean> call(buffer, "canTransport")) {
-            engine.add("foo", Convert.javaToThrift("bar"), Time.now());
+            engine.add("foo", Convert.javaToThrift("bar"), Identifiers.next());
         }
         buffer.transport(db);
         db.sync();
@@ -635,7 +638,9 @@ public class EngineTest extends BufferedStoreTest {
             int writes = TestData.getScaleCount();
             for (int j = 0; j < writes; ++j) {
                 atomic.add("name", Convert.javaToThrift("jeff" + i),
-                        Math.abs(TestData.getInt()) % 2 == 0 ? Time.now() : j);
+                        Math.abs(TestData.getInt()) % 2 == 0
+                                ? Identifiers.next()
+                                : j);
                 expected.incrementAndGet();
             }
             atomic.commit();

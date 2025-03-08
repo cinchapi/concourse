@@ -25,7 +25,6 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.time.Time;
 
 /**
  * This class contains a collection of actions that are common and potentially
@@ -122,7 +121,7 @@ public final class StandardActions {
         String home = "-Duser.dir=" + System.getProperty("user.dir")
                 + File.separator + "conf";
         SERVER_HOME_DIRECTORY = System.getProperty("user.home") + File.separator
-                + "concourse_" + Time.now();
+                + "concourse_" + Identifiers.next();
         try {
             SERVER_PROCESS = new ProcessBuilder(java, "-Xms512m", "-Xmx1024m",
                     "-Declipse=true", home,

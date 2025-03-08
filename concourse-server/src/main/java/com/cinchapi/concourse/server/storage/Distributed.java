@@ -15,10 +15,9 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-import java.util.concurrent.TimeUnit;
-
 import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.server.storage.AtomicOperation.Status;
+import com.cinchapi.concourse.time.TimeSource;
 import com.cinchapi.ensemble.Ensemble;
 import com.cinchapi.ensemble.EnsembleInstanceIdentifier;
 
@@ -80,8 +79,7 @@ public interface Distributed extends AtomicSupport, Ensemble {
             return true;
         }
         else {
-            timestamp = TimeUnit.MICROSECONDS.convert(timestamp,
-                    TimeUnit.MILLISECONDS);
+            timestamp = TimeSource.get().interpret(timestamp);
             return atomic.commit(timestamp);
         }
     }

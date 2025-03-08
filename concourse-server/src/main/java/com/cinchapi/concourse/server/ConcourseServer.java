@@ -124,8 +124,10 @@ import com.cinchapi.concourse.thrift.TPage;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.time.TimeSource;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
@@ -472,7 +474,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            long record = Time.now();
+            long record = Identifiers.next();
             Operations.addIfEmptyAtomic(key, value, record, atomic);
             return record;
         });
@@ -2010,7 +2012,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             records.clear();
             records.addAll(atomic.find(key, Operator.EQUALS, value));
             if(records.isEmpty()) {
-                long record = Time.now();
+                long record = Identifiers.next();
                 Operations.addIfEmptyAtomic(key, value, record, atomic);
                 records.add(record);
             }
@@ -3353,7 +3355,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                                     .longValue();
                 }
                 else {
-                    record = Time.now();
+                    record = Identifiers.next();
                 }
                 atomic.touch(record);
                 if(Operations.insertAtomic(object, record, atomic, deferred)) {
@@ -6537,7 +6539,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Engine engine = new Engine(buffer, db, env);
             if(cluster != null) {
                 engine = Ensemble.replicate(engine).across(cluster);
-                 cluster.spread(new StartEngineGossip(env));
+                cluster.spread(new StartEngineGossip(env));
             }
             engine.start();
             numEnginesInitialized.incrementAndGet();
@@ -6672,12 +6674,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             // Setup this node to receive Gossip from other nodes and handle it
             // accordingly
             builder.handle(StartEngineGossip.class, gossip -> {
-                Logger.debug("Heard some gossip...", "");
                 String environment = gossip.environment();
                 getEngineUnsafe(environment);
             });
 
-            // TODO: configure clock as HybridLogicalClock of NTP
+            builder.clock(TimeSource.distributed());
 
             this.cluster = builder.build();
         }
