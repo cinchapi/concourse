@@ -34,7 +34,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.temp.Queue;
 import com.cinchapi.concourse.server.storage.temp.ToggleQueue;
 import com.cinchapi.concourse.server.storage.temp.Write;
-import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.annotations.VisibleForTesting;
 
@@ -105,7 +105,7 @@ public class Transaction extends AtomicOperation implements Distributed {
      */
     @VisibleForTesting
     static Transaction start(Engine engine) {
-        return start(engine, Long.toString(Time.now()));
+        return start(engine, Long.toString(Identifiers.next()));
     }
 
     /**

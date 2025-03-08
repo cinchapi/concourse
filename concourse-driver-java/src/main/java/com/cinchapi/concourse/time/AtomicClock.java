@@ -24,9 +24,17 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Jeff Nelson
  * 
  */
-public class AtomicClock {
+public class AtomicClock implements MicrosClock {
 
+    /**
+     * The last known timestamp
+     */
     private final AtomicLong time = new AtomicLong();
+
+    @Override
+    public long epochMicros() {
+        return time();
+    }
 
     /**
      * Get the current timestamp (in microseconds), which is guaranteed to be

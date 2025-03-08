@@ -78,8 +78,8 @@ import com.cinchapi.concourse.lang.sort.Order;
 import com.cinchapi.concourse.lang.sort.OrderComponent;
 import com.cinchapi.concourse.thrift.Diff;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Identifiers;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -289,7 +289,7 @@ public final class ManagedConcourseServer {
      * @return the new installation directory
      */
     private static Path getNewInstallationDirectory() {
-        return DEFAULT_INSTALL_HOME.resolve(Long.toString(Time.now()));
+        return DEFAULT_INSTALL_HOME.resolve(Long.toString(Identifiers.next()));
     }
 
     /**

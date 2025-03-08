@@ -30,6 +30,7 @@ import org.junit.Test;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -272,7 +273,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeHasFilteredOutEmptyValueSets() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -294,7 +295,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampAndEndTimestampBeforeAnyValuesChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -321,7 +322,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampBeforeAndEndTimestampAfterAnyValuesChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -358,7 +359,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampAndEndTimestampAfterAnyValuesChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -402,7 +403,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronolgizeWithStartTimestampAsEpochAndEndTimestampAsNowInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -429,7 +430,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithEndTimestampIsExclusiveAtExactFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -457,7 +458,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithEndTimestampIsExclusiveAfterFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -483,7 +484,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampIsInclusiveAtExactFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -513,7 +514,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampIsInclusiveAtExactLastValueChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -542,7 +543,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampEqualsEndTimestampBeforeFirstValueChangeInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",
@@ -566,7 +567,7 @@ public class ChronologizeTest extends ConcourseIntegrationTest {
 
     @Test
     public void testChronologizeWithStartTimestampGreaterThanEndTimestampInKeyInRecord() {
-        long record = Variables.register("record", Time.now());
+        long record = Variables.register("record", Identifiers.next());
         String key = Variables.register("key", TestData.getSimpleString());
         int testSize = Variables.register("testSize", 5);
         Set<Object> initValues = Variables.register("initValues",

@@ -17,7 +17,6 @@ package com.cinchapi.concourse.server;
 
 import java.nio.ByteBuffer;
 
-import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -70,29 +69,25 @@ public final class EnsembleSetup {
      */
     public static void registerCustomSerialization() {
         Serialization.customize(TObject.Aliases.class, object -> {
-            int size = 1 + 4;
+            Serialization stream = new Serialization();
             TObject[] values = object.values();
-            for (TObject value : values) {
-                size += 4 + 1 + value.getData().length;
-            }
-            ByteBuffer bytes = ByteBuffer.allocate(size);
-            bytes.put((byte) object.operator().ordinal());
-            bytes.putInt(values.length);
+            stream.writeByte((byte) object.operator().ordinal());
+            stream.writeInt(values.length);
             for (TObject value : values) {
                 byte[] data = value.getData();
-                bytes.put((byte) value.getType().ordinal());
-                bytes.putInt(data.length);
-                bytes.put(data);
+                stream.writeByte((byte) value.getType().ordinal());
+                stream.writeInt(data.length);
+                stream.writeByteArray(data);
             }
-            bytes.flip();
-            return bytes;
+            return stream.bytes();
         }, bytes -> {
-            Operator operator = Operator.values()[bytes.get()];
-            int length = bytes.getInt();
+            Serialization stream = new Serialization(bytes);
+            Operator operator = Operator.values()[stream.readByte()];
+            int length = stream.readInt();
             TObject[] values = new TObject[length];
             for (int i = 0; i < length; ++i) {
-                Type type = Type.values()[bytes.get()];
-                ByteBuffer data = ByteBuffers.get(bytes, bytes.getInt());
+                Type type = Type.values()[stream.readByte()];
+                ByteBuffer data = stream.readByteBuffer(stream.readInt());
                 values[i] = new TObject(data, type);
             }
             return Reflection.newInstance(TObject.Aliases.class, operator,

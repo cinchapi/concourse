@@ -30,6 +30,12 @@ import com.cinchapi.ensemble.io.Serialization;
  */
 public class StartEngineGossip extends Gossip {
 
+    /**
+     * Generate the canonical UUID for the specified {@code environment}.
+     * 
+     * @param environment
+     * @return the UUID
+     */
     private static UUID generateUUID(String environment) {
         String name = AnyStrings.format("{} - {}",
                 StartEngineGossip.class.getName(), environment);
@@ -72,6 +78,11 @@ public class StartEngineGossip extends Gossip {
     }
 
     @Override
+    public String toString() {
+        return "Start Engine " + environment;
+    }
+
+    @Override
     protected void readFrom(Serialization stream) {
         environment = stream.readUtf8();
 
@@ -80,7 +91,6 @@ public class StartEngineGossip extends Gossip {
     @Override
     protected void writeTo(Serialization stream) {
         stream.writeUtf8(environment);
-
     }
 
 }
