@@ -28,7 +28,6 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.cinchapi.concourse.annotate.PackagePrivate;
-import com.cinchapi.concourse.time.AtomicClock;
 import com.cinchapi.concourse.time.Time;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
@@ -61,11 +60,6 @@ public final class Timestamp implements Comparable<Timestamp> {
      */
     public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
             .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
-
-    /**
-     * Canonical clock for generating timestamps.
-     */
-    private static final AtomicClock CLOCK = new AtomicClock();
 
     /**
      * Return a {@code Timestamp} that corresponds to the system
