@@ -20,14 +20,8 @@ package com.cinchapi.concourse.time;
  * 
  * @author Jeff Nelson
  */
+@Deprecated
 public final class Time {
-
-    /**
-     * An indication that a timestamp parameter should be ignored.
-     */
-    public static final long NONE = Long.MAX_VALUE;
-
-    private static AtomicClock clock = new AtomicClock();
 
     /**
      * Get the current timestamp. Use this throughout a project to make sure
@@ -36,7 +30,27 @@ public final class Time {
      * @return the current timestamp.
      */
     public static long now() {
-        return clock.time();
+        return clock.currentTimeMicros();
     }
+
+    /**
+     * Set the {@link MicrosClock clock} that provides microsecond timestamps.
+     * 
+     * @param clock
+     */
+    static void setClock(MicrosClock clock) {
+        Time.clock = clock;
+    }
+
+    /**
+     * An indication that a timestamp parameter should be ignored.
+     */
+    public static final long NONE = Long.MAX_VALUE;
+
+    /**
+     * The {@link MicrosClock clock} that provides the {@link #now() current}
+     * timestamp.
+     */
+    private static MicrosClock clock = new AtomicClock();
 
 }
