@@ -20,7 +20,6 @@ package com.cinchapi.concourse.time;
  * 
  * @author Jeff Nelson
  */
-@Deprecated
 public final class Time {
 
     /**
