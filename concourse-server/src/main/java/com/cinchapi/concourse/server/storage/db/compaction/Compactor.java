@@ -24,7 +24,6 @@ import javax.annotation.Nullable;
 
 import com.cinchapi.concourse.server.storage.db.SegmentStorageSystem;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Logger;
 import com.google.common.annotations.VisibleForTesting;

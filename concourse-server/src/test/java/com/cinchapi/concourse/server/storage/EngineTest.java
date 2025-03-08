@@ -172,7 +172,8 @@ public class EngineTest extends BufferedStoreTest {
         buffer.insert(Write.remove("name", Convert.javaToThrift("jeff"), 2));
         while (!(boolean) method.invoke(buffer)) { // Fill the page so the
                                                    // buffer can transport
-            engine.add("count", Convert.javaToThrift(Time.now()), Identifiers.next());
+            engine.add("count", Convert.javaToThrift(Time.now()),
+                    Identifiers.next());
         }
         for (int i = 0; i < 6; ++i) {
             buffer.transport(db);
@@ -215,7 +216,8 @@ public class EngineTest extends BufferedStoreTest {
         buffer.insert(Write.add("name", Convert.javaToThrift("jeff"), 2));
         while (!(boolean) method.invoke(buffer)) { // Fill the page so the
                                                    // buffer can transport
-            engine.add("count", Convert.javaToThrift(Time.now()), Identifiers.next());
+            engine.add("count", Convert.javaToThrift(Time.now()),
+                    Identifiers.next());
         }
         for (int i = 0; i < 4; ++i) {
             buffer.transport(db);
@@ -263,8 +265,8 @@ public class EngineTest extends BufferedStoreTest {
             engine.durable.accept(Write.add("name",
                     Convert.javaToThrift(college), Identifiers.next()));
         }
-        engine.limbo.insert(
-                Write.add("name", Convert.javaToThrift("jeffery"), Identifiers.next()));
+        engine.limbo.insert(Write.add("name", Convert.javaToThrift("jeffery"),
+                Identifiers.next()));
         Set<TObject> keys = engine.browse("name").keySet();
         Assert.assertEquals(Convert.javaToThrift("Boston College"),
                 Iterables.get(keys, 0));
@@ -636,7 +638,9 @@ public class EngineTest extends BufferedStoreTest {
             int writes = TestData.getScaleCount();
             for (int j = 0; j < writes; ++j) {
                 atomic.add("name", Convert.javaToThrift("jeff" + i),
-                        Math.abs(TestData.getInt()) % 2 == 0 ? Identifiers.next() : j);
+                        Math.abs(TestData.getInt()) % 2 == 0
+                                ? Identifiers.next()
+                                : j);
                 expected.incrementAndGet();
             }
             atomic.commit();

@@ -61,7 +61,7 @@ public final class Timestamp implements Comparable<Timestamp> {
      */
     public static final DateTimeFormatter DEFAULT_FORMATTER = DateTimeFormat
             .forPattern("E MMM dd, yyyy @ h:mm:ss:SS a z");
-    
+
     /**
      * Canonical clock for generating timestamps.
      */
