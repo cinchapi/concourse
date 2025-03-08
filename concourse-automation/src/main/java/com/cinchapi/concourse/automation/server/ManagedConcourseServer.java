@@ -24,7 +24,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -697,6 +699,27 @@ public final class ManagedConcourseServer {
     public boolean isRunning() {
         return Iterables.get(execute("concourse", "status"), 0)
                 .contains("is running");
+    }
+
+    /**
+     * Checks whether the server is ready to accept client connections.
+     * <p>
+     * This method is different than {@link #isRunning()} which merely checks if
+     * the server was started. This method can be used to confirm if the server
+     * initialization has finished.
+     * </p>
+     *
+     * @return {@code true} if the server is ready
+     */
+    public boolean isReady() {
+        try (Socket socket = new Socket()) {
+            socket.connect(new InetSocketAddress("localhost", getClientPort()),
+                    1000);
+            return true;
+        }
+        catch (IOException e) {
+            return false;
+        }
     }
 
     /**
