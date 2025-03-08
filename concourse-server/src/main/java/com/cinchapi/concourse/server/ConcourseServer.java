@@ -124,8 +124,10 @@ import com.cinchapi.concourse.thrift.TPage;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.time.TimeSource;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
@@ -472,7 +474,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            long record = Time.now();
+            long record = Identifiers.next();
             Operations.addIfEmptyAtomic(key, value, record, atomic);
             return record;
         });
@@ -515,7 +517,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Number average = Operations.avgKeyAtomic(key, Time.NONE, atomic);
+            Number average = Operations.avgKeyAtomic(key, Time.NONE,
+                    atomic);
             return Convert.javaToThrift(average);
         });
     }
@@ -1019,8 +1022,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             TransactionToken transaction, String environment)
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
-        return AtomicOperations.supplyWithRetry(store,
-                atomic -> Operations.countKeyAtomic(key, Time.NONE, atomic));
+        return AtomicOperations.supplyWithRetry(store, atomic -> Operations
+                .countKeyAtomic(key, Time.NONE, atomic));
     }
 
     @Override
@@ -1034,8 +1037,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            return Operations.countKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            return Operations.countKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
         });
 
     }
@@ -1076,8 +1079,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            return Operations.countKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            return Operations.countKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
         });
     }
 
@@ -2010,7 +2013,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             records.clear();
             records.addAll(atomic.find(key, Operator.EQUALS, value));
             if(records.isEmpty()) {
-                long record = Time.now();
+                long record = Identifiers.next();
                 Operations.addIfEmptyAtomic(key, value, record, atomic);
                 records.add(record);
             }
@@ -3353,7 +3356,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                                     .longValue();
                 }
                 else {
-                    record = Time.now();
+                    record = Identifiers.next();
                 }
                 atomic.touch(record);
                 if(Operations.insertAtomic(object, record, atomic, deferred)) {
@@ -3571,8 +3574,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Number max = Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            Number max = Operations.maxKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(max);
         });
     }
@@ -3614,8 +3617,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Number max = Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            Number max = Operations.maxKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(max);
         });
     }
@@ -3656,8 +3659,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Number max = Operations.maxKeyRecordAtomic(key, record, Time.NONE,
-                    atomic);
+            Number max = Operations.maxKeyRecordAtomic(key, record,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(max);
         });
     }
@@ -3671,8 +3674,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Number max = Operations.maxKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            Number max = Operations.maxKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(max);
         });
     }
@@ -3775,8 +3778,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Number min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            Number min = Operations.minKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(min);
         });
     }
@@ -3818,8 +3821,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Number min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            Number min = Operations.minKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(min);
         });
     }
@@ -3860,8 +3863,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Number min = Operations.minKeyRecordAtomic(key, record, Time.NONE,
-                    atomic);
+            Number min = Operations.minKeyRecordAtomic(key, record,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(min);
         });
     }
@@ -3875,8 +3878,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Number min = Operations.minKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            Number min = Operations.minKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(min);
         });
     }
@@ -4041,8 +4044,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, Set<TObject>> navigateKeyRecord(String key, long record,
             AccessToken creds, TransactionToken transaction, String environment)
             throws TException {
-        return navigateKeyRecordTime(key, record, Time.NONE, creds, transaction,
-                environment);
+        return navigateKeyRecordTime(key, record, Time.NONE, creds,
+                transaction, environment);
     }
 
     @Override
@@ -4120,8 +4123,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             List<String> keys, String ccl, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
-        return navigateKeysCclTime(keys, ccl, Time.NONE, creds, transaction,
-                environment);
+        return navigateKeysCclTime(keys, ccl, Time.NONE, creds,
+                transaction, environment);
     }
 
     @SuppressWarnings("deprecation")
@@ -4477,8 +4480,8 @@ public class ConcourseServer extends BaseConcourseServer implements
     public Map<Long, List<String>> reviewKeyRecordStart(String key, long record,
             long start, AccessToken creds, TransactionToken transaction,
             String environment) throws TException {
-        return reviewKeyRecordStartEnd(key, record, start, Time.NONE, creds,
-                transaction, environment);
+        return reviewKeyRecordStartEnd(key, record, start, Time.NONE,
+                creds, transaction, environment);
     }
 
     @Override
@@ -6104,8 +6107,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Number sum = Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            Number sum = Operations.sumKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(sum);
         });
     }
@@ -6147,8 +6150,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
             Set<Long> records = ast.accept(Finder.instance(), atomic);
-            Number sum = Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            Number sum = Operations.sumKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(sum);
         });
     }
@@ -6189,8 +6192,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Number sum = Operations.sumKeyRecordAtomic(key, record, Time.NONE,
-                    atomic);
+            Number sum = Operations.sumKeyRecordAtomic(key, record,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(sum);
         });
     }
@@ -6204,8 +6207,8 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            Number sum = Operations.sumKeyRecordsAtomic(key, records, Time.NONE,
-                    atomic);
+            Number sum = Operations.sumKeyRecordsAtomic(key, records,
+                    Time.NONE, atomic);
             return Convert.javaToThrift(sum);
         });
     }
@@ -6537,7 +6540,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             Engine engine = new Engine(buffer, db, env);
             if(cluster != null) {
                 engine = Ensemble.replicate(engine).across(cluster);
-                 cluster.spread(new StartEngineGossip(env));
+                cluster.spread(new StartEngineGossip(env));
             }
             engine.start();
             numEnginesInitialized.incrementAndGet();
@@ -6672,12 +6675,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             // Setup this node to receive Gossip from other nodes and handle it
             // accordingly
             builder.handle(StartEngineGossip.class, gossip -> {
-                Logger.debug("Heard some gossip...", "");
                 String environment = gossip.environment();
                 getEngineUnsafe(environment);
             });
 
-            // TODO: configure clock as HybridLogicalClock of NTP
+            builder.clock(TimeSource.distributed());
 
             this.cluster = builder.build();
         }
