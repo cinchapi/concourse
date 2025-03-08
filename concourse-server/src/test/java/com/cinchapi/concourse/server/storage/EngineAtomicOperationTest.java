@@ -35,6 +35,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 
@@ -62,7 +63,7 @@ public class EngineAtomicOperationTest extends AtomicOperationTest {
     public void testNoDeadLockIfFindNotRegexOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
-        long record = Time.now();
+        long record = Identifiers.next();
         AtomicOperation operation = (AtomicOperation) store;
         operation.find(key, Operator.NOT_REGEX, value);
         operation.add(key, value, record);

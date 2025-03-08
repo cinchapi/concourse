@@ -29,9 +29,9 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Identifiers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
@@ -115,7 +115,7 @@ public class LazyTrackingTObjectResultDatasetTest
         String json = FileOps.read(Resources.getAbsolutePath("/data.json"));
         List<Multimap<String, Object>> objects = Convert.anyJsonToJava(json);
         for (Multimap<String, Object> object : objects) {
-            long entity = Time.now();
+            long entity = Identifiers.next();
             for (Entry<String, Collection<Object>> entry : object.asMap()
                     .entrySet()) {
                 String attribute = entry.getKey();
@@ -138,7 +138,7 @@ public class LazyTrackingTObjectResultDatasetTest
         String json = FileOps.read(Resources.getAbsolutePath("/data.json"));
         List<Multimap<String, Object>> objects = Convert.anyJsonToJava(json);
         for (Multimap<String, Object> object : objects) {
-            long entity = Time.now();
+            long entity = Identifiers.next();
             dataset.put(entity,
                     object.asMap().entrySet().stream()
                             .collect(Collectors.toMap(Entry::getKey,

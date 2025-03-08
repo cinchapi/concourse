@@ -22,9 +22,9 @@ import org.slf4j.Logger;
 
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Constants;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.FileOps;
+import com.cinchapi.concourse.util.Identifiers;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
@@ -102,7 +102,7 @@ public class JsonImporter extends Importer {
             Long record = MoreObjects
                     .firstNonNull((Long) Iterables.getOnlyElement(
                             data.get(Constants.JSON_RESERVED_IDENTIFIER_NAME),
-                            null), Time.now());
+                            null), Identifiers.next());
             data.removeAll(Constants.JSON_RESERVED_IDENTIFIER_NAME);
             for (String key : data.keySet()) {
                 for (Object value : data.get(key)) {

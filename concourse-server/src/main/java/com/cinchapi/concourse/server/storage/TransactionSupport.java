@@ -15,7 +15,7 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Identifiers;
 
 /**
  * A store that can initiate and therefore serve as the destination for a
@@ -31,7 +31,7 @@ public interface TransactionSupport {
      * @return the Transaction
      */
     public default Transaction startTransaction() {
-        return startTransaction(Long.toString(Time.now()));
+        return startTransaction(Long.toString(Identifiers.next()));
     }
 
     /**
