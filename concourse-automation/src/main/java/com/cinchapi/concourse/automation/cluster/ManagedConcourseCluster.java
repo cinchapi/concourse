@@ -21,11 +21,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.ArrayBuilder;
+import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.logging.Logger;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
@@ -302,18 +308,39 @@ public final class ManagedConcourseCluster {
      * {@link ManagedConcourseServer#start() Start} all the nodes in the
      * cluster.
      */
+    @SuppressWarnings("unchecked")
     public void start() {
         sync();
-        // TODO: do this async?
-        for (ManagedConcourseServer node : nodes) {
-            // NOTE: Each node is setup for remote debugging to diagnose unit
-            // test failures.
-            int remoteDebuggerPort = Networking.getOpenPort();
-            node.config().set("remote_debugger_port", remoteDebuggerPort);
-            node.start();
-            log.info(
-                    "The node on localhost:{} is setup for remote debugging on port {}",
-                    node.config().getClientPort(), remoteDebuggerPort);
+        ExecutorService executor = Executors.newFixedThreadPool(nodes.size());
+        CompletableFuture<Void> futures[] = new CompletableFuture[nodes.size()];
+        for (int i = 0; i < nodes.size(); ++i) {
+            ManagedConcourseServer node = nodes.get(i);
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                // NOTE: Each node is setup for remote debugging to diagnose
+                // unit test failures.
+                int remoteDebuggerPort = Networking.getOpenPort();
+                node.config().set("remote_debugger_port", remoteDebuggerPort);
+                node.start();
+                log.info(
+                        "The node on localhost:{} is setup for remote debugging on port {}",
+                        node.config().getClientPort(), remoteDebuggerPort);
+                while (!node.isReady()) {
+                    System.out.println(AnyStrings.format(
+                            "Waiting for the node on localhost:{} to be ready",
+                            node.config().getClientPort()));
+                    continue;
+                }
+            }, executor);
+            futures[i] = future;
+        }
+        try {
+            CompletableFuture.allOf(futures).get(60, TimeUnit.SECONDS);
+        }
+        catch (Exception e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
+        finally {
+            executor.shutdown();
         }
     }
 
