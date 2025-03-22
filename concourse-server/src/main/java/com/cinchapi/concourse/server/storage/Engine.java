@@ -860,8 +860,9 @@ public class Engine extends BufferedStore implements
                     if(!bufferTransportThreadIsDoingWork.get()
                             && !bufferTransportThreadIsPaused.get()
                             && bufferTransportThreadLastWakeUp.get() != 0
-                            && TimeUnit.MILLISECONDS.convert(Time.now()
-                                    - bufferTransportThreadLastWakeUp.get(),
+                            && TimeUnit.MILLISECONDS.convert(
+                                    Time.now() - bufferTransportThreadLastWakeUp
+                                            .get(),
                                     TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
                         bufferTransportThreadHasEverAppearedHung.set(true);
                         bufferTransportThread.interrupt();
