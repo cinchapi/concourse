@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -6480,12 +6481,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     @Internal
     protected Engine getEngine(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            env = Environments.sanitize(env);
-            return getEngineUnsafe(env);
-        }
-        return engine;
+        return getEngineUnsafe(Environments.sanitize(env));
     }
 
     @Override
@@ -6612,7 +6608,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         this.server = new TThreadPoolServer(args);
         this.bufferStore = bufferStore;
         this.dbStore = dbStore;
-        this.engines = Maps.newConcurrentMap();
+        this.engines = new ConcurrentHashMap<>();
         this.users = UserService.create(ACCESS_CREDENTIALS_FILE);
         this.inspector = new Inspector() {
 
@@ -6659,8 +6655,11 @@ public class ConcourseServer extends BaseConcourseServer implements
             EnsembleSetup.interceptLogging();
             EnsembleSetup.registerCustomSerialization();
 
+            // Claim ports used by this node to disambiguate among any other
+            // nodes that may be running on the same physical/logical machine.
             LocalProcess.instance().clear();
             LocalProcess.instance().claim(port);
+            // TODO: claim shutdown port?
 
             Cluster.Builder builder = Cluster.builder();
             builder.replicationFactor(CLUSTER.replicationFactor());
@@ -6671,13 +6670,16 @@ public class ConcourseServer extends BaseConcourseServer implements
                 builder.add(node);
             }
 
-            // Setup this node to receive Gossip from other nodes and handle it
-            // accordingly
+            // Configure this Node to receive Gossip from other nodes and handle
+            // it accordingly
             builder.handle(StartEngineGossip.class, gossip -> {
                 String environment = gossip.environment();
                 getEngineUnsafe(environment);
             });
 
+            // Configure both the distributed framework AND internal operations
+            // to generate timestamps that are "synced" across each node in the
+            // cluster.
             builder.clock(TimeSource.distributed());
 
             this.cluster = builder.build();

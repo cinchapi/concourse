@@ -30,6 +30,7 @@ import com.cinchapi.concourse.automation.server.ManagedConcourseServer;
 import com.cinchapi.concourse.test.ClientServerTest;
 import com.cinchapi.concourse.test.ConcourseClusterTest;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Random;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -55,7 +56,7 @@ public class DistributedConcourseTest extends ConcourseClusterTest {
     }
 
     @Test
-    public void testritesAcrossNodesReceiveSameTimestamp() {
+    public void tesWritesAcrossNodesReceiveSameTimestamp() {
         // This test verifies that Writes are stored on each holding node with
         // the same timestamp by using different coordinators to issue a Write
         // and then reviewing all those writes under the key to ensure that
@@ -96,6 +97,19 @@ public class DistributedConcourseTest extends ConcourseClusterTest {
         }
         Set<Long> results = client2.find("name", "=", "jeff");
         Assert.assertEquals(ImmutableSet.of(1L), results);
+    }
+
+    @Test
+    public void testConnectToNonDefaultEnvironment()
+            throws InterruptedException {
+        String environment = Random.getSimpleString();
+        Concourse client = cluster.connect("admin", "admin", environment);
+        // TODO: for testing need to figure out how to reliably wait on gossip
+        // to complete
+        Thread.sleep(4000); // wait for gossip to finish?
+        client.add("name", "jeff", 1);
+        client = cluster.connect("admin", "admin", environment);
+        Assert.assertEquals(ImmutableSet.of(1L), client.inventory());
     }
 
 }
