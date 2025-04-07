@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.Concourse;
 import com.cinchapi.concourse.Timestamp;
 import com.cinchapi.concourse.automation.developer.ConcourseCodebase;
@@ -200,6 +201,28 @@ public class ManagedConcourseServerTest {
                 Random.getSimpleString());
         Concourse b = Concourse.copyExistingConnection(a);
         Assert.assertEquals(a.getServerEnvironment(), b.getServerEnvironment());
+    }
+
+    @Test
+    public void testIsReady() throws InterruptedException {
+        Assert.assertFalse(server.isReady());
+        server.start();
+
+        // Wait for the server to be ready. Poll up to 10 times (with a 500ms
+        // pause between attempts).
+        int attempts = 0;
+        while (!server.isReady() && attempts < 10) {
+            Thread.sleep(500);
+            attempts++;
+        }
+
+        Assert.assertTrue(server.isReady());
+        System.out.println(AnyStrings.format(
+                "Had {} unusccessful probe{} for server readiness", attempts,
+                attempts != 1 ? "s" : ""));
+
+        server.stop();
+        Assert.assertFalse(server.isReady());
     }
 
 }

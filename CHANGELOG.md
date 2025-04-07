@@ -2,6 +2,21 @@
 
 #### Version 0.12.0 (TBD)
 
+##### Distributed Concourse (ALPHA)
+* **Added support for running Concourse as a distributed cluster.** This ALPHA release allows Concourse to operate across multiple nodes while maintaining strong consistency guarantees.
+* Distributed Concourse operates as a CP system with optimistic availability, meaning it prioritizes data consistency while maximizing availability when possible.
+* Each node in the cluster operates as a peer - there is no single leader, allowing clients to connect to any node to perform operations.
+* Distributed deployment can be enabled by configuring the new `cluster` settings in your configuration file:
+  * `cluster.nodes`: A list of `host:port` entries for each node in the cluster
+  * `cluster.replication_factor`: Specifies the minimum number of nodes that should receive a copy of each piece of data (defaults to n/2 + 1, where n is the number of nodes)
+* **IMPORTANT**: This is an ALPHA release with several limitations:
+  * Cannot convert an existing single-node deployment with data into a distributed cluster
+  * Cannot have nodes with different configurations within the same cluster
+  * Cannot have nodes running different Concourse versions
+  * Cannot add or remove nodes from an existing cluster dynamically
+  * Not recommended for production systems or mission-critical data
+* The focus of this initial implementation is on core correctness of the distributed system protocol, data routing, and consistency - consider it a proof of concept at this stage.
+
 ##### Search
 We made several changes to improve search performance and accuracy:
 

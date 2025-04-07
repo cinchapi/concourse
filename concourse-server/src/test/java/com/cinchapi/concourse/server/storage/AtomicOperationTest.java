@@ -31,6 +31,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
@@ -310,7 +311,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testNoDeadLockIfFindEqOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
-        long record = Time.now();
+        long record = Identifiers.next();
         AtomicOperation operation = (AtomicOperation) store;
         operation.find(key, Operator.EQUALS, value);
         operation.add(key, value, record);
@@ -321,7 +322,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testNoDeadLockIfFindGtOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
-        long record = Time.now();
+        long record = Identifiers.next();
         AtomicOperation operation = (AtomicOperation) store;
         operation.find(key, Operator.GREATER_THAN, value);
         operation.add(key, value, record);
@@ -332,7 +333,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testNoDeadLockIfFindGteOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
-        long record = Time.now();
+        long record = Identifiers.next();
         AtomicOperation operation = (AtomicOperation) store;
         operation.find(key, Operator.GREATER_THAN_OR_EQUALS, value);
         operation.add(key, value, record);
@@ -343,7 +344,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testNoDeadLockIfFindLteOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
-        long record = Time.now();
+        long record = Identifiers.next();
         AtomicOperation operation = (AtomicOperation) store;
         operation.find(key, Operator.LESS_THAN_OR_EQUALS, value);
         operation.add(key, value, record);
@@ -354,7 +355,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testNoDeadLockIfFindLtOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
-        long record = Time.now();
+        long record = Identifiers.next();
         AtomicOperation operation = (AtomicOperation) store;
         operation.find(key, Operator.LESS_THAN, value);
         operation.add(key, value, record);
@@ -365,7 +366,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testNoDeadLockIfFindBwOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
-        long record = Time.now();
+        long record = Identifiers.next();
         AtomicOperation operation = (AtomicOperation) store;
         operation.find(key, Operator.BETWEEN, value, Convert.javaToThrift(3));
         operation.add(key, value, record);
@@ -376,7 +377,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testNoDeadLockIfFindRegexOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
-        long record = Time.now();
+        long record = Identifiers.next();
         AtomicOperation operation = (AtomicOperation) store;
         operation.find(key, Operator.REGEX, value);
         operation.add(key, value, record);
@@ -387,7 +388,7 @@ public abstract class AtomicOperationTest extends BufferedStoreTest {
     public void testNoDeadLockIfFindNotRegexOnKeyBeforeAddingToKey() {
         String key = "ipeds_id";
         TObject value = Convert.javaToThrift(1);
-        long record = Time.now();
+        long record = Identifiers.next();
         AtomicOperation operation = (AtomicOperation) store;
         operation.find(key, Operator.NOT_REGEX, value);
         operation.add(key, value, record);

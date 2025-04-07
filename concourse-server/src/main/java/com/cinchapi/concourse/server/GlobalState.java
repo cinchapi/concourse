@@ -34,6 +34,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.annotate.Experimental;
 import com.cinchapi.concourse.annotate.NonPreference;
+import com.cinchapi.concourse.config.ConcourseClusterSpecification;
 import com.cinchapi.concourse.config.ConcourseServerConfiguration;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
@@ -356,6 +357,13 @@ public final class GlobalState extends Constants {
     public static boolean ENABLE_VERIFY_BY_LOOKUP = false;
 
     /**
+     * Contains the specification for the distributed cluster of which Concourse
+     * Server is a member.
+     */
+    @Experimental
+    public static ConcourseClusterSpecification CLUSTER = ConcourseClusterSpecification.UNDEFINED;
+
+    /**
      * Use a more memory-efficient representation for storage metadata.
      * <p>
      * On average, enabling this setting will reduce the amount of heap space
@@ -454,6 +462,8 @@ public final class GlobalState extends Constants {
 
         ENABLE_VERIFY_BY_LOOKUP = config.getOrDefault("enable_verify_by_lookup",
                 ENABLE_VERIFY_BY_LOOKUP);
+
+        CLUSTER = ConcourseClusterSpecification.from(config);
 
         INIT_ROOT_PASSWORD = config.getOrDefault("init.root.password",
                 config.getOrDefault("init_root_password", INIT_ROOT_PASSWORD));

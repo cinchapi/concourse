@@ -24,8 +24,8 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.server.plugin.io.PluginSerializer;
 import com.cinchapi.concourse.thrift.ComplexTObject;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Numbers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -176,12 +176,12 @@ public class ObjectResultDatasetTest {
         ages.put(41, 1);
         names.forEach((name, count) -> {
             for (int i = 0; i < count; ++i) {
-                a.insert(Time.now(), "name", name);
+                a.insert(Identifiers.next(), "name", name);
             }
         });
         ages.forEach((age, count) -> {
             for (int i = 0; i < count; ++i) {
-                a.insert(Time.now(), "age", age);
+                a.insert(Identifiers.next(), "age", age);
             }
         });
         Assert.assertTrue(((TrackingMultimap<Object, Long>) a.invert("name"))

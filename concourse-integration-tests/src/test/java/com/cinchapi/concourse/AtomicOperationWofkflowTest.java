@@ -27,6 +27,7 @@ import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.HashMultimap;
@@ -158,7 +159,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInserMultiValuesForKeyFailsIfOneOfTheMappingsExists() {
-        long record = Time.now();
+        long record = Identifiers.next();
         Multimap<String, Object> data = Variables.register("data",
                 LinkedHashMultimap.<String, Object> create());
         String key = Random.getSimpleString();
@@ -177,7 +178,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertFailsIfSomeDataAlreadyExists() {
-        long record = Time.now();
+        long record = Identifiers.next();
         String key0 = TestData.getSimpleString();
         Object value0 = TestData.getObject();
         Multimap<String, Object> data = Variables.register("data",
@@ -229,7 +230,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertMultiValuesForKey() {
-        long record = Time.now();
+        long record = Identifiers.next();
         Multimap<String, Object> data = Variables.register("data",
                 LinkedHashMultimap.<String, Object> create());
         String key = Random.getSimpleString();
@@ -245,7 +246,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertSucceedsIfAllDataIsNew() {
-        long record = Time.now();
+        long record = Identifiers.next();
         Multimap<String, Object> data = Variables.register("data",
                 getInsertData());
         String json = Variables.register("json", toJsonString(data));
@@ -261,7 +262,7 @@ public class AtomicOperationWofkflowTest extends ConcourseIntegrationTest {
 
     @Test
     public void testInsertSucceedsIfAllDataIsNewReproA() {
-        long record = Time.now();
+        long record = Identifiers.next();
         Multimap<String, Object> data = Variables.register("data",
                 HashMultimap.<String, Object> create());
         data.put("foo", "007");
