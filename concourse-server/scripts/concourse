@@ -250,7 +250,11 @@ if [ ! -z "$RDP_PREF" ] && [ "$RDP_PREF" -ne "0" ]; then
 fi
 
 #heap_size
-HEAP_PREF=`cat $PREFS | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+if [ ! -z "$CONCOURSE_HEAP_SIZE" ]; then
+  HEAP_PREF=$CONCOURSE_HEAP_SIZE
+else
+  HEAP_PREF=`cat $PREFS | grep -e '^heap_size\s*=\s*[0-9]\{1,\}\(m\|M\|mb\|MB\|g\|G\|gb\|GB\)$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+fi
 HEAP_PREF=`echo $HEAP_PREF | awk '{print tolower($0)}'`
 HEAP=${HEAP_PREF//[!0-9]/}
 if [[ $HEAP_PREF == *g* ]]; then
