@@ -34,6 +34,7 @@ ARGS=""
 for file in "${FILES[@]}"; do
   ARGS=$ARGS"-f $APP_HOME/conf/$file "
 done
+ARGS=$ARGS"--prefix CONCOURSE_ "
 ARGS=$(echo $ARGS | xargs)
 
 # run the program
