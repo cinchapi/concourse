@@ -1,6 +1,10 @@
-## Changelog
+#### Version 0.11.8 (TBD)
 
-#### Version 0.11.7 (TBD)
+##### Caching Improvements
+* **Dynamic Memory-Aware Eviction**: Record caches in the database now evict entires based on overall memory consumption instead of evicting after exceeding a static number of entries. Caches can grow up to an internally defined proportion of the defined `heap_size` and will be purged once this limit is exceeded or when system memory pressure necessitates garbage collection.
+* **Enhanced Diagnostic Logging**: For improved observability, DEBUG logging now emits messages whenever a cached record is evicted, allowing for more effective monitoring and troubleshooting of cache behavior.
+
+#### Version 0.11.7 (April 7, 2025)
 * Fixed a bug that made it possible to leak filesystem resources by opening duplicate file descriptors for the same Segment file. At scale, this could prematurely lead to "too many open files" errors.
 * [GH-534](https://github.com/cinchapi/concourse/issues/534): Fixed a bug that caused the `CONCOURSE_HEAP_SIZE` environment variable, if set, not to be read on server startup.
 
@@ -18,7 +22,7 @@
 * Fixed a bug that made it possible for a Transaction to silently fail and cause a deadlock when multiple distinct writes committed in other operations caused that Transaction to become preempted (e.g., unable to continue or successfully commit because of a version change).
 * Fixed a bug that allowed a Transaction's atomic operations (e.g., `verifyAndSwap`) to ignore range conflicts stemming from writes committed in other operations. As a result, the atomic operation would successfully commit to its a Transaction, but the Transaction would inevitably fail due to the aforementioned conflict. The correct (and now current) behaviour is that the atomic operation fails (so it can be retried) without dooming the entire Transaction to failure.
 * Fixed a bug that caused an innocuous Exception to be thrown when importing CSV data using the interactive input feature of `concourse import` CLI.
-* Fixed a bug that caused an issue with using the `ConcourseServerDownloader` to download installers from Github.
+* Fixed a bug that caused an inexplicable failure to occur when invoking a plugin method that indirectly depended on result set sorting.
 
 #### Version 0.11.4 (July 4, 2022)
 * Slightly improved the performance of result sorting by removing unnecessary intermediate data gathering.
