@@ -48,6 +48,7 @@ We made several changes to improve the safety, scalability and operational effic
 
 ##### Bug Fixes
 * [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
+* [GH-535](https://github.com/cinchapi/concourse/issues/535): Fixed an issue that caused JVM startup options overriden in an environment variable to be ignored (e.g., `CONCOURSE_HEAP_SIZE`).
 * [GH-491](https://github.com/cinchapi/concourse/issues/491) Fixed a race condition that made it possible for a range bloked operation to spurriously be allowed to proceed if it was waiting to acquire a range lock whose intended scope of protection intersected the scope of a range lock that was concurrently released.  
 * Fixed a bug that caused range locks to protect an inadequate scope of data once acquired.
 * [GH-490](https://github.com/cinchapi/concourse/issues/490): Fixed a bug that made it possible for a write to a key within a record (e.g., key `A` in record `1`) to erroneously block a concurrent write to a different key in the same record (e.g., key `B` in record `1`). The practial consquence of this bug was that more Atomic Operations and Transactions failed than actually necessary. 
