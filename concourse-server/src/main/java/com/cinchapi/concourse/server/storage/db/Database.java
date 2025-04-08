@@ -1831,6 +1831,9 @@ public final class Database implements DurableStore {
          */
         private final LoadingCache<K, V> cache;
 
+        /**
+         * The loading function.
+         */
         private final Function<K, V> loader;
 
         /**
