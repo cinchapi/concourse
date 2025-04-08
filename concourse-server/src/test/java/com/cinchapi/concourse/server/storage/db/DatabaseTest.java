@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.apache.ratis.thirdparty.com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -52,6 +51,7 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
