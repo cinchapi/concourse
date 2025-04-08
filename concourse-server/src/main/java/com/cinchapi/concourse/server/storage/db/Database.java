@@ -33,12 +33,12 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +52,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
-import org.checkerframework.checker.index.qual.NonNegative;
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.base.ArrayBuilder;
 import com.cinchapi.common.base.CheckedExceptions;
@@ -89,15 +88,14 @@ import com.cinchapi.concourse.util.Comparators;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.concourse.util.Transformers;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.github.benmanes.caffeine.cache.Policy;
-import com.github.benmanes.caffeine.cache.Weigher;
-import com.github.benmanes.caffeine.cache.stats.CacheStats;
 import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.CacheStats;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.Weigher;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -108,7 +106,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
 import com.google.common.hash.HashCode;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -416,7 +415,7 @@ public final class Database implements DurableStore {
      * @param directory
      */
     public Database(Path directory) {
-        this(directory, CacheConfiguration.defaults(ForkJoinPool.commonPool()));
+        this(directory, CacheConfiguration.defaults());
     }
 
     /**
@@ -1133,21 +1132,21 @@ public final class Database implements DurableStore {
         Weigher<Composite, T> weigher = (key, value) -> key.size()
                 + value.size();
         // @formatter:off
-        LoadingCache<Composite, T> cache = Caffeine.newBuilder()
+        LoadingCache<Composite, T> cache = CacheBuilder.newBuilder()
                 .weigher(weigher)
                 .maximumWeight(maximumWeight)
                 .softValues()
-                .removalListener((composite, record, cause) -> {
-                    if(cause.wasEvicted()) {
+                .removalListener(notification -> {
+                    if(notification.wasEvicted()) {
+                        T record = notification.getValue();
                         Logger.debug("Evicted {} from cache due to {}", 
-                                record, cause);
+                                record, notification.getCause());
                         
                         cacheConfig.evictionListener().accept(record);
                     }
                 })
                 .refreshAfterWrite(
                         cacheConfig.cacheMemoryCheckFrequencyInSeconds(),TimeUnit.SECONDS)
-                .executor(cacheConfig.executor())
                 .build(new CacheLoader<Composite, T>() {
 
                     @Override
@@ -1156,7 +1155,7 @@ public final class Database implements DurableStore {
                     }
 
                     @Override
-                    public T reload(Composite key, T oldValue)
+                    public ListenableFuture<T> reload(Composite key, T oldValue)
                             throws Exception {
                         // In order to maintain the configured maximumWeight,
                         // cached records are "reloaded" periodically after they
@@ -1164,7 +1163,7 @@ public final class Database implements DurableStore {
                         // total of its weight, so there's no need to re-apply
                         // the #loader to refresh the cached value or the cache
                         // metadata (e.g., running total weight)
-                        return oldValue;
+                        return Futures.immediateFuture(oldValue);
                     }
 
                 });
@@ -1223,6 +1222,9 @@ public final class Database implements DurableStore {
                 return loader.apply(composite);
             }
         }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
         finally {
             masterLock.readLock().unlock();
         }
@@ -1239,6 +1241,9 @@ public final class Database implements DurableStore {
         try {
             Composite composite = Composite.create(key);
             return indexCache.get(composite);
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();
@@ -1314,6 +1319,9 @@ public final class Database implements DurableStore {
             Composite composite = Composite.create(identifier);
             return tableCache.get(composite);
         }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
         finally {
             masterLock.readLock().unlock();
         }
@@ -1345,6 +1353,9 @@ public final class Database implements DurableStore {
                 table = tablePartialCache.get(composite);
             }
             return table;
+        }
+        catch (ExecutionException e) {
+            throw CheckedExceptions.wrapAsRuntimeException(e);
         }
         finally {
             masterLock.readLock().unlock();
@@ -1412,20 +1423,9 @@ public final class Database implements DurableStore {
         /**
          * Return the default {@link CacheConfiguration}.
          * 
-         * @param executor
-         * 
          * @return the {@link CacheConfiguration}
          */
         static CacheConfiguration defaults() {
-            return defaults(MoreExecutors.directExecutor());
-        }
-
-        /**
-         * Return the default {@link CacheConfiguration}.
-         * 
-         * @return the {@link CacheConfiguration}
-         */
-        static CacheConfiguration defaults(Executor executor) {
             /*
              * TODO: Consider a future optimization where the allocation for
              * each cache is determined based on heuristics (e.g., 50% for
@@ -1456,7 +1456,7 @@ public final class Database implements DurableStore {
             return new CacheConfiguration(tableCacheMemoryLimit,
                     tablePartialCacheMemoryLimit, indexCacheMemoryLimit,
                     corpusCacheMemoryLimit, cacheMemoryCheckFrequencyInSeconds,
-                    $ -> {}, executor);
+                    $ -> {});
         }
 
         /**
@@ -1490,11 +1490,6 @@ public final class Database implements DurableStore {
         private Consumer<Record<?, ?, ?>> evictionListener;
 
         /**
-         * The executor to use for cache cleanup, etc
-         */
-        private Executor executor;
-
-        /**
          * Construct a new instance.
          * 
          * @param tableCacheMemoryLimit the maximum size for the table cache
@@ -1505,20 +1500,18 @@ public final class Database implements DurableStore {
          * @param cacheMemoryCheckFrequencyInSeconds the frequency in seconds at
          *            which cache sizes are refreshed
          * @param evictionListener the listener for cache entry eviction events
-         * @param executor
          */
         private CacheConfiguration(int tableCacheMemoryLimit,
                 int tablePartialCacheMemoryLimit, int indexCacheMemoryLimit,
                 int corpusCacheMemoryLimit,
                 int cacheMemoryCheckFrequencyInSeconds,
-                Consumer<Record<?, ?, ?>> evictionListener, Executor executor) {
+                Consumer<Record<?, ?, ?>> evictionListener) {
             this.tableCacheMemoryLimit = tableCacheMemoryLimit;
             this.tablePartialCacheMemoryLimit = tablePartialCacheMemoryLimit;
             this.indexCacheMemoryLimit = indexCacheMemoryLimit;
             this.corpusCacheMemoryLimit = corpusCacheMemoryLimit;
             this.cacheMemoryCheckFrequencyInSeconds = cacheMemoryCheckFrequencyInSeconds;
             this.evictionListener = evictionListener;
-            this.executor = executor;
         }
 
         /**
@@ -1573,15 +1566,6 @@ public final class Database implements DurableStore {
          */
         int tablePartialCacheMemoryLimit() {
             return tablePartialCacheMemoryLimit;
-        }
-
-        /**
-         * Return the exectuor to use for cache cleanup, etc.
-         * 
-         * @return the executor
-         */
-        Executor executor() {
-            return executor;
         }
 
         /**
@@ -1691,17 +1675,6 @@ public final class Database implements DurableStore {
              */
             Builder tablePartialCacheMemoryLimit(int value) {
                 cacheConfig.tablePartialCacheMemoryLimit = value;
-                return this;
-            }
-
-            /**
-             * Set the {@link Executor} for the cache to use for cleanup, etc
-             * 
-             * @param executor
-             * @return this builder
-             */
-            Builder exectuor(Executor executor) {
-                cacheConfig.executor = executor;
                 return this;
             }
         }
@@ -1858,9 +1831,6 @@ public final class Database implements DurableStore {
          */
         private final LoadingCache<K, V> cache;
 
-        /**
-         * The loading function.
-         */
         private final Function<K, V> loader;
 
         /**
@@ -1871,6 +1841,12 @@ public final class Database implements DurableStore {
         RunningAwareCache(LoadingCache<K, V> cache, Function<K, V> loader) {
             this.cache = cache;
             this.loader = loader;
+        }
+
+        @Override
+        @Deprecated
+        public V apply(K key) {
+            return running ? cache.apply(key) : null;
         }
 
         @Override
@@ -1886,23 +1862,41 @@ public final class Database implements DurableStore {
         }
 
         @Override
-        public V get(K key) {
+        public V get(K key) throws ExecutionException {
             return running ? cache.get(key) : loader.apply(key);
         }
 
         @Override
-        public Map<K, V> getAll(Iterable<? extends K> keys) {
+        public V get(K key, Callable<? extends V> loader)
+                throws ExecutionException {
+            try {
+                return running ? cache.get(key, loader) : loader.call();
+            }
+            catch (Exception e) {
+                throw new ExecutionException(e.getMessage(), e);
+            }
+        }
+
+        @Override
+        public ImmutableMap<K, V> getAll(Iterable<? extends K> keys)
+                throws ExecutionException {
             return running ? cache.getAll(keys) : ImmutableMap.of();
         }
 
         @Override
-        public Map<K, V> getAllPresent(Iterable<?> keys) {
+        public ImmutableMap<K, V> getAllPresent(Iterable<?> keys) {
             return running ? cache.getAllPresent(keys) : ImmutableMap.of();
         }
 
         @Override
-        public V getIfPresent(Object key) {
+        public @org.checkerframework.checker.nullness.qual.Nullable V getIfPresent(
+                Object key) {
             return running ? cache.getIfPresent(key) : null;
+        }
+
+        @Override
+        public V getUnchecked(K key) {
+            return running ? cache.getUnchecked(key) : null;
         }
 
         @Override
@@ -1947,26 +1941,14 @@ public final class Database implements DurableStore {
             }
         }
 
-        @SuppressWarnings("deprecation")
+        @Override
+        public long size() {
+            return running ? cache.size() : 0;
+        }
+
         @Override
         public CacheStats stats() {
             return running ? cache.stats() : new CacheStats(0, 0, 0, 0, 0, 0);
-        }
-
-        @Override
-        public V get(K key, Function<? super K, ? extends V> mappingFunction) {
-            return running ? cache.get(key, mappingFunction)
-                    : mappingFunction.apply(key);
-        }
-
-        @Override
-        public @NonNegative long estimatedSize() {
-            return running ? cache.estimatedSize() : 0;
-        }
-
-        @Override
-        public Policy<K, V> policy() {
-            return running ? cache.policy() : null;
         }
 
     }
