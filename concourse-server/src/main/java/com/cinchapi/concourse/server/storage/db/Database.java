@@ -444,7 +444,7 @@ public final class Database implements DurableStore {
                 segments, masterLock.writeLock());
         this.cacheConfig = cacheConfig;
 
-        this.tableCache = buildCache(cacheConfig.tableCacheMaxSize(),
+        this.tableCache = buildCache(cacheConfig.tableCacheMemoryLimit(),
                 composite -> {
                     Identifier identifier = (Identifier) composite.parts()[0];
                     TableRecord $ = TableRecord.create(identifier);
@@ -472,7 +472,7 @@ public final class Database implements DurableStore {
                 });
 
         this.tablePartialCache = buildCache(
-                cacheConfig.tablePartialCacheMaxSize(), composite -> {
+                cacheConfig.tablePartialCacheMemoryLimit(), composite -> {
                     Identifier identifier = (Identifier) composite.parts()[0];
                     Text key = (Text) composite.parts()[1];
                     TableRecord $ = TableRecord.createPartial(identifier, key);
@@ -499,7 +499,7 @@ public final class Database implements DurableStore {
                     return $;
                 });
 
-        this.indexCache = buildCache(cacheConfig.indexCacheMaxSize(),
+        this.indexCache = buildCache(cacheConfig.indexCacheMemoryLimit(),
                 composite -> {
                     Text key = (Text) composite.parts()[0];
                     IndexRecord $ = IndexRecord.create(key);
@@ -1146,7 +1146,7 @@ public final class Database implements DurableStore {
                     }
                 })
                 .refreshAfterWrite(
-                        cacheConfig.cacheSizeRefreshFrequencyInSeconds(),TimeUnit.SECONDS)
+                        cacheConfig.cacheMemoryCheckFrequencyInSeconds(),TimeUnit.SECONDS)
                 .build(new CacheLoader<Composite, T>() {
 
                     @Override
@@ -1214,7 +1214,7 @@ public final class Database implements DurableStore {
                 LoadingCache<Composite, CorpusRecord> cache = corpusCaches
                         .computeIfAbsent(key,
                                 $ -> buildCache(
-                                        cacheConfig.corpusCacheMaxSize(),
+                                        cacheConfig.corpusCacheMemoryLimit(),
                                         loader));
                 return cache.get(composite);
             }
@@ -1432,57 +1432,57 @@ public final class Database implements DurableStore {
              * corpus cache, 25% for table, 25% for index, etc) or based or
              * dynamic based on usage.
              */
-            int tableCacheMaxSize;
-            int tablePartialCacheMaxSize;
-            int indexCacheMaxSize;
-            int corpusCacheMaxSize;
-            int cacheSizeRefreshFrequencyInSeconds;
+            int tableCacheMemoryLimit;
+            int tablePartialCacheMemoryLimit;
+            int indexCacheMemoryLimit;
+            int corpusCacheMemoryLimit;
+            int cacheMemoryCheckFrequencyInSeconds;
 
             if(ENABLE_SEARCH_CACHE) {
-                tableCacheMaxSize = GlobalState.CACHE_RESERVE_MAX_SIZE;
-                tablePartialCacheMaxSize = GlobalState.CACHE_RESERVE_MAX_SIZE;
-                indexCacheMaxSize = GlobalState.CACHE_RESERVE_MAX_SIZE;
-                corpusCacheMaxSize = GlobalState.CACHE_RESERVE_MAX_SIZE;
+                tableCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                tablePartialCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                indexCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                corpusCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
 
             }
             else {
-                tableCacheMaxSize = GlobalState.CACHE_RESERVE_MAX_SIZE;
-                tablePartialCacheMaxSize = GlobalState.CACHE_RESERVE_MAX_SIZE;
-                indexCacheMaxSize = GlobalState.CACHE_RESERVE_MAX_SIZE;
-                corpusCacheMaxSize = 0;
+                tableCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                tablePartialCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                indexCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                corpusCacheMemoryLimit = 0;
             }
-            cacheSizeRefreshFrequencyInSeconds = GlobalState.CACHE_SIZE_REFRESH_FREQUENCY;
+            cacheMemoryCheckFrequencyInSeconds = GlobalState.CACHE_MEMORY_CHECK_FREQUENCY;
 
-            return new CacheConfiguration(tableCacheMaxSize,
-                    tablePartialCacheMaxSize, indexCacheMaxSize,
-                    corpusCacheMaxSize, cacheSizeRefreshFrequencyInSeconds,
+            return new CacheConfiguration(tableCacheMemoryLimit,
+                    tablePartialCacheMemoryLimit, indexCacheMemoryLimit,
+                    corpusCacheMemoryLimit, cacheMemoryCheckFrequencyInSeconds,
                     $ -> {});
         }
 
         /**
          * The maximum size for the table cache.
          */
-        private int tableCacheMaxSize;
+        private int tableCacheMemoryLimit;
 
         /**
          * The maximum size for the table partial cache.
          */
-        private int tablePartialCacheMaxSize;
+        private int tablePartialCacheMemoryLimit;
 
         /**
          * The maximum size for the index cache.
          */
-        private int indexCacheMaxSize;
+        private int indexCacheMemoryLimit;
 
         /**
          * The maximum size for the corpus cache.
          */
-        private int corpusCacheMaxSize;
+        private int corpusCacheMemoryLimit;
 
         /**
          * The frequency in seconds at which cache sizes are refreshed.
          */
-        private int cacheSizeRefreshFrequencyInSeconds;
+        private int cacheMemoryCheckFrequencyInSeconds;
 
         /**
          * The eviction listener for cache entries.
@@ -1492,24 +1492,25 @@ public final class Database implements DurableStore {
         /**
          * Construct a new instance.
          * 
-         * @param tableCacheMaxSize the maximum size for the table cache
-         * @param tablePartialCacheMaxSize the maximum size for the table
+         * @param tableCacheMemoryLimit the maximum size for the table cache
+         * @param tablePartialCacheMemoryLimit the maximum size for the table
          *            partial cache
-         * @param indexCacheMaxSize the maximum size for the index cache
-         * @param corpusCacheMaxSize the maximum size for the corpus cache
-         * @param cacheSizeRefreshFrequencyInSeconds the frequency in seconds at
+         * @param indexCacheMemoryLimit the maximum size for the index cache
+         * @param corpusCacheMemoryLimit the maximum size for the corpus cache
+         * @param cacheMemoryCheckFrequencyInSeconds the frequency in seconds at
          *            which cache sizes are refreshed
          * @param evictionListener the listener for cache entry eviction events
          */
-        private CacheConfiguration(int tableCacheMaxSize,
-                int tablePartialCacheMaxSize, int indexCacheMaxSize,
-                int corpusCacheMaxSize, int cacheSizeRefreshFrequencyInSeconds,
+        private CacheConfiguration(int tableCacheMemoryLimit,
+                int tablePartialCacheMemoryLimit, int indexCacheMemoryLimit,
+                int corpusCacheMemoryLimit,
+                int cacheMemoryCheckFrequencyInSeconds,
                 Consumer<Record<?, ?, ?>> evictionListener) {
-            this.tableCacheMaxSize = tableCacheMaxSize;
-            this.tablePartialCacheMaxSize = tablePartialCacheMaxSize;
-            this.indexCacheMaxSize = indexCacheMaxSize;
-            this.corpusCacheMaxSize = corpusCacheMaxSize;
-            this.cacheSizeRefreshFrequencyInSeconds = cacheSizeRefreshFrequencyInSeconds;
+            this.tableCacheMemoryLimit = tableCacheMemoryLimit;
+            this.tablePartialCacheMemoryLimit = tablePartialCacheMemoryLimit;
+            this.indexCacheMemoryLimit = indexCacheMemoryLimit;
+            this.corpusCacheMemoryLimit = corpusCacheMemoryLimit;
+            this.cacheMemoryCheckFrequencyInSeconds = cacheMemoryCheckFrequencyInSeconds;
             this.evictionListener = evictionListener;
         }
 
@@ -1518,8 +1519,8 @@ public final class Database implements DurableStore {
          * 
          * @return the cache size refresh frequency in seconds
          */
-        int cacheSizeRefreshFrequencyInSeconds() {
-            return cacheSizeRefreshFrequencyInSeconds;
+        int cacheMemoryCheckFrequencyInSeconds() {
+            return cacheMemoryCheckFrequencyInSeconds;
         }
 
         /**
@@ -1527,8 +1528,8 @@ public final class Database implements DurableStore {
          * 
          * @return the corpus cache maximum size
          */
-        int corpusCacheMaxSize() {
-            return corpusCacheMaxSize;
+        int corpusCacheMemoryLimit() {
+            return corpusCacheMemoryLimit;
         }
 
         /**
@@ -1536,8 +1537,8 @@ public final class Database implements DurableStore {
          * 
          * @return the index cache maximum size
          */
-        int indexCacheMaxSize() {
-            return indexCacheMaxSize;
+        int indexCacheMemoryLimit() {
+            return indexCacheMemoryLimit;
         }
 
         /**
@@ -1554,8 +1555,8 @@ public final class Database implements DurableStore {
          * 
          * @return the table cache maximum size
          */
-        int tableCacheMaxSize() {
-            return tableCacheMaxSize;
+        int tableCacheMemoryLimit() {
+            return tableCacheMemoryLimit;
         }
 
         /**
@@ -1563,8 +1564,8 @@ public final class Database implements DurableStore {
          * 
          * @return the table partial cache maximum size
          */
-        int tablePartialCacheMaxSize() {
-            return tablePartialCacheMaxSize;
+        int tablePartialCacheMemoryLimit() {
+            return tablePartialCacheMemoryLimit;
         }
 
         /**
@@ -1603,11 +1604,11 @@ public final class Database implements DurableStore {
              * @param value the maximum size for all caches
              * @return this builder
              */
-            Builder cacheMaxSize(int value) {
-                cacheConfig.tableCacheMaxSize = value;
-                cacheConfig.tablePartialCacheMaxSize = value;
-                cacheConfig.indexCacheMaxSize = value;
-                cacheConfig.corpusCacheMaxSize = value;
+            Builder memoryLimit(int value) {
+                cacheConfig.tableCacheMemoryLimit = value;
+                cacheConfig.tablePartialCacheMemoryLimit = value;
+                cacheConfig.indexCacheMemoryLimit = value;
+                cacheConfig.corpusCacheMemoryLimit = value;
                 return this;
             }
 
@@ -1617,8 +1618,8 @@ public final class Database implements DurableStore {
              * @param value the cache size refresh frequency in seconds
              * @return this builder
              */
-            Builder cacheSizeRefreshFrequencyInSeconds(int value) {
-                cacheConfig.cacheSizeRefreshFrequencyInSeconds = value;
+            Builder memoryCheckFrequencyInSeconds(int value) {
+                cacheConfig.cacheMemoryCheckFrequencyInSeconds = value;
                 return this;
             }
 
@@ -1628,8 +1629,8 @@ public final class Database implements DurableStore {
              * @param value the maximum size for the corpus cache
              * @return this builder
              */
-            Builder corpusCacheMaxSize(int value) {
-                cacheConfig.corpusCacheMaxSize = value;
+            Builder corpusCacheMemoryLimit(int value) {
+                cacheConfig.corpusCacheMemoryLimit = value;
                 return this;
             }
 
@@ -1639,8 +1640,8 @@ public final class Database implements DurableStore {
              * @param value the maximum size for the index cache
              * @return this builder
              */
-            Builder indexCacheMaxSize(int value) {
-                cacheConfig.indexCacheMaxSize = value;
+            Builder indexCacheMemoryLimit(int value) {
+                cacheConfig.indexCacheMemoryLimit = value;
                 return this;
             }
 
@@ -1661,8 +1662,8 @@ public final class Database implements DurableStore {
              * @param value the maximum size for the table cache
              * @return this builder
              */
-            Builder tableCacheMaxSize(int value) {
-                cacheConfig.tableCacheMaxSize = value;
+            Builder tableCacheMemoryLimit(int value) {
+                cacheConfig.tableCacheMemoryLimit = value;
                 return this;
             }
 
@@ -1672,8 +1673,8 @@ public final class Database implements DurableStore {
              * @param value the maximum size for the table partial cache
              * @return this builder
              */
-            Builder tablePartialCacheMaxSize(int value) {
-                cacheConfig.tablePartialCacheMaxSize = value;
+            Builder tablePartialCacheMemoryLimit(int value) {
+                cacheConfig.tablePartialCacheMemoryLimit = value;
                 return this;
             }
         }

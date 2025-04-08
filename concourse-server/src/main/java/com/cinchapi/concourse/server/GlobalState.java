@@ -537,24 +537,23 @@ public final class GlobalState extends Constants {
                                                                            // (~1MiB)
 
     /**
-     * The number of bytes to "reserve" for data caching. The cache reserve may
-     * be on or off heap, so this number should be less than the overall
-     * {@link #HEAP_SIZE}. The cache reserve is shared by multiple caches (per
-     * environment), so this value represents the approximate total space that
-     * can be used for caching non-essential storage metadata in the entire
-     * system.
+     * The maximum number of bytes to reserve for caching data. This cache
+     * memory quota is shared by multiple caches per environment and must be
+     * lower than the overall {@link #HEAP_SIZE}. It represents the approximate
+     * total space that can be used for caching non-essential storage metadata
+     * in the entire system.
      */
     @NonPreference
-    public static int CACHE_RESERVE_MAX_SIZE = (int) (.5 * HEAP_SIZE);
+    public static int CACHE_MEMORY_LIMIT = (int) (.5 * HEAP_SIZE);
 
     /**
-     * The number of seconds to wait before refreshing the size calculation for
-     * each cached value. This refresh is essential to ensuring that size-based
-     * eviction happens as cached values are incrementally updated with new data
-     * writes.
+     * The frequency, in seconds, at which the memory usage of each cached value
+     * is checked. This periodic check is essential to ensuring that size-based
+     * eviction is accurately enforced as cached values are incrementally
+     * updated with new data writes.
      */
     @NonPreference
-    public static int CACHE_SIZE_REFRESH_FREQUENCY = 60;
+    public static int CACHE_MEMORY_CHECK_FREQUENCY = 60;
 
     /**
      * The path to the underlying file from which the preferences are extracted.

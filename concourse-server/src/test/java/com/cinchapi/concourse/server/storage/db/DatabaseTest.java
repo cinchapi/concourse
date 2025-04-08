@@ -551,7 +551,7 @@ public class DatabaseTest extends StoreTest {
         db.stop();
         AtomicBoolean evicted = new AtomicBoolean(false);
         CacheConfiguration cacheConfig = CacheConfiguration.builder()
-                .cacheMaxSize(1000).cacheSizeRefreshFrequencyInSeconds(1)
+                .memoryLimit(1000).memoryCheckFrequencyInSeconds(1)
                 .evictionListener(removed -> evicted.set(true)).build();
         db = new Database(Paths.get(db.getBackingStore()), cacheConfig); // ensure
                                                                          // caches
@@ -579,7 +579,7 @@ public class DatabaseTest extends StoreTest {
         db.stop();
         AtomicBoolean evicted = new AtomicBoolean(false);
         CacheConfiguration cacheConfig = CacheConfiguration.builder()
-                .cacheMaxSize(1000).cacheSizeRefreshFrequencyInSeconds(1)
+                .memoryLimit(1000).memoryCheckFrequencyInSeconds(1)
                 .evictionListener(removed -> evicted.set(true)).build();
         db = new Database(Paths.get(db.getBackingStore()), cacheConfig); // ensure
                                                                          // caches
