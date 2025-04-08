@@ -114,7 +114,13 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
      * Record.
      */
     private final WriteLock write = master.writeLock();
-
+    
+    /**
+     * A running total of the approximate size of this Record in bytes.
+     * This value only increases as revisions are appended.
+     */
+    private transient int size;
+    
     /**
      * Construct a new instance.
      * 
@@ -125,6 +131,7 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
         this.locator = locator;
         this.key = key;
         this.partial = key != null;
+        this.size = 0;
     }
 
     /**
@@ -184,6 +191,8 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
             // Run post-append hook
             onAppend(revision);
 
+            size += revision.size();
+            
             // Make revision eligible for GC
             revision = null;
         }
@@ -392,6 +401,17 @@ public abstract class Record<L extends Byteable & Comparable<L>, K extends Bytea
         finally {
             read.unlock();
         }
+    }
+
+    /**
+     * Return the approximate size of this Record in bytes.
+     * This represents the cumulative size of all revisions that have been
+     * appended to this Record.
+     * 
+     * @return the approximate size in bytes
+     */
+    public int size() {
+        return size;
     }
 
     @Override
