@@ -22,6 +22,10 @@ We made several changes to improve the safety, scalability and operational effic
 * Eliminated a known race condition that made it possible for two different conflicting commits to violate ACID semantics by concurrently acquiring different locks for the same resource.
 * Switched the basis for all storage engine locks from `java.util.concurrent.locks.ReenteantReadWriteLock` to either `java.util.concurrent.locks.StampedLock` or other synchronization primitives that are generally shown to have better throughput.
 
+##### Caching Improvements
+* **Dynamic Memory-Aware Eviction**: Record caches in the database now enforce eviction based on the overall memory consumed by cache entries rather than limiting the cache to a static number of entries. Caches can grow up to a configurable proportion of the defined `heap_size` and will be purged once this limit is exceeded or when system memory pressure necessitates garbage collection.
+* **Enhanced Diagnostic Logging**: For improved observability, DEBUG logging now emits messages whenever a cached record is evicted, allowing for more effective monitoring and troubleshooting of cache behavior.
+
 ##### YAML Configuration
 * Concourse now supports YAML configuration files. Going forward, YAML files are preferred over preferences files for configuration.
 	* Concourse Server can be configured with `concourse.yaml` and `concourse.yaml.dev` files.

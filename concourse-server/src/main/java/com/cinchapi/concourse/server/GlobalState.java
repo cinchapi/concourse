@@ -537,6 +537,25 @@ public final class GlobalState extends Constants {
                                                                            // (~1MiB)
 
     /**
+     * The maximum number of bytes to reserve for caching data. This cache
+     * memory quota is shared by multiple caches per environment and must be
+     * lower than the overall {@link #HEAP_SIZE}. It represents the approximate
+     * total space that can be used for caching non-essential storage metadata
+     * in the entire system.
+     */
+    @NonPreference
+    public static int CACHE_MEMORY_LIMIT = (int) (.5 * HEAP_SIZE);
+
+    /**
+     * The frequency, in seconds, at which the memory usage of each cached value
+     * is checked. This periodic check is essential to ensuring that size-based
+     * eviction is accurately enforced as cached values are incrementally
+     * updated with new data writes.
+     */
+    @NonPreference
+    public static int CACHE_MEMORY_CHECK_FREQUENCY = 60;
+
+    /**
      * The path to the underlying file from which the preferences are extracted.
      * This value is set in the static initialization block.
      */

@@ -823,8 +823,8 @@ public final class Segment extends TransferableByteSequence implements
      * A {@link Receipt} is acknowledges the successful
      * {@link Segment#acquire(Write, AwaitableExecutorService) transfer} of a
      * {@link Write} to a {@link Segment} and includes the {@link Revision
-     * revisions} that were created in the Segment's storage {@link Block
-     * Blocks}.
+     * revisions} that were created in the Segment's storage {@link Chunk
+     * Chunks}.
      *
      * @author Jeff Nelson
      */
