@@ -15,8 +15,10 @@
  */
 package com.cinchapi.concourse.server.ops;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -72,6 +74,7 @@ import com.google.gson.JsonElement;
  * 
  * @author Jeff Nelson
  */
+@SuppressWarnings("unused")
 public final class Operations {
 
     /**
@@ -204,34 +207,30 @@ public final class Operations {
         }
         else {
             String start = toks[0];
-            StringBuilder $key = new StringBuilder();
-            for (int i = 1; i < toks.length - 1; ++i) {
-                $key.append(toks[i]).append('.');
-            }
-            $key.append(toks[toks.length - 1]);
             Map<TObject, Set<Long>> root = timestamp == Time.NONE
                     ? store.browse(start)
                     : store.browse(start, timestamp);
+            String[] stops = Arrays.copyOfRange(toks, 1, toks.length);
             Map<TObject, Set<Long>> index = Maps.newLinkedHashMap();
-            root.entrySet().stream()
-                    .filter(e -> e.getKey().getType() == Type.LINK)
-                    .forEach(entry -> {
-                        Link link = (Link) Convert.thriftToJava(entry.getKey());
-                        Set<Long> nodes = entry.getValue();
-                        for (long node : nodes) {
-                            Set<TObject> values = traverseKeyRecordOptionalAtomic(
-                                    $key.toString(), link.longValue(),
-                                    timestamp, store);
-                            for (TObject value : values) {
-                                index.computeIfAbsent(value,
-                                        ignore -> Sets.newLinkedHashSet())
-                                        .add(node);
-                            }
+            for (Entry<TObject, Set<Long>> entry : root.entrySet()) {
+                TObject value = entry.getKey();
+                if(value.getType() == Type.LINK) {
+                    Link link = (Link) Convert.thriftToJava(value);
+                    long firstStop = link.longValue();
+                    Set<Long> nodes = entry.getValue();
+                    for (long node : nodes) {
+                        Set<TObject> values = traverseKeyRecordOptionalAtomic(
+                                stops, firstStop, timestamp, store);
+                        for (TObject terminalValue : values) {
+                            index.computeIfAbsent(terminalValue,
+                                    $ -> new LinkedHashSet<>()).add(node);
                         }
-                    });
+                    }
+                }
+            }
             return index;
-
         }
+
     }
 
     /**
@@ -1720,17 +1719,35 @@ public final class Operations {
      */
     public static Set<TObject> traverseKeyRecordOptionalAtomic(String key,
             long record, long timestamp, Store store) {
-        String[] toks = key.split("\\.");
+        String toks[] = key.split("\\.");
+        return traverseKeyRecordOptionalAtomic(toks, record, timestamp, store);
+    }
+
+    /**
+     * Atomically traverse a navigation key (represented as the tokenized stops
+     * that were separated by a '.') from {@code record} and
+     * return the values that are at the end of the path.
+     * 
+     * @param stops
+     * @param record
+     * @param timestamp
+     * @param store
+     * @return all the values that can be reached by traversing the document
+     *         graph along {@code key} from {@code record}
+     */
+    public static Set<TObject> traverseKeyRecordOptionalAtomic(String[] stops,
+            long record, long timestamp, Store store) {
         Set<TObject> values = Sets.newLinkedHashSet();
         Set<Long> nodes = ImmutableSet.of(record);
-        for (int i = 0; i < toks.length; ++i) {
-            key = toks[i];
-            Set<Long> descendents = Sets.newLinkedHashSet();
+        String key;
+        for (int i = 0; i < stops.length; ++i) {
+            key = stops[i];
+            Set<Long> descendents = new LinkedHashSet<>();
             for (long node : nodes) {
                 Set<TObject> $values = timestamp == Time.NONE
                         ? Stores.select(store, key, node)
                         : Stores.select(store, key, node, timestamp);
-                if(i == toks.length - 1) {
+                if(i == stops.length - 1) {
                     values.addAll($values);
                 }
                 else {
