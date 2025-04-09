@@ -951,7 +951,7 @@ public final class Database implements DurableStore {
      */
     private <T> Cache<Composite, T> buildCache() {
         Cache<Composite, T> cache = CacheBuilder.newBuilder()
-                .maximumSize(100000).softValues().build();
+                .maximumSize(1_000_000).softValues().build();
         return new RunningAwareCache<>(cache);
     }
 
