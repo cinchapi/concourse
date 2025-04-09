@@ -1,6 +1,9 @@
 ## Changelog
 
-#### Version 0.11.7 (TBD)
+#### Version 0.11.8 (TBD)
+* Increased the limit on the number of records that can be cached before automatic eviction occurs.
+
+#### Version 0.11.7 (April 7, 2025)
 * Fixed a bug that made it possible to leak filesystem resources by opening duplicate file descriptors for the same Segment file. At scale, this could prematurely lead to "too many open files" errors.
 * [GH-534](https://github.com/cinchapi/concourse/issues/534): Fixed a bug that caused the `CONCOURSE_HEAP_SIZE` environment variable, if set, not to be read on server startup.
 
