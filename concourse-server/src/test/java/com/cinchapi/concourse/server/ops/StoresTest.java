@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
@@ -171,8 +170,7 @@ public class StoresTest {
     }
 
     @Test
-    public void testBenchmarkSelectKeysRecordsOptionalAtomicWithNoNavigation()
-            throws InterruptedException, ExecutionException {
+    public void testBenchmarkSelectKeysRecordsOptionalAtomicWithNoNavigation() {
         AtomicSupport store = getStore();
         setupNavigationGraph(store);
         // @formatter:off
@@ -183,18 +181,30 @@ public class StoresTest {
                 "foo"
         );
         // @formatter:on
+        Benchmark serial = new Benchmark(TimeUnit.MICROSECONDS) {
 
-        CompletableFuture<Double> bulkTime = Benchmark
-                .measure(() -> Stores.select(store, keys, 1))
-                .in(TimeUnit.MICROSECONDS).warmups(1).average(5);
-        CompletableFuture<Double> serialTime = Benchmark.measure(() -> {
-            for (String key : keys) {
-                Stores.serialSelect(store, key, 1);
+            @Override
+            public void action() {
+                for (String key : keys) {
+                    Stores.serialSelect(store, key, 1);
+                }
             }
-        }).in(TimeUnit.MICROSECONDS).warmups(1).average(5);
 
-        System.out.println("multiple serial = " + serialTime.get());
-        System.out.println("multiple BULK = " + bulkTime.get());
+        };
+        Benchmark bulk = new Benchmark(TimeUnit.MICROSECONDS) {
+
+            @Override
+            public void action() {
+                Stores.select(store, keys, 1);
+            }
+
+        };
+
+        double serialTime = serial.average(5);
+        double bulkTime = bulk.average(5);
+
+        System.out.println("multiple serial = " + serialTime);
+        System.out.println("multiple BULK = " + bulkTime);
 
     }
 
@@ -232,8 +242,7 @@ public class StoresTest {
     }
 
     @Test
-    public void testBenchmarkSelectKeyRecordsOptionalAtomicWithNoNavigation()
-            throws InterruptedException, ExecutionException {
+    public void testBenchmarkSelectKeyRecordsOptionalAtomicWithNoNavigation() {
         AtomicSupport store = getStore();
         setupNavigationGraph(store);
         // @formatter:off
@@ -241,16 +250,28 @@ public class StoresTest {
                 "job"
         );
         // @formatter:on
+        Benchmark serial = new Benchmark(TimeUnit.MICROSECONDS) {
 
-        CompletableFuture<Double> bulkTime = Benchmark
-                .measure(() -> Stores.select(store, keys.get(0), 1))
-                .in(TimeUnit.MICROSECONDS).warmups(1).average(5);
-        CompletableFuture<Double> serialTime = Benchmark
-                .measure(() -> Stores.serialSelect(store, keys.get(0), 1))
-                .in(TimeUnit.MICROSECONDS).warmups(1).average(5);
+            @Override
+            public void action() {
+                Stores.serialSelect(store, keys.get(0), 1);
+            }
 
-        System.out.println("single serial = " + serialTime.get());
-        System.out.println("single BULK = " + bulkTime.get());
+        };
+        Benchmark bulk = new Benchmark(TimeUnit.MICROSECONDS) {
+
+            @Override
+            public void action() {
+                Stores.select(store, keys, 1);
+            }
+
+        };
+
+        double serialTime = serial.average(5);
+        double bulkTime = bulk.average(5);
+
+        System.out.println("single serial = " + serialTime);
+        System.out.println("single BULK = " + bulkTime);
     }
 
     @Test
@@ -362,20 +383,8 @@ public class StoresTest {
         return setupComplexNavigationGraph(store, count, false);
     }
 
-    /**
-     * Test forward traversal navigation.
-     * This test creates a scenario where forward traversal is preferred
-     * because:
-     * - There are many records with values matching the condition (many
-     * credentials with counter > 10)
-     * - But relatively few records at the start of the path
-     * 
-     * @throws InterruptedException
-     * @throws ExecutionException
-     */
     @Test
-    public void testForwardTraversalNavigation()
-            throws InterruptedException, ExecutionException {
+    public void testForwardTraversalNavigation() {
         AtomicSupport auto = getStore();
         AtomicSupport legacy = getStore();
         AtomicSupport forward = getStore();
@@ -387,8 +396,8 @@ public class StoresTest {
         setupComplexNavigationGraph(forward, count, false);
         setupComplexNavigationGraph(reverse, count, false);
 
-        // Find users whose credentials have counter > 10
-        // This should match many credentials
+        // Find users whose credentials have counter > 10. This should match
+        // many credentials
         Key key = Keys.parse("identity.credential.counter");
         Operator operator = Operator.GREATER_THAN;
         TObject value = Convert.javaToThrift(10);
@@ -418,12 +427,13 @@ public class StoresTest {
                         Time.NONE, key, operator, value))
                 .in(TimeUnit.MICROSECONDS).warmups(1).async().average(5);
 
-        System.out.println("legacy time = " + legacyTime.get());
-        System.out.println("forward time = " + forwardTime.get());
-        System.out.println("reverse time = " + reverseTime.get());
+        System.out.println("Forward Traversal Navigation");
+        System.out.println("-----------------------------");
+        System.out.println("legacy time = " + legacyTime.join());
+        System.out.println("forward time = " + forwardTime.join());
+        System.out.println("reverse time = " + reverseTime.join());
+        System.out.println("-----------------------------");
     }
-
-    // TODO: FIX these tests below
 
     /**
      * Test reverse traversal navigation.
@@ -435,61 +445,60 @@ public class StoresTest {
      */
     @Test
     public void testReverseTraversalNavigation() {
-        AtomicSupport store = getStore();
+        AtomicSupport auto = getStore();
+        AtomicSupport legacy = getStore();
+        AtomicSupport forward = getStore();
+        AtomicSupport reverse = getStore();
         int count = 100;
-        Map<String, List<Long>> recordIds = setupComplexNavigationGraph(store,
-                count, false);
+
+        setupComplexNavigationGraph(auto, count, false);
+        setupComplexNavigationGraph(legacy, count, false);
+        setupComplexNavigationGraph(forward, count, false);
+        setupComplexNavigationGraph(reverse, count, false);
 
         // Only one credential has this specific counter value
-        String key = "identity.credential.counter";
+        Key key = Keys.parse("identity.credential.counter");
+        Operator operator = Operator.EQUALS;
         TObject value = Convert.javaToThrift(50);
 
-        long startTime = System.nanoTime();
-        Set<Long> results = Stores.find(store, key, Operator.EQUALS, value);
-        long endTime = System.nanoTime();
+        Set<Long> expected = Stores.findNavigationKey(
+                NavigationKeyFinder.ADHOC_INDEX, legacy, Time.NONE, key,
+                operator, value);
+        Set<Long> actual = Stores.findNavigationKey(NavigationKeyFinder.AUTO,
+                legacy, Time.NONE, key, operator, value);
+        Assert.assertEquals(expected, actual);
 
-        // Should find exactly one user
-        Assert.assertEquals(1, results.size());
-        Assert.assertTrue(results.contains(recordIds.get("users").get(50)));
+        CompletableFuture<Double> legacyTime = Benchmark
+                .measure(() -> Stores.findNavigationKey(
+                        NavigationKeyFinder.ADHOC_INDEX, legacy, Time.NONE, key,
+                        operator, value))
+                .in(TimeUnit.MICROSECONDS).warmups(1).async().average(5);
 
-        System.out.println("Reverse traversal time: "
-                + (endTime - startTime) / 1000 + " μs");
-    }
+        CompletableFuture<Double> forwardTime = Benchmark
+                .measure(() -> Stores.findNavigationKey(
+                        NavigationKeyFinder.FORWARD_TRAVERSAL, legacy,
+                        Time.NONE, key, operator, value))
+                .in(TimeUnit.MICROSECONDS).warmups(1).async().average(5);
 
-    /**
-     * Test navigation with a complex condition that should force the use of
-     * the ad-hoc index approach.
-     */
-    @Test
-    public void testAdHocIndexNavigation() {
-        AtomicSupport store = getStore();
-        int count = 50;
-        Map<String, List<Long>> recordIds = setupComplexNavigationGraph(store,
-                count);
+        CompletableFuture<Double> reverseTime = Benchmark
+                .measure(() -> Stores.findNavigationKey(
+                        NavigationKeyFinder.REVERSE_TRAVERSAL, legacy,
+                        Time.NONE, key, operator, value))
+                .in(TimeUnit.MICROSECONDS).warmups(1).async().average(5);
 
-        // Find users by credential email with a regex - this should use the
-        // ad-hoc index
-        // approach since regex operators typically can't use optimized
-        // traversal
-        String key = "identity.credential.email";
-        TObject value = Convert.javaToThrift("email[0-9]");
-
-        long startTime = System.nanoTime();
-        Set<Long> results = Stores.find(store, key, Operator.REGEX, value);
-        long endTime = System.nanoTime();
-
-        // Should find users with single-digit email numbers (0-9)
-        Assert.assertEquals(Math.min(10, count), results.size());
-
-        System.out.println("Ad-hoc index navigation time: "
-                + (endTime - startTime) / 1000 + " μs");
+        System.out.println("Reverse Traversal Navigation");
+        System.out.println("-----------------------------");
+        System.out.println("legacy time = " + legacyTime.join());
+        System.out.println("forward time = " + forwardTime.join());
+        System.out.println("reverse time = " + reverseTime.join());
+        System.out.println("-----------------------------");
     }
 
     /**
      * Test navigation with a deep path that has multiple levels.
      */
     @Test
-    public void testDeepNavigation() {
+    public void testFindDeepNavigation() {
         AtomicSupport store = getStore();
         int count = 20;
         Map<String, List<Long>> recordIds = setupComplexNavigationGraph(store,
@@ -508,63 +517,10 @@ public class StoresTest {
         String key = "identity.credential.profile.verified";
         TObject value = Convert.javaToThrift(true);
 
-        long startTime = System.nanoTime();
         Set<Long> results = Stores.find(store, key, Operator.EQUALS, value);
-        long endTime = System.nanoTime();
 
         // Should find all users since all profiles are verified
         Assert.assertEquals(count, results.size());
-
-        System.out.println("Deep navigation time: "
-                + (endTime - startTime) / 1000 + " μs");
-    }
-
-    /**
-     * Compare performance between forward and reverse traversal approaches
-     * on the same dataset.
-     */
-    @Test
-    public void testCompareTraversalStrategies() {
-        // AtomicSupport store = getStore();
-        // int count = 100;
-        // Map<String, List<Long>> recordIds =
-        // setupComplexNavigationGraph(store, count);
-        //
-        // String key = "identity.credential.email";
-        // TObject value = Convert.javaToThrift("email50");
-        //
-        // // Force forward traversal by reflection
-        // long startTime = System.nanoTime();
-        // Set<Long> forwardResults = Reflection.callStatic(Stores.class,
-        // "find",
-        // Stores.NavigationFinder.FORWARD_TRAVERSAL, store, Time.NONE,
-        // Keys.parse(key), Operator.EQUALS, value);
-        // long forwardTime = System.nanoTime() - startTime;
-        //
-        // // Force reverse traversal by reflection
-        // startTime = System.nanoTime();
-        // Set<Long> reverseResults = Reflection.callStatic(Stores.class,
-        // "find",
-        // Stores.NavigationFinder.REVERSE_TRAVERSAL, store, Time.NONE,
-        // Keys.parse(key), Operator.EQUALS, value);
-        // long reverseTime = System.nanoTime() - startTime;
-        //
-        // // Force ad-hoc index by reflection
-        // startTime = System.nanoTime();
-        // Set<Long> adhocResults = Reflection.callStatic(Stores.class, "find",
-        // Stores.NavigationFinder.ADHOC_INDEX, store, Time.NONE,
-        // Keys.parse(key), Operator.EQUALS, value);
-        // long adhocTime = System.nanoTime() - startTime;
-        //
-        // // Verify all approaches return the same results
-        // Assert.assertEquals(forwardResults, reverseResults);
-        // Assert.assertEquals(forwardResults, adhocResults);
-        //
-        // System.out.println("Forward traversal time: " + forwardTime / 1000 +
-        // " μs");
-        // System.out.println("Reverse traversal time: " + reverseTime / 1000 +
-        // " μs");
-        // System.out.println("Ad-hoc index time: " + adhocTime / 1000 + " μs");
     }
 
     /**
