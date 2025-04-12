@@ -71,22 +71,23 @@ public class Strategy {
                 .keysRequiringTimestampRetrieval().containsKey(key)
                 || (isOrderKey && isHistoricalOperation);
         Source source;
-        if((isConditionKey || isOrderKey) && !isKeyRequiringTimestampRetrieval
-                && command.operationRecords().size() != 1) {
-            // The IndexRecord must be loaded to evaluate the condition, so
-            // leverage it to gather the values for key/record
-            source = Source.INDEX;
+        if(memory.contains(record)) {
+            source = Source.RECORD;
+        }
+        else if(memory.contains(key, record)) {
+            source = Source.FIELD;
         }
         else if(isWideOperation) {
             // The entire record is involved in the operation, so force the full
             // TableRecord to be loaded.
             source = Source.RECORD;
         }
-        else if(memory.contains(record)) {
-            source = Source.RECORD;
-        }
-        else if(memory.contains(key, record)) {
-            source = Source.FIELD;
+        else if((isConditionKey || isOrderKey)
+                && !isKeyRequiringTimestampRetrieval
+                && command.operationRecords().size() != 1) {
+            // The IndexRecord must be loaded to evaluate the condition, so
+            // leverage it to gather the values for key/record
+            source = Source.INDEX;
         }
         else {
             source = command.operationKeys().size() > 1 ? Source.RECORD
