@@ -422,7 +422,7 @@ public class StoresTest {
         System.out.println("forward time = " + forwardTime.get());
         System.out.println("reverse time = " + reverseTime.get());
     }
-    
+
     // TODO: FIX these tests below
 
     /**
