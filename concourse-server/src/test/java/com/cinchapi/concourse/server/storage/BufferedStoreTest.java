@@ -322,7 +322,7 @@ public abstract class BufferedStoreTest extends StoreTest {
         insertData(data, numForDestination);
         ((BufferedStore) store).set(d.key, d.value, d.record);
         Assert.assertTrue(store.verify(d.key, d.value, d.record));
-        Assert.assertEquals(1, store.select(d.key, d.record).size());       
+        Assert.assertEquals(1, store.select(d.key, d.record).size());
     }
 
     @Test
