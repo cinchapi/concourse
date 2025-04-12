@@ -52,76 +52,70 @@ import com.google.common.collect.ImmutableMap;
  */
 public class StoresTest {
 
-    protected void setupNavigationGraph(AtomicSupport store) {
-        long offer = 1;
-        long student = 2;
-        long job = 3;
-        long company = 4;
-        long company2 = 7;
-        long association = 5;
-        long details = 6;
-        store.accept(Write.add("name", Convert.javaToThrift("Association"),
-                association));
-        store.accept(
-                Write.add("name", Convert.javaToThrift("Company"), company));
-        store.accept(
-                Write.add("website", Convert.javaToThrift("Website"), company));
-        store.accept(
-                Write.add("name", Convert.javaToThrift("Company2"), company2));
-        store.accept(Write.add("website", Convert.javaToThrift("Website"),
-                company2));
-        store.accept(
-                Write.add("name", Convert.javaToThrift("Student"), student));
-        store.accept(Write.add("name", Convert.javaToThrift("Good Student"),
-                student));
-        store.accept(
-                Write.add("email", Convert.javaToThrift("Email"), student));
-        store.accept(Write.add("title", Convert.javaToThrift("Title"), job));
-        store.accept(Write.add("company",
-                Convert.javaToThrift(Link.to(company)), job));
-        store.accept(Write.add("company",
-                Convert.javaToThrift(Link.to(company2)), job));
-        store.accept(Write.add("association",
-                Convert.javaToThrift(Link.to(association)), offer));
-        store.accept(
-                Write.add("job", Convert.javaToThrift(Link.to(job)), offer));
-        store.accept(Write.add("student",
-                Convert.javaToThrift(Link.to(student)), offer));
-        store.accept(Write.add("details",
-                Convert.javaToThrift(Link.to(details)), offer));
-    }
-
     @Test
-    public void testSelectKeysRecordsOptionalAtomicWithNavigation() {
+    public void testBenchmarkSelectKeyRecordsOptionalAtomicWithNavigation() {
         AtomicSupport store = getStore();
         setupNavigationGraph(store);
         // @formatter:off
         List<String> keys = ImmutableList.of(
-                "job.title",
-                "job.company.name",
-                "student.name",
-                "student.email",
-                "job.company.website",
-                "association",
-                "foo.bar",
-                "student.association",
-                "job.company.$id$",
-                "student.name.$id$",
-                "job.company"
+                "job.title"
         );
         // @formatter:on
-        Map<String, Set<TObject>> _actual = Stores.select(store, keys, 1);
-        Map<Long, Map<String, Set<TObject>>> actual = PrettyLinkedTableMap
-                .of(ImmutableMap.of(1L, _actual));
-        System.out.println(actual);
-        Map<String, Set<TObject>> _expected = new LinkedHashMap<>();
-        for (String key : keys) {
-            _expected.put(key, Stores.serialSelect(store, key, 1));
-        }
-        Map<Long, Map<String, Set<TObject>>> expected = PrettyLinkedTableMap
-                .of(ImmutableMap.of(1L, _expected));
-        System.out.println(expected);
-        Assert.assertEquals(expected, actual);
+        Benchmark serial = new Benchmark(TimeUnit.MICROSECONDS) {
+
+            @Override
+            public void action() {
+                Stores.serialSelect(store, keys.get(0), 1);
+            }
+
+        };
+        Benchmark bulk = new Benchmark(TimeUnit.MICROSECONDS) {
+
+            @Override
+            public void action() {
+                Stores.select(store, keys, 1);
+            }
+
+        };
+
+        double serialTime = serial.average(5);
+        double bulkTime = bulk.average(5);
+
+        System.out.println("single navigation serial = " + serialTime);
+        System.out.println("single navigation BULK = " + bulkTime);
+    }
+
+    @Test
+    public void testBenchmarkSelectKeyRecordsOptionalAtomicWithNoNavigation() {
+        AtomicSupport store = getStore();
+        setupNavigationGraph(store);
+        // @formatter:off
+        List<String> keys = ImmutableList.of(
+                "job"
+        );
+        // @formatter:on
+        Benchmark serial = new Benchmark(TimeUnit.MICROSECONDS) {
+
+            @Override
+            public void action() {
+                Stores.serialSelect(store, keys.get(0), 1);
+            }
+
+        };
+        Benchmark bulk = new Benchmark(TimeUnit.MICROSECONDS) {
+
+            @Override
+            public void action() {
+                Stores.select(store, keys, 1);
+            }
+
+        };
+
+        double serialTime = serial.average(5);
+        double bulkTime = bulk.average(5);
+
+        System.out.println("single serial = " + serialTime);
+        System.out.println("single BULK = " + bulkTime);
     }
 
     @Test
@@ -208,70 +202,33 @@ public class StoresTest {
 
     }
 
+    /**
+     * Test navigation with a deep path that has multiple levels.
+     */
     @Test
-    public void testBenchmarkSelectKeyRecordsOptionalAtomicWithNavigation() {
+    public void testFindDeepNavigation() {
         AtomicSupport store = getStore();
-        setupNavigationGraph(store);
-        // @formatter:off
-        List<String> keys = ImmutableList.of(
-                "job.title"
-        );
-        // @formatter:on
-        Benchmark serial = new Benchmark(TimeUnit.MICROSECONDS) {
+        int count = 20;
+        Map<String, List<Long>> recordIds = setupComplexNavigationGraph(store,
+                count);
 
-            @Override
-            public void action() {
-                Stores.serialSelect(store, keys.get(0), 1);
-            }
+        // Add an extra level to the navigation path
+        for (Long credentialId : recordIds.get("credentials")) {
+            long profileId = credentialId * 10;
+            store.accept(Write.add("profile",
+                    Convert.javaToThrift(Link.to(profileId)), credentialId));
+            store.accept(Write.add("verified", Convert.javaToThrift(true),
+                    profileId));
+        }
 
-        };
-        Benchmark bulk = new Benchmark(TimeUnit.MICROSECONDS) {
+        // Find users by profile verification status through a 4-level deep path
+        String key = "identity.credential.profile.verified";
+        TObject value = Convert.javaToThrift(true);
 
-            @Override
-            public void action() {
-                Stores.select(store, keys, 1);
-            }
+        Set<Long> results = Stores.find(store, key, Operator.EQUALS, value);
 
-        };
-
-        double serialTime = serial.average(5);
-        double bulkTime = bulk.average(5);
-
-        System.out.println("single navigation serial = " + serialTime);
-        System.out.println("single navigation BULK = " + bulkTime);
-    }
-
-    @Test
-    public void testBenchmarkSelectKeyRecordsOptionalAtomicWithNoNavigation() {
-        AtomicSupport store = getStore();
-        setupNavigationGraph(store);
-        // @formatter:off
-        List<String> keys = ImmutableList.of(
-                "job"
-        );
-        // @formatter:on
-        Benchmark serial = new Benchmark(TimeUnit.MICROSECONDS) {
-
-            @Override
-            public void action() {
-                Stores.serialSelect(store, keys.get(0), 1);
-            }
-
-        };
-        Benchmark bulk = new Benchmark(TimeUnit.MICROSECONDS) {
-
-            @Override
-            public void action() {
-                Stores.select(store, keys, 1);
-            }
-
-        };
-
-        double serialTime = serial.average(5);
-        double bulkTime = bulk.average(5);
-
-        System.out.println("single serial = " + serialTime);
-        System.out.println("single BULK = " + bulkTime);
+        // Should find all users since all profiles are verified
+        Assert.assertEquals(count, results.size());
     }
 
     @Test
@@ -286,101 +243,6 @@ public class StoresTest {
                 Keys.parse(key), operator, value);
         Set<Long> actual = Stores.find(store, key, Operator.EQUALS, value);
         Assert.assertEquals(expected, actual);
-    }
-
-    /**
-     * Sets up a complex navigation graph with the specified number of entries.
-     * The graph has the following structure:
-     * - n user records, each with a unique name ("user"+i)
-     * - Each user links to a distinct identity record via "identity" key
-     * - Each identity has a unique id ("identity"+i) and links to a credential
-     * record via "credential" key
-     * - Each credential has a unique email ("email"+i)
-     * - All records have a "counter" field with their index value
-     *
-     * This creates a three-level deep navigation structure: user -> identity ->
-     * credential
-     * 
-     * @param store the AtomicSupport store to populate
-     * @param count the number of entries to create in the graph
-     * @param manyToOne if true, creates a many-to-one relationship where
-     *            multiple users point to the same identity
-     * @return a map of record IDs for reference (keys: "users", "identities",
-     *         "credentials")
-     */
-    protected Map<String, List<Long>> setupComplexNavigationGraph(
-            AtomicSupport store, int count, boolean manyToOne) {
-        List<Long> userIds = new ArrayList<>(count);
-        List<Long> identityIds = new ArrayList<>();
-        List<Long> credentialIds = new ArrayList<>();
-
-        // For many-to-one testing, we'll use fewer identities and credentials
-        int identityCount = manyToOne ? Math.max(count / 10, 1) : count;
-        int credentialCount = manyToOne ? Math.max(count / 20, 1) : count;
-
-        // Create all credential records first
-        for (int i = 0; i < credentialCount; i++) {
-            long credentialId = (i + 1) * 100 + 2;
-            credentialIds.add(credentialId);
-            store.accept(Write.add("email", Convert.javaToThrift("email" + i),
-                    credentialId));
-            store.accept(Write.add("counter", Convert.javaToThrift(i),
-                    credentialId));
-            store.accept(Write.add("tag",
-                    Convert.javaToThrift("credential-tag"), credentialId));
-        }
-
-        // Create all identity records
-        for (int i = 0; i < identityCount; i++) {
-            long identityId = (i + 1) * 100 + 1;
-            identityIds.add(identityId);
-            store.accept(Write.add("id", Convert.javaToThrift("identity" + i),
-                    identityId));
-            store.accept(
-                    Write.add("counter", Convert.javaToThrift(i), identityId));
-
-            // Link to a credential (in many-to-one, multiple identities may
-            // link to same credential)
-            long credentialId = credentialIds.get(i % credentialCount);
-            store.accept(Write.add("credential",
-                    Convert.javaToThrift(Link.to(credentialId)), identityId));
-
-            store.accept(Write.add("tag", Convert.javaToThrift("identity-tag"),
-                    identityId));
-        }
-
-        // Create all user records
-        for (int i = 0; i < count; i++) {
-            long userId = (i + 1) * 100;
-            userIds.add(userId);
-            store.accept(Write.add("name", Convert.javaToThrift("user" + i),
-                    userId));
-            store.accept(Write.add("counter", Convert.javaToThrift(i), userId));
-
-            // Link to an identity (in many-to-one, multiple users may link to
-            // same identity)
-            long identityId = identityIds.get(i % identityCount);
-            store.accept(Write.add("identity",
-                    Convert.javaToThrift(Link.to(identityId)), userId));
-
-            store.accept(
-                    Write.add("tag", Convert.javaToThrift("user-tag"), userId));
-        }
-
-        Map<String, List<Long>> recordIds = new HashMap<>();
-        recordIds.put("users", userIds);
-        recordIds.put("identities", identityIds);
-        recordIds.put("credentials", credentialIds);
-
-        return recordIds;
-    }
-
-    /**
-     * Overloaded method that defaults to one-to-one relationships
-     */
-    protected Map<String, List<Long>> setupComplexNavigationGraph(
-            AtomicSupport store, int count) {
-        return setupComplexNavigationGraph(store, count, false);
     }
 
     @Test
@@ -494,33 +356,37 @@ public class StoresTest {
         System.out.println("-----------------------------");
     }
 
-    /**
-     * Test navigation with a deep path that has multiple levels.
-     */
     @Test
-    public void testFindDeepNavigation() {
+    public void testSelectKeysRecordsOptionalAtomicWithNavigation() {
         AtomicSupport store = getStore();
-        int count = 20;
-        Map<String, List<Long>> recordIds = setupComplexNavigationGraph(store,
-                count);
-
-        // Add an extra level to the navigation path
-        for (Long credentialId : recordIds.get("credentials")) {
-            long profileId = credentialId * 10;
-            store.accept(Write.add("profile",
-                    Convert.javaToThrift(Link.to(profileId)), credentialId));
-            store.accept(Write.add("verified", Convert.javaToThrift(true),
-                    profileId));
+        setupNavigationGraph(store);
+        // @formatter:off
+        List<String> keys = ImmutableList.of(
+                "job.title",
+                "job.company.name",
+                "student.name",
+                "student.email",
+                "job.company.website",
+                "association",
+                "foo.bar",
+                "student.association",
+                "job.company.$id$",
+                "student.name.$id$",
+                "job.company"
+        );
+        // @formatter:on
+        Map<String, Set<TObject>> _actual = Stores.select(store, keys, 1);
+        Map<Long, Map<String, Set<TObject>>> actual = PrettyLinkedTableMap
+                .of(ImmutableMap.of(1L, _actual));
+        System.out.println(actual);
+        Map<String, Set<TObject>> _expected = new LinkedHashMap<>();
+        for (String key : keys) {
+            _expected.put(key, Stores.serialSelect(store, key, 1));
         }
-
-        // Find users by profile verification status through a 4-level deep path
-        String key = "identity.credential.profile.verified";
-        TObject value = Convert.javaToThrift(true);
-
-        Set<Long> results = Stores.find(store, key, Operator.EQUALS, value);
-
-        // Should find all users since all profiles are verified
-        Assert.assertEquals(count, results.size());
+        Map<Long, Map<String, Set<TObject>>> expected = PrettyLinkedTableMap
+                .of(ImmutableMap.of(1L, _expected));
+        System.out.println(expected);
+        Assert.assertEquals(expected, actual);
     }
 
     /**
@@ -535,6 +401,140 @@ public class StoresTest {
                 directory + File.separator + "database");
         store.start();
         return store;
+    }
+
+    /**
+     * Overloaded method that defaults to one-to-one relationships
+     */
+    protected Map<String, List<Long>> setupComplexNavigationGraph(
+            AtomicSupport store, int count) {
+        return setupComplexNavigationGraph(store, count, false);
+    }
+
+    /**
+     * Sets up a complex navigation graph with the specified number of entries.
+     * The graph has the following structure:
+     * - n user records, each with a unique name ("user"+i)
+     * - Each user links to a distinct identity record via "identity" key
+     * - Each identity has a unique id ("identity"+i) and links to a credential
+     * record via "credential" key
+     * - Each credential has a unique email ("email"+i)
+     * - All records have a "counter" field with their index value
+     *
+     * This creates a three-level deep navigation structure: user -> identity ->
+     * credential
+     * 
+     * @param store the AtomicSupport store to populate
+     * @param count the number of entries to create in the graph
+     * @param manyToOne if true, creates a many-to-one relationship where
+     *            multiple users point to the same identity
+     * @return a map of record IDs for reference (keys: "users", "identities",
+     *         "credentials")
+     */
+    protected Map<String, List<Long>> setupComplexNavigationGraph(
+            AtomicSupport store, int count, boolean manyToOne) {
+        List<Long> userIds = new ArrayList<>(count);
+        List<Long> identityIds = new ArrayList<>();
+        List<Long> credentialIds = new ArrayList<>();
+
+        // For many-to-one testing, we'll use fewer identities and credentials
+        int identityCount = manyToOne ? Math.max(count / 10, 1) : count;
+        int credentialCount = manyToOne ? Math.max(count / 20, 1) : count;
+
+        // Create all credential records first
+        for (int i = 0; i < credentialCount; i++) {
+            long credentialId = (i + 1) * 100 + 2;
+            credentialIds.add(credentialId);
+            store.accept(Write.add("email", Convert.javaToThrift("email" + i),
+                    credentialId));
+            store.accept(Write.add("counter", Convert.javaToThrift(i),
+                    credentialId));
+            store.accept(Write.add("tag",
+                    Convert.javaToThrift("credential-tag"), credentialId));
+        }
+
+        // Create all identity records
+        for (int i = 0; i < identityCount; i++) {
+            long identityId = (i + 1) * 100 + 1;
+            identityIds.add(identityId);
+            store.accept(Write.add("id", Convert.javaToThrift("identity" + i),
+                    identityId));
+            store.accept(
+                    Write.add("counter", Convert.javaToThrift(i), identityId));
+
+            // Link to a credential (in many-to-one, multiple identities may
+            // link to same credential)
+            long credentialId = credentialIds.get(i % credentialCount);
+            store.accept(Write.add("credential",
+                    Convert.javaToThrift(Link.to(credentialId)), identityId));
+
+            store.accept(Write.add("tag", Convert.javaToThrift("identity-tag"),
+                    identityId));
+        }
+
+        // Create all user records
+        for (int i = 0; i < count; i++) {
+            long userId = (i + 1) * 100;
+            userIds.add(userId);
+            store.accept(Write.add("name", Convert.javaToThrift("user" + i),
+                    userId));
+            store.accept(Write.add("counter", Convert.javaToThrift(i), userId));
+
+            // Link to an identity (in many-to-one, multiple users may link to
+            // same identity)
+            long identityId = identityIds.get(i % identityCount);
+            store.accept(Write.add("identity",
+                    Convert.javaToThrift(Link.to(identityId)), userId));
+
+            store.accept(
+                    Write.add("tag", Convert.javaToThrift("user-tag"), userId));
+        }
+
+        Map<String, List<Long>> recordIds = new HashMap<>();
+        recordIds.put("users", userIds);
+        recordIds.put("identities", identityIds);
+        recordIds.put("credentials", credentialIds);
+
+        return recordIds;
+    }
+
+    protected void setupNavigationGraph(AtomicSupport store) {
+        long offer = 1;
+        long student = 2;
+        long job = 3;
+        long company = 4;
+        long company2 = 7;
+        long association = 5;
+        long details = 6;
+        store.accept(Write.add("name", Convert.javaToThrift("Association"),
+                association));
+        store.accept(
+                Write.add("name", Convert.javaToThrift("Company"), company));
+        store.accept(
+                Write.add("website", Convert.javaToThrift("Website"), company));
+        store.accept(
+                Write.add("name", Convert.javaToThrift("Company2"), company2));
+        store.accept(Write.add("website", Convert.javaToThrift("Website"),
+                company2));
+        store.accept(
+                Write.add("name", Convert.javaToThrift("Student"), student));
+        store.accept(Write.add("name", Convert.javaToThrift("Good Student"),
+                student));
+        store.accept(
+                Write.add("email", Convert.javaToThrift("Email"), student));
+        store.accept(Write.add("title", Convert.javaToThrift("Title"), job));
+        store.accept(Write.add("company",
+                Convert.javaToThrift(Link.to(company)), job));
+        store.accept(Write.add("company",
+                Convert.javaToThrift(Link.to(company2)), job));
+        store.accept(Write.add("association",
+                Convert.javaToThrift(Link.to(association)), offer));
+        store.accept(
+                Write.add("job", Convert.javaToThrift(Link.to(job)), offer));
+        store.accept(Write.add("student",
+                Convert.javaToThrift(Link.to(student)), offer));
+        store.accept(Write.add("details",
+                Convert.javaToThrift(Link.to(details)), offer));
     }
 
 }
