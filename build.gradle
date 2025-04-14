@@ -101,6 +101,13 @@ subprojects {
         all*.exclude group: 'com.google.code.findbugs', module: 'annotations'
     }
 
+    configurations.all {
+        resolutionStrategy {
+            force 'ch.qos.logback:logback-classic:1.0.13'
+            force 'ch.qos.logback:logback-core:1.0.13'
+        }
+    }
+
     // Ensure that these transitive dependencies are excluded so we don't get version clashes
     def exclusions = [[group : 'com.google.guava', module: 'guava'], [group : 'com.cinchapi', module: 'concourse-driver-java']]
     exclusions.each { exclusion ->
