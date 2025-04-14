@@ -75,7 +75,16 @@ We made several changes to improve the safety, scalability and operational effic
 
 #### Version 0.11.8 (TBD)
 
-##### Caching Improvements
+##### Navigation Queries
+* **Optimized Navigation Key Traversal**: To minimize the number of lookups required when querying, we've implemented a smarter traversal strategy for navigation keys used in a Criteria/Condition. The system now automatically chooses between:
+  * **Forward Traversal**: Starting from the beginning of the path and following links forward (traditional approach)
+  * **Reverse Traversal**: Starting from records matching the final condition and working backwards
+
+  For example, a query like `identity.credential.email = foo@foo.com` likely returns few records, so reverse traversal is more efficient - first finding records where `email = foo@foo.com` and then tracing backwards through the document graph. Conversely, a query like `identity.credential.numLogins > 5` that likely matches many records is better handled with forward traversal, starting with records containing links from the `identity` key and following the path forward.
+  
+  This optimization significantly improves performance for navigation queries where the initial key in the path has high cardinality (many unique values across records), but the final condition is more selective (e.g., a specific email address).
+
+##### Caching
 * **Dynamic Memory-Aware Eviction**: Record caches in the database now evict entires based on overall memory consumption instead of evicting after exceeding a static number of entries. Caches can grow up to an internally defined proportion of the defined `heap_size` and will be purged once this limit is exceeded or when system memory pressure necessitates garbage collection.
 * **Enhanced Diagnostic Logging**: For improved observability, DEBUG logging now emits messages whenever a cached record is evicted, allowing for more effective monitoring and troubleshooting of cache behavior.
 
