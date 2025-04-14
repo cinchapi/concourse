@@ -1,6 +1,10 @@
-## Changelog
+#### Version 0.11.8 (TBD)
 
-#### Version 0.11.7 (TBD)
+##### Caching Improvements
+* **Dynamic Memory-Aware Eviction**: Record caches in the database now evict entires based on overall memory consumption instead of evicting after exceeding a static number of entries. Caches can grow up to an internally defined proportion of the defined `heap_size` and will be purged once this limit is exceeded or when system memory pressure necessitates garbage collection.
+* **Enhanced Diagnostic Logging**: For improved observability, DEBUG logging now emits messages whenever a cached record is evicted, allowing for more effective monitoring and troubleshooting of cache behavior.
+
+#### Version 0.11.7 (April 7, 2025)
 * Fixed a bug that made it possible to leak filesystem resources by opening duplicate file descriptors for the same Segment file. At scale, this could prematurely lead to "too many open files" errors.
 * [GH-534](https://github.com/cinchapi/concourse/issues/534): Fixed a bug that caused the `CONCOURSE_HEAP_SIZE` environment variable, if set, not to be read on server startup.
 
