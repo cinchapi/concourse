@@ -19,10 +19,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,6 +52,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 
 /**
  * A {@link Command} describes a {@link ConcourseServer} operation and the
@@ -465,19 +466,18 @@ public final class Command {
 
             // If any of the #conditionKeys are navigation keys, break them up
             // and add each stop as a condition key
-            Set<String> $ = new LinkedHashSet<>();
-            for (String $key : conditionKeys) {
-                Key key = Keys.parse($key);
-                if(key.type() == KeyType.NAVIGATION_KEY) {
-                    String[] stops = key.data();
-                    for (String stop : stops) {
-                        $.add(stop);
+            if(!conditionKeys.isEmpty()) {
+                conditionKeys = conditionKeys.stream().flatMap($key -> {
+                    Key key = Keys.parse($key);
+                    Stream<String> stream = Stream.of($key);
+                    if(key.type() == KeyType.NAVIGATION_KEY) {
+                        String[] stops = key.data();
+                        stream = Streams.concat(stream, Arrays.stream(stops));
                     }
-                }
-                $.add($key);
+                    return stream;
+                }).collect(Collectors.toSet());
             }
-            conditionKeys = $;
-
+            
             // operationTimestamp
             if(args.containsKey("time")) {
                 operationTimestamp = args.fetch("time");
