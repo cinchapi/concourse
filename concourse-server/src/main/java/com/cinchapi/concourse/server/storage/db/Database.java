@@ -44,6 +44,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,7 +73,6 @@ import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.DurableStore;
 import com.cinchapi.concourse.server.storage.Memory;
 import com.cinchapi.concourse.server.storage.WriteStreamProfiler;
-import com.cinchapi.concourse.server.storage.cache.NoOpCache;
 import com.cinchapi.concourse.server.storage.db.compaction.Compactor;
 import com.cinchapi.concourse.server.storage.db.compaction.NoOpCompactor;
 import com.cinchapi.concourse.server.storage.db.compaction.similarity.SimilarityCompactor;
@@ -91,7 +92,10 @@ import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
 import com.google.common.cache.CacheStats;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.Weigher;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -102,6 +106,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.google.common.collect.TreeMultimap;
 import com.google.common.hash.HashCode;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -178,11 +184,6 @@ public final class Database implements DurableStore {
     }
 
     /**
-     * Return if {@link #corpusCaches} does not contain a cache for a key.
-     */
-    private static final Cache<Composite, CorpusRecord> DISABLED_CORPUS_CACHE = new NoOpCache<>();
-
-    /**
      * Global flag to indicate if async data reads are enabled
      */
     // Copied here as a final variable for (hopeful) performance gains.
@@ -253,7 +254,7 @@ public final class Database implements DurableStore {
      * isn't being searched).
      * </p>
      */
-    private final Map<Text, Cache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
+    private final Map<Text, LoadingCache<Composite, CorpusRecord>> corpusCaches = ENABLE_SEARCH_CACHE
             ? new ConcurrentHashMap<>()
             : ImmutableMap.of();
 
@@ -288,7 +289,7 @@ public final class Database implements DurableStore {
      * the appropriate detection.
      * </p>
      */
-    private final Cache<Composite, IndexRecord> indexCache = buildCache();
+    private final LoadingCache<Composite, IndexRecord> indexCache;
 
     /**
      * Lock used to ensure the object is ThreadSafe. This lock provides access
@@ -355,7 +356,7 @@ public final class Database implements DurableStore {
      * the appropriate detection.
      * </p>
      */
-    private final Cache<Composite, TableRecord> tableCache = buildCache();
+    private final LoadingCache<Composite, TableRecord> tableCache;
 
     /**
      * Partial Table Cache
@@ -373,7 +374,7 @@ public final class Database implements DurableStore {
      * the appropriate detection.
      * </p>
      */
-    private final Cache<Composite, TableRecord> tablePartialCache = buildCache();
+    private final LoadingCache<Composite, TableRecord> tablePartialCache;
 
     /**
      * A "tag" used to identify the Database's affiliations (e.g. environment).
@@ -392,6 +393,12 @@ public final class Database implements DurableStore {
     private transient Options options = new Options();
 
     /**
+     * Configuration that is used when {@link #buildCache(int, Function)
+     * building caches}.
+     */
+    private final transient CacheConfiguration cacheConfig;
+
+    /**
      * Construct a Database that is backed by the default location which is in
      * {@link GlobalState#DATABASE_DIRECTORY}.
      * 
@@ -408,9 +415,7 @@ public final class Database implements DurableStore {
      * @param directory
      */
     public Database(Path directory) {
-        this.directory = directory;
-        this.storage = new Storage(directory.resolve(SEGMENTS_SUBDIRECTORY),
-                segments, masterLock.writeLock());
+        this(directory, CacheConfiguration.defaults());
     }
 
     /**
@@ -424,6 +429,104 @@ public final class Database implements DurableStore {
         this(Paths.get(directory));
     }
 
+    /**
+     * Construct a Database that is backed by {@link backingStore} directory.
+     * The {@link backingStore} is passed to each {@link Record} as the
+     * {@code parentStore}.
+     * 
+     * @param directory
+     * @param cacheConfig
+     */
+    @SuppressWarnings("unchecked")
+    Database(Path directory, CacheConfiguration cacheConfig) {
+        this.directory = directory;
+        this.storage = new Storage(directory.resolve(SEGMENTS_SUBDIRECTORY),
+                segments, masterLock.writeLock());
+        this.cacheConfig = cacheConfig;
+
+        this.tableCache = buildCache(cacheConfig.tableCacheMemoryLimit(),
+                composite -> {
+                    Identifier identifier = (Identifier) composite.parts()[0];
+                    TableRecord $ = TableRecord.create(identifier);
+                    if(options.enableAsyncTableDataReads()) {
+                        int i = 0;
+                        Fragment<Identifier, Text, Value>[] fragments = new Fragment[segments
+                                .size()];
+                        Runnable[] tasks = new Runnable[segments.size()];
+                        for (Segment segment : segments) {
+                            Fragment<Identifier, Text, Value> fragment = new Fragment<>(
+                                    identifier, null);
+                            fragments[i] = fragment;
+                            tasks[i++] = () -> segment.table().seek(composite,
+                                    fragment);
+                        }
+                        reader.join(tasks);
+                        $.append(fragments);
+                    }
+                    else {
+                        for (Segment segment : segments) {
+                            segment.table().seek(composite, $);
+                        }
+                    }
+                    return $;
+                });
+
+        this.tablePartialCache = buildCache(
+                cacheConfig.tablePartialCacheMemoryLimit(), composite -> {
+                    Identifier identifier = (Identifier) composite.parts()[0];
+                    Text key = (Text) composite.parts()[1];
+                    TableRecord $ = TableRecord.createPartial(identifier, key);
+                    if(options.enableAsyncTableDataReads()) {
+                        int i = 0;
+                        Fragment<Identifier, Text, Value>[] fragments = new Fragment[segments
+                                .size()];
+                        Runnable[] tasks = new Runnable[segments.size()];
+                        for (Segment segment : segments) {
+                            Fragment<Identifier, Text, Value> fragment = new Fragment<>(
+                                    identifier, key);
+                            fragments[i] = fragment;
+                            tasks[i++] = () -> segment.table().seek(composite,
+                                    fragment);
+                        }
+                        reader.join(tasks);
+                        $.append(fragments);
+                    }
+                    else {
+                        for (Segment segment : segments) {
+                            segment.table().seek(composite, $);
+                        }
+                    }
+                    return $;
+                });
+
+        this.indexCache = buildCache(cacheConfig.indexCacheMemoryLimit(),
+                composite -> {
+                    Text key = (Text) composite.parts()[0];
+                    IndexRecord $ = IndexRecord.create(key);
+                    if(options.enableAsyncIndexDataReads()) {
+                        int i = 0;
+                        Fragment<Text, Value, Identifier>[] fragments = new Fragment[segments
+                                .size()];
+                        Runnable[] tasks = new Runnable[segments.size()];
+                        for (Segment segment : segments) {
+                            Fragment<Text, Value, Identifier> fragment = new Fragment<>(
+                                    key, null);
+                            fragments[i] = fragment;
+                            tasks[i++] = () -> segment.index().seek(composite,
+                                    fragment);
+                        }
+                        reader.join(tasks);
+                        $.append(fragments);
+                    }
+                    else {
+                        for (Segment segment : segments) {
+                            segment.index().seek(composite, $);
+                        }
+                    }
+                    return $;
+                });
+    }
+
     @Override
     public void accept(Write write) {
         // NOTE: This approach is thread safe because write locking happens
@@ -435,28 +538,34 @@ public final class Database implements DurableStore {
                 Logger.debug("Indexed '{}' in {}", write, seg0);
 
                 // Update cached records
-                TableRecord cpr = tableCache
-                        .getIfPresent(receipt.table().getLocatorComposite());
-                TableRecord cppr = tablePartialCache
-                        .getIfPresent(receipt.table().getLocatorKeyComposite());
-                IndexRecord csr = indexCache
-                        .getIfPresent(receipt.index().getLocatorComposite());
-                if(cpr != null) {
-                    cpr.append(receipt.table().revision());
+                Composite composite;
+
+                composite = receipt.table().getLocatorComposite();
+                TableRecord table = tableCache.getIfPresent(composite);
+                if(table != null) {
+                    table.append(receipt.table().revision());
                 }
-                if(cppr != null) {
-                    cppr.append(receipt.table().revision());
+
+                composite = receipt.table().getLocatorKeyComposite();
+                TableRecord tablePartial = tablePartialCache
+                        .getIfPresent(composite);
+                if(tablePartial != null) {
+                    tablePartial.append(receipt.table().revision());
                 }
-                if(csr != null) {
-                    csr.append(receipt.index().revision());
+
+                composite = receipt.index().getLocatorComposite();
+                IndexRecord index = indexCache.getIfPresent(composite);
+                if(index != null) {
+                    index.append(receipt.index().revision());
                 }
+
                 if(ENABLE_SEARCH_CACHE) {
                     Cache<Composite, CorpusRecord> cache = corpusCaches
                             .get(write.getKey());
                     if(cache != null) {
                         for (CorpusArtifact artifact : receipt.corpus()) {
-                            CorpusRecord corpus = cache.getIfPresent(
-                                    artifact.getLocatorKeyComposite());
+                            composite = artifact.getLocatorKeyComposite();
+                            CorpusRecord corpus = cache.getIfPresent(composite);
                             if(corpus != null) {
                                 corpus.append(artifact.revision());
                             }
@@ -1008,14 +1117,58 @@ public final class Database implements DurableStore {
     }
 
     /**
-     * Return a cache for records of type {@code T}.
+     * Build a {@link LoadingCache cache} for {@link Record Records} that are
+     * loaded from disk. The returned cache will use the specified {#code
+     * loader} to read the appropriate data from disk and populate the
+     * {@link Record} accordingly.
+     * 
+     * @param maximumWeight
+     * @param loader
      * 
      * @return the cache
      */
-    private <T extends Record<?, ?, ?>> Cache<Composite, T> buildCache() {
-        Cache<Composite, T> cache = CacheBuilder.newBuilder()
-                .maximumSize(100000).softValues().build();
-        return new RunningAwareCache<>(cache);
+    private <T extends Record<?, ?, ?>> LoadingCache<Composite, T> buildCache(
+            int maximumWeight, Function<Composite, T> loader) {
+        Weigher<Composite, T> weigher = (key, value) -> key.size()
+                + value.size();
+        // @formatter:off
+        LoadingCache<Composite, T> cache = CacheBuilder.newBuilder()
+                .weigher(weigher)
+                .maximumWeight(maximumWeight)
+                .softValues()
+                .removalListener(notification -> {
+                    if(notification.wasEvicted()) {
+                        T record = notification.getValue();
+                        Logger.debug("Evicted {} from cache due to {}", 
+                                record, notification.getCause());
+                        
+                        cacheConfig.evictionListener().accept(record);
+                    }
+                })
+                .refreshAfterWrite(
+                        cacheConfig.cacheMemoryCheckFrequencyInSeconds(),TimeUnit.SECONDS)
+                .build(new CacheLoader<Composite, T>() {
+
+                    @Override
+                    public T load(Composite key) throws Exception {
+                        return loader.apply(key);
+                    }
+
+                    @Override
+                    public ListenableFuture<T> reload(Composite key, T oldValue)
+                            throws Exception {
+                        // In order to maintain the configured maximumWeight,
+                        // cached records are "reloaded" periodically after they
+                        // are stored. Internally, each Record keeps a running
+                        // total of its weight, so there's no need to re-apply
+                        // the #loader to refresh the cached value or the cache
+                        // metadata (e.g., running total weight)
+                        return Futures.immediateFuture(oldValue);
+                    }
+
+                });
+        // @formatter:on
+        return new RunningAwareCache<>(cache, loader);
     }
 
     /**
@@ -1030,12 +1183,10 @@ public final class Database implements DurableStore {
     private CorpusRecord getCorpusRecord(Text key, Text infix) {
         masterLock.readLock().lock();
         try {
-            Composite composite = Composite.create(key, infix);
-            Cache<Composite, CorpusRecord> cache = ENABLE_SEARCH_CACHE
-                    ? corpusCaches.computeIfAbsent(key, $ -> buildCache())
-                    : DISABLED_CORPUS_CACHE;
-            return cache.get(composite, () -> {
-                CorpusRecord $ = CorpusRecord.createPartial(key, infix);
+            Function<Composite, CorpusRecord> loader = composite -> {
+                Text $key = (Text) composite.parts()[0];
+                Text $infix = (Text) composite.parts()[1];
+                CorpusRecord $ = CorpusRecord.createPartial($key, $infix);
                 if(options.enableAsyncCorpusDataReads()) {
                     int i = 0;
                     Fragment<Text, Text, Position>[] fragments = new Fragment[segments
@@ -1043,7 +1194,7 @@ public final class Database implements DurableStore {
                     Runnable[] tasks = new Runnable[segments.size()];
                     for (Segment segment : segments) {
                         Fragment<Text, Text, Position> fragment = new Fragment<>(
-                                key, infix);
+                                $key, $infix);
                         fragments[i] = fragment;
                         tasks[i++] = () -> segment.corpus().seek(composite,
                                 fragment);
@@ -1057,7 +1208,19 @@ public final class Database implements DurableStore {
                     }
                 }
                 return $;
-            });
+            };
+            Composite composite = Composite.create(key, infix);
+            if(ENABLE_SEARCH_CACHE) {
+                LoadingCache<Composite, CorpusRecord> cache = corpusCaches
+                        .computeIfAbsent(key,
+                                $ -> buildCache(
+                                        cacheConfig.corpusCacheMemoryLimit(),
+                                        loader));
+                return cache.get(composite);
+            }
+            else {
+                return loader.apply(composite);
+            }
         }
         catch (ExecutionException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -1073,35 +1236,11 @@ public final class Database implements DurableStore {
      * @param key
      * @return the IndexRecord
      */
-    @SuppressWarnings("unchecked")
     private IndexRecord getIndexRecord(Text key) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(key);
-            return indexCache.get(composite, () -> {
-                IndexRecord $ = IndexRecord.create(key);
-                if(options.enableAsyncIndexDataReads()) {
-                    int i = 0;
-                    Fragment<Text, Value, Identifier>[] fragments = new Fragment[segments
-                            .size()];
-                    Runnable[] tasks = new Runnable[segments.size()];
-                    for (Segment segment : segments) {
-                        Fragment<Text, Value, Identifier> fragment = new Fragment<>(
-                                key, null);
-                        fragments[i] = fragment;
-                        tasks[i++] = () -> segment.index().seek(composite,
-                                fragment);
-                    }
-                    reader.join(tasks);
-                    $.append(fragments);
-                }
-                else {
-                    for (Segment segment : segments) {
-                        segment.index().seek(composite, $);
-                    }
-                }
-                return $;
-            });
+            return indexCache.get(composite);
         }
         catch (ExecutionException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -1174,35 +1313,11 @@ public final class Database implements DurableStore {
      * @param identifier
      * @return the TableRecord
      */
-    @SuppressWarnings("unchecked")
     private TableRecord getTableRecord(Identifier identifier) {
         masterLock.readLock().lock();
         try {
             Composite composite = Composite.create(identifier);
-            return tableCache.get(composite, () -> {
-                TableRecord $ = TableRecord.create(identifier);
-                if(options.enableAsyncTableDataReads()) {
-                    int i = 0;
-                    Fragment<Identifier, Text, Value>[] fragments = new Fragment[segments
-                            .size()];
-                    Runnable[] tasks = new Runnable[segments.size()];
-                    for (Segment segment : segments) {
-                        Fragment<Identifier, Text, Value> fragment = new Fragment<>(
-                                identifier, null);
-                        fragments[i] = fragment;
-                        tasks[i++] = () -> segment.table().seek(composite,
-                                fragment);
-                    }
-                    reader.join(tasks);
-                    $.append(fragments);
-                }
-                else {
-                    for (Segment segment : segments) {
-                        segment.table().seek(composite, $);
-                    }
-                }
-                return $;
-            });
+            return tableCache.get(composite);
         }
         catch (ExecutionException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -1226,7 +1341,6 @@ public final class Database implements DurableStore {
      * @param key
      * @return the TableRecord
      */
-    @SuppressWarnings("unchecked")
     private TableRecord getTableRecord(Identifier identifier, Text key) {
         masterLock.readLock().lock();
         try {
@@ -1236,33 +1350,9 @@ public final class Database implements DurableStore {
                     .getIfPresent(Composite.create(identifier));
             if(table == null) {
                 Composite composite = Composite.create(identifier, key);
-                table = tablePartialCache.get(composite, () -> {
-                    TableRecord $ = TableRecord.createPartial(identifier, key);
-                    if(options.enableAsyncTableDataReads()) {
-                        int i = 0;
-                        Fragment<Identifier, Text, Value>[] fragments = new Fragment[segments
-                                .size()];
-                        Runnable[] tasks = new Runnable[segments.size()];
-                        for (Segment segment : segments) {
-                            Fragment<Identifier, Text, Value> fragment = new Fragment<>(
-                                    identifier, key);
-                            fragments[i] = fragment;
-                            tasks[i++] = () -> segment.table().seek(composite,
-                                    fragment);
-                        }
-                        reader.join(tasks);
-                        $.append(fragments);
-                    }
-                    else {
-                        for (Segment segment : segments) {
-                            segment.table().seek(composite, $);
-                        }
-                    }
-                    return $;
-                });
+                table = tablePartialCache.get(composite);
             }
             return table;
-
         }
         catch (ExecutionException e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
@@ -1307,6 +1397,286 @@ public final class Database implements DurableStore {
         }
         finally {
             masterLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Configuration for the various caches used by the {@link Database}.
+     * <p>
+     * This class provides settings that control the maximum size and refresh
+     * frequency
+     * for the table, index, and corpus caches.
+     * </p>
+     */
+    static final class CacheConfiguration {
+
+        /**
+         * Return a new {@link Builder} for constructing a
+         * {@link CacheConfiguration}.
+         * 
+         * @return the {@link Builder}
+         */
+        static Builder builder() {
+            return new Builder();
+        }
+
+        /**
+         * Return the default {@link CacheConfiguration}.
+         * 
+         * @return the {@link CacheConfiguration}
+         */
+        static CacheConfiguration defaults() {
+            /*
+             * TODO: Consider a future optimization where the allocation for
+             * each cache is determined based on heuristics (e.g., 50% for
+             * corpus cache, 25% for table, 25% for index, etc) or based or
+             * dynamic based on usage.
+             */
+            int tableCacheMemoryLimit;
+            int tablePartialCacheMemoryLimit;
+            int indexCacheMemoryLimit;
+            int corpusCacheMemoryLimit;
+            int cacheMemoryCheckFrequencyInSeconds;
+
+            if(ENABLE_SEARCH_CACHE) {
+                tableCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                tablePartialCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                indexCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                corpusCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+
+            }
+            else {
+                tableCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                tablePartialCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                indexCacheMemoryLimit = GlobalState.CACHE_MEMORY_LIMIT;
+                corpusCacheMemoryLimit = 0;
+            }
+            cacheMemoryCheckFrequencyInSeconds = GlobalState.CACHE_MEMORY_CHECK_FREQUENCY;
+
+            return new CacheConfiguration(tableCacheMemoryLimit,
+                    tablePartialCacheMemoryLimit, indexCacheMemoryLimit,
+                    corpusCacheMemoryLimit, cacheMemoryCheckFrequencyInSeconds,
+                    $ -> {});
+        }
+
+        /**
+         * The maximum size for the table cache.
+         */
+        private int tableCacheMemoryLimit;
+
+        /**
+         * The maximum size for the table partial cache.
+         */
+        private int tablePartialCacheMemoryLimit;
+
+        /**
+         * The maximum size for the index cache.
+         */
+        private int indexCacheMemoryLimit;
+
+        /**
+         * The maximum size for the corpus cache.
+         */
+        private int corpusCacheMemoryLimit;
+
+        /**
+         * The frequency in seconds at which cache sizes are refreshed.
+         */
+        private int cacheMemoryCheckFrequencyInSeconds;
+
+        /**
+         * The eviction listener for cache entries.
+         */
+        private Consumer<Record<?, ?, ?>> evictionListener;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param tableCacheMemoryLimit the maximum size for the table cache
+         * @param tablePartialCacheMemoryLimit the maximum size for the table
+         *            partial cache
+         * @param indexCacheMemoryLimit the maximum size for the index cache
+         * @param corpusCacheMemoryLimit the maximum size for the corpus cache
+         * @param cacheMemoryCheckFrequencyInSeconds the frequency in seconds at
+         *            which cache sizes are refreshed
+         * @param evictionListener the listener for cache entry eviction events
+         */
+        private CacheConfiguration(int tableCacheMemoryLimit,
+                int tablePartialCacheMemoryLimit, int indexCacheMemoryLimit,
+                int corpusCacheMemoryLimit,
+                int cacheMemoryCheckFrequencyInSeconds,
+                Consumer<Record<?, ?, ?>> evictionListener) {
+            this.tableCacheMemoryLimit = tableCacheMemoryLimit;
+            this.tablePartialCacheMemoryLimit = tablePartialCacheMemoryLimit;
+            this.indexCacheMemoryLimit = indexCacheMemoryLimit;
+            this.corpusCacheMemoryLimit = corpusCacheMemoryLimit;
+            this.cacheMemoryCheckFrequencyInSeconds = cacheMemoryCheckFrequencyInSeconds;
+            this.evictionListener = evictionListener;
+        }
+
+        /**
+         * Return the frequency in seconds at which cache sizes are refreshed.
+         * 
+         * @return the cache size refresh frequency in seconds
+         */
+        int cacheMemoryCheckFrequencyInSeconds() {
+            return cacheMemoryCheckFrequencyInSeconds;
+        }
+
+        /**
+         * Return the maximum size for the corpus cache.
+         * 
+         * @return the corpus cache maximum size
+         */
+        int corpusCacheMemoryLimit() {
+            return corpusCacheMemoryLimit;
+        }
+
+        /**
+         * Return the maximum size for the index cache.
+         * 
+         * @return the index cache maximum size
+         */
+        int indexCacheMemoryLimit() {
+            return indexCacheMemoryLimit;
+        }
+
+        /**
+         * Return the removal listener for cache entries.
+         * 
+         * @return the removal listener
+         */
+        Consumer<Record<?, ?, ?>> evictionListener() {
+            return evictionListener;
+        }
+
+        /**
+         * Return the maximum size for the table cache.
+         * 
+         * @return the table cache maximum size
+         */
+        int tableCacheMemoryLimit() {
+            return tableCacheMemoryLimit;
+        }
+
+        /**
+         * Return the maximum size for the table partial cache.
+         * 
+         * @return the table partial cache maximum size
+         */
+        int tablePartialCacheMemoryLimit() {
+            return tablePartialCacheMemoryLimit;
+        }
+
+        /**
+         * A builder for creating {@link CacheConfiguration} instances with
+         * custom settings.
+         *
+         * @author Jeff Nelson
+         */
+        static final class Builder {
+
+            /**
+             * The {@link CacheConfiguration} being built.
+             */
+            private final CacheConfiguration cacheConfig;
+
+            /**
+             * Construct a new instance.
+             */
+            private Builder() {
+                this.cacheConfig = defaults();
+            }
+
+            /**
+             * Build and return the {@link CacheConfiguration}.
+             * 
+             * @return the built {@link CacheConfiguration}
+             */
+            CacheConfiguration build() {
+                return cacheConfig;
+            }
+
+            /**
+             * Set the maximum size for all caches (table, table partial, index,
+             * and corpus).
+             * 
+             * @param value the maximum size for all caches
+             * @return this builder
+             */
+            Builder memoryLimit(int value) {
+                cacheConfig.tableCacheMemoryLimit = value;
+                cacheConfig.tablePartialCacheMemoryLimit = value;
+                cacheConfig.indexCacheMemoryLimit = value;
+                cacheConfig.corpusCacheMemoryLimit = value;
+                return this;
+            }
+
+            /**
+             * Set the frequency in seconds at which cache sizes are refreshed.
+             * 
+             * @param value the cache size refresh frequency in seconds
+             * @return this builder
+             */
+            Builder memoryCheckFrequencyInSeconds(int value) {
+                cacheConfig.cacheMemoryCheckFrequencyInSeconds = value;
+                return this;
+            }
+
+            /**
+             * Set the maximum size for the corpus cache.
+             * 
+             * @param value the maximum size for the corpus cache
+             * @return this builder
+             */
+            Builder corpusCacheMemoryLimit(int value) {
+                cacheConfig.corpusCacheMemoryLimit = value;
+                return this;
+            }
+
+            /**
+             * Set the maximum size for the index cache.
+             * 
+             * @param value the maximum size for the index cache
+             * @return this builder
+             */
+            Builder indexCacheMemoryLimit(int value) {
+                cacheConfig.indexCacheMemoryLimit = value;
+                return this;
+            }
+
+            /**
+             * Set the eviction listener for cache entries.
+             * 
+             * @param listener the removal listener to use
+             * @return this builder
+             */
+            Builder evictionListener(Consumer<Record<?, ?, ?>> listener) {
+                cacheConfig.evictionListener = listener;
+                return this;
+            }
+
+            /**
+             * Set the maximum size for the table cache.
+             * 
+             * @param value the maximum size for the table cache
+             * @return this builder
+             */
+            Builder tableCacheMemoryLimit(int value) {
+                cacheConfig.tableCacheMemoryLimit = value;
+                return this;
+            }
+
+            /**
+             * Set the maximum size for the table partial cache.
+             * 
+             * @param value the maximum size for the table partial cache
+             * @return this builder
+             */
+            Builder tablePartialCacheMemoryLimit(int value) {
+                cacheConfig.tablePartialCacheMemoryLimit = value;
+                return this;
+            }
         }
     }
 
@@ -1454,20 +1824,32 @@ public final class Database implements DurableStore {
      *
      * @author Jeff Nelson
      */
-    private class RunningAwareCache<K, V> implements Cache<K, V> {
+    private class RunningAwareCache<K, V> implements LoadingCache<K, V> {
 
         /**
          * The underlying {@link Cache}.
          */
-        private final Cache<K, V> cache;
+        private final LoadingCache<K, V> cache;
+
+        /**
+         * The loading function.
+         */
+        private final Function<K, V> loader;
 
         /**
          * Construct a new instance.
          * 
          * @param cache
          */
-        RunningAwareCache(Cache<K, V> cache) {
+        RunningAwareCache(LoadingCache<K, V> cache, Function<K, V> loader) {
             this.cache = cache;
+            this.loader = loader;
+        }
+
+        @Override
+        @Deprecated
+        public V apply(K key) {
+            return running ? cache.apply(key) : null;
         }
 
         @Override
@@ -1483,6 +1865,11 @@ public final class Database implements DurableStore {
         }
 
         @Override
+        public V get(K key) throws ExecutionException {
+            return running ? cache.get(key) : loader.apply(key);
+        }
+
+        @Override
         public V get(K key, Callable<? extends V> loader)
                 throws ExecutionException {
             try {
@@ -1494,6 +1881,12 @@ public final class Database implements DurableStore {
         }
 
         @Override
+        public ImmutableMap<K, V> getAll(Iterable<? extends K> keys)
+                throws ExecutionException {
+            return running ? cache.getAll(keys) : ImmutableMap.of();
+        }
+
+        @Override
         public ImmutableMap<K, V> getAllPresent(Iterable<?> keys) {
             return running ? cache.getAllPresent(keys) : ImmutableMap.of();
         }
@@ -1502,6 +1895,11 @@ public final class Database implements DurableStore {
         public @org.checkerframework.checker.nullness.qual.Nullable V getIfPresent(
                 Object key) {
             return running ? cache.getIfPresent(key) : null;
+        }
+
+        @Override
+        public V getUnchecked(K key) {
+            return running ? cache.getUnchecked(key) : null;
         }
 
         @Override
@@ -1536,6 +1934,13 @@ public final class Database implements DurableStore {
         public void putAll(Map<? extends K, ? extends V> m) {
             if(running) {
                 cache.putAll(m);
+            }
+        }
+
+        @Override
+        public void refresh(K key) {
+            if(running) {
+                cache.refresh(key);
             }
         }
 
