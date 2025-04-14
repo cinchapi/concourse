@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -34,11 +35,13 @@ import org.junit.Test;
 
 import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.common.reflect.Reflection;
+import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Identifier;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.server.storage.StoreTest;
+import com.cinchapi.concourse.server.storage.db.Database.CacheConfiguration;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
@@ -48,6 +51,7 @@ import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -514,13 +518,14 @@ public class DatabaseTest extends StoreTest {
     public void testVerifyDataAfterReindexStop() {
         Database db = (Database) store;
         List<Write> writes = Lists.newArrayList();
-        for (int i = 0; i < TestData.getScaleCount() * 3; ++i) {
+        int count = TestData.getScaleCount() * 3;
+        for (int i = 0; i < count; ++i) {
             String key = TestData.getSimpleString();
             TObject value = TestData.getTObject();
             long record = (Math.abs(TestData.getInt()) % 10) + 1;
             add(key, value, record);
             writes.add(Write.add(key, value, record));
-            if(Math.abs(TestData.getInt()) % 3 == 0) {
+            if(Math.abs(TestData.getInt()) % 3 == 0 || i == (count - 1)) {
                 db.sync();
             }
         }
@@ -533,6 +538,64 @@ public class DatabaseTest extends StoreTest {
             Assert.assertTrue(db.verify(write.getKey().toString(),
                     write.getValue().getTObject(),
                     write.getRecord().longValue()));
+        }
+    }
+
+    @Test
+    public void testCacheEvictionIsSizeBased() {
+        Database db = (Database) store;
+        String key = "test";
+        long record = 1;
+        db.accept(Write.add(key, Convert.javaToThrift(-1), record));
+        db.sync();
+        db.stop();
+        AtomicBoolean evicted = new AtomicBoolean(false);
+        CacheConfiguration cacheConfig = CacheConfiguration.builder()
+                .memoryLimit(1000).memoryCheckFrequencyInSeconds(1)
+                .evictionListener(removed -> evicted.set(true)).build();
+        db = new Database(Paths.get(db.getBackingStore()), cacheConfig); // ensure
+                                                                         // caches
+                                                                         // are
+        db.start();
+        Assert.assertEquals(
+                ImmutableMap.of(key, ImmutableSet.of(Convert.javaToThrift(-1))),
+                db.select(record));
+        int count = 100;
+        for (int i = 0; i < count; ++i) {
+            db.accept(Write.add(key, Convert.javaToThrift(i), record));
+        }
+        Threads.sleep(1, TimeUnit.SECONDS);
+        db.accept(Write.add(key, Convert.javaToThrift(count), record));
+        Assert.assertTrue(evicted.get());
+    }
+
+    @Test
+    public void testDataCorrectnessAfterCacheEviction() {
+        Database db = (Database) store;
+        String key = "test";
+        long record = 1;
+        db.accept(Write.add(key, Convert.javaToThrift(-1), record));
+        db.sync();
+        db.stop();
+        AtomicBoolean evicted = new AtomicBoolean(false);
+        CacheConfiguration cacheConfig = CacheConfiguration.builder()
+                .memoryLimit(1000).memoryCheckFrequencyInSeconds(1)
+                .evictionListener(removed -> evicted.set(true)).build();
+        db = new Database(Paths.get(db.getBackingStore()), cacheConfig); // ensure
+                                                                         // caches
+                                                                         // are
+        db.start();
+        Assert.assertEquals(
+                ImmutableMap.of(key, ImmutableSet.of(Convert.javaToThrift(-1))),
+                db.select(record));
+        int count = 100;
+        for (int i = 0; i < count; ++i) {
+            db.accept(Write.add(key, Convert.javaToThrift(i), record));
+        }
+        Threads.sleep(1, TimeUnit.SECONDS);
+        db.accept(Write.add(key, Convert.javaToThrift(count), record));
+        for (int i = -1; i <= count; ++i) {
+            Assert.assertTrue(db.verify(key, Convert.javaToThrift(i), record));
         }
     }
 

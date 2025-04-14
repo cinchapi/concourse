@@ -43,7 +43,7 @@ We made several changes to improve the safety, scalability and operational effic
 * Reduced the amount of heap space required for essential storage metadata.
 * **Efficient Metadata:** Added the `enable_efficient_metadata` configuration option to further reduce the amount of heap space required for essential storage metadata. When this option is set to `true`, metadata will occupy approximately one-third less heap space and likely improve overall system performance due to a decrease in garbage collection pauses (although per-operation performance may be slightly affected by additional overhead).
 * **Asynchronous Data Reads:** Added the `enable_async_data_reads` configuration option to allow Concourse Server to *potentially* use multiple threads to read data from disk. When data records are either no longer cached or not eligible to ever be cached (due to space limitations), Concourse Server streams the relevant information from disk on-demand. By default, this is a synchronous process and the performance is linear based on the number of Segment files in the database. With this new configuration option, Concourse Server can now stream the data using multiple threads. Even under high contention, the read performance should be no worse than the default synchronous performance, but there may be additional overhead that reduces peak performance on a per-operation basis.
-* Improved write performance of the `set` method in large transactions by creating normalized views of existing data, which are consulted during the method’s implicit `select` read operation.
+* Improved write performance of the `set` method in large transactions by creating normalized views of existing data, which are consulted during the method's implicit `select` read operation.
 * Improved the performance of the `verifyOrSet` method by removing redundant internal verification that occurred while finalizing the write.
 
 ##### Bug Fixes
@@ -72,6 +72,15 @@ We made several changes to improve the safety, scalability and operational effic
 * The `com.cinchapi.concourse.util.Processes` utility class has been removed in favor of using `com.cinchapi.common.process` from `accent4j`.
 	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
 	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
+
+#### Version 0.11.8 (TBD)
+
+##### Caching Improvements
+* **Dynamic Memory-Aware Eviction**: Record caches in the database now evict entires based on overall memory consumption instead of evicting after exceeding a static number of entries. Caches can grow up to an internally defined proportion of the defined `heap_size` and will be purged once this limit is exceeded or when system memory pressure necessitates garbage collection.
+* **Enhanced Diagnostic Logging**: For improved observability, DEBUG logging now emits messages whenever a cached record is evicted, allowing for more effective monitoring and troubleshooting of cache behavior.
+
+##### General Improvements and Bug Fixes
+* Fixed an issue that occurred when using a navigation key in a Criteria/Condition that was passed as a parameter to a Concourse Server command. Previously, the individual stops of navigation keys were not individually registered as *condition keys*. As a result, the `Strategy` framework didn't have all the relevant information to accurately determine all the ideal lookup sources when traversing the document graph to retrieve the values along the path. Now, in addition to the entire navigation key, each individual stop is registered as a *condition key*, which means that the `Strategy` framework will have enough information to determine if more efficient to use any index data (as opposed to table data) for lookups.
 
 #### Version 0.11.7 (April 7, 2025)
 * Fixed a bug that made it possible to leak filesystem resources by opening duplicate file descriptors for the same Segment file. At scale, this could prematurely lead to "too many open files" errors.
