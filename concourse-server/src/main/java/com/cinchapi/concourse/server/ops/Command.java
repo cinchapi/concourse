@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,6 +41,9 @@ import com.cinchapi.concourse.server.ConcourseServer;
 import com.cinchapi.concourse.thrift.JavaThriftBridge;
 import com.cinchapi.concourse.thrift.TCriteria;
 import com.cinchapi.concourse.thrift.TOrder;
+import com.cinchapi.concourse.validate.Keys;
+import com.cinchapi.concourse.validate.Keys.Key;
+import com.cinchapi.concourse.validate.Keys.KeyType;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
@@ -48,6 +52,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 
 /**
  * A {@link Command} describes a {@link ConcourseServer} operation and the
@@ -457,6 +462,20 @@ public final class Command {
             }
             else if(conditionKeys == null) {
                 conditionKeys = ImmutableSet.of();
+            }
+
+            // If any of the #conditionKeys are navigation keys, break them up
+            // and add each stop as a condition key
+            if(!conditionKeys.isEmpty()) {
+                conditionKeys = conditionKeys.stream().flatMap($key -> {
+                    Key key = Keys.parse($key);
+                    Stream<String> stream = Stream.of($key);
+                    if(key.type() == KeyType.NAVIGATION_KEY) {
+                        String[] stops = key.data();
+                        stream = Streams.concat(stream, Arrays.stream(stops));
+                    }
+                    return stream;
+                }).collect(Collectors.toSet());
             }
 
             // operationTimestamp

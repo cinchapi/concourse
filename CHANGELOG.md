@@ -4,6 +4,9 @@
 * **Dynamic Memory-Aware Eviction**: Record caches in the database now evict entires based on overall memory consumption instead of evicting after exceeding a static number of entries. Caches can grow up to an internally defined proportion of the defined `heap_size` and will be purged once this limit is exceeded or when system memory pressure necessitates garbage collection.
 * **Enhanced Diagnostic Logging**: For improved observability, DEBUG logging now emits messages whenever a cached record is evicted, allowing for more effective monitoring and troubleshooting of cache behavior.
 
+##### General Improvements and Bug Fixes
+* Fixed an issue that occurred when using a navigation key in a Criteria/Condition that was passed as a parameter to a Concourse Server command. Previously, the individual stops of navigation keys were not individually registered as *condition keys*. As a result, the `Strategy` framework didn't have all the relevant information to accurately determine all the ideal lookup sources when traversing the document graph to retrieve the values along the path. Now, in addition to the entire navigation key, each individual stop is registered as a *condition key*, which means that the `Strategy` framework will have enough information to determine if more efficient to use any index data (as opposed to table data) for lookups.
+
 #### Version 0.11.7 (April 7, 2025)
 * Fixed a bug that made it possible to leak filesystem resources by opening duplicate file descriptors for the same Segment file. At scale, this could prematurely lead to "too many open files" errors.
 * [GH-534](https://github.com/cinchapi/concourse/issues/534): Fixed a bug that caused the `CONCOURSE_HEAP_SIZE` environment variable, if set, not to be read on server startup.
