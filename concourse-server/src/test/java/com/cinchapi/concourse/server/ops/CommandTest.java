@@ -38,7 +38,7 @@ import com.google.common.collect.ImmutableList;
  * @author Jeff Nelson
  */
 public class CommandTest {
-    
+
     @Test
     public void testNavigationConditionKeys() {
         Method method = Reflection.getMethodUnboxed(ConcourseServer.class,
@@ -52,14 +52,13 @@ public class CommandTest {
         AccessToken creds = new AccessToken();
         TransactionToken transaction = new TransactionToken();
         String environment = "";
-        Command command = new Command(method, keys, criteria, creds, transaction, environment);
+        Command command = new Command(method, keys, criteria, creds,
+                transaction, environment);
         Set<String> conditionKeys = command.conditionKeys();
         Assert.assertTrue(conditionKeys.contains("credential"));
         Assert.assertTrue(conditionKeys.contains("email"));
         Assert.assertTrue(conditionKeys.contains("_"));
-        
+
     }
-    
-    
 
 }

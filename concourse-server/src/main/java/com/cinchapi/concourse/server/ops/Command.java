@@ -477,7 +477,7 @@ public final class Command {
                     return stream;
                 }).collect(Collectors.toSet());
             }
-            
+
             // operationTimestamp
             if(args.containsKey("time")) {
                 operationTimestamp = args.fetch("time");
