@@ -33,6 +33,7 @@ import com.cinchapi.concourse.server.storage.CommitVersions;
 import com.cinchapi.concourse.server.storage.Versioned;
 import com.cinchapi.concourse.server.storage.cache.ByteableFunnel;
 import com.cinchapi.concourse.thrift.TObject;
+import com.cinchapi.ensemble.io.Serialization;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
@@ -46,6 +47,11 @@ import com.google.common.hash.Hashing;
  */
 @Immutable
 public final class Write implements Byteable, Versioned {
+
+    static {
+        Serialization.customize(Write.class, Write::getBytes,
+                Write::fromByteBuffer);
+    }
 
     /**
      * Return a storable Write that represents a revision to ADD {@code key} as

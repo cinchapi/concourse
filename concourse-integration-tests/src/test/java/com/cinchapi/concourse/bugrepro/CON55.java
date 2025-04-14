@@ -20,8 +20,8 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.Identifiers;
 
 /**
  * Repro of <a href="https://cinchapi.atlassian.net/browse/CON-55">CON-55</a>
@@ -36,7 +36,7 @@ public class CON55 extends ConcourseIntegrationTest {
     public void repro() {
         client.stage();
         client.find("ipeds_id", Operator.EQUALS, Convert.stringToJava("1"));
-        long record = Time.now();
+        long record = Identifiers.next();
         client.add("ipeds_id", Convert.stringToJava("1"), record);
         client.add("avg_net_price_income_below_30000",
                 Convert.stringToJava("15759"), record);
