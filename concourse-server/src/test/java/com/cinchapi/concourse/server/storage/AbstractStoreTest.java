@@ -30,7 +30,7 @@ import com.cinchapi.concourse.thrift.TObject;
  * @author Jeff Nelson
  */
 public abstract class AbstractStoreTest extends ConcourseBaseTest {
-    
+
     protected Store store;
 
     private int pref = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
