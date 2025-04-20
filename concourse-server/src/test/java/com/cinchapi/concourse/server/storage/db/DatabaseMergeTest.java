@@ -37,11 +37,11 @@ import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Lists;
 
 /**
- * Unit tests for the {@link Database#append(Segment, List)} method.
+ * Unit tests for the {@link Database#merge(Segment, List)} method.
  *
  * @author Jeff Nelson
  */
-public class DatabaseAppendTest extends AbstractStoreTest {
+public class DatabaseMergeTest extends AbstractStoreTest {
 
     private String directory;
 
@@ -50,7 +50,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
      * and its data is accessible.
      */
     @Test
-    public void testAppendSegment() {
+    public void testMergeSegment() {
         Database db = (Database) store;
         // Create a segment with some data
         Segment segment = Segment.create();
@@ -64,7 +64,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         List<Receipt> receipts = Lists.newArrayList(receipt);
         
         // Append the segment to the database
-        db.append(segment, receipts);
+        db.merge(segment, receipts);
         
         // Verify the data is accessible
         Assert.assertTrue(db.select(key, record).contains(value));
@@ -74,7 +74,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
      * Test that multiple segments can be appended and all data is accessible.
      */
     @Test
-    public void testAppendMultipleSegments() {
+    public void testMergeMultipleSegments() {
         Database db = (Database) store;
         // Create and append first segment
         Segment segment1 = Segment.create();
@@ -83,7 +83,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         long record1 = 1;
         Write write1 = Write.add(key1, value1, record1);
         Receipt receipt1 = segment1.acquire(write1);
-        db.append(segment1, Lists.newArrayList(receipt1));
+        db.merge(segment1, Lists.newArrayList(receipt1));
         
         // Create and append second segment
         Segment segment2 = Segment.create();
@@ -92,7 +92,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         long record2 = 2;
         Write write2 = Write.add(key2, value2, record2);
         Receipt receipt2 = segment2.acquire(write2);
-        db.append(segment2, Lists.newArrayList(receipt2));
+        db.merge(segment2, Lists.newArrayList(receipt2));
         
         // Verify all data is accessible
         Assert.assertTrue(db.select(key1, record1).contains(value1));
@@ -103,7 +103,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
      * Test that appending a segment updates the caches correctly.
      */
     @Test
-    public void testAppendUpdatesCache() {
+    public void testMergeUpdatesCache() {
         Database db = (Database) store;
         // First query to populate cache
         String key = "cache_key";
@@ -119,7 +119,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         db.find(key, Operator.EQUALS, value);
         
         // Append the segment
-        db.append(segment, Lists.newArrayList(receipt));
+        db.merge(segment, Lists.newArrayList(receipt));
         
         // Verify cache is updated by checking the result contains the new record
         Set<Long> results = db.find(key, Operator.EQUALS, value);
@@ -130,7 +130,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
      * Test that a mutable segment is persisted to disk when appended.
      */
     @Test
-    public void testAppendPersistsMutableSegment() {
+    public void testMergePersistsMutableSegment() {
         Database db = (Database) store;
         // Create a mutable segment
         Segment segment = Segment.create();
@@ -144,7 +144,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         Assert.assertTrue(segment.isMutable());
         
         // Append the segment
-        db.append(segment, Lists.newArrayList(receipt));
+        db.merge(segment, Lists.newArrayList(receipt));
         
         // Get the segments directory
         Path segmentsDir = Paths.get(directory).resolve("segments");
@@ -158,7 +158,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
      * Test that appending a segment with empty receipts doesn't update caches.
      */
     @Test
-    public void testAppendWithEmptyReceipts() {
+    public void testMergeWithEmptyReceipts() {
         Database db = (Database) store;
         // Create a segment with data but provide empty receipts
         Segment segment = Segment.create();
@@ -170,7 +170,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         
         // Append with empty receipts
         List<Receipt> emptyReceipts = new ArrayList<>();
-        db.append(segment, emptyReceipts);
+        db.merge(segment, emptyReceipts);
         
         // Verify the segment is added but data isn't in cache
         List<Segment> segments = Reflection.get("segments", db);
@@ -184,9 +184,9 @@ public class DatabaseAppendTest extends AbstractStoreTest {
      * Test that appending a null segment throws an exception.
      */
     @Test(expected = NullPointerException.class)
-    public void testAppendNullSegment() {
+    public void testMergeNullSegment() {
         Database db = (Database) store;
-        db.append(null, new ArrayList<>());
+        db.merge(null, new ArrayList<>());
     }
     
     /**
@@ -194,7 +194,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
      * still works but may lead to inconsistent cache state.
      */
     @Test
-    public void testAppendWithMismatchedReceipts() {
+    public void testMergeWithMismatchedReceipts() {
         Database db = (Database) store;
         // Create first segment with data
         Segment segment1 = Segment.create();
@@ -213,7 +213,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         segment2.acquire(write2);
         
         // Append segment2 with receipts from segment1
-        db.append(segment2, Lists.newArrayList(receipt1));
+        db.merge(segment2, Lists.newArrayList(receipt1));
         
         // Verify segment2 is added
         List<Segment> segments = Reflection.get("segments", db);
@@ -227,7 +227,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
      * Test that appending a segment with a large number of writes works correctly.
      */
     @Test
-    public void testAppendWithLargeNumberOfWrites() {
+    public void testMergeWithLargeNumberOfWrites() {
         Database db = (Database) store;
         Segment segment = Segment.create();
         List<Receipt> receipts = new ArrayList<>();
@@ -243,7 +243,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         }
         
         // Append the segment
-        db.append(segment, receipts);
+        db.merge(segment, receipts);
         
         // Verify random samples of data are accessible
         for(int i = 0; i < 10; i++) {
@@ -259,7 +259,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
      * Test that appending an immutable segment doesn't try to persist it again.
      */
     @Test
-    public void testAppendImmutableSegment() {
+    public void testMergeImmutableSegment() {
         Database db = (Database) store;
         // Create a segment and make it immutable
         Segment segment = Segment.create();
@@ -277,7 +277,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         Assert.assertFalse(segment.isMutable());
         
         // Append the immutable segment
-        db.append(segment, Lists.newArrayList(receipt));
+        db.merge(segment, Lists.newArrayList(receipt));
         
         // Verify data is accessible
         Assert.assertTrue(db.select(key, record).contains(value));
@@ -303,7 +303,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         long record1 = 1;
         Write write1 = Write.add(key1, value1, record1);
         Receipt receipt1 = segment1.acquire(write1);
-        db.append(segment1, Lists.newArrayList(receipt1));
+        db.merge(segment1, Lists.newArrayList(receipt1));
         
         // Verify seg0 is still at the end
         segments = Reflection.get("segments", db);
@@ -317,7 +317,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
             long record = i + 2;
             Write write = Write.add(key, value, record);
             Receipt receipt = segment.acquire(write);
-            db.append(segment, Lists.newArrayList(receipt));
+            db.merge(segment, Lists.newArrayList(receipt));
         }
         
         // Verify seg0 is still at the end after multiple appends
@@ -337,7 +337,7 @@ public class DatabaseAppendTest extends AbstractStoreTest {
         immutableSegment.transfer(tempFile);
         
         // Append the immutable segment
-        db.append(immutableSegment, Lists.newArrayList(receipt));
+        db.merge(immutableSegment, Lists.newArrayList(receipt));
         
         // Verify seg0 is still at the end after appending an immutable segment
         segments = Reflection.get("segments", db);

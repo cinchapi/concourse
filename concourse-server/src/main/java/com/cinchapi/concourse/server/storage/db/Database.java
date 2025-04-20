@@ -565,63 +565,6 @@ public final class Database implements DurableStore {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Append a {@link Segment} that contains data that was not previously
-     * {@link #accept(Write) accepted} by the {@link Database}.
-     * <p>
-     * In addition to appending the {@code segment}, this method will ensure
-     * that any necessary caches are {@link #updateCaches(Receipt) updated}.
-     * And, if the {@code segment} is {@link Segment#isMutable() mutable}, it
-     * will be
-     * {@link SegmentStorageSystem#save(Segment) persisted} to disk and made
-     * immutable.
-     * </p>
-     * <p>
-     * <strong>NOTE:</strong> This method is only intended for adding net-new
-     * data that changes the "state" that would be observed by one or more
-     * future reads. For operations where segments are being inserted but
-     * "state" is not changing (e.g., because the segment contains duplicate
-     * data), use the appropriate specialized method instead:
-     * <ul>
-     * <li>For reindexing, use the {@link #reindex()} method</li>
-     * <li>For compaction, use the {@link #compact()} method or a
-     * {@link Compactor}</li>
-     * </ul>
-     * Those methods manage segment files without modifying the caches in the
-     * {@link Database}.
-     * </p>
-     * 
-     * @param segment the {@link Segment} to append to the database
-     * @param receipts a {@link List} of {@link Receipt receipts} representing
-     *            all the {@link Segment#acquire(Write) acquisitions} by the
-     *            {@link Segment}
-     */
-    public void append(Segment segment, List<Receipt> receipts) {
-        masterLock.writeLock().lock();
-        try {
-            String id = segment.id();
-
-            // By convention, #seg0 must always be at the end of the list
-            // because it is Segment that acquires #accepted Writes.
-            int index = Math.max(segments.size() - 1, 0);
-            segments.add(index, segment);
-
-            if(segment.isMutable()) {
-                Path file = storage.save(segment);
-                Logger.debug("Completed sync of {} to disk at {}", id, file);
-            }
-
-            for (Receipt receipt : receipts) {
-                updateCaches(receipt);
-            }
-
-            Logger.debug("Completed merge of {} to the Database", id);
-        }
-        finally {
-            masterLock.writeLock().unlock();
-        }
-    }
-
     @Override
     public Map<TObject, Set<Long>> browse(String key) {
         Text L = Text.wrapCached(key);
@@ -761,6 +704,64 @@ public final class Database implements DurableStore {
         Verify.that(running,
                 "Cannot return the memory of a stopped Database instance");
         return memory;
+    }
+
+    /**
+     * Merge a {@link Segment} that contains data that was not previously
+     * {@link #accept(Write) accepted} by the {@link Database}.
+     * <p>
+     * In addition to appending the {@code segment}, this method will ensure
+     * that any necessary caches are {@link #updateCaches(Receipt) updated}.
+     * And, if the {@code segment} is {@link Segment#isMutable() mutable}, it
+     * will be
+     * {@link SegmentStorageSystem#save(Segment) persisted} to disk and made
+     * immutable.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> This method is only intended for adding net-new
+     * data that changes the "state" that would be observed by one or more
+     * future reads. For operations where segments are being inserted but
+     * "state" is not changing (e.g., because the segment contains duplicate
+     * data), use the appropriate specialized method instead:
+     * <ul>
+     * <li>For reindexing, use the {@link #reindex()} method</li>
+     * <li>For compaction, use the {@link #compact()} method or a
+     * {@link Compactor}</li>
+     * </ul>
+     * Those methods manage segment files without modifying the caches in the
+     * {@link Database}.
+     * </p>
+     * 
+     * @param segment the {@link Segment} to append to the database
+     * @param receipts a {@link List} of {@link Receipt receipts} representing
+     *            all the {@link Segment#acquire(Write) acquisitions} by the
+     *            {@link Segment}
+     */
+    public boolean merge(Segment segment, List<Receipt> receipts) {
+        masterLock.writeLock().lock();
+        try {
+            String id = segment.id();
+
+            // By convention, #seg0 must always be at the end of the list
+            // because it is Segment that acquires #accepted Writes.
+            int index = Math.max(segments.size() - 1, 0);
+            segments.add(index, segment);
+
+            if(segment.isMutable()) {
+                Path file = storage.save(segment);
+                Logger.debug("Completed sync of {} to disk at {}", id, file);
+            }
+
+            for (Receipt receipt : receipts) {
+                updateCaches(receipt);
+            }
+
+            Logger.debug("Completed merge of {} to the Database", id);
+            return true;
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
     }
 
     @Override
