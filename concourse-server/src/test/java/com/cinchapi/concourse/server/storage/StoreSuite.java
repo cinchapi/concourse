@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import com.cinchapi.concourse.server.storage.db.DatabaseMergeTest;
 import com.cinchapi.concourse.server.storage.db.DatabaseTest;
 import com.cinchapi.concourse.server.storage.temp.BufferTest;
 import com.cinchapi.concourse.server.storage.temp.QueueTest;
@@ -33,7 +34,7 @@ import com.cinchapi.concourse.server.storage.temp.QueueTest;
         EngineAtomicOperationTest.class, DatabaseTest.class,
         TransactionTest.class, TransactionAtomicOperationTest.class,
         TransactionGarbageCollectionTest.class,
-        NestedAtomicOperationTest.class })
+        NestedAtomicOperationTest.class, DatabaseMergeTest.class })
 public class StoreSuite {
 
 }
