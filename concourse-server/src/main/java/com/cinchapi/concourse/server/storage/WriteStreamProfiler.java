@@ -70,7 +70,7 @@ public final class WriteStreamProfiler<T extends WriteStream> {
     private final Collection<T> streams;
 
     /**
-     * Tracks all the {@link Write#hash() hashes) that have been seen.
+     * Tracks all the {@link Write#hash() hashes} that have been seen.
      */
     private final Set<HashCode> hashes;
 

@@ -1363,15 +1363,6 @@ public final class Database implements DurableStore {
     }
 
     /**
-     * Create new mutable blocks and sync the current blocks to disk if
-     * {@code doSync} is {@code true}.
-     * 
-     * @param flush - a flag that controls whether we actually perform a
-     *            sync or not. Sometimes this method is called when there is no
-     *            data to sync and we just want to create new blocks (e.g. on
-     *            initial startup).
-     */
-    /**
      * Rotate the database by adding a new {@link Segment} and setting it as
      * {@link #seg0} so that it is the destination into which subsequent
      * {@link Write Writes} are {@link #accept(Write) accepted}.

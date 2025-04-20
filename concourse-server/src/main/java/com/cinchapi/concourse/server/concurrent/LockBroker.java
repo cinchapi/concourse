@@ -51,12 +51,12 @@ import com.google.common.collect.Range;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
- * A {@link LockBrocker} provides the ability to lock granular notions of things
+ * A {@link LockBroker} provides the ability to lock granular notions of things
  * (e.g., records, fields, ranges, keys ,etc) that are identified by a
  * {@link Token}.
  * <p>
  * The {@link LockBroker} uses dynamic canonical locks that are created
- * on-demand. A {@link LockBrocker} should be used for managing concurrent
+ * on-demand. A {@link LockBroker} should be used for managing concurrent
  * access to dynamic resources that aren't tangibly defined in their own right.
  * </p>
  * <p>

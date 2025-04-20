@@ -512,7 +512,7 @@ public final class Segment extends TransferableByteSequence implements
     /**
      * Append the {@code write} to this {@link Segment} using the
      * {@code executor} to asynchronously write to all the contained
-     * {@link Block blocks}.
+     * {@link Chunk cunks}.
      * 
      * @param write
      * @param executor
@@ -821,8 +821,8 @@ public final class Segment extends TransferableByteSequence implements
 
     /**
      * A {@link Receipt} is acknowledges the successful
-     * {@link Segment#acquire(Write, AwaitableExecutorService) transfer} of a
-     * {@link Write} to a {@link Segment} and includes the {@link Revision
+     * {@link Segment#acquire(Write, AwaitableExecutorService) acquisition} of a
+     * {@link Write} by a {@link Segment} and includes the {@link Revision
      * revisions} that were created in the Segment's storage {@link Chunk
      * Chunks}.
      *
