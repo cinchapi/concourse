@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.indexing;
+package com.cinchapi.concourse.server.storage.transporter;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
@@ -52,7 +55,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  *
  * @author Jeff Nelson
  */
-abstract class Transporter {
+public abstract class Transporter {
 
     /**
      * Returns the default executor supplier that creates a single-threaded
@@ -105,6 +108,11 @@ abstract class Transporter {
     private final UncaughtExceptionHandler uncaughtExceptionHandler;
 
     /**
+     * The collection of active transport tasks.
+     */
+    private List<Future<?>> tasks;
+
+    /**
      * Constructs a {@link Transporter} with a single worker thread.
      *
      * @param threadNamePrefix the prefix to use for naming transport threads
@@ -140,18 +148,6 @@ abstract class Transporter {
     }
 
     /**
-     * Defines the transport operation to be performed in each cycle.
-     * Subclasses must implement this method to specify the logic for
-     * transferring data from the source to the destination. This method is
-     * called repeatedly by the background thread as long as the
-     * {@link Transporter} is running.
-     *
-     * @throws InterruptedException if the thread is interrupted while
-     *             performing the transport operation
-     */
-    public abstract void transport() throws InterruptedException;
-
-    /**
      * Starts the transport process by launching background threads that
      * repeatedly call the {@link #transport()} method. If the
      * {@link Transporter} is
@@ -164,22 +160,7 @@ abstract class Transporter {
         if(running.compareAndSet(false, true)) {
             executor = executorSupplier.apply(threadNameFormat,
                     uncaughtExceptionHandler);
-            for (int i = 0; i < numIndexerThreads; ++i) {
-                executor.execute(() -> {
-                    while (running.get()) {
-                        try {
-                            transport();
-                        }
-                        catch (InterruptedException e) {
-                            // This usually indicates that the Transporter has
-                            // been stopped, so re-spin to confirm before
-                            // exiting
-                            Thread.currentThread().interrupt();
-                            continue;
-                        }
-                    }
-                });
-            }
+            tasks = submitTasks();
         }
         else {
             throw new IllegalStateException(
@@ -203,5 +184,59 @@ abstract class Transporter {
         else {
             throw new IllegalStateException("The Transporter is not running");
         }
+    }
+
+    /**
+     * Defines the transport operation to be performed in each cycle.
+     * Subclasses must implement this method to specify the logic for
+     * transferring data from the source to the destination. This method is
+     * called repeatedly by the background thread as long as the
+     * {@link Transporter} is running.
+     *
+     * @throws InterruptedException if the thread is interrupted while
+     *             performing the transport operation
+     */
+    public abstract void transport() throws InterruptedException;
+
+    /**
+     * <p>
+     * If a fatal error occurred or the processes appear stalled, this method
+     * can be used to try to reset and try again.
+     * <p>
+     */
+    protected void restart() {
+        running.set(false);
+        for (Future<?> task : tasks) {
+            task.cancel(true);
+        }
+        running.set(true);
+        tasks = submitTasks();
+    }
+
+    /**
+     * Creates and submits transport tasks to the executor.
+     * 
+     * @return the list of submitted tasks
+     */
+    private List<Future<?>> submitTasks() {
+        List<Future<?>> tasks = new ArrayList<>();
+        for (int i = 0; i < numIndexerThreads; ++i) {
+            Future<?> task = executor.submit(() -> {
+                while (running.get()) {
+                    try {
+                        transport();
+                    }
+                    catch (InterruptedException e) {
+                        // This usually indicates that the Transporter has
+                        // been stopped, so re-spin to confirm before
+                        // exiting
+                        Thread.currentThread().interrupt();
+                        continue;
+                    }
+                }
+            });
+            tasks.add(task);
+        }
+        return tasks;
     }
 }

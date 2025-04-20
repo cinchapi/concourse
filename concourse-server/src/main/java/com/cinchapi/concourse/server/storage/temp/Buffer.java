@@ -71,8 +71,8 @@ import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
-import com.cinchapi.concourse.server.storage.indexing.Batch;
-import com.cinchapi.concourse.server.storage.indexing.BatchTransportable;
+import com.cinchapi.concourse.server.storage.transporter.Batch;
+import com.cinchapi.concourse.server.storage.transporter.BatchTransportable;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
@@ -368,7 +368,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
 
     /**
      * A queue of batches that are ready for
-     * {@link com.cinchapi.concourse.server.storage.indexing.Transporter
+     * {@link com.cinchapi.concourse.server.storage.transporter.Transporter
      * transport} to the database. Each batch contains writes from a page that
      * has been filled and is ready for processing.
      */

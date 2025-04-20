@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.indexing;
+package com.cinchapi.concourse.server.storage.transporter;
 
 import com.cinchapi.concourse.server.storage.Store;
 

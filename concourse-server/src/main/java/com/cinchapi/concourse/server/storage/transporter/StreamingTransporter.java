@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.server.storage.indexing;
+package com.cinchapi.concourse.server.storage.transporter;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -168,6 +170,18 @@ public class StreamingTransporter extends Transporter {
     private final Lock lock;
 
     /**
+     * A {@link Timer} that is used to schedule some regular tasks.
+     */
+    private Timer scheduler;
+
+    /**
+     * A flag to indicate that the {@link BufferTransportThrread} has appeared
+     * to be hung at some point during the current runtime.
+     */
+    protected final AtomicBoolean bufferTransportThreadHasEverAppearedHung = new AtomicBoolean(
+            false); // visible for testing
+    
+    /**
      * Constructs a new {@link StreamingTransporter} that streams writes from
      * the specified buffer to the database.
      *
@@ -176,13 +190,49 @@ public class StreamingTransporter extends Transporter {
      * @param environment the environment name for thread identification
      * @param lock the lock used to coordinate access during critical sections
      */
-    StreamingTransporter(Buffer buffer, Database database, String environment,
+    public StreamingTransporter(Buffer buffer, Database database, String environment,
             Lock lock) {
         super(threadNameFormat(environment), uncaughtExceptionHandler());
         this.buffer = buffer;
         this.database = database;
         this.lock = lock;
     }
+    
+    @Override
+    public void start() {
+        scheduler = new Timer(true);
+        scheduler.scheduleAtFixedRate(new TimerTask() {
+
+            @Override
+            public void run() {
+                if(!bufferTransportThreadIsDoingWork.get()
+                        && !bufferTransportThreadIsPaused.get()
+                        && bufferTransportThreadLastWakeUp.get() != 0
+                        && TimeUnit.MILLISECONDS.convert(
+                                Time.now() - bufferTransportThreadLastWakeUp
+                                        .get(),
+                                TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
+                    bufferTransportThreadHasEverAppearedHung.set(true);
+                    restart();
+                }
+
+            }
+
+        }, BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS,
+                BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
+        super.start();
+        
+    }
+
+
+    @Override
+    public void stop() {
+        super.stop();
+        scheduler.cancel();
+        scheduler = null;
+    }
+    
+    
 
     /**
      * Processes a single transport cycle, moving data from the buffer to
