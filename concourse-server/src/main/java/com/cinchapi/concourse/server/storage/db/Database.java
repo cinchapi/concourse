@@ -537,41 +537,7 @@ public final class Database implements DurableStore {
                 Receipt receipt = seg0.acquire(write, writer);
                 Logger.debug("Indexed '{}' in {}", write, seg0);
 
-                // Update cached records
-                Composite composite;
-
-                composite = receipt.table().getLocatorComposite();
-                TableRecord table = tableCache.getIfPresent(composite);
-                if(table != null) {
-                    table.append(receipt.table().revision());
-                }
-
-                composite = receipt.table().getLocatorKeyComposite();
-                TableRecord tablePartial = tablePartialCache
-                        .getIfPresent(composite);
-                if(tablePartial != null) {
-                    tablePartial.append(receipt.table().revision());
-                }
-
-                composite = receipt.index().getLocatorComposite();
-                IndexRecord index = indexCache.getIfPresent(composite);
-                if(index != null) {
-                    index.append(receipt.index().revision());
-                }
-
-                if(ENABLE_SEARCH_CACHE) {
-                    Cache<Composite, CorpusRecord> cache = corpusCaches
-                            .get(write.getKey());
-                    if(cache != null) {
-                        for (CorpusArtifact artifact : receipt.corpus()) {
-                            composite = artifact.getLocatorKeyComposite();
-                            CorpusRecord corpus = cache.getIfPresent(composite);
-                            if(corpus != null) {
-                                corpus.append(artifact.revision());
-                            }
-                        }
-                    }
-                }
+                updateCaches(receipt);
             }
             catch (InterruptedException e) {
                 Logger.warn(
@@ -1392,6 +1358,62 @@ public final class Database implements DurableStore {
     }
 
     /**
+     * If necessary, update all the in-memory caches with data from the
+     * {@link Receipt receipt} in order to maintain read consistency.
+     * <p>
+     * <strong>NOTE:</strong> This method does not validate that the
+     * {@link Receipt} came from one of the {@link Database database's}
+     * {@link #segments}, so the caller must ensuring that the {@link Receipt}
+     * contains valid data.
+     * </p>
+     * 
+     * @param receipt the {@link Receipt} containing data that my need to be
+     *            incorporated into one or more of the internal caches
+     */
+    private void updateCaches(Receipt receipt) {
+        masterLock.writeLock().lock();
+        try {
+            Composite composite;
+
+            composite = receipt.table().getLocatorComposite();
+            TableRecord table = tableCache.getIfPresent(composite);
+            if(table != null) {
+                table.append(receipt.table().revision());
+            }
+
+            composite = receipt.table().getLocatorKeyComposite();
+            TableRecord tablePartial = tablePartialCache
+                    .getIfPresent(composite);
+            if(tablePartial != null) {
+                tablePartial.append(receipt.table().revision());
+            }
+
+            composite = receipt.index().getLocatorComposite();
+            IndexRecord index = indexCache.getIfPresent(composite);
+            if(index != null) {
+                index.append(receipt.index().revision());
+            }
+
+            if(ENABLE_SEARCH_CACHE) {
+                Text key = receipt.table().revision().getKey();
+                Cache<Composite, CorpusRecord> cache = corpusCaches.get(key);
+                if(cache != null) {
+                    for (CorpusArtifact artifact : receipt.corpus()) {
+                        composite = artifact.getLocatorKeyComposite();
+                        CorpusRecord corpus = cache.getIfPresent(composite);
+                        if(corpus != null) {
+                            corpus.append(artifact.revision());
+                        }
+                    }
+                }
+            }
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
+    }
+
+    /**
      * Configuration for the various caches used by the {@link Database}.
      * <p>
      * This class provides settings that control the maximum size and refresh
@@ -1524,21 +1546,21 @@ public final class Database implements DurableStore {
         }
 
         /**
-         * Return the maximum size for the index cache.
-         * 
-         * @return the index cache maximum size
-         */
-        int indexCacheMemoryLimit() {
-            return indexCacheMemoryLimit;
-        }
-
-        /**
          * Return the removal listener for cache entries.
          * 
          * @return the removal listener
          */
         Consumer<Record<?, ?, ?>> evictionListener() {
             return evictionListener;
+        }
+
+        /**
+         * Return the maximum size for the index cache.
+         * 
+         * @return the index cache maximum size
+         */
+        int indexCacheMemoryLimit() {
+            return indexCacheMemoryLimit;
         }
 
         /**
@@ -1589,32 +1611,6 @@ public final class Database implements DurableStore {
             }
 
             /**
-             * Set the maximum size for all caches (table, table partial, index,
-             * and corpus).
-             * 
-             * @param value the maximum size for all caches
-             * @return this builder
-             */
-            Builder memoryLimit(int value) {
-                cacheConfig.tableCacheMemoryLimit = value;
-                cacheConfig.tablePartialCacheMemoryLimit = value;
-                cacheConfig.indexCacheMemoryLimit = value;
-                cacheConfig.corpusCacheMemoryLimit = value;
-                return this;
-            }
-
-            /**
-             * Set the frequency in seconds at which cache sizes are refreshed.
-             * 
-             * @param value the cache size refresh frequency in seconds
-             * @return this builder
-             */
-            Builder memoryCheckFrequencyInSeconds(int value) {
-                cacheConfig.cacheMemoryCheckFrequencyInSeconds = value;
-                return this;
-            }
-
-            /**
              * Set the maximum size for the corpus cache.
              * 
              * @param value the maximum size for the corpus cache
@@ -1622,6 +1618,17 @@ public final class Database implements DurableStore {
              */
             Builder corpusCacheMemoryLimit(int value) {
                 cacheConfig.corpusCacheMemoryLimit = value;
+                return this;
+            }
+
+            /**
+             * Set the eviction listener for cache entries.
+             * 
+             * @param listener the removal listener to use
+             * @return this builder
+             */
+            Builder evictionListener(Consumer<Record<?, ?, ?>> listener) {
+                cacheConfig.evictionListener = listener;
                 return this;
             }
 
@@ -1637,13 +1644,28 @@ public final class Database implements DurableStore {
             }
 
             /**
-             * Set the eviction listener for cache entries.
+             * Set the frequency in seconds at which cache sizes are refreshed.
              * 
-             * @param listener the removal listener to use
+             * @param value the cache size refresh frequency in seconds
              * @return this builder
              */
-            Builder evictionListener(Consumer<Record<?, ?, ?>> listener) {
-                cacheConfig.evictionListener = listener;
+            Builder memoryCheckFrequencyInSeconds(int value) {
+                cacheConfig.cacheMemoryCheckFrequencyInSeconds = value;
+                return this;
+            }
+
+            /**
+             * Set the maximum size for all caches (table, table partial, index,
+             * and corpus).
+             * 
+             * @param value the maximum size for all caches
+             * @return this builder
+             */
+            Builder memoryLimit(int value) {
+                cacheConfig.tableCacheMemoryLimit = value;
+                cacheConfig.tablePartialCacheMemoryLimit = value;
+                cacheConfig.indexCacheMemoryLimit = value;
+                cacheConfig.corpusCacheMemoryLimit = value;
                 return this;
             }
 
