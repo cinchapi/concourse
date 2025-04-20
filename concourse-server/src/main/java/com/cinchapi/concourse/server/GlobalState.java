@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
@@ -37,10 +38,13 @@ import com.cinchapi.concourse.annotate.NonPreference;
 import com.cinchapi.concourse.config.ConcourseServerConfiguration;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
+import com.cinchapi.concourse.server.storage.indexing.BatchTransporter;
+import com.cinchapi.concourse.server.storage.indexing.StreamingTransporter;
 import com.cinchapi.concourse.util.Networking;
 import com.cinchapi.lib.config.read.Interpreters;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Contains configuration and state that must be accessible to various parts of
@@ -291,6 +295,28 @@ public final class GlobalState extends Constants {
     public static String INIT_ROOT_USERNAME = "admin";
 
     /**
+     * Determines whether to use batch transport instead of streaming transport.
+     * When enabled, data is moved from the Buffer to the Database in larger
+     * batches, which can improve overall throughput at the cost of potentially
+     * longer pauses during merges.
+     */
+    public static boolean ENABLE_BATCH_TRANSPORTER = false;
+
+    /**
+     * The type of Transporter to use when transporting data from the Buffer to
+     * the Database.
+     */
+    @NonPreference
+    public static Class<?> TRANSPORTER_CLASS = StreamingTransporter.class;
+
+    /**
+     * The number of threads to use for transport operations. More threads can
+     * improve transport throughput in some scenarios, but may increase resource
+     * contention.
+     */
+    public static int NUM_TRANSPORTER_THREADS = 1;
+
+    /**
      * Potentially use multiple threads to asynchronously read data from disk.
      * <p>
      * When enabled, reads will typically be faster when accessing data too
@@ -383,6 +409,18 @@ public final class GlobalState extends Constants {
                         .collect(Collectors.toList())
                         .toArray(Array.containing()));
 
+        // @formatter:off
+        Map<String, Class<?>> transporterClasses = ImmutableMap
+                .<String, Class<?>> builder()
+                .put("streaming", StreamingTransporter.class)
+                .put(StreamingTransporter.class.getName(), StreamingTransporter.class)
+                .put(StreamingTransporter.class.getSimpleName(), StreamingTransporter.class)
+                .put("batch", BatchTransporter.class)
+                .put(BatchTransporter.class.getName(), BatchTransporter.class)
+                .put(BatchTransporter.class.getSimpleName(), BatchTransporter.class)
+                .build();
+        // @formatter:on
+
         // =================== PREF READING BLOCK ====================
         ACCESS_CREDENTIALS_FILE = FileSystem
                 .expandPath(config.getOrDefault("access_credentials_file",
@@ -463,6 +501,22 @@ public final class GlobalState extends Constants {
 
         ENABLE_EFFICIENT_METADATA = config.getOrDefault(
                 "enable_efficient_metadata", ENABLE_EFFICIENT_METADATA);
+
+        Object transporter = config.get("transporter");
+        String transporterType;
+        if(transporter != null && transporter instanceof Map) {
+            transporterType = config.getOrDefault("transporter.type",
+                    transporter.toString());
+            NUM_TRANSPORTER_THREADS = config.getOrDefault(
+                    "transporter.num_threads", NUM_TRANSPORTER_THREADS);
+        }
+        else {
+            transporterType = transporter != null ? transporter.toString() : "";
+        }
+        TRANSPORTER_CLASS = transporterClasses.getOrDefault(transporterType,
+                TRANSPORTER_CLASS);
+        ENABLE_BATCH_TRANSPORTER = TRANSPORTER_CLASS == BatchTransporter.class;
+
         // =================== PREF READING BLOCK ====================
     }
 
