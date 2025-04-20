@@ -34,9 +34,12 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -68,6 +71,8 @@ import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
+import com.cinchapi.concourse.server.storage.indexing.Batch;
+import com.cinchapi.concourse.server.storage.indexing.BatchTransportable;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
@@ -101,7 +106,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Buffer extends Limbo {
+public final class Buffer extends Limbo implements BatchTransportable {
 
     /**
      * The average number of bytes used to store an arbitrary Write.
@@ -354,6 +359,22 @@ public final class Buffer extends Limbo {
     private int transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
 
     /**
+     * A counter that tracks the total number of batches that have been created
+     * for transport. This counter ensures that batches are processed in the
+     * correct chronological order, even when multiple transport threads are
+     * running concurrently.
+     */
+    private final AtomicInteger batchCount = new AtomicInteger(0);
+
+    /**
+     * A queue of batches that are ready for
+     * {@link com.cinchapi.concourse.server.storage.indexing.Transporter
+     * transport} to the database. Each batch contains writes from a page that
+     * has been filled and is ready for processing.
+     */
+    private BlockingQueue<Batch> batches = new LinkedBlockingQueue<Batch>();
+
+    /**
      * Construct a Buffer that is backed by the default location, which is
      * {@link GlobalState#BUFFER_DIRECTORY}.
      * 
@@ -594,6 +615,15 @@ public final class Buffer extends Limbo {
     }
 
     @Override
+    public void purge(Batch batch) {
+        // The merge of a transported Pages is guaranteed to follow the order
+        // that the Pages appeared in the Buffer (even if multiple threads are
+        // participating in the transport process). Therefore, we can always
+        // remove the first page of the Buffer when instructed to purge.
+        removePage();
+    }
+
+    @Override
     public Map<Long, List<String>> review(long record) {
         Iterator<Write> it = iterator(record, Time.NONE);
         try {
@@ -737,12 +767,23 @@ public final class Buffer extends Limbo {
                 }
             }
             pages.clear();
-            pages.addAll(pageSorter.values());
-            if(pages.isEmpty()) {
+            batchCount.set(0);
+
+            Iterator<Page> it = pageSorter.values().iterator();
+            if(!it.hasNext()) {
                 addPage(false);
             }
             else {
-                currentPage = pages.get(pages.size() - 1);
+                while (it.hasNext()) {
+                    Page page = it.next();
+                    pages.add(page);
+                    batchForTransport(page);
+                    if(!it.hasNext()) {
+                        // Set the most recently added Page as the currentPage
+                        // in case it has capacity for more Writes
+                        currentPage = page;
+                    }
+                }
             }
         }
     }
@@ -755,6 +796,7 @@ public final class Buffer extends Limbo {
                 transportable.notifyAll(); // notify to allow any waiting
                                            // threads to terminate
             }
+            batches.clear();
         }
         syncer.shutdown();
     }
@@ -776,6 +818,23 @@ public final class Buffer extends Limbo {
             pageSync.run();
             inventorySync.run();
         }
+    }
+
+    /**
+     * Retrieves the next batch of writes that is ready for transport to the
+     * database. This method blocks until a batch is available.
+     * <p>
+     * The Buffer creates batches when pages are filled, ensuring efficient
+     * transport of data in manageable chunks that minimize the impact on
+     * concurrent read operations.
+     * </p>
+     *
+     * @return the next batch to transport
+     * @throws InterruptedException if the thread is interrupted while waiting
+     */
+    @Override
+    public Batch take() throws InterruptedException {
+        return batches.take();
     }
 
     /**
@@ -858,69 +917,6 @@ public final class Buffer extends Limbo {
                 catch (InterruptedException e) {/* ignore */}
             }
         }
-    }
-
-    /**
-     * Add a new Page to the Buffer.
-     */
-    private void addPage() {
-        addPage(true);
-    }
-
-    /**
-     * Add a new Page to the Buffer and optionally perform a {@code sync}.
-     * 
-     * @param sync - a flag that determines whether the {@link #sync()} method
-     *            should be called to durably persist the current page to disk.
-     *            This should only be false when called from the
-     *            {@link #start()} method.
-     */
-    private void addPage(boolean sync) {
-        structure.lock();
-        try {
-            if(sync) {
-                sync();
-            }
-            currentPage = new Page(BUFFER_PAGE_SIZE);
-            pages.add(currentPage);
-            Logger.debug("Added page {} to Buffer", currentPage);
-        }
-        finally {
-            structure.unlock();
-        }
-    }
-
-    /**
-     * Determines the percentage within range [0, 1] of verifies that scan
-     * the buffer.
-     * 
-     * @return: decimal percentage of verifies initiated that scanned the
-     *          buffer.
-     */
-    @SuppressWarnings("unused")
-    private float getPercentVerifyScans() { // to be used for CON-236
-        return ((float) numVerifyScans.get()) / numVerifyRequests.get();
-    }
-
-    /**
-     * Remove the first page in the Buffer.
-     */
-    private void removePage() {
-        structure.lock();
-        try {
-            pages.remove(0).delete();
-        }
-        finally {
-            structure.unlock();
-        }
-    }
-
-    /**
-     * Scale back the number of items that are transported in a single cycle.
-     */
-    private void scaleBackTransportRate() {
-        transportRate = 1;
-        transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
     }
 
     /**
@@ -1031,6 +1027,103 @@ public final class Buffer extends Limbo {
     }
 
     /**
+     * Add a new Page to the Buffer.
+     */
+    private void addPage() {
+        addPage(true);
+    }
+
+    /**
+     * Add a new Page to the Buffer and optionally perform a {@code sync}.
+     * 
+     * @param sync - a flag that determines whether the {@link #sync()} method
+     *            should be called to durably persist the current page to disk.
+     *            This should only be false when called from the
+     *            {@link #start()} method.
+     */
+    private void addPage(boolean sync) {
+        structure.lock();
+        try {
+            if(sync) {
+                sync();
+            }
+            Page previousPage = currentPage;
+            currentPage = new Page(BUFFER_PAGE_SIZE);
+            pages.add(currentPage);
+            batchForTransport(previousPage);
+            Logger.debug("Added page {} to Buffer", currentPage);
+        }
+        finally {
+            structure.unlock();
+        }
+    }
+
+    /**
+     * Queue a page for batch transport processing.
+     * <p>
+     * When batch transport is enabled, this method adds the page to a queue
+     * where it will be processed by the {@link BatchTransporter}. Each page
+     * is assigned a sequential batch number to ensure pages are transported
+     * in chronological order, even when multiple transport threads are running
+     * concurrently.
+     * </p>
+     * <p>
+     * This method should only be called for pages that are not the current
+     * page (i.e., pages that are no longer accepting new writes).
+     * </p>
+     * 
+     * @param page the page to queue for batch transport
+     * @throws IllegalArgumentException if the current page is passed
+     */
+    private void batchForTransport(Page page) {
+        if(GlobalState.ENABLE_BATCH_TRANSPORTER) {
+            if(page != currentPage) {
+                Batch batch = new Batch(page.writes,
+                        batchCount.getAndIncrement());
+                batches.add(batch);
+                Logger.debug("Queuing page {} for transport", page);
+            }
+            else {
+                throw new IllegalArgumentException(
+                        "The current page cannot be transported");
+            }
+        }
+    }
+
+    /**
+     * Determines the percentage within range [0, 1] of verifies that scan
+     * the buffer.
+     * 
+     * @return: decimal percentage of verifies initiated that scanned the
+     *          buffer.
+     */
+    @SuppressWarnings("unused")
+    private float getPercentVerifyScans() { // to be used for CON-236
+        return ((float) numVerifyScans.get()) / numVerifyRequests.get();
+    }
+
+    /**
+     * Remove the first page in the Buffer.
+     */
+    private void removePage() {
+        structure.lock();
+        try {
+            pages.remove(0).delete();
+        }
+        finally {
+            structure.unlock();
+        }
+    }
+
+    /**
+     * Scale back the number of items that are transported in a single cycle.
+     */
+    private void scaleBackTransportRate() {
+        transportRate = 1;
+        transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
+    }
+
+    /**
      * A {@link SeekingIterator} for all the writes in the buffer.
      * 
      * @author Jeff Nelson
@@ -1048,6 +1141,14 @@ public final class Buffer extends Limbo {
         }
 
         @Override
+        protected void finalize() throws Throwable {
+            // TODO: Replace with Cleaner in Java 9+
+            // (https://docs.oracle.com/javase/9/docs/api/java/lang/ref/Cleaner.html)
+            super.finalize();
+            close();
+        }
+
+        @Override
         protected boolean isRelevantWrite(Write write) {
             return true;
         }
@@ -1055,14 +1156,6 @@ public final class Buffer extends Limbo {
         @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
             return true;
-        }
-
-        @Override
-        protected void finalize() throws Throwable {
-            // TODO: Replace with Cleaner in Java 9+
-            // (https://docs.oracle.com/javase/9/docs/api/java/lang/ref/Cleaner.html)
-            super.finalize();
-            close();
         }
 
     }
@@ -1567,6 +1660,39 @@ public final class Buffer extends Limbo {
         }
 
         /**
+         * Dump the contents of this page.
+         * 
+         * @return the dump string
+         */
+        protected String dump() {
+            long stamp = Locks.stampLockReadIfCondition(accessLock,
+                    this == currentPage);
+            try {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Dump for " + getClass().getSimpleName() + " "
+                        + filename);
+                sb.append("\n");
+                sb.append("------");
+                sb.append("\n");
+                for (Write write : writes) {
+                    if(write == null) {
+                        break;
+                    }
+                    else {
+                        sb.append(write);
+                        sb.append("\n");
+                    }
+                }
+                sb.append("\n");
+                return sb.toString();
+            }
+            finally {
+                Locks.stampUnlockReadIfCondition(accessLock, stamp,
+                        this == currentPage);
+            }
+        }
+
+        /**
          * Do the work to actually index and append {@code write} (while
          * optionally performing a {@code sync} WITHOUT grabbing any locks
          * (hence this method being UNSAFE) for unauthorized usage.
@@ -1653,39 +1779,6 @@ public final class Buffer extends Limbo {
          */
         private int slotify(int... hashCodes) {
             return Math.abs(Integers.avg(hashCodes) % sizeUpperBound);
-        }
-
-        /**
-         * Dump the contents of this page.
-         * 
-         * @return the dump string
-         */
-        protected String dump() {
-            long stamp = Locks.stampLockReadIfCondition(accessLock,
-                    this == currentPage);
-            try {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Dump for " + getClass().getSimpleName() + " "
-                        + filename);
-                sb.append("\n");
-                sb.append("------");
-                sb.append("\n");
-                for (Write write : writes) {
-                    if(write == null) {
-                        break;
-                    }
-                    else {
-                        sb.append(write);
-                        sb.append("\n");
-                    }
-                }
-                sb.append("\n");
-                return sb.toString();
-            }
-            finally {
-                Locks.stampUnlockReadIfCondition(accessLock, stamp,
-                        this == currentPage);
-            }
         }
     }
 
@@ -1840,6 +1933,35 @@ public final class Buffer extends Limbo {
         }
 
         /**
+         * Each subclass should call this method after constructing the initial
+         * state to turn to the first page and get the first write.
+         */
+        protected void init() {
+            if(useable) {
+                flip(true);
+                this.next = advance();
+            }
+        }
+
+        /**
+         * Return {@code true} if {@code write} is relevant to what this
+         * iterator is seeking.
+         * 
+         * @param write
+         * @return {@code true} if the write is relevant
+         */
+        protected abstract boolean isRelevantWrite(Write write);
+
+        /**
+         * Call the appropriate function to determine if the {@code page} might
+         * contain the kinds of writes that this iterator is seeking.
+         * 
+         * @param page
+         * @return {@code true} if the page can possibly contain relevant data
+         */
+        protected abstract boolean pageMightContainRelevantWrites(Page page);
+
+        /**
          * Advance to the next write that this iterator should return, if it
          * exists.
          * 
@@ -1929,35 +2051,6 @@ public final class Buffer extends Limbo {
                 isHoldingLocks = false;
             }
         }
-
-        /**
-         * Each subclass should call this method after constructing the initial
-         * state to turn to the first page and get the first write.
-         */
-        protected void init() {
-            if(useable) {
-                flip(true);
-                this.next = advance();
-            }
-        }
-
-        /**
-         * Return {@code true} if {@code write} is relevant to what this
-         * iterator is seeking.
-         * 
-         * @param write
-         * @return {@code true} if the write is relevant
-         */
-        protected abstract boolean isRelevantWrite(Write write);
-
-        /**
-         * Call the appropriate function to determine if the {@code page} might
-         * contain the kinds of writes that this iterator is seeking.
-         * 
-         * @param page
-         * @return {@code true} if the page can possibly contain relevant data
-         */
-        protected abstract boolean pageMightContainRelevantWrites(Page page);
 
     }
 
