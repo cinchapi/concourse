@@ -59,9 +59,9 @@ public abstract class AbstractTransporterTest {
 
         @Override
         protected void starting(Description desc) {
-            priorEnableBatchTransporter = GlobalState.ENABLE_BATCH_TRANSPORTER;
+            priorEnableBatchTransporter = GlobalState.ENABLE_BATCH_TRANSPORTS;
             priorNumTransporterThreads = GlobalState.NUM_TRANSPORTER_THREADS;
-            GlobalState.ENABLE_BATCH_TRANSPORTER = enableBatchTransporter();
+            GlobalState.ENABLE_BATCH_TRANSPORTS = enableBatchTransporter();
             GlobalState.NUM_TRANSPORTER_THREADS = numTransporterThreads();
             bufferDir = TestData.getTemporaryTestDir();
             dbDir = TestData.getTemporaryTestDir();
@@ -73,7 +73,7 @@ public abstract class AbstractTransporterTest {
         protected void finished(Description description) {
             FileSystem.deleteDirectory(bufferDir);
             FileSystem.deleteDirectory(dbDir);
-            GlobalState.ENABLE_BATCH_TRANSPORTER = priorEnableBatchTransporter;
+            GlobalState.ENABLE_BATCH_TRANSPORTS = priorEnableBatchTransporter;
             GlobalState.NUM_TRANSPORTER_THREADS = priorNumTransporterThreads;
         }
 
@@ -388,7 +388,7 @@ public abstract class AbstractTransporterTest {
 
     /**
      * Return the configuration value to use for
-     * {@link GlobalState#ENABLE_BATCH_TRANSPORTER}
+     * {@link GlobalState#ENABLE_BATCH_TRANSPORTS}
      * to use in the tests.
      * </p>
      * 

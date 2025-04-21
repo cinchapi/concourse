@@ -1078,7 +1078,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
      * @throws IllegalArgumentException if the current page is passed
      */
     private void batchForTransport(Page page) {
-        if(GlobalState.ENABLE_BATCH_TRANSPORTER) {
+        if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
             if(page != currentPage) {
                 Batch batch = new Batch(page.writes,
                         batchCount.getAndIncrement());
@@ -1124,7 +1124,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
         if(transportRate > 1) {
             transportRate = 1;
 
-            if(GlobalState.ENABLE_BATCH_TRANSPORTER) {
+            if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
                 // By convention, StreamingTransporter is the only one that
                 // listens for scale back events, so don't waste cycles sending
                 // notifications if it isn't necessary.

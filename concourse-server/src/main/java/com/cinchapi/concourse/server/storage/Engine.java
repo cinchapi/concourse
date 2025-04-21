@@ -109,7 +109,7 @@ public final class Engine extends BufferedStore implements
      * @return the value for {@link #transportLock}
      */
     private static ReentrantReadWriteLock createTransportLock() {
-        if(GlobalState.ENABLE_BATCH_TRANSPORTER) {
+        if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
             return new ReentrantReadWriteLock();
         }
         else {
@@ -866,7 +866,7 @@ public final class Engine extends BufferedStore implements
         Database database = (Database) durable;
         Lock lock = transportLock.writeLock();
         Transporter transporter;
-        if(GlobalState.ENABLE_BATCH_TRANSPORTER) {
+        if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
             AwaitableExecutorService segmentWriter = Reflection.get("writer",
                     database); /* (authorized) */
             Preconditions.checkState(segmentWriter != null);

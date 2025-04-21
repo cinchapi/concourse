@@ -295,12 +295,12 @@ public final class GlobalState extends Constants {
     public static String INIT_ROOT_USERNAME = "admin";
 
     /**
-     * Determines whether to use batch transport instead of streaming transport.
-     * When enabled, data is moved from the Buffer to the Database in larger
-     * batches, which can improve overall throughput at the cost of potentially
-     * longer pauses during merges.
+     * Determines whether to use batch transports instead of streaming
+     * transports. When enabled, data is moved from the Buffer to the Database
+     * in larger batches, which can improve overall throughput at the cost of
+     * potentially longer pauses during merges.
      */
-    public static boolean ENABLE_BATCH_TRANSPORTER = false;
+    public static boolean ENABLE_BATCH_TRANSPORTS = false;
 
     /**
      * The type of Transporter to use when transporting data from the Buffer to
@@ -515,7 +515,7 @@ public final class GlobalState extends Constants {
         }
         TRANSPORTER_CLASS = transporterClasses.getOrDefault(transporterType,
                 TRANSPORTER_CLASS);
-        ENABLE_BATCH_TRANSPORTER = TRANSPORTER_CLASS == BatchTransporter.class;
+        ENABLE_BATCH_TRANSPORTS = TRANSPORTER_CLASS == BatchTransporter.class;
 
         // =================== PREF READING BLOCK ====================
     }
