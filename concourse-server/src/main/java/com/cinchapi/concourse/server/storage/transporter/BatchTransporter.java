@@ -122,8 +122,17 @@ public class BatchTransporter extends Transporter {
         Segment segment = Segment.create(batchSize);
         List<Receipt> receipts = new ArrayList<>(batchSize);
         for (Write write : batch.writes()) {
-            Receipt receipt = segment.acquire(write, segmentWriter);
-            receipts.add(receipt);
+            if(write != null) {
+                Receipt receipt = segment.acquire(write, segmentWriter);
+                receipts.add(receipt);
+            }
+            else {
+                // The Buffer pre-populates each Page with a Write[] full of
+                // nulls that are only replaced when an actual Write is added.
+                // So, a null value here indicates that all the writes in the
+                // Batch have been fully transported.
+                break;
+            }
         }
 
         // There may be multiple transport threads, but each Segment must be
