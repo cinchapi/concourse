@@ -1050,7 +1050,9 @@ public final class Buffer extends Limbo implements BatchTransportable {
             Page previousPage = currentPage;
             currentPage = new Page(BUFFER_PAGE_SIZE);
             pages.add(currentPage);
-            batchForTransport(previousPage);
+            if(previousPage != null) {
+                batchForTransport(previousPage);
+            }
             Logger.debug("Added page {} to Buffer", currentPage);
         }
         finally {
