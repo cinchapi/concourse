@@ -382,8 +382,8 @@ public final class Database implements DurableStore {
     private transient String tag = "";
 
     /**
-     * An {@link ExecutorService} that is passed to {@link #seg0} to handle
-     * writing tasks asynchronously in the background.
+     * An {@link ExecutorService} that is used to for asynchronous writing tasks
+     * in mutable {@link Segment segments}.
      */
     private transient AwaitableExecutorService writer;
 
