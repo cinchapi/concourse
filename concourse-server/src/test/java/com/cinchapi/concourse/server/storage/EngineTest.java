@@ -32,7 +32,6 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
@@ -97,22 +96,6 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertTrue(true); // if we reach here, this means that the Engine
                                  // was able to break out of the transport
                                  // exception
-    }
-
-    @Test
-    public void testNoBufferTransportBlockingIfWritesAreWithinThreshold() {
-        String loc = TestData.DATA_DIR + File.separator + Time.now();
-        final Engine engine = new Engine(loc + File.separator + "buffer",
-                loc + File.separator + "db");
-        Variables.register("now", Time.now());
-        engine.start();
-        engine.add(TestData.getSimpleString(), TestData.getTObject(),
-                TestData.getLong());
-        engine.add(TestData.getSimpleString(), TestData.getTObject(),
-                TestData.getLong());
-        engine.stop();
-        Assert.assertFalse(engine.bufferTransportThreadHasEverPaused.get());
-        FileSystem.deleteDirectory(loc);
     }
 
     @Test
@@ -236,24 +219,6 @@ public class EngineTest extends BufferedStoreTest {
     }
 
     @Test
-    public void testBufferTransportBlockingIfWritesAreNotWithinThreshold() {
-        String loc = TestData.DATA_DIR + File.separator + Time.now();
-        final Engine engine = new Engine(loc + File.separator + "buffer",
-                loc + File.separator + "db");
-        engine.start();
-        engine.add(TestData.getSimpleString(), TestData.getTObject(),
-                TestData.getLong());
-        Threads.sleep(
-                Engine.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS
-                        + 30);
-        engine.add(TestData.getSimpleString(), TestData.getTObject(),
-                TestData.getLong());
-        Assert.assertTrue(engine.bufferTransportThreadHasEverPaused.get());
-        engine.stop();
-        FileSystem.deleteDirectory(loc);
-    }
-
-    @Test
     public void testBrowseKeyIsSortedBetweenDatabaseAndBuffer() {
         Engine engine = (Engine) store;
         List<String> colleges = Lists.newArrayList("Boston College",
@@ -287,58 +252,6 @@ public class EngineTest extends BufferedStoreTest {
                                                        // presently has no data
         Assert.assertEquals(engine.getAllRecords(), Sets.<Long> newHashSet(
                 new Long(1), new Long(2), new Long(3), new Long(4)));
-    }
-
-    @Test
-    public void testBufferTransportThreadWillRestartIfHung() {
-        int frequency = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;
-        int threshold = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS;
-        final AtomicBoolean done = new AtomicBoolean(false);
-        try {
-            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = 100;
-            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 500;
-            int lag = 5000;
-            String loc = TestData.DATA_DIR + File.separator + Time.now();
-            final Engine engine = new Engine(loc + File.separator + "buffer",
-                    loc + File.separator + "db");
-            engine.bufferTransportThreadSleepInMs = Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
-                    + lag;
-            engine.start();
-            Thread thread = new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    while (!done.get()) {
-                        engine.add(TestData.getSimpleString(),
-                                TestData.getTObject(), TestData.getLong());
-                    }
-
-                }
-
-            });
-            thread.start();
-            Threads.sleep((int) (1.2
-                    * Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS)
-                    + Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
-            while (!engine.bufferTransportThreadHasEverAppearedHung.get()) {
-                System.out.println("Waiting to detect hung thread...");
-                continue; // spin until the thread hang is detected
-            }
-            Assert.assertTrue(
-                    engine.bufferTransportThreadHasEverAppearedHung.get());
-            Threads.sleep(
-                    (int) (Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
-                            * 1.2));
-            Assert.assertTrue(
-                    engine.bufferTransportThreadHasEverBeenRestarted.get());
-            engine.stop();
-            FileSystem.deleteDirectory(loc);
-        }
-        finally {
-            done.set(true);
-            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = frequency;
-            Engine.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = threshold;
-        }
     }
 
     @Test
@@ -578,7 +491,6 @@ public class EngineTest extends BufferedStoreTest {
         Engine engine = (Engine) store;
         Buffer buffer = (Buffer) engine.limbo;
         Database db = (Database) engine.durable;
-        engine.bufferTransportThreadSleepInMs = Integer.MAX_VALUE;
         AtomicOperation atomic = engine.startAtomicOperation();
         atomic.add("name", Convert.javaToThrift("jeff"), 1);
         atomic.remove("name", Convert.javaToThrift("jeff"), 1);
@@ -588,6 +500,9 @@ public class EngineTest extends BufferedStoreTest {
         while (!Reflection.<Boolean> call(buffer, "canTransport")) {
             engine.add("foo", Convert.javaToThrift("bar"), Time.now());
         }
+
+        // The buffer should transport at least 1 write, which would be the
+        // first write from the atomic operation
         buffer.transport(db);
         db.sync();
         Iterator<Write> it = db.iterator();
@@ -605,10 +520,13 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertEquals(ImmutableSet.of(), store.find(version, "name",
                 Operator.EQUALS, Convert.javaToThrift("jeff")));
         engine.stop();
-        engine.bufferTransportThreadSleepInMs = Integer.MAX_VALUE;
         engine.start();
+        engine.transporter.stop();
         it = db.iterator();
         while (it.hasNext()) {
+            // There should no writes here because the datbase reconciled and
+            // say that that the write that was previously transported, is still
+            // in the buffer
             Write write = it.next();
             System.out.println(write);
         }
@@ -620,6 +538,8 @@ public class EngineTest extends BufferedStoreTest {
                 Operator.EQUALS, Convert.javaToThrift("jeff")));
         Assert.assertEquals(ImmutableSet.of(), store.find(version, "name",
                 Operator.EQUALS, Convert.javaToThrift("jeff")));
+        engine.transporter.start(); // so it can be stopped during the test's
+                                    // shutdown rule
     }
 
     @Test
