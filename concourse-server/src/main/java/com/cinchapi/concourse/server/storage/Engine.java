@@ -57,6 +57,7 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 
 /**
  * The {@code Engine} schedules concurrent CRUD operations, manages ACID
@@ -146,7 +147,7 @@ public final class Engine extends BufferedStore implements
      * from the {@link BufferedStore#limbo buffer} to the
      * {@link BufferedStore#durable database}.
      */
-    protected final Transporter transporter; // visible for Testing
+    protected Transporter transporter; // visible for Testing
 
     /**
      * The environment that is associated with this {@link Engine}.
@@ -228,7 +229,6 @@ public final class Engine extends BufferedStore implements
                 + "txn"; /* (authorized) */
         this.inventory = Inventory.create(buffer.getBackingStore()
                 + File.separator + "meta" + File.separator + "inventory");
-        this.transporter = buildTransporter();
         buffer.setInventory(inventory);
         buffer.setThreadNamePrefix(environment + "-buffer");
         buffer.setEnvironment(environment);
@@ -732,6 +732,7 @@ public final class Engine extends BufferedStore implements
             limbo.start();
             durable.reconcile(limbo.hashes());
             doTransactionRecovery();
+            transporter = buildTransporter();
             transporter.start();
         }
     }
@@ -755,6 +756,7 @@ public final class Engine extends BufferedStore implements
             durable.stop();
             broker.shutdown();
             observers.clear();
+            transporter = null;
         }
     }
 
@@ -867,6 +869,7 @@ public final class Engine extends BufferedStore implements
         if(GlobalState.ENABLE_BATCH_TRANSPORTER) {
             AwaitableExecutorService segmentWriter = Reflection.get("writer",
                     database); /* (authorized) */
+            Preconditions.checkState(segmentWriter != null);
             // @formatter:off
             transporter = BatchTransporter.from(buffer).to(database)
                     .withLock(lock)
