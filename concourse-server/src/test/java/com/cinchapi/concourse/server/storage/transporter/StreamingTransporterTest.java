@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.storage.transporter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -34,7 +35,8 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
 
     @Test
     public void testNoBufferTransportBlockingIfWritesAreWithinThreshold() {
-        StreamingTransporter transporter = Reflection.get("transporter", engine);
+        StreamingTransporter transporter = Reflection.get("transporter",
+                engine);
         Variables.register("now", Time.now());
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
@@ -47,7 +49,8 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
 
     @Test
     public void testBufferTransportBlockingIfWritesAreNotWithinThreshold() {
-        StreamingTransporter transporter = Reflection.get("transporter", engine);
+        StreamingTransporter transporter = Reflection.get("transporter",
+                engine);
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
         Threads.sleep(
@@ -57,7 +60,7 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
                 TestData.getLong());
         Assert.assertTrue(transporter.bufferTransportThreadHasEverPaused.get());
     }
-    
+
     @Test
     public void testBufferTransportThreadWillRestartIfHung() {
         int frequency = StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;
@@ -69,7 +72,8 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
             StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 500;
             int lag = 5000;
             engine.start();
-            StreamingTransporter transporter = Reflection.get("transporter", engine);
+            StreamingTransporter transporter = Reflection.get("transporter",
+                    engine);
             transporter.bufferTransportThreadSleepInMs = StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
                     + lag;
             Thread thread = new Thread(new Runnable() {
@@ -88,7 +92,8 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
             Threads.sleep((int) (1.2
                     * StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS)
                     + StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
-            while (!transporter.bufferTransportThreadHasEverAppearedHung.get()) {
+            while (!transporter.bufferTransportThreadHasEverAppearedHung
+                    .get()) {
                 System.out.println("Waiting to detect hung thread...");
                 continue; // spin until the thread hang is detected
             }
@@ -98,7 +103,8 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
                     (int) (StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
                             * 1.2));
             Assert.assertTrue(
-                    transporter.bufferTransportThreadHasEverBeenRestarted.get());
+                    transporter.bufferTransportThreadHasEverBeenRestarted
+                            .get());
         }
         finally {
             done.set(true);

@@ -27,5 +27,4 @@ public class BatchTransporterTest extends AbstractTransporterTest {
         return true;
     }
 
-
 }

@@ -15,17 +15,6 @@
  */
 package com.cinchapi.concourse.server.storage.transporter;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-
-import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.storage.Engine;
-import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.util.TestData;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,17 +22,28 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.Assert;
 
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
+
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Threads;
+import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
+import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Convert;
+import com.cinchapi.concourse.util.TestData;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
