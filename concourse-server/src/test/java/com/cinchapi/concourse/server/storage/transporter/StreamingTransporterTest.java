@@ -36,7 +36,6 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
     public void testNoBufferTransportBlockingIfWritesAreWithinThreshold() {
         StreamingTransporter transporter = Reflection.get("transporter", engine);
         Variables.register("now", Time.now());
-        engine.start();
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
@@ -61,7 +60,6 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
     
     @Test
     public void testBufferTransportThreadWillRestartIfHung() {
-        StreamingTransporter transporter = Reflection.get("transporter", engine);
         int frequency = StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;
         int threshold = StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS;
         final AtomicBoolean done = new AtomicBoolean(false);
@@ -70,9 +68,10 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
             StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS = 100;
             StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS = 500;
             int lag = 5000;
+            engine.start();
+            StreamingTransporter transporter = Reflection.get("transporter", engine);
             transporter.bufferTransportThreadSleepInMs = StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS
                     + lag;
-            engine.start();
             Thread thread = new Thread(new Runnable() {
 
                 @Override
@@ -90,7 +89,7 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
                     * StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS)
                     + StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
             while (!transporter.bufferTransportThreadHasEverAppearedHung.get()) {
-//                System.out.println("Waiting to detect hung thread...");
+                System.out.println("Waiting to detect hung thread...");
                 continue; // spin until the thread hang is detected
             }
             Assert.assertTrue(
