@@ -16,18 +16,11 @@
 package com.cinchapi.concourse.server.storage.transporter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.reflect.Reflection;
-import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import com.cinchapi.concourse.server.concurrent.Threads;
-import com.cinchapi.concourse.server.storage.Engine;
-import com.cinchapi.concourse.server.storage.db.Database;
-import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.TestData;
@@ -39,18 +32,9 @@ import com.cinchapi.concourse.util.TestData;
  */
 public class StreamingTransporterTest extends AbstractTransporterTest {
 
-    @Override
-    protected Transporter createTransporter(Engine engine, Lock lock) {
-        Buffer buffer = Reflection.get("limbo", engine);
-        Database database = Reflection.get("durable", engine);
-        String environment = Reflection.get("environment", engine);
-        return new StreamingTransporter(buffer, database, environment,
-                lock);
-    }
-
     @Test
     public void testNoBufferTransportBlockingIfWritesAreWithinThreshold() {
-        StreamingTransporter transporter = (StreamingTransporter) this.transporter;
+        StreamingTransporter transporter = Reflection.get("transporter", engine);
         Variables.register("now", Time.now());
         engine.start();
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
@@ -64,7 +48,7 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
 
     @Test
     public void testBufferTransportBlockingIfWritesAreNotWithinThreshold() {
-        StreamingTransporter transporter = (StreamingTransporter) this.transporter;
+        StreamingTransporter transporter = Reflection.get("transporter", engine);
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
         Threads.sleep(
@@ -77,7 +61,7 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
     
     @Test
     public void testBufferTransportThreadWillRestartIfHung() {
-        StreamingTransporter transporter = (StreamingTransporter) this.transporter;
+        StreamingTransporter transporter = Reflection.get("transporter", engine);
         int frequency = StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS;
         int threshold = StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS;
         final AtomicBoolean done = new AtomicBoolean(false);
@@ -106,7 +90,7 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
                     * StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS)
                     + StreamingTransporter.BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
             while (!transporter.bufferTransportThreadHasEverAppearedHung.get()) {
-                System.out.println("Waiting to detect hung thread...");
+//                System.out.println("Waiting to detect hung thread...");
                 continue; // spin until the thread hang is detected
             }
             Assert.assertTrue(
@@ -125,8 +109,8 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
     }
 
     @Override
-    protected ReentrantReadWriteLock createTransportLock() {
-        return PriorityReadWriteLock.prioritizeReads();
+    protected boolean enableBatchTransporter() {
+        return false;
     }
 
 }

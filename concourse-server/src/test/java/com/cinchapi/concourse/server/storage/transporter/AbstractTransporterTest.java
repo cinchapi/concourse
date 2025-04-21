@@ -15,9 +15,6 @@
  */
 package com.cinchapi.concourse.server.storage.transporter;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -26,9 +23,7 @@ import org.junit.runner.Description;
 
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
-import com.cinchapi.concourse.server.storage.AbstractStoreTest;
 import com.cinchapi.concourse.server.storage.Engine;
-import com.cinchapi.concourse.server.storage.Store;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.util.TestData;
 import java.util.List;
@@ -39,6 +34,8 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
+
+import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
@@ -55,27 +52,38 @@ import com.google.common.collect.Sets;
  *
  * @author Jeff Nelson
  */
-public abstract class AbstractTransporterTest extends AbstractStoreTest {
+public abstract class AbstractTransporterTest {
 
     @Rule
-    public TestRule watcher1 = new TestWatcher() {
+    public TestRule watcher = new TestWatcher() {
 
         @Override
         protected void starting(Description desc) {
-            engine.stop();
-            ReentrantReadWriteLock lock = createTransportLock();
-            Reflection.set("transportLock", lock, engine); /* (authorized) */
-            transporter = createTransporter(engine, lock.writeLock());
-            Reflection.set("transporter", transporter,
-                    engine); /* (authorized) */
+            priorEnableBatchTransporter = GlobalState.ENABLE_BATCH_TRANSPORTER;
+            priorNumTransporterThreads = GlobalState.NUM_TRANSPORTER_THREADS;
+            GlobalState.ENABLE_BATCH_TRANSPORTER = enableBatchTransporter();
+            GlobalState.NUM_TRANSPORTER_THREADS = numTransporterThreads();
+            bufferDir = TestData.getTemporaryTestDir();
+            dbDir = TestData.getTemporaryTestDir();
+            engine = new Engine(bufferDir, dbDir);
             engine.start();
         }
+
+        @Override
+        protected void finished(Description description) {
+            FileSystem.deleteDirectory(bufferDir);
+            FileSystem.deleteDirectory(dbDir);
+            GlobalState.ENABLE_BATCH_TRANSPORTER = priorEnableBatchTransporter;
+            GlobalState.NUM_TRANSPORTER_THREADS = priorNumTransporterThreads;
+        }
+
     };
 
     protected Engine engine;
-    protected Transporter transporter;
     private String bufferDir;
     private String dbDir;
+    private boolean priorEnableBatchTransporter;
+    private int priorNumTransporterThreads;
 
     /**
      * Test that concurrent reads and writes maintain data consistency during
@@ -378,50 +386,25 @@ public abstract class AbstractTransporterTest extends AbstractStoreTest {
                 segments.size() > 1);
     }
 
-    @Override
-    protected void add(String key, TObject value, long record) {
-        engine.add(key, value, record);
-    }
-
-    @Override
-    protected void cleanup(Store store) {
-        FileSystem.deleteDirectory(bufferDir);
-        FileSystem.deleteDirectory(dbDir);
-    }
-
     /**
-     * Return the {@link Transporter} to use in the tests.
-     * <p>
-     * Use the {@link Engine engine} to get access to the buffer, database and
-     * other components, etc. You must use the provided {@code lock} instead of
-     * one that is already instantiated on the {@link Engine engine}
+     * Return the configuration value to use for
+     * {@link GlobalState#ENABLE_BATCH_TRANSPORTER}
+     * to use in the tests.
      * </p>
      * 
      * @param engine
      * @param lock
      * @return the transporter.
      */
-    protected abstract Transporter createTransporter(Engine engine, Lock lock);
+    protected abstract boolean enableBatchTransporter();
 
     /**
-     * Return the correct lock type of to use for the {@link Transporter} being
-     * tested.
+     * Return the number of transpoter threads to use in the test.
      * 
-     * @return the lock
+     * @return the number of transporter threads
      */
-    protected abstract ReentrantReadWriteLock createTransportLock();
-
-    @Override
-    protected Store getStore() {
-        bufferDir = TestData.getTemporaryTestDir();
-        dbDir = TestData.getTemporaryTestDir();
-        engine = new Engine(bufferDir, dbDir);
-        return engine;
-    }
-
-    @Override
-    protected void remove(String key, TObject value, long record) {
-        engine.remove(key, value, record);
+    protected int numTransporterThreads() {
+        return 1;
     }
 
     /**
@@ -571,7 +554,6 @@ public abstract class AbstractTransporterTest extends AbstractStoreTest {
         List<Segment> segments = Reflection.get("segments", database);
         while (segments.size() <= 1) {
             Threads.sleep(10);
-            segments = Reflection.get("segments", database);
         }
 
         // Calculate and log transport time
