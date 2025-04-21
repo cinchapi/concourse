@@ -113,6 +113,21 @@ public class StreamingTransporter extends Transporter {
                                                                                                  // testing
 
     /**
+     * The maximum number of milliseconds to sleep between transport cycles.
+     */
+    private static final int MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 100;
+
+    /**
+     * The minimum number of milliseconds to sleep between transport cycles.
+     */
+    private static final int MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 5;
+
+    /**
+     * The number of milliseconds to sleep between transport cycles.
+     */
+    private int transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
+
+    /**
      * The source buffer from which writes are transported.
      */
     private final Buffer buffer;
@@ -172,7 +187,7 @@ public class StreamingTransporter extends Transporter {
     /**
      * A {@link Timer} that is used to schedule some regular tasks.
      */
-    private Timer scheduler;
+    private Timer hungTaskDetector;
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
@@ -180,7 +195,7 @@ public class StreamingTransporter extends Transporter {
      */
     protected final AtomicBoolean bufferTransportThreadHasEverAppearedHung = new AtomicBoolean(
             false); // visible for testing
-    
+
     /**
      * Constructs a new {@link StreamingTransporter} that streams writes from
      * the specified buffer to the database.
@@ -190,28 +205,24 @@ public class StreamingTransporter extends Transporter {
      * @param environment the environment name for thread identification
      * @param lock the lock used to coordinate access during critical sections
      */
-    public StreamingTransporter(Buffer buffer, Database database, String environment,
-            Lock lock) {
+    public StreamingTransporter(Buffer buffer, Database database,
+            String environment, Lock lock) {
         super(threadNameFormat(environment), uncaughtExceptionHandler());
         this.buffer = buffer;
         this.database = database;
         this.lock = lock;
+        buffer.onTransportRateScaleBack(
+                () -> transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS);
     }
-    
+
     @Override
     public void start() {
-        scheduler = new Timer(true);
-        scheduler.scheduleAtFixedRate(new TimerTask() {
+        hungTaskDetector = new Timer(true);
+        hungTaskDetector.scheduleAtFixedRate(new TimerTask() {
 
             @Override
             public void run() {
-                if(!bufferTransportThreadIsDoingWork.get()
-                        && !bufferTransportThreadIsPaused.get()
-                        && bufferTransportThreadLastWakeUp.get() != 0
-                        && TimeUnit.MILLISECONDS.convert(
-                                Time.now() - bufferTransportThreadLastWakeUp
-                                        .get(),
-                                TimeUnit.MICROSECONDS) > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
+                if(transportTaskAppearsHung()) {
                     bufferTransportThreadHasEverAppearedHung.set(true);
                     restart();
                 }
@@ -221,18 +232,15 @@ public class StreamingTransporter extends Transporter {
         }, BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS,
                 BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
         super.start();
-        
-    }
 
+    }
 
     @Override
     public void stop() {
         super.stop();
-        scheduler.cancel();
-        scheduler = null;
+        hungTaskDetector.cancel();
+        hungTaskDetector = null;
     }
-    
-    
 
     /**
      * Processes a single transport cycle, moving data from the buffer to
@@ -273,7 +281,7 @@ public class StreamingTransporter extends Transporter {
             // time to avoid thrashing
             int sleep = bufferTransportThreadSleepInMs > 0
                     ? bufferTransportThreadSleepInMs
-                    : buffer.getDesiredTransportSleepTimeInMs();
+                    : transportThreadSleepTimeInMs;
             Thread.sleep(sleep);
             bufferTransportThreadLastWakeUp.set(Time.now());
         }
@@ -302,7 +310,12 @@ public class StreamingTransporter extends Transporter {
             try {
                 bufferTransportThreadIsPaused.compareAndSet(true, false);
                 bufferTransportThreadIsDoingWork.set(true);
-                buffer.transport(database);
+                if(buffer.tryTransport(database)) {
+                    --transportThreadSleepTimeInMs;
+                    if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
+                        transportThreadSleepTimeInMs = MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
+                    }
+                }
                 bufferTransportThreadLastWakeUp.set(Time.now());
                 bufferTransportThreadIsDoingWork.set(false);
             }
@@ -322,5 +335,25 @@ public class StreamingTransporter extends Transporter {
         return TimeUnit.MILLISECONDS.convert(
                 Time.now() - buffer.getTimeOfLastTransport(),
                 TimeUnit.MICROSECONDS);
+    }
+
+    /**
+     * Return {@code true} if it appears that the {@link #transport()} task
+     * appears hung.
+     * 
+     * @return {@code true} if the task appears hung
+     */
+    private final boolean transportTaskAppearsHung() {
+        if(!bufferTransportThreadIsDoingWork.get()) {
+            if(!bufferTransportThreadIsPaused.get()) {
+                if(bufferTransportThreadLastWakeUp.get() != 0) {
+                    long elapsedMs = TimeUnit.MILLISECONDS.convert(
+                            Time.now() - bufferTransportThreadLastWakeUp.get(),
+                            TimeUnit.MICROSECONDS);
+                    return elapsedMs > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS;
+                }
+            }
+        }
+        return false;
     }
 }

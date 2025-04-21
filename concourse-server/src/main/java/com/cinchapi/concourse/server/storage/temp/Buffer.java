@@ -37,6 +37,7 @@ import java.util.SortedMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -132,16 +133,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
      * Don't let the transport rate exceed this value.
      */
     private static int MAX_TRANSPORT_RATE = 8192;
-
-    /**
-     * The maximum number of milliseconds to sleep between transport cycles.
-     */
-    private static final int MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 100;
-
-    /**
-     * The minimum number of milliseconds to sleep between transport cycles.
-     */
-    private static final int MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 5;
 
     /**
      * The number of slots to put in each Page's bloom filter. We want this
@@ -340,23 +331,21 @@ public final class Buffer extends Limbo implements BatchTransportable {
     private final Object transportable = new Object();
 
     /**
-     * The number of items to transport to the Database per attempt. There is a
-     * tension between transporting and reading data (e.g. reads cannot happen
-     * while a transport occurs and vice versa). Transports are most efficient
-     * when they can batch up the amount of work per cycle, but that would be
-     * reads are blocked longer. So this variable indicates how many items
-     * should be transported in a single cycle. Each time a transport happens,
-     * this value will increase, but it will be decreased whenever a read
-     * occurs. This allows us to be more aggressive with transports when there
-     * are no reads happening, and also allows us to scale back transports when
-     * reads do occur.
+     * The number of items to {@link StreamingTransporter stream} to the
+     * Database per {@link #transport() transport}.
+     * <p>
+     * There is a tension between transporting and reading data (e.g. reads
+     * cannot happen while a transport is merging data and vice versa).
+     * Transports are most efficient when they can batch up the amount of work
+     * per cycle, but that would be reads are blocked longer. So this variable
+     * indicates how many items should be transported in a single cycle. Each
+     * time a transport happens, this value will increase, but it will be
+     * decreased whenever a read occurs. This allows us to be more aggressive
+     * with transports when there are no reads happening, and also allows us to
+     * scale back transports when reads do occur.
+     * </p>
      */
     private int transportRate = 1;
-
-    /**
-     * The number of milliseconds to sleep between transport cycles.
-     */
-    private int transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
 
     /**
      * A counter that tracks the total number of batches that have been created
@@ -373,6 +362,13 @@ public final class Buffer extends Limbo implements BatchTransportable {
      * has been filled and is ready for processing.
      */
     private BlockingQueue<Batch> batches = new LinkedBlockingQueue<Batch>();
+
+    /**
+     * A collection of listeners that are notified whenever the transport rate
+     * is
+     * scaled back.
+     */
+    private final Collection<Runnable> transportRateScaleBackListeners = new ArrayList<>();
 
     /**
      * Construct a Buffer that is backed by the default location, which is
@@ -563,11 +559,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
     @Restricted
     public String getBackingStore() {
         return directory;
-    }
-
-    @Override
-    public int getDesiredTransportSleepTimeInMs() {
-        return transportThreadSleepTimeInMs;
     }
 
     /**
@@ -848,6 +839,17 @@ public final class Buffer extends Limbo implements BatchTransportable {
     public void transport(DurableStore destination, boolean sync) {
         // NOTE: The #sync parameter is ignored because the Database does not
         // support allowing the Buffer to control when syncs happen.
+        tryTransport(destination);
+    }
+
+    /**
+     * Return {@code true} if a {@link #transport(DurableStore, boolean)} is
+     * performed.
+     * 
+     * @param destination
+     * @return a boolean that indicates whether any data was transported
+     */
+    public boolean tryTransport(DurableStore destination) {
         if(pages.size() > 1) {
             Page page = pages.get(0);
             if(!page.transportLock.writeLock().isHeldByCurrentThread()
@@ -868,16 +870,14 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     transportRate = transportRate >= MAX_TRANSPORT_RATE
                             ? MAX_TRANSPORT_RATE
                             : (transportRate * transportRateMultiplier);
-                    --transportThreadSleepTimeInMs;
-                    if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
-                        transportThreadSleepTimeInMs = MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
-                    }
+                    return true;
                 }
                 finally {
                     page.transportLock.writeLock().unlock();
                 }
             }
         }
+        return false;
     }
 
     @Override
@@ -1121,8 +1121,34 @@ public final class Buffer extends Limbo implements BatchTransportable {
      * Scale back the number of items that are transported in a single cycle.
      */
     private void scaleBackTransportRate() {
-        transportRate = 1;
-        transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
+        if(transportRate > 1) {
+            transportRate = 1;
+
+            if(GlobalState.ENABLE_BATCH_TRANSPORTER) {
+                // By convention, StreamingTransporter is the only one that
+                // listens for scale back events, so don't waste cycles sending
+                // notifications if it isn't necessary.
+                for (Runnable listener : transportRateScaleBackListeners) {
+                    ForkJoinPool.commonPool().execute(listener);
+                }
+            }
+        }
+    }
+
+    /**
+     * Register a listener to be notified whenever the transport rate is scaled
+     * back.
+     * <p>
+     * The listener will be executed asynchronously on the ForkJoinPool common
+     * pool
+     * when the transport rate is scaled back.
+     * </p>
+     *
+     * @param listener the runnable to execute when transport rate is scaled
+     *            back
+     */
+    public void onTransportRateScaleBack(Runnable listener) {
+        transportRateScaleBackListeners.add(listener);
     }
 
     /**

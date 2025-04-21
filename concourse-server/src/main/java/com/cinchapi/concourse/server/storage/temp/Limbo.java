@@ -435,16 +435,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
     }
 
     /**
-     * Return the number of milliseconds that this store desires any back to
-     * back transport requests to pause in between.
-     * 
-     * @return the pause time
-     */
-    public int getDesiredTransportSleepTimeInMs() {
-        return 0;
-    }
-
-    /**
      * Return a snapshot {@link Iterable} that contains the
      * {@link Write#hash() hash} of every {@link Write} in the
      * {@link Store}.
