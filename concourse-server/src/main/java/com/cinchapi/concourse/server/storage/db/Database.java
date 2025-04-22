@@ -100,7 +100,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
@@ -291,10 +290,34 @@ public final class Database implements DurableStore {
      */
     private final LoadingCache<Composite, IndexRecord> indexCache;
 
+    // @formatter:off
     /**
-     * Lock used to ensure the object is ThreadSafe. This lock provides access
-     * to a masterLock.readLock()() and masterLock.writeLock()().
+     * The read/write lock that governs concurrent access to the Database's structure.
+     *
+     * <h3>Write Lock:</h3>
+     * <ul>
+     * <li>{@link #rotate(boolean)}/{@link #sync()}: Flushing the current seg0 and 
+     *     installing a new one</li>
+     * <li>{@link #merge(Segment, List)}: Inserting new Segments (typically during a
+     *     {@link com.cinchapi.concourse.server.storage.transporter.Transporter#transport()
+     *     transport} operation)</li>
+     * <li>{@link #reindex()}: Rebuilding all Segment files atomically</li>
+     * <li>{@link #repair()}: Deduplicating or garbage-collecting old Segment 
+     *     files</li>
+     * <li>{@link #compact() compaction}: Passed to the {@link Compactor} via
+     *     {@link Storage} and acquired before every shift operation</li>
+     * </ul>
+     *
+     * <h3>Read Lock:</h3>
+     * The read-lock ensures the structure of the {@link #segments} remain consistent
+     * when loading {@link Record Records}. When a Record is already cached, there is
+     * no need to consult the {@link #segments}, but if it is unchached, the lock is 
+     * held while seeking revisions, then released <strong>before</strong> the read is
+     * issued. Read integrity is maintained even after the lock is released because new 
+     * revisions are only added through {@link #accept(Write)} or {@link #merge(Segment, List)}, 
+     * which update the thread-safe cached records via {@link #updateCaches(Receipt)}.
      */
+    // @formatter:on
     private final transient ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
     /**
@@ -333,7 +356,7 @@ public final class Database implements DurableStore {
      * increasing order is when they are loaded when the database #start()s.
      * </p>
      */
-    private final transient List<Segment> segments = Lists.newArrayList();
+    private final transient List<Segment> segments = new ArrayList<>();
 
     /**
      * The underlying {@link Storage}.
