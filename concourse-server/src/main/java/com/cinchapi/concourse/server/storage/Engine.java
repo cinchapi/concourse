@@ -816,7 +816,13 @@ public final class Engine extends BufferedStore implements
 
     @Override
     protected boolean verifyWithReentrancy(Write write) {
-        return super.verify(write);
+        transportLock.readLock().lock();
+        try {
+            return super.verify(write);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     /**
