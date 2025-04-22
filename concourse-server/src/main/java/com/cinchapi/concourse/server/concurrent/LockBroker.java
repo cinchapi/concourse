@@ -643,12 +643,14 @@ public class LockBroker {
                 Operator operator = token.getOperator();
                 Map<Range<Value>, Integer> ranges = rangeLocks
                         .computeIfAbsent(key, $ -> new ConcurrentHashMap<>());
+                List<Integer> states = new ArrayList<>(1);
                 outer: for (;;) {
                     /*
                      * NOTE: Continuation of the #outer loop (e.g., retry)
                      * occurs when a lock has been newly acquired or released
                      * while checking its state.
                      */
+                    states.clear();
                     for (Range<Value> range : token.ranges()) {
                         int state = ranges.computeIfAbsent(range, $ -> 0);
                         if(mode == Mode.WRITE && (state >= 1 || state < 0)) {
@@ -669,7 +671,8 @@ public class LockBroker {
                                 // isn't the case we can proceed to the next of
                                 // #token.ranges() without checking the current
                                 // #range for conflicts with other locked
-                                // connected ranges.
+                                // connected ranges.;
+                                states.add(state);
                                 continue;
                             }
                             else if(state > 0
@@ -696,6 +699,7 @@ public class LockBroker {
                                     // #locked range is also a READ lock, we can
                                     // move onto checking for conflicts with the
                                     // next #locked range.
+                                    states.add(state);
                                     continue;
                                 }
                                 else {
@@ -714,10 +718,15 @@ public class LockBroker {
                                 }
                             }
                         }
+                        states.add(state);
                     }
+
+                    // Verify that each range's previously observed state is
+                    // still valid and adjust accordingly
                     List<Range<Value>> undos = new ArrayList<>(1);
+                    Iterator<Integer> it = states.iterator();
                     for (Range<Value> range : token.ranges()) {
-                        int state = ranges.computeIfAbsent(range, $ -> 0);
+                        int state = it.next();
                         if(!ranges.replace(range, state,
                                 state + (mode == Mode.READ ? -1 : 1))) {
                             // The lock has been newly acquired or released
