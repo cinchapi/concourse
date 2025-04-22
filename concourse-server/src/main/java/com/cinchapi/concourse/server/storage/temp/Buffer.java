@@ -130,11 +130,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     ThreadFactories.namingDaemonThreadFactory("buffer-global"));
 
     /**
-     * Don't let the transport rate exceed this value.
-     */
-    private static int MAX_TRANSPORT_RATE = 8192;
-
-    /**
      * The number of slots to put in each Page's bloom filter. We want this
      * small enough to have few hash functions, but large enough so that the
      * bloom filter does not become saturated.
@@ -148,12 +143,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
      */
     @VisibleForTesting
     protected Collection<WriteEvent> eventLog = GlobalState.BINARY_QUEUE;
-
-    /**
-     * The multiplier that is used when increasing the rate of transport.
-     */
-    @VisibleForTesting
-    protected int transportRateMultiplier = 2;
 
     /**
      * A pointer to the current Page.
@@ -315,13 +304,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
     private String threadNamePrefix;
 
     /**
-     * We keep track of the time when the last transport occurred so that the
-     * Engine can determine if it should avoid busy waiting in the
-     * BufferTransportThread.
-     */
-    private AtomicLong timeOfLastTransport = new AtomicLong(Time.now());
-
-    /**
      * A monitor that is used to make a thread block while waiting for the
      * Buffer to become transportable. The {@link #waitUntilTransportable()}
      * waits for this monitor and the {@link #insert(Write)} method notifies the
@@ -329,23 +311,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
      * worth of data in the Buffer.
      */
     private final Object transportable = new Object();
-
-    /**
-     * The number of items to {@link StreamingTransporter stream} to the
-     * Database per {@link #transport() transport}.
-     * <p>
-     * There is a tension between transporting and reading data (e.g. reads
-     * cannot happen while a transport is merging data and vice versa).
-     * Transports are most efficient when they can batch up the amount of work
-     * per cycle, but that would be reads are blocked longer. So this variable
-     * indicates how many items should be transported in a single cycle. Each
-     * time a transport happens, this value will increase, but it will be
-     * decreased whenever a read occurs. This allows us to be more aggressive
-     * with transports when there are no reads happening, and also allows us to
-     * scale back transports when reads do occur.
-     * </p>
-     */
-    private int transportRate = 1;
 
     /**
      * A counter that tracks the total number of batches that have been created
@@ -368,7 +333,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
      * is
      * scaled back.
      */
-    private final Collection<Runnable> transportRateScaleBackListeners = new ArrayList<>();
+    private final Collection<Runnable> scanEventListeners = new ArrayList<>();
 
     /**
      * Construct a Buffer that is backed by the default location, which is
@@ -561,16 +526,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
         return directory;
     }
 
-    /**
-     * Return the timestamp of the most recent data transport from the Buffer.
-     * 
-     * @return the time of last transport
-     */
-    @Restricted
-    public long getTimeOfLastTransport() {
-        return timeOfLastTransport.get();
-    }
-
     @Override
     public boolean insert(Write write, boolean sync) {
         structure.lock();
@@ -603,6 +558,45 @@ public final class Buffer extends Limbo implements BatchTransportable {
     @Override
     public Iterator<Write> iterator() {
         return new AllSeekingIterator(Time.NONE);
+    }
+
+    /**
+     * Retrieves the next batch of writes that is ready for transport to the
+     * database. This method blocks until a batch is available.
+     * <p>
+     * The Buffer creates batches when pages are filled, ensuring efficient
+     * transport of data in manageable chunks that minimize the impact on
+     * concurrent read operations.
+     * </p>
+     *
+     * @return the next batch to transport
+     * @throws InterruptedException if the thread is interrupted while waiting
+     */
+    @Override
+    public Batch nextBatch() throws InterruptedException {
+        return batches.take();
+    }
+
+    /**
+     * Register a {@code listener} to be notified whenever a reader scans the
+     * {@link Buffer}.
+     * <p>
+     * Writes never scan the {@link Buffer}, but most reads do. So this method
+     * can be used to get insight on when and how often reads/scans are
+     * happening and react accordingly.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> Scan notifications are meant to be as unobtrusive
+     * as possible, so it isn't possible to get insight into the specific
+     * request that triggered a scan AND the notification of a scan may arrive
+     * at
+     * some time after the scan actually occurred.
+     * </p>
+     *
+     * @param listener
+     */
+    public void onScan(Runnable listener) {
+        scanEventListeners.add(listener);
     }
 
     @Override
@@ -782,7 +776,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
                         currentPage = page;
                     }
                     else {
-                        batchForTransport(page);
+                        queueTransportBatch(page);
                     }
                 }
             }
@@ -822,23 +816,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
     }
 
     /**
-     * Retrieves the next batch of writes that is ready for transport to the
-     * database. This method blocks until a batch is available.
-     * <p>
-     * The Buffer creates batches when pages are filled, ensuring efficient
-     * transport of data in manageable chunks that minimize the impact on
-     * concurrent read operations.
-     * </p>
-     *
-     * @return the next batch to transport
-     * @throws InterruptedException if the thread is interrupted while waiting
-     */
-    @Override
-    public Batch take() throws InterruptedException {
-        return batches.take();
-    }
-
-    /**
      * {@inheritDoc}
      * <p>
      * This method will transport at least one write from the buffer, in
@@ -849,23 +826,36 @@ public final class Buffer extends Limbo implements BatchTransportable {
     public void transport(DurableStore destination, boolean sync) {
         // NOTE: The #sync parameter is ignored because the Database does not
         // support allowing the Buffer to control when syncs happen.
-        tryTransport(destination);
+        transport(1, destination);
     }
 
     /**
-     * Return {@code true} if a {@link #transport(DurableStore, boolean)} is
-     * performed.
+     * Attempt to transport <strong>up to</strong> {@count} {@link Write Writes}
+     * to the {@code destination} and return {@code true} if any are
+     * successfully transported.
+     * <p>
+     * If this method returns {@code true} it is guaranteed that the
+     * {@link Buffer Buffer's} state has changed, but not necessarily that all
+     * {@code count} {@link Write writes} have been transported. Therefore, the
+     * {@code count} parameter is best used as a lever to control the max
+     * transport rate to balance resource contention among readers and writers
+     * throughout the system.
+     * </p>
      * 
+     * @param count
      * @param destination
-     * @return a boolean that indicates whether any data was transported
+     * @return {@code true} if at least one {@link Write write} has been
+     *         transported to the {@code destination}
      */
-    public boolean tryTransport(DurableStore destination) {
+    public boolean transport(int count, DurableStore destination) {
+        Preconditions.checkArgument(count > 0,
+                "The count parameter must be greater than 0");
         if(pages.size() > 1) {
             Page page = pages.get(0);
             if(!page.transportLock.writeLock().isHeldByCurrentThread()
                     && page.transportLock.writeLock().tryLock()) {
                 try {
-                    for (int i = 0; i < transportRate; ++i) {
+                    for (int i = 0; i < count; ++i) {
                         if(page.hasNext()) {
                             destination.accept(page.next());
                             page.remove();
@@ -876,10 +866,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
                             break;
                         }
                     }
-                    timeOfLastTransport.set(Time.now());
-                    transportRate = transportRate >= MAX_TRANSPORT_RATE
-                            ? MAX_TRANSPORT_RATE
-                            : (transportRate * transportRateMultiplier);
                     return true;
                 }
                 finally {
@@ -1061,13 +1047,39 @@ public final class Buffer extends Limbo implements BatchTransportable {
             currentPage = new Page(BUFFER_PAGE_SIZE);
             pages.add(currentPage);
             if(previousPage != null) {
-                batchForTransport(previousPage);
+                queueTransportBatch(previousPage);
             }
             Logger.debug("Added page {} to Buffer", currentPage);
         }
         finally {
             structure.unlock();
         }
+    }
+
+    /**
+     * Broadcast that the {@link Buffer} has been scanned.
+     */
+    private void broadcastScanEvent() {
+        if(!GlobalState.ENABLE_BATCH_TRANSPORTS) {
+            // By convention, StreamingTransporter is the only one that
+            // listens for scale back events, so don't waste cycles sending
+            // notifications if it isn't necessary.
+            for (Runnable listener : scanEventListeners) {
+                ForkJoinPool.commonPool().execute(listener);
+            }
+        }
+    }
+
+    /**
+     * Determines the percentage within range [0, 1] of verifies that scan
+     * the buffer.
+     * 
+     * @return: decimal percentage of verifies initiated that scanned the
+     *          buffer.
+     */
+    @SuppressWarnings("unused")
+    private float getPercentVerifyScans() { // to be used for CON-236
+        return ((float) numVerifyScans.get()) / numVerifyRequests.get();
     }
 
     /**
@@ -1087,7 +1099,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
      * @param page the page to queue for batch transport
      * @throws IllegalArgumentException if the current page is passed
      */
-    private void batchForTransport(Page page) {
+    private void queueTransportBatch(Page page) {
         if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
             if(page != currentPage) {
                 Batch batch = new Batch(page.writes,
@@ -1103,18 +1115,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
     }
 
     /**
-     * Determines the percentage within range [0, 1] of verifies that scan
-     * the buffer.
-     * 
-     * @return: decimal percentage of verifies initiated that scanned the
-     *          buffer.
-     */
-    @SuppressWarnings("unused")
-    private float getPercentVerifyScans() { // to be used for CON-236
-        return ((float) numVerifyScans.get()) / numVerifyRequests.get();
-    }
-
-    /**
      * Remove the first page in the Buffer.
      */
     private void removePage() {
@@ -1127,40 +1127,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
         finally {
             structure.unlock();
         }
-    }
-
-    /**
-     * Scale back the number of items that are transported in a single cycle.
-     */
-    private void scaleBackTransportRate() {
-        if(transportRate > 1) {
-            transportRate = 1;
-
-            if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
-                // By convention, StreamingTransporter is the only one that
-                // listens for scale back events, so don't waste cycles sending
-                // notifications if it isn't necessary.
-                for (Runnable listener : transportRateScaleBackListeners) {
-                    ForkJoinPool.commonPool().execute(listener);
-                }
-            }
-        }
-    }
-
-    /**
-     * Register a listener to be notified whenever the transport rate is scaled
-     * back.
-     * <p>
-     * The listener will be executed asynchronously on the ForkJoinPool common
-     * pool
-     * when the transport rate is scaled back.
-     * </p>
-     *
-     * @param listener the runnable to execute when transport rate is scaled
-     *            back
-     */
-    public void onTransportRateScaleBack(Runnable listener) {
-        transportRateScaleBackListeners.add(listener);
     }
 
     /**
@@ -1937,10 +1903,10 @@ public final class Buffer extends Limbo implements BatchTransportable {
         protected SeekingIterator(long timestamp) {
             this.timestamp = timestamp;
             if(timestamp >= getOldestWriteTimestamp()) {
-                scaleBackTransportRate();
                 this.ignoreTimestamp = timestamp == Long.MAX_VALUE;
                 this.next = advance();
                 this.useable = true;
+                broadcastScanEvent();
             }
             else {
                 this.useable = false;

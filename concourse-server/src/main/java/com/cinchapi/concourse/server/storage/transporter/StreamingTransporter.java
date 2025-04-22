@@ -28,6 +28,7 @@ import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.Logger;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * A {@link StreamingTransporter} incrementally transports writes from a
@@ -123,6 +124,11 @@ public class StreamingTransporter extends Transporter {
     private static final int MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 5;
 
     /**
+     * Don't let the transport rate exceed this value.
+     */
+    private static int MAX_TRANSPORT_RATE = 8192;
+
+    /**
      * The number of milliseconds to sleep between transport cycles.
      */
     private int transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
@@ -136,6 +142,12 @@ public class StreamingTransporter extends Transporter {
      * The destination database where transported writes are stored.
      */
     private final Database database;
+
+    /**
+     * We keep track of the time when the last transport occurred so that the
+     * we can determine if it should avoid busy waiting.
+     */
+    private AtomicLong timeOfLastTransport = new AtomicLong(Time.now());
 
     /**
      * A flag that indicates whether the transport thread is actively doing
@@ -180,14 +192,14 @@ public class StreamingTransporter extends Transporter {
     protected int bufferTransportThreadSleepInMs = 0; // visible for testing
 
     /**
-     * The lock used to coordinate access during critical sections.
-     */
-    private final Lock lock;
-
-    /**
      * A {@link Timer} that is used to schedule some regular tasks.
      */
     private Timer hungTaskDetector;
+
+    /**
+     * The lock used to coordinate access during critical sections.
+     */
+    private final Lock lock;
 
     /**
      * A flag to indicate that the {@link BufferTransportThrread} has appeared
@@ -195,6 +207,29 @@ public class StreamingTransporter extends Transporter {
      */
     protected final AtomicBoolean bufferTransportThreadHasEverAppearedHung = new AtomicBoolean(
             false); // visible for testing
+
+    /**
+     * The number of items to stream to the Database per {@link #transport()
+     * transport}.
+     * <p>
+     * There is a tension between transporting and reading data (e.g. reads
+     * cannot happen while a transport is merging data and vice versa).
+     * Transports are most efficient when they can batch up the amount of work
+     * per cycle, but that would be reads are blocked longer. So this variable
+     * indicates how many items should be transported in a single cycle. Each
+     * time a transport happens, this value will increase, but it will be
+     * decreased whenever a read occurs. This allows us to be more aggressive
+     * with transports when there are no reads happening, and also allows us to
+     * scale back transports when reads do occur.
+     * </p>
+     */
+    private int transportRate = 1;
+
+    /**
+     * The multiplier that is used when increasing the rate of transport.
+     */
+    @VisibleForTesting
+    protected int transportRateMultiplier = 2;
 
     /**
      * Constructs a new {@link StreamingTransporter} that streams writes from
@@ -211,7 +246,7 @@ public class StreamingTransporter extends Transporter {
         this.buffer = buffer;
         this.database = database;
         this.lock = lock;
-        buffer.onTransportRateScaleBack(
+        buffer.onScan(
                 () -> transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS);
     }
 
@@ -310,7 +345,10 @@ public class StreamingTransporter extends Transporter {
             try {
                 bufferTransportThreadIsPaused.compareAndSet(true, false);
                 bufferTransportThreadIsDoingWork.set(true);
-                if(buffer.tryTransport(database)) {
+                if(buffer.transport(transportRate, database)) {
+                    transportRate = transportRate >= MAX_TRANSPORT_RATE
+                            ? MAX_TRANSPORT_RATE
+                            : (transportRate * transportRateMultiplier);
                     --transportThreadSleepTimeInMs;
                     if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
                         transportThreadSleepTimeInMs = MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
@@ -318,6 +356,7 @@ public class StreamingTransporter extends Transporter {
                 }
                 bufferTransportThreadLastWakeUp.set(Time.now());
                 bufferTransportThreadIsDoingWork.set(false);
+                timeOfLastTransport.set(Time.now());
             }
             finally {
                 lock.unlock();
@@ -332,9 +371,8 @@ public class StreamingTransporter extends Transporter {
      * @return the idle time in milliseconds
      */
     private long getBufferTransportThreadIdleTimeInMs() {
-        return TimeUnit.MILLISECONDS.convert(
-                Time.now() - buffer.getTimeOfLastTransport(),
-                TimeUnit.MICROSECONDS);
+        long elapsed = Time.now() - timeOfLastTransport.get();
+        return TimeUnit.MILLISECONDS.convert(elapsed, TimeUnit.MICROSECONDS);
     }
 
     /**

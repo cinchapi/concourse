@@ -112,7 +112,7 @@ public class BatchTransporter extends Transporter {
      */
     @Override
     public void transport() throws InterruptedException {
-        Batch batch = source.take();
+        Batch batch = source.nextBatch();
 
         int batchSize = batch.size();
         int ordinal = batch.ordinal();

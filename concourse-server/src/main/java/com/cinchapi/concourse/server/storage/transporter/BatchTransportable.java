@@ -26,20 +26,11 @@ import com.cinchapi.concourse.server.storage.Store;
 public interface BatchTransportable extends Store {
 
     /**
-     * Purge a {@link Batch batch} that has been successfully transported and is
-     * therefore accessible in a different {@link Store} and no longer part of
-     * this {@link Store store's} state.
-     * 
-     * @param batch the {@link Batch} that has been successfully processed
-     */
-    void purge(Batch batch);
-
-    /**
      * Retrieve the next {@link Batch batch} that is ready for transport,
-     * waiting if necessary until a batch becomes available.
+     * waiting if necessary until one becomes available.
      * <p>
-     * This method blocks until the implementing store has a batch ready for
-     * processing. The implementation determines the batching strategy,
+     * This method blocks the current thread until a {@link Batch batch} ready
+     * for processing. The implementation determines the batching strategy,
      * including size and timing considerations.
      * </p>
      * 
@@ -47,5 +38,14 @@ public interface BatchTransportable extends Store {
      * @throws InterruptedException if the thread is interrupted while waiting
      *             for a batch to become available
      */
-    Batch take() throws InterruptedException;
+    Batch nextBatch() throws InterruptedException;
+
+    /**
+     * Purge a {@link Batch batch} that has been successfully transported and is
+     * therefore accessible in a different {@link Store} and no longer part of
+     * this {@link Store store's} state.
+     * 
+     * @param batch the {@link Batch} that has been successfully processed
+     */
+    void purge(Batch batch);
 }

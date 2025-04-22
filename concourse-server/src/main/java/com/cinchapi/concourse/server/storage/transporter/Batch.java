@@ -24,7 +24,7 @@ import com.cinchapi.concourse.server.storage.temp.Write;
  * <p>
  * Each {@link Batch} has an ordinal position in the sequence of Batches that
  * have been queued for processing, which facilitates asynchronous indexing
- * while ensuring that any generated {@link Segment segments} are appended in
+ * while ensuring that any generated {@link Segment segments} are merged in
  * order.
  * <p>
  * <strong>NOTE:</strong>The {@link Write Writes} in a Batch are stored in order

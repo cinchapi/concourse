@@ -103,7 +103,6 @@ public class EngineTest extends BufferedStoreTest {
             throws Exception {
         Engine engine = (Engine) store;
         Buffer buffer = (Buffer) engine.limbo;
-        Reflection.set("transportRateMultiplier", 1, buffer); // (authorized)
         Database db = (Database) engine.durable;
         Method method = buffer.getClass().getDeclaredMethod("canTransport");
         method.setAccessible(true);
