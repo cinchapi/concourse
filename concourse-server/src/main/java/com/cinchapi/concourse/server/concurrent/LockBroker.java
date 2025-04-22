@@ -678,13 +678,14 @@ public class LockBroker {
                         // and determine if this lock is blocked as a result.
                         Iterator<Entry<Range<Value>, Integer>> it = ranges
                                 .entrySet().iterator();
+                        int cstate;
                         while (it.hasNext()) {
                             Entry<Range<Value>, Integer> entry = it.next();
                             Range<Value> locked = entry.getKey();
-                            state = entry.getValue();
-                            if((state == 0
-                                    || (mode == Mode.READ && state < 0))) {
-                                if(ranges.replace(locked, state, state)) {
+                            cstate = entry.getValue();
+                            if((cstate == 0
+                                    || (mode == Mode.READ && cstate < 0))) {
+                                if(ranges.replace(locked, cstate, cstate)) {
                                     // If the #locked range is actually unlocked
                                     // or we are attempting a READ lock and the
                                     // #locked range is also a READ lock, we can
@@ -697,11 +698,11 @@ public class LockBroker {
                                     continue outer;
                                 }
                             }
-                            else if(((mode == Mode.READ && state > 0)
-                                    || (mode == Mode.WRITE && state < 0))
+                            else if(((mode == Mode.READ && cstate > 0)
+                                    || (mode == Mode.WRITE && cstate < 0))
                                     && Ranges.haveNonEmptyIntersection(locked,
                                             range)) {
-                                if(ranges.replace(locked, state, state)) {
+                                if(ranges.replace(locked, cstate, cstate)) {
                                     return false;
                                 }
                                 else {
