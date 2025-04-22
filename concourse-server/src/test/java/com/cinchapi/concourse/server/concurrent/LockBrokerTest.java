@@ -1144,9 +1144,8 @@ public class LockBrokerTest extends ConcourseBaseTest {
         reader.start();
         writer.start();
 
-        // Wait up to 20s (the @Test timeout), but fail early if both finish
-        boolean finished = readerDone.await(20, TimeUnit.SECONDS)
-                && writerDone.await(20, TimeUnit.SECONDS);
+        boolean finished = readerDone.await(5, TimeUnit.SECONDS)
+                && writerDone.await(5, TimeUnit.SECONDS);
 
         Assert.assertTrue(
                 "Threads hung → possible deadlock in RangeLock.lock()",
