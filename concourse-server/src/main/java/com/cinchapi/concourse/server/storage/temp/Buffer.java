@@ -745,9 +745,18 @@ public final class Buffer extends Limbo implements BatchTransportable {
         if(!running) {
             running = true;
             Logger.info("Buffer configured to store data in {}", directory);
+
+            // Reset state (in case the same instance was previously started and
+            // stopped)
+            pages.clear();
+            currentPage = null;
+            batches.clear();
+            batchCount.set(0);
             syncer = new AwaitableExecutorService(
                     Executors.newCachedThreadPool(ThreadFactories
                             .namingThreadFactory(threadNamePrefix + "-%d")));
+
+            // Load existing Buffer pages from disk
             SortedMap<File, Page> pageSorter = Maps
                     .newTreeMap(NaturalSorter.INSTANCE);
             for (File file : new File(directory).listFiles()) {
@@ -757,9 +766,8 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     Logger.info("Loading Buffer content from {}...", page);
                 }
             }
-            pages.clear();
-            batchCount.set(0);
 
+            // Setup shortcuts in memory to facilitate writes and transports
             Iterator<Page> it = pageSorter.values().iterator();
             if(!it.hasNext()) {
                 addPage(false);
@@ -768,11 +776,13 @@ public final class Buffer extends Limbo implements BatchTransportable {
                 while (it.hasNext()) {
                     Page page = it.next();
                     pages.add(page);
-                    batchForTransport(page);
                     if(!it.hasNext()) {
                         // Set the most recently added Page as the currentPage
                         // in case it has capacity for more Writes
                         currentPage = page;
+                    }
+                    else {
+                        batchForTransport(page);
                     }
                 }
             }
@@ -1110,6 +1120,8 @@ public final class Buffer extends Limbo implements BatchTransportable {
     private void removePage() {
         structure.lock();
         try {
+            Preconditions.checkState(pages.size() > 1,
+                    "The current Buffer page cannot be removed");
             pages.remove(0).delete();
         }
         finally {
