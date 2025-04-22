@@ -71,6 +71,7 @@ public abstract class AbstractTransporterTest {
 
         @Override
         protected void finished(Description description) {
+            engine.stop();
             FileSystem.deleteDirectory(bufferDir);
             FileSystem.deleteDirectory(dbDir);
             GlobalState.ENABLE_BATCH_TRANSPORTS = priorEnableBatchTransporter;
