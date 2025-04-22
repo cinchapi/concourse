@@ -115,15 +115,15 @@ public final class TestData extends Random {
     }
 
     public static Write getWriteAdd() {
-        return Write.add(getString(), getTObject(), getLong());
+        return Write.add(getSimpleString(), getTObject(), getLong());
     }
 
     public static Write getWriteRemove() {
-        return Write.remove(getString(), getTObject(), getLong());
+        return Write.remove(getSimpleString(), getTObject(), getLong());
     }
 
     public static Write getWriteNotStorable() {
-        return Write.notStorable(getString(), getTObject(), getLong());
+        return Write.notStorable(getSimpleString(), getTObject(), getLong());
     }
 
     /**
