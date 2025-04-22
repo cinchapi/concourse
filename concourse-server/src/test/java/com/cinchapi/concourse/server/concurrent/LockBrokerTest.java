@@ -1089,6 +1089,72 @@ public class LockBrokerTest extends ConcourseBaseTest {
         Assert.assertNotNull(broker.tryWriteLock(token));
     }
 
+    @Test
+    public void testContentionAtScale() throws InterruptedException {
+        // Ensure that we never get an IllegalMonitorStateException when there
+        // is high contention
+        final Text key = Text.wrap("foo");
+        final Value value = Value.wrap(Convert.javaToThrift(1));
+
+        // Use EQUALS so every read/write truly conflicts
+        final RangeToken readToken = RangeToken.forReading(key, Operator.EQUALS,
+                value);
+        final RangeToken writeToken = RangeToken.forWriting(key, value);
+
+        final int iterations = 1_000;
+        final CountDownLatch readerDone = new CountDownLatch(1);
+        final AtomicBoolean readerError = new AtomicBoolean(false);
+
+        Thread reader = new Thread(() -> {
+            try {
+                for (int i = 0; i < iterations; i++) {
+                    Permit p = broker.readLock(readToken);
+                    // small pause to increase contention window
+                    Threads.sleep(1);
+                    p.release();
+                }
+            }
+            catch (IllegalMonitorStateException t) {
+                readerError.set(true);
+            }
+            finally {
+                readerDone.countDown();
+            }
+        });
+
+        final CountDownLatch writerDone = new CountDownLatch(1);
+        final AtomicBoolean writerError = new AtomicBoolean(false);
+
+        Thread writer = new Thread(() -> {
+            try {
+                for (int i = 0; i < iterations; i++) {
+                    Permit p = broker.writeLock(writeToken);
+                    Threads.sleep(1);
+                    p.release();
+                }
+            }
+            catch (IllegalMonitorStateException t) {
+                writerError.set(true);
+            }
+            finally {
+                writerDone.countDown();
+            }
+        });
+
+        reader.start();
+        writer.start();
+
+        // Wait up to 20s (the @Test timeout), but fail early if both finish
+        boolean finished = readerDone.await(20, TimeUnit.SECONDS)
+                && writerDone.await(20, TimeUnit.SECONDS);
+
+        Assert.assertTrue(
+                "Threads hung → possible deadlock in RangeLock.lock()",
+                finished);
+        Assert.assertFalse("Reader threw an exception", readerError.get());
+        Assert.assertFalse("Writer threw an exception", writerError.get());
+    }
+
     private Value decrease(Value value) {
         Value lt = null;
         while (lt == null || lt.compareTo(value) >= 0) {
