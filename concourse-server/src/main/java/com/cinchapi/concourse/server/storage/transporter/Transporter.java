@@ -18,6 +18,7 @@ package com.cinchapi.concourse.server.storage.transporter;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,6 +26,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 
+import com.cinchapi.common.base.CheckedExceptions;
+import com.cinchapi.concourse.util.Logger;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
@@ -207,11 +210,25 @@ public abstract class Transporter {
     protected void restart() {
         running.set(false);
         for (Future<?> task : tasks) {
-            task.cancel(true);
+            if(task.isDone()) {
+                try {
+                    // Attempt to bubble up any errors that happened
+                    task.get();
+                }
+                catch (InterruptedException | ExecutionException e) {
+                    Logger.error("A Transporter error occured", e);
+                }
+            }
+            else {
+                task.cancel(true);
+            }
+
         }
         running.set(true);
         tasks = submitTasks();
     }
+
+    // TODO: bring hang detection to this class?
 
     /**
      * Creates and submits transport tasks to the executor.
@@ -232,6 +249,14 @@ public abstract class Transporter {
                         // exiting
                         Thread.currentThread().interrupt();
                         continue;
+                    }
+                    catch (Exception e) {
+                        uncaughtExceptionHandler
+                                .uncaughtException(Thread.currentThread(), e);
+
+                        // Re-throw the exception so that the task is marked as
+                        // failed and triggers a potential restart
+                        throw CheckedExceptions.throwAsRuntimeException(e);
                     }
                 }
             });
