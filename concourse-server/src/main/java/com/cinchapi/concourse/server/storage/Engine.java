@@ -295,6 +295,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean add(String key, TObject value, long record) {
+        transportLock.readLock().lock();
         Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
@@ -315,6 +316,7 @@ public final class Engine extends BufferedStore implements
             shared.release();
             write.release();
             range.release();
+            transportLock.readLock().unlock();
         }
     }
 
@@ -529,6 +531,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public boolean remove(String key, TObject value, long record) {
+        transportLock.readLock().lock();
         Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
@@ -549,6 +552,7 @@ public final class Engine extends BufferedStore implements
             shared.release();
             write.release();
             range.release();
+            transportLock.readLock().unlock();
         }
     }
 
@@ -705,6 +709,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public void set(String key, TObject value, long record) {
+        transportLock.readLock().lock();
         Token sharedToken = Token.shareable(record);
         Token writeToken = Token.wrap(key, record);
         RangeToken rangeToken = RangeToken.forWriting(Text.wrap(key),
@@ -720,6 +725,7 @@ public final class Engine extends BufferedStore implements
             shared.release();
             write.release();
             range.release();
+            transportLock.readLock().unlock();
         }
     }
 
@@ -816,13 +822,7 @@ public final class Engine extends BufferedStore implements
 
     @Override
     protected boolean verifyWithReentrancy(Write write) {
-        transportLock.readLock().lock();
-        try {
-            return super.verify(write);
-        }
-        finally {
-            transportLock.readLock().unlock();
-        }
+        return super.verify(write);
     }
 
     /**
