@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -602,12 +603,7 @@ public class LockBroker {
                         return;
                     }
                     else {
-                        Queue<Thread> threads = parked.computeIfAbsent(
-                                token.getKey(),
-                                $ -> new ConcurrentLinkedQueue<>());
-                        threads.add(Thread.currentThread());
-                        LockSupport.park(this);
-                        continue;
+                        park();
                     }
                 }
             }
@@ -622,12 +618,7 @@ public class LockBroker {
                         return;
                     }
                     else {
-                        Queue<Thread> threads = parked.computeIfAbsent(
-                                token.getKey(),
-                                $ -> new ConcurrentLinkedQueue<>());
-                        threads.add(Thread.currentThread());
-                        LockSupport.park(this);
-                        continue;
+                        park();
                     }
                 }
             }
@@ -828,8 +819,38 @@ public class LockBroker {
                 }
             }
 
+            /**
+             * {@link LockSupport#park() Park} the current thread unless or
+             * until it is free to retry the lock acquisition.
+             */
+            private void park() {
+                AtomicBoolean park = new AtomicBoolean(false);
+                parked.compute(token.getKey(), (key, threads) -> {
+                    if(threads == null) {
+                        // This is the first time that a lock attempt is
+                        // being made for this key, so initialize it
+                        // with a fresh Queue and try again
+                        return new ConcurrentLinkedQueue<>();
+                    }
+                    else if(threads.isEmpty()) {
+                        // No threads are currently parked, which means
+                        // there was an unlock between our initial
+                        // #tryLock attempt and now, so try again
+                        return threads;
+                    }
+                    else {
+                        // Join the other threads that are currently
+                        // parked
+                        threads.add(Thread.currentThread());
+                        park.set(true);
+                        return threads;
+                    }
+                });
+                if(park.get()) {
+                    LockSupport.park(this);
+                }
+            }
         }
-
     }
 
     /**
