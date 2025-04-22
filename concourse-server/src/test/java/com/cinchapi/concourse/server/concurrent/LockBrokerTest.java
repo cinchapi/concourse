@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.server.concurrent;
 
+import java.lang.Thread.State;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -1188,15 +1189,16 @@ public class LockBrokerTest extends ConcourseBaseTest {
         // Attempt many reader iterations
         final int ITER = 5_000;
         for (int i = 0; i < ITER; i++) {
-            // 1) Wait until writer actually holds the lock
-            long spinStart = System.nanoTime();
             while (!writerHolding.get()) {
-                if(System.nanoTime() - spinStart > TimeUnit.MILLISECONDS
-                        .toNanos(50)) {
-                    Assert.fail("Writer never acquired lock in iteration " + i);
+                if(writer.getState() == State.WAITING
+                        && broker.tryReadLock(readToken) != null) {
+                    Assert.fail("Writer is WAITING in iteration " + i
+                            + " but the lock is available");
                 }
             }
-            // 2) Launch reader
+
+            // The WRITER got the lock and will soon release, it so queue up a
+            // read to create some more contention
             AtomicBoolean done = new AtomicBoolean(false);
             AtomicBoolean error = new AtomicBoolean(false);
             Thread reader = new Thread(() -> {
