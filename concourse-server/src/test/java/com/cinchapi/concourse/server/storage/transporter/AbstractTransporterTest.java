@@ -34,6 +34,7 @@ import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
@@ -385,6 +386,38 @@ public abstract class AbstractTransporterTest {
         Assert.assertTrue(
                 "No segments found in database after add/remove operations",
                 segments.size() > 1);
+    }
+
+    @Test
+    public void testImplicitVerifyWhileTransporting() {
+        // Test corner case where the implicit read performed during writes does
+        // not cause structure consistency issues within the Buffer while
+        // transports are happening.
+        engine.stop();
+        Buffer buffer = Reflection.get("limbo", engine);
+        Write write = TestData.getWriteAdd();
+        while (!(boolean) Reflection.call(buffer, "canTransport")) {
+            // Ensure that the transport process can be kicked off when we start
+            buffer.insert(write);
+            write = write.inverse();
+        }
+        engine.start();
+        // Trigger a bunch of implicit verifies while the transport process is
+        // happening
+        int numWrites = 500;
+        for (int i = 0; i < numWrites; ++i) {
+            String key = write.getKey().toString();
+            TObject value = write.getValue().getTObject();
+            long record = write.getRecord().longValue();
+            if(write.getType() == Action.ADD) {
+                engine.add(key, value, record);
+            }
+            else {
+                engine.remove(key, value, record);
+            }
+            write = write.inverse();
+        }
+        Assert.assertTrue(true); // lack of Exception means we pass
     }
 
     /**
