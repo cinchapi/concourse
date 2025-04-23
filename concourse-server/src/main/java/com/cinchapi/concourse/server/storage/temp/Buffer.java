@@ -299,6 +299,12 @@ public final class Buffer extends Limbo implements BatchTransportable {
     private final Object transportable = new Object();
 
     /**
+     * A monitor that is used to make a reader thread block on a Page while
+     * waiting for a writer (e.g., appender or transporter) to finish.
+     */
+    private final Object readable = new Object();
+
+    /**
      * A counter that tracks the total number of batches that have been created
      * for transport. This counter ensures that batches are processed in the
      * correct chronological order, even when multiple transport threads are
@@ -852,6 +858,9 @@ public final class Buffer extends Limbo implements BatchTransportable {
                 }
                 finally {
                     page.lock.unlockWrite(stamp);
+                    synchronized (readable) {
+                        readable.notifyAll();
+                    }
                 }
             }
         }
@@ -1435,6 +1444,9 @@ public final class Buffer extends Limbo implements BatchTransportable {
             }
             finally {
                 lock.unlockWrite(stamp);
+                synchronized (readable) {
+                    readable.notifyAll();
+                }
             }
         }
 
@@ -1451,6 +1463,9 @@ public final class Buffer extends Limbo implements BatchTransportable {
             }
             finally {
                 lock.unlockWrite(stamp);
+                synchronized (readable) {
+                    readable.notifyAll();
+                }
             }
         }
 
@@ -2063,7 +2078,14 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     // removing the Page, we have to spin and flip to the new
                     // beginning so that we don't start on an Page that no
                     // longer exists
-                    Thread.yield();
+                    synchronized (readable) {
+                        try {
+                            readable.wait();
+                        }
+                        catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
                     flip(true);
                     return;
                 }
