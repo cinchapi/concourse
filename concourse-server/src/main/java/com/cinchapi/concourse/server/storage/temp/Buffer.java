@@ -41,7 +41,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
@@ -168,16 +167,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
      * A runnable that flushes the inventory to disk.
      */
     private Runnable inventorySync = () -> inventory.sync();
-
-    /**
-     * The number of verifies initiated.
-     */
-    private AtomicLong numVerifyRequests;
-
-    /**
-     * The number of verifies scanning the buffer.
-     */
-    private AtomicLong numVerifyScans;
 
     /**
      * The sequence of Pages that make up the Buffer.
@@ -363,8 +352,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
                                                  // there is no call to
                                                  // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
-        this.numVerifyRequests = new AtomicLong(0);
-        this.numVerifyScans = new AtomicLong(0);
     }
 
     @Override
@@ -878,7 +865,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
 
     @Override
     public boolean verify(Write write, long timestamp) {
-        numVerifyRequests.incrementAndGet();
         boolean exists = false;
         Iterator<Write> it = iterator(write, timestamp);
         try {
@@ -1068,18 +1054,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
                 ForkJoinPool.commonPool().execute(listener);
             }
         }
-    }
-
-    /**
-     * Determines the percentage within range [0, 1] of verifies that scan
-     * the buffer.
-     * 
-     * @return: decimal percentage of verifies initiated that scanned the
-     *          buffer.
-     */
-    @SuppressWarnings("unused")
-    private float getPercentVerifyScans() { // to be used for CON-236
-        return ((float) numVerifyScans.get()) / numVerifyRequests.get();
     }
 
     /**
@@ -2069,13 +2043,6 @@ public final class Buffer extends Limbo implements BatchTransportable {
     private class WriteSeekingIterator extends SeekingIterator {
 
         /**
-         * A flag to check whether the buffer has already been scanned (to
-         * mitigate multiple increments given multiple scans
-         * to the same buffer).
-         */
-        private boolean scanned;
-
-        /**
          * The relevant write.
          */
         private final Write write;
@@ -2098,11 +2065,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
 
         @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
-            boolean mightContain = page.mightContain(write);
-            if(!scanned && mightContain) {
-                numVerifyScans.incrementAndGet();
-            }
-            return mightContain;
+            return page.mightContain(write);
         }
     }
 }
