@@ -20,7 +20,8 @@ package com.cinchapi.concourse.ete.performance;
  *
  * @author Jeff Nelson
  */
-public class BatchTransporterThroughputTest extends AbstractTransporterThroughputTest {
+public class BatchTransporterThroughputTest
+        extends AbstractTransporterThroughputTest {
 
     @Override
     protected boolean enableBatchTransporter() {

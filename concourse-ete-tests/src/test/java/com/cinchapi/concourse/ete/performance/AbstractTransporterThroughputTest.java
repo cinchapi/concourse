@@ -237,8 +237,8 @@ public abstract class AbstractTransporterThroughputTest
                         Object value = threadId % 2 == 0
                                 ? (20 + (threadId * 5) % 50)
                                 : // age value
-                                (50000.0 + (threadId * 10000.0)); // salary
-                                                                  // value
+                        (50000.0 + (threadId * 10000.0)); // salary
+                                                          // value
 
                         client.find(key, Operator.EQUALS, value);
                         readCount.incrementAndGet();
