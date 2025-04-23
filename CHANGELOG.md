@@ -2,6 +2,37 @@
 
 #### Version 0.12.0 (TBD)
 
+##### Batch Transporter for Improved Automatic Indexing
+
+We've introduced a new mechanism to control how Concourse Server transports data from the Buffer to the Database, significantly improving system throughput and responsiveness:
+
+* **New Transporter Configuration**: Added the `transporter` configuration option in `concourse.yaml` that allows you to specify how Concourse moves data from the write-optimized Buffer to the read-optimized Database, where it becomes fully indexed.
+
+* **Two Transport Strategies**:
+  * **Streaming Transporter** (default/legacy): Processes writes incrementally in small batches, with transport operations competing with reads and writes for system resources. While this provides consistent throughput by amortizing indexing costs across operations, it can lead to "stop-the-world" situations during high load when transport operations block all reads (and implicitly writes, which perform verification reads).
+  * **Batch Transporter** (new): Performs indexing entirely in the background, allowing reads and writes to continue uninterrupted during the indexing phase. Only a brief critical section is required when merging the fully-indexed data into the Database. This approach dramatically improves overall system throughput by eliminating the resource contention between transport operations and normal read/write operations.
+
+* **Configuration Options**:
+```
+# Simple configuration
+transporter: batch  # or "streaming"
+
+# Advanced configuration
+transporter:
+  type: batch       # or "streaming"
+  num_threads: 2    # default: 1
+```
+
+* **Performance Benefits**: The Batch Transporter significantly improves system throughput by:
+  * Moving the time-consuming indexing work to background threads
+  * Minimizing the duration of critical sections where locks block concurrent operations
+  * Reducing "stop-the-world" situations during high load
+  * Making system performance more predictable and responsive
+
+* **Use Case Recommendation**: The Batch Transporter is particularly beneficial for workloads with high concurrent activity or large data volumes that require extensive indexing.
+
+This enhancement represents a fundamental improvement to Concourse's architecture, addressing a key bottleneck in the storage engine by separating the indexing process from the critical path of normal operations.
+
 ##### Search
 We made several changes to improve search performance and accuracy:
 
