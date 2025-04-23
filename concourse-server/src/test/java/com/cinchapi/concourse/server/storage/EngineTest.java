@@ -579,6 +579,8 @@ public class EngineTest extends BufferedStoreTest {
         Assert.assertEquals(expected.get(), actual.get());
         engine.stop();
         engine.start();
+        engine.transporter.stop(); // Prevent transports in the middle of the
+                                   // iteration
         buffer = (Buffer) engine.limbo;
         db = (Database) engine.durable;
         versions.clear();
@@ -597,6 +599,8 @@ public class EngineTest extends BufferedStoreTest {
         }
         Assert.assertEquals(commits.get(), versions.size());
         Assert.assertEquals(expected.get(), actual.get());
+        engine.transporter.start(); // Test shutdown will attempt to stop the
+                                    // transporter
     }
 
     // @Test
