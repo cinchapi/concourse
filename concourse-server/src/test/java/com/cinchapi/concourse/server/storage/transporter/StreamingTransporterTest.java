@@ -55,7 +55,7 @@ public class StreamingTransporterTest extends AbstractTransporterTest {
                 TestData.getLong());
         Threads.sleep(
                 StreamingTransporter.BUFFER_TRANSPORT_THREAD_ALLOWABLE_INACTIVITY_THRESHOLD_IN_MILLISECONDS
-                        + 100);
+                        + 30);
         engine.add(TestData.getSimpleString(), TestData.getTObject(),
                 TestData.getLong());
         Assert.assertTrue(transporter.bufferTransportThreadHasEverPaused.get());

@@ -353,10 +353,10 @@ public class StreamingTransporter extends Transporter {
                     if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
                         transportThreadSleepTimeInMs = MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
                     }
+                    timeOfLastTransport.set(Time.now());
                 }
                 bufferTransportThreadLastWakeUp.set(Time.now());
                 bufferTransportThreadIsDoingWork.set(false);
-                timeOfLastTransport.set(Time.now());
             }
             finally {
                 lock.unlock();
