@@ -316,8 +316,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
 
     /**
      * A collection of listeners that are notified whenever the transport rate
-     * is
-     * scaled back.
+     * is scaled back.
      */
     private final Collection<Runnable> scanEventListeners = new ArrayList<>();
 
@@ -573,8 +572,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
      * <strong>NOTE:</strong> Scan notifications are meant to be as unobtrusive
      * as possible, so it isn't possible to get insight into the specific
      * request that triggered a scan AND the notification of a scan may arrive
-     * at
-     * some time after the scan actually occurred.
+     * at some time after the scan actually occurred.
      * </p>
      *
      * @param listener

@@ -860,10 +860,8 @@ public final class Engine extends BufferedStore implements
 
     /**
      * Construct the appropriate {@link Transporter} implementation based on
-     * system
-     * configuration. The transporter is responsible for moving data from the
-     * buffer
-     * to the database.
+     * system configuration. The transporter is responsible for moving data from
+     * the buffer to the database.
      * 
      * @return the configured {@link Transporter} instance
      */
