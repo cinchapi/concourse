@@ -30,6 +30,7 @@ import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment.Receipt;
+import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.util.Logger;
 
@@ -58,6 +59,21 @@ public class BatchTransporter extends Transporter {
      */
     public static DatabaseStage from(BatchTransportable source) {
         return new Builder().from(source);
+    }
+
+    /**
+     * Return {@code true} if the {@code source} has pending patches.
+     * 
+     * @param source
+     * @return {@code true} if the {@code source} has pending batches
+     */
+    private static boolean hasPendingBatches(BatchTransportable source) {
+        if(source instanceof Buffer) {
+            return Reflection.call(source, "canTransport");
+        }
+        else {
+            return true;
+        }
     }
 
     /**
@@ -178,7 +194,8 @@ public class BatchTransporter extends Transporter {
         if(stats.isTransportInProgress()) {
             // If a transport is in progress, check to see if it is taking too
             // long
-            long runningTimeInMicros = stats.timeSinceLastCompletedTransportStart();
+            long runningTimeInMicros = stats
+                    .timeSinceLastCompletedTransportStart();
             long thresholdInMicros = TimeUnit.MICROSECONDS.convert(
                     allowableInactivityThresholdInMillis,
                     TimeUnit.MILLISECONDS);
@@ -194,14 +211,15 @@ public class BatchTransporter extends Transporter {
         }
         else {
             // If we're not in the middle of a transport, but there is work to
-            // do, check if it's been too long since the last transport completed
+            // do, check if it's been too long since the last transport
+            // completed
             long idleTimeInMicros = stats.timeSinceLastCompletedTransportEnd();
             long thresholdInMicros = TimeUnit.MICROSECONDS.convert(
                     allowableInactivityThresholdInMillis,
                     TimeUnit.MILLISECONDS);
 
-            boolean canTransport = Reflection.call(source, "canTransport");
-            if(idleTimeInMicros > thresholdInMicros && canTransport) {
+            if(idleTimeInMicros > thresholdInMicros
+                    && hasPendingBatches(source)) {
                 Logger.warn(
                         "The batch transporter has been idle for {} ms with work to do, "
                                 + "which exceeds the allowable threshold of {} ms",
