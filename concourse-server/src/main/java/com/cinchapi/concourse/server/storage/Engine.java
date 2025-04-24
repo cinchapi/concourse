@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.storage;
 
 import static com.google.common.base.Preconditions.*;
+import static com.cinchapi.concourse.server.GlobalState.ENABLE_BATCH_TRANSPORTS;
 
 import java.io.File;
 import java.util.Collection;
@@ -109,7 +110,7 @@ public final class Engine extends BufferedStore implements
      */
     @SuppressWarnings("deprecation")
     private static ReentrantReadWriteLock createTransportLock() {
-        if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
+        if(ENABLE_BATCH_TRANSPORTS) {
             return new ReentrantReadWriteLock();
         }
         else {
@@ -740,6 +741,8 @@ public final class Engine extends BufferedStore implements
             durable.reconcile(limbo.hashes());
             doTransactionRecovery();
             transporter = buildTransporter();
+            Logger.info("The Engine is indexing data with the {} transporter",
+                    ENABLE_BATCH_TRANSPORTS ? "batch" : "streaming");
             transporter.start();
         }
     }
@@ -870,7 +873,7 @@ public final class Engine extends BufferedStore implements
         Database database = (Database) durable;
         Lock lock = transportLock.writeLock();
         Transporter transporter;
-        if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
+        if(ENABLE_BATCH_TRANSPORTS) {
             AwaitableExecutorService segmentWriter = Reflection.get("writer",
                     database); /* (authorized) */
             Preconditions.checkState(segmentWriter != null);
