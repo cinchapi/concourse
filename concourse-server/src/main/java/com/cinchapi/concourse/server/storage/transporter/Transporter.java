@@ -140,13 +140,13 @@ public abstract class Transporter {
     /**
      * Constructs a {@link Transporter} with a single worker thread.
      *
-     * @param threadNamePrefix the prefix to use for naming transport threads
+     * @param threadNameFormat the form to use for naming transport threads
      * @param uncaughtExceptionHandler handler for uncaught exceptions in
      *            transport threads
      */
-    Transporter(String threadNamePrefix,
+    Transporter(String threadNameFormat,
             UncaughtExceptionHandler uncaughtExceptionHandler) {
-        this(threadNamePrefix, uncaughtExceptionHandler,
+        this(threadNameFormat, uncaughtExceptionHandler,
                 defaultExecutorSupplier(), 1, 0);
     }
 
@@ -154,7 +154,7 @@ public abstract class Transporter {
      * Constructs a {@link Transporter} with customizable thread pool and thread
      * count.
      *
-     * @param threadNamePrefix the prefix to use for naming transport threads
+     * @param threadNameFormat the format to use for naming transport threads
      * @param uncaughtExceptionHandler handler for uncaught exceptions in
      *            transport threads
      * @param executorSupplier a function that creates the
@@ -165,11 +165,11 @@ public abstract class Transporter {
      *            check transport health;
      *            if not greater than 0, health monitoring is disabled
      */
-    Transporter(String threadNamePrefix,
+    Transporter(String threadNameFormat,
             UncaughtExceptionHandler uncaughtExceptionHandler,
             BiFunction<String, UncaughtExceptionHandler, ExecutorService> executorSupplier,
             int numIndexerThreads, int healthCheckFrequencyInMillis) {
-        this.threadNameFormat = threadNamePrefix;
+        this.threadNameFormat = threadNameFormat;
         this.uncaughtExceptionHandler = uncaughtExceptionHandler;
         this.executorSupplier = executorSupplier;
         this.numIndexerThreads = numIndexerThreads;
@@ -180,17 +180,17 @@ public abstract class Transporter {
      * Constructs a {@link Transporter} with a single worker thread and optional
      * health monitoring.
      *
-     * @param threadNamePrefix the prefix to use for naming transport threads
+     * @param threadNameFormat the form to use for naming transport threads
      * @param uncaughtExceptionHandler handler for uncaught exceptions in
      *            transport threads
      * @param healthCheckFrequencyInMillis the frequency in milliseconds to
      *            check transport health;
      *            if not greater than 0, health monitoring is disabled
      */
-    Transporter(String threadNamePrefix,
+    Transporter(String threadNameFormat,
             UncaughtExceptionHandler uncaughtExceptionHandler,
             int healthCheckFrequencyInMillis) {
-        this(threadNamePrefix, uncaughtExceptionHandler,
+        this(threadNameFormat, uncaughtExceptionHandler,
                 defaultExecutorSupplier(), 1, healthCheckFrequencyInMillis);
     }
 
