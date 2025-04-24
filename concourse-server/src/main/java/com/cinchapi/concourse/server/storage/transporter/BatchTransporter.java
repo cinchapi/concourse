@@ -178,7 +178,7 @@ public class BatchTransporter extends Transporter {
         if(stats.isTransportInProgress()) {
             // If a transport is in progress, check to see if it is taking too
             // long
-            long runningTimeInMicros = stats.timeSinceLastTransportStart();
+            long runningTimeInMicros = stats.timeSinceLastCompletedTransportStart();
             long thresholdInMicros = TimeUnit.MICROSECONDS.convert(
                     allowableInactivityThresholdInMillis,
                     TimeUnit.MILLISECONDS);
@@ -193,9 +193,9 @@ public class BatchTransporter extends Transporter {
             }
         }
         else {
-            // If we're not in the middle of a transport, check if it's been too
-            // long since the last transport completed and if there's work to do
-            long idleTimeInMicros = stats.timeSinceLastTransportEnd();
+            // If we're not in the middle of a transport, but there is work to
+            // do, check if it's been too long since the last transport completed
+            long idleTimeInMicros = stats.timeSinceLastCompletedTransportEnd();
             long thresholdInMicros = TimeUnit.MICROSECONDS.convert(
                     allowableInactivityThresholdInMillis,
                     TimeUnit.MILLISECONDS);
@@ -378,7 +378,7 @@ public class BatchTransporter extends Transporter {
         private BiFunction<String, UncaughtExceptionHandler, ExecutorService> executorSupplier = Transporter
                 .defaultExecutorSupplier();
         private int numIndexerThreads = 1;
-        private int healthCheckFrequencyInMillis = 500;
+        private int healthCheckFrequencyInMillis = 10000;
         private int allowableInactivityThresholdInMillis = 5000;
 
         @Override

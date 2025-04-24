@@ -451,7 +451,7 @@ public abstract class Transporter {
          *         transport
          *         has completed
          */
-        public long timeSinceLastTransportEnd() {
+        public long timeSinceLastCompletedTransportEnd() {
             long endTime = lastCompletedTransportEndTime();
             return endTime > 0 ? Time.now() - endTime : 0;
         }
@@ -463,7 +463,7 @@ public abstract class Transporter {
          * @return elapsed time since last transport start, or 0 if no transport
          *         has started
          */
-        public long timeSinceLastTransportStart() {
+        public long timeSinceLastCompletedTransportStart() {
             long startTime = lastCompletedTransportStartTime();
             return startTime > 0 ? Time.now() - startTime : 0;
         }
@@ -511,7 +511,7 @@ public abstract class Transporter {
             sb.append(String.format("| %-40s | %-20s |\n",
                     "Last Completed Transport End Time", endTimeStr));
 
-            long timeSinceEnd = timeSinceLastTransportEnd();
+            long timeSinceEnd = timeSinceLastCompletedTransportEnd();
             String timeSinceEndStr = timeSinceEnd > 0
                     ? String.format("%.2f", timeSinceEnd / 1000.0)
                     : "-";
