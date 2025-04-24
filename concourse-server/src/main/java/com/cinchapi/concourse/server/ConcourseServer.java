@@ -241,6 +241,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                 try {
                     CommandLine.displayWelcomeBanner();
                     System.out.println("System ID: " + GlobalState.SYSTEM_ID);
+                    displayMaxFileDescriptors();
                     server.start();
                 }
                 catch (TTransportException e) {
@@ -303,6 +304,22 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
 
         });
+    }
+
+    /**
+     * Display the maximum number of file descriptors available to the JVM.
+     * This method will print nothing if the information cannot be retrieved
+     * (e.g., when not running on a Unix-like system).
+     */
+    @SuppressWarnings("restriction")
+    private static void displayMaxFileDescriptors() {
+        try {
+            com.sun.management.UnixOperatingSystemMXBean os = (com.sun.management.UnixOperatingSystemMXBean) ManagementFactory
+                    .getOperatingSystemMXBean();
+            System.out.println("Max File Descriptor Limit: "
+                    + os.getMaxFileDescriptorCount());
+        }
+        catch (Exception e) {}
     }
 
     /**
