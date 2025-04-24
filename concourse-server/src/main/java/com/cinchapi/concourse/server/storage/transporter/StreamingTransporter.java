@@ -16,8 +16,6 @@
 package com.cinchapi.concourse.server.storage.transporter;
 
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -192,11 +190,6 @@ public class StreamingTransporter extends Transporter {
     protected int bufferTransportThreadSleepInMs = 0; // visible for testing
 
     /**
-     * A {@link Timer} that is used to schedule some regular tasks.
-     */
-    private Timer hungTaskDetector;
-
-    /**
      * The lock used to coordinate access during critical sections.
      */
     private final Lock lock;
@@ -242,39 +235,13 @@ public class StreamingTransporter extends Transporter {
      */
     public StreamingTransporter(Buffer buffer, Database database,
             String environment, Lock lock) {
-        super(threadNameFormat(environment), uncaughtExceptionHandler());
+        super(threadNameFormat(environment), uncaughtExceptionHandler(),
+                BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
         this.buffer = buffer;
         this.database = database;
         this.lock = lock;
         buffer.onScan(
                 () -> transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS);
-    }
-
-    @Override
-    public void start() {
-        hungTaskDetector = new Timer(true);
-        hungTaskDetector.scheduleAtFixedRate(new TimerTask() {
-
-            @Override
-            public void run() {
-                if(transportTaskAppearsHung()) {
-                    bufferTransportThreadHasEverAppearedHung.set(true);
-                    restart();
-                }
-
-            }
-
-        }, BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS,
-                BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_FREQUENCY_IN_MILLISECONDS);
-        super.start();
-
-    }
-
-    @Override
-    public void stop() {
-        super.stop();
-        hungTaskDetector.cancel();
-        hungTaskDetector = null;
     }
 
     /**
@@ -375,20 +342,18 @@ public class StreamingTransporter extends Transporter {
         return TimeUnit.MILLISECONDS.convert(elapsed, TimeUnit.MICROSECONDS);
     }
 
-    /**
-     * Return {@code true} if it appears that the {@link #transport()} task
-     * appears hung.
-     * 
-     * @return {@code true} if the task appears hung
-     */
-    private final boolean transportTaskAppearsHung() {
+    @Override
+    protected boolean requiresRestart(TransportStats stats) {
         if(!bufferTransportThreadIsDoingWork.get()) {
             if(!bufferTransportThreadIsPaused.get()) {
                 if(bufferTransportThreadLastWakeUp.get() != 0) {
                     long elapsedMs = TimeUnit.MILLISECONDS.convert(
                             Time.now() - bufferTransportThreadLastWakeUp.get(),
                             TimeUnit.MICROSECONDS);
-                    return elapsedMs > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS;
+                    if(elapsedMs > BUFFER_TRANSPORT_THREAD_HUNG_DETECTION_THRESOLD_IN_MILLISECONDS) {
+                        bufferTransportThreadHasEverAppearedHung.set(true);
+                        return true;
+                    }
                 }
             }
         }

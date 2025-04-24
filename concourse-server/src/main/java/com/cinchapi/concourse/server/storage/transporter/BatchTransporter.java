@@ -19,11 +19,13 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiFunction;
 
 import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.common.concurrent.CountUpLatch;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.db.kernel.Segment;
@@ -84,6 +86,12 @@ public class BatchTransporter extends Transporter {
     private final CountUpLatch latch;
 
     /**
+     * The threshold for how long a transport operation can be inactive
+     * before it's considered potentially hung (in milliseconds).
+     */
+    private final int allowableInactivityThresholdInMillis;
+
+    /**
      * Constructs a new {@link BatchTransporter} with the specified
      * configuration.
      * This constructor is private to enforce the use of the builder pattern.
@@ -92,14 +100,17 @@ public class BatchTransporter extends Transporter {
             UncaughtExceptionHandler uncaughtExceptionHandler,
             BiFunction<String, UncaughtExceptionHandler, ExecutorService> executorSupplier,
             int numIndexerThreads, BatchTransportable source, Database database,
-            Lock lock, AwaitableExecutorService segmentWriter) {
+            Lock lock, AwaitableExecutorService segmentWriter,
+            int healthCheckFrequencyInMillis,
+            int allowableInactivityThresholdInMillis) {
         super(threadNamePrefix, uncaughtExceptionHandler, executorSupplier,
-                numIndexerThreads);
+                numIndexerThreads, healthCheckFrequencyInMillis);
         this.latch = new CountUpLatch();
         this.source = source;
         this.database = database;
         this.segmentWriter = segmentWriter;
         this.lock = lock;
+        this.allowableInactivityThresholdInMillis = allowableInactivityThresholdInMillis;
     }
 
     /**
@@ -162,11 +173,71 @@ public class BatchTransporter extends Transporter {
         }
     }
 
+    @Override
+    protected boolean requiresRestart(TransportStats stats) {
+        if(stats.isTransportInProgress()) {
+            // If a transport is in progress, check to see if it is taking too
+            // long
+            long runningTimeInMicros = stats.timeSinceLastTransportStart();
+            long thresholdInMicros = TimeUnit.MICROSECONDS.convert(
+                    allowableInactivityThresholdInMillis,
+                    TimeUnit.MILLISECONDS);
+            if(runningTimeInMicros > thresholdInMicros) {
+                Logger.warn(
+                        "A batch transpor operation has been running for {} ms, "
+                                + "which exceeds the allowable threshold of {} ms",
+                        TimeUnit.MILLISECONDS.convert(runningTimeInMicros,
+                                TimeUnit.MICROSECONDS),
+                        allowableInactivityThresholdInMillis);
+                return true;
+            }
+        }
+        else {
+            // If we're not in the middle of a transport, check if it's been too
+            // long since the last transport completed and if there's work to do
+            long idleTimeInMicros = stats.timeSinceLastTransportEnd();
+            long thresholdInMicros = TimeUnit.MICROSECONDS.convert(
+                    allowableInactivityThresholdInMillis,
+                    TimeUnit.MILLISECONDS);
+
+            boolean canTransport = Reflection.call(source, "canTransport");
+            if(idleTimeInMicros > thresholdInMicros && canTransport) {
+                Logger.warn(
+                        "The batch transporter has been idle for {} ms with work to do, "
+                                + "which exceeds the allowable threshold of {} ms",
+                        TimeUnit.MILLISECONDS.convert(idleTimeInMicros,
+                                TimeUnit.MICROSECONDS),
+                        allowableInactivityThresholdInMillis);
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * The final stage of the {@link BatchTransporter} builder which allows
      * setting optional parameters and building the transporter.
      */
     public interface BuildStage {
+
+        /**
+         * Sets the threshold for how long a transport operation can be inactive
+         * before it's considered potentially hung.
+         *
+         * @param thresholdInMillis the threshold in milliseconds
+         * @return this builder for method chaining
+         */
+        public BuildStage allowableInactivityThreshold(int thresholdInMillis);
+
+        /**
+         * Enables health monitoring with the specified check frequency.
+         *
+         * @param frequencyInMillis the frequency in milliseconds to check
+         *            transport health;
+         *            if not greater than 0, health monitoring is disabled
+         * @return this builder for method chaining
+         */
+        public BuildStage healthCheck(int frequencyInMillis);
 
         /**
          * Builds and returns a new {@link BatchTransporter} with the configured
@@ -175,6 +246,19 @@ public class BatchTransporter extends Transporter {
          * @return a new {@link BatchTransporter}
          */
         BatchTransporter build();
+
+        /**
+         * Set the thread name format for the transporter threads, based on the
+         * {@code environment}.
+         * 
+         * @param environment
+         * @return this builder
+         */
+        default BuildStage environment(String environment) {
+            String threadNameFormat = AnyStrings
+                    .joinSimple("BatchTransporter [", environment, "]-%d");
+            return threadNameFormat(threadNameFormat);
+        }
 
         /**
          * Sets the executor service supplier for creating the thread pool.
@@ -201,19 +285,6 @@ public class BatchTransporter extends Transporter {
          * @return this builder
          */
         BuildStage threadNameFormat(String threadNameFormat);
-
-        /**
-         * Set the thread name format for the transporter threads, based on the
-         * {@code environment}.
-         * 
-         * @param environment
-         * @return this builder
-         */
-        default BuildStage environment(String environment) {
-            String threadNameFormat = AnyStrings
-                    .joinSimple("BatchTransporter [", environment, "]-%d");
-            return threadNameFormat(threadNameFormat);
-        }
 
         /**
          * Sets the handler for uncaught exceptions in the transporter threads.
@@ -307,12 +378,22 @@ public class BatchTransporter extends Transporter {
         private BiFunction<String, UncaughtExceptionHandler, ExecutorService> executorSupplier = Transporter
                 .defaultExecutorSupplier();
         private int numIndexerThreads = 1;
+        private int healthCheckFrequencyInMillis = 500;
+        private int allowableInactivityThresholdInMillis = 5000;
+
+        @Override
+        public BuildStage allowableInactivityThreshold(int thresholdInMillis) {
+            this.allowableInactivityThresholdInMillis = thresholdInMillis;
+            return this;
+        }
 
         @Override
         public BatchTransporter build() {
             return new BatchTransporter(threadNamePrefix,
                     uncaughtExceptionHandler, executorSupplier,
-                    numIndexerThreads, source, database, lock, segmentWriter);
+                    numIndexerThreads, source, database, lock, segmentWriter,
+                    healthCheckFrequencyInMillis,
+                    allowableInactivityThresholdInMillis);
         }
 
         @Override
@@ -325,6 +406,12 @@ public class BatchTransporter extends Transporter {
         @Override
         public DatabaseStage from(BatchTransportable source) {
             this.source = source;
+            return this;
+        }
+
+        @Override
+        public BuildStage healthCheck(int frequencyInMillis) {
+            this.healthCheckFrequencyInMillis = frequencyInMillis;
             return this;
         }
 
