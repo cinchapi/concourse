@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
@@ -228,10 +229,16 @@ public abstract class Transporter {
     }
 
     /**
-     * Stops the transport process by shutting down the executor service and
-     * interrupting any running transport threads. If the {@link Transporter} is
-     * not
-     * running, an {@link IllegalStateException} is thrown.
+     * Stop the {@link Transporter} and make a <em>best effort</em> to interrupt
+     * any transports that are currently in progress.
+     * 
+     * <p>
+     * When this method returns, the {@link Transporter} will be marked as
+     * stopped and no new transports will be scheduled, but it is possible that
+     * prior initiated transports will still complete. If it is necessary to
+     * guarantee that all pending transports are cancelled or completed before
+     * returning, use the {@link #stop(boolean) stop(true)} instead.
+     * </p>
      *
      * @throws IllegalStateException if the {@link Transporter} is not running
      */
@@ -240,6 +247,39 @@ public abstract class Transporter {
             executor.shutdownNow();
             executor = null;
 
+            if(healthCheckTimer != null) {
+                healthCheckTimer.cancel();
+                healthCheckTimer = null;
+            }
+        }
+        else {
+            throw new IllegalStateException("The Transporter is not running");
+        }
+    }
+
+    /**
+     * Stop the {@link Transporter} and optionally {@code wait} for all active
+     * transports to finish.
+     * 
+     * <p>
+     * In general, it is best to use the {@link #stop()} method, but this one is
+     * beneficial for unit tests that want to preserve state and guarantee that
+     * there are no lingering transport processes modifying things in the
+     * background.
+     * </p>
+     * 
+     * @param wait
+     */
+    public void stop(boolean wait) {
+        if(running.compareAndSet(true, false)) {
+            executor.shutdown();
+            if(wait) {
+                try {
+                    executor.awaitTermination(1, TimeUnit.MINUTES);
+                }
+                catch (InterruptedException e) {}
+            }
+            executor = null;
             if(healthCheckTimer != null) {
                 healthCheckTimer.cancel();
                 healthCheckTimer = null;
@@ -280,7 +320,6 @@ public abstract class Transporter {
      */
     protected void restart() {
         if(running.compareAndSet(true, false)) {
-            running.set(false);
             for (Future<?> task : tasks) {
                 if(task.isDone()) {
                     try {
@@ -296,9 +335,9 @@ public abstract class Transporter {
                 }
 
             }
-        }
-        if(running.compareAndSet(false, true)) {
-            tasks = submitTasks();
+            if(running.compareAndSet(false, true)) {
+                tasks = submitTasks();
+            }
         }
     }
 
