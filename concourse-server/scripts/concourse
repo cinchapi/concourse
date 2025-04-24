@@ -186,6 +186,15 @@ JVMOPTS=$JVMOPTS"
 -D$APP_HOME_PROPERTY
 "
 
+if [ "$darwin" = "true" ]; then
+  # Disable MaxFDLimit on macOS to prevent file descriptor limitations.
+  # By default, HotSpot on macOS enforces a built-in OPEN_MAX of 10,240 file descriptors
+  # even when the OS ulimit or kern.maxfilesperproc is set higher.
+  JVMOPTS=$JVMOPTS"
+  -XX:-MaxFDLimit
+  "
+fi
+
 # The CLIs in the bin directory are automatically registered as invokable
 # by this script, however, this is a place to define aliases for certain
 # CLIs for which we want to expose a more user-friendly name.

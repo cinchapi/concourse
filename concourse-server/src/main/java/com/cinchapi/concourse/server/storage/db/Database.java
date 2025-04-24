@@ -983,9 +983,11 @@ public final class Database implements DurableStore {
     public void start() {
         if(!running) {
             Logger.info("Database configured to store data in {}", directory);
+            int numWorkers = Math.max(3,
+                    Runtime.getRuntime().availableProcessors());
             running = true;
             this.writer = new AwaitableExecutorService(
-                    Executors.newCachedThreadPool(ThreadFactories
+                    Executors.newFixedThreadPool(numWorkers, ThreadFactories
                             .namingThreadFactory("DatabaseWriter")));
             this.segments.clear();
             ArrayBuilder<Runnable> tasks = ArrayBuilder.builder();
@@ -1005,7 +1007,7 @@ public final class Database implements DurableStore {
             files.close();
             if(tasks.length() > 0) {
                 AwaitableExecutorService loader = new AwaitableExecutorService(
-                        Executors.newCachedThreadPool(ThreadFactories
+                        Executors.newFixedThreadPool(numWorkers, ThreadFactories
                                 .namingThreadFactory("DatabaseLoader")));
                 try {
                     loader.await((task, error) -> Logger.error(

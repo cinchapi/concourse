@@ -45,7 +45,6 @@ import org.apache.thrift.TException;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
@@ -241,6 +240,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                 try {
                     CommandLine.displayWelcomeBanner();
                     System.out.println("System ID: " + GlobalState.SYSTEM_ID);
+                    displayMaxFileDescriptors();
                     server.start();
                 }
                 catch (TTransportException e) {
@@ -303,6 +303,22 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
 
         });
+    }
+
+    /**
+     * Display the maximum number of file descriptors available to the JVM.
+     * This method will print nothing if the information cannot be retrieved
+     * (e.g., when not running on a Unix-like system).
+     */
+    @SuppressWarnings("restriction")
+    private static void displayMaxFileDescriptors() {
+        try {
+            com.sun.management.UnixOperatingSystemMXBean os = (com.sun.management.UnixOperatingSystemMXBean) ManagementFactory
+                    .getOperatingSystemMXBean();
+            System.out.println("Max File Descriptor Limit: "
+                    + os.getMaxFileDescriptorCount());
+        }
+        catch (Exception e) {}
     }
 
     /**
@@ -6612,9 +6628,10 @@ public class ConcourseServer extends BaseConcourseServer implements
         // Setup the management server
         TServerSocket mgmtSocket = new TServerSocket(
                 GlobalState.MANAGEMENT_PORT);
-        TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
-        mgmtArgs.processor(new ConcourseManagementService.Processor<>(this));
-        this.mgmtServer = new TSimpleServer(mgmtArgs);
+        Args mgmtArgs = new TThreadPoolServer.Args(mgmtSocket)
+                .processor(new ConcourseManagementService.Processor<>(this))
+                .minWorkerThreads(1).maxWorkerThreads(1);
+        this.mgmtServer = new TThreadPoolServer(mgmtArgs);
     }
 
     /**
