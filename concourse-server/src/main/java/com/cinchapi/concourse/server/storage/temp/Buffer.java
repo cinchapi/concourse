@@ -528,7 +528,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
             currentPage.append(write, sync);
             if(notify) {
                 synchronized (transportable) {
-                    transportable.notify();
+                    transportable.notifyAll();
                 }
             }
             return true;
@@ -898,10 +898,12 @@ public final class Buffer extends Limbo implements BatchTransportable {
     public void waitUntilTransportable() {
         if(pages.size() <= 1) {
             synchronized (transportable) {
-                try {
-                    transportable.wait();
+                while (pages.size() <= 1) {
+                    try {
+                        transportable.wait();
+                    }
+                    catch (InterruptedException e) {/* ignore */}
                 }
-                catch (InterruptedException e) {/* ignore */}
             }
         }
     }
