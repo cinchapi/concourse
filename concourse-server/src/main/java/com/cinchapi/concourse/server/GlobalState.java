@@ -40,6 +40,7 @@ import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
 import com.cinchapi.concourse.server.storage.transporter.BatchTransporter;
 import com.cinchapi.concourse.server.storage.transporter.StreamingTransporter;
+import com.cinchapi.concourse.server.storage.transporter.Transporter;
 import com.cinchapi.concourse.util.Networking;
 import com.cinchapi.lib.config.read.Interpreters;
 import com.google.common.base.MoreObjects;
@@ -295,24 +296,26 @@ public final class GlobalState extends Constants {
     public static String INIT_ROOT_USERNAME = "admin";
 
     /**
-     * Determines whether to use batch transports instead of streaming
-     * transports. When enabled, data is moved from the Buffer to the Database
-     * in larger batches, which can improve overall throughput at the cost of
-     * potentially longer pauses during merges.
+     * Determines whether to use batch instead of streaming
+     * {@link Transporter transports}.
+     * <p>
+     * When enabled, data is moved from the Buffer to the Database in the
+     * background and in larger batches, which can improve overall throughput at
+     * the cost of potentially longer pauses during merges.
      */
     public static boolean ENABLE_BATCH_TRANSPORTS = false;
 
     /**
-     * The type of Transporter to use when transporting data from the Buffer to
-     * the Database.
+     * The type of {@link Transporter} to use when transporting data from the
+     * Buffer to the Database.
      */
     @NonPreference
-    public static Class<?> TRANSPORTER_CLASS = StreamingTransporter.class;
+    public static Class<? extends Transporter> TRANSPORTER_CLASS = StreamingTransporter.class;
 
     /**
-     * The number of threads to use for transport operations. More threads can
-     * improve transport throughput in some scenarios, but may increase resource
-     * contention.
+     * The number of threads to use for {@link Transporter#transport()
+     * transport} operations. More threads can improve transport throughput in
+     * some scenarios, but may increase resource contention.
      */
     public static int NUM_TRANSPORTER_THREADS = 1;
 
@@ -410,8 +413,8 @@ public final class GlobalState extends Constants {
                         .toArray(Array.containing()));
 
         // @formatter:off
-        Map<String, Class<?>> transporterClasses = ImmutableMap
-                .<String, Class<?>> builder()
+        Map<String, Class<? extends Transporter>> transporterClasses = ImmutableMap
+                .<String, Class<? extends Transporter>> builder()
                 .put("streaming", StreamingTransporter.class)
                 .put(StreamingTransporter.class.getName(), StreamingTransporter.class)
                 .put(StreamingTransporter.class.getSimpleName(), StreamingTransporter.class)

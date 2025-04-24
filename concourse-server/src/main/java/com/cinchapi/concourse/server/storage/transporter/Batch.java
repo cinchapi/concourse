@@ -28,7 +28,7 @@ import com.cinchapi.concourse.server.storage.temp.Write;
  * order.
  * <p>
  * <strong>NOTE:</strong>The {@link Write Writes} in a Batch are stored in order
- * of application from oldest to newest.
+ * of insertion from oldest to newest.
  * </p>
  *
  * @author Jeff Nelson

@@ -305,24 +305,29 @@ public final class Buffer extends Limbo implements BatchTransportable {
     private final Object readable = new Object();
 
     /**
-     * A counter that tracks the total number of batches that have been created
-     * for transport. This counter ensures that batches are processed in the
+     * A counter that tracks the total number of {@link Batch batches} that have
+     * been {@link #queueTransportBatch(Page) queued} for transport.
+     * <p>
+     * Each {@link Batch} is assigned a value from this counter as it's
+     * {@link Batch#ordinal()} to ensure that batches are processed in the
      * correct chronological order, even when multiple transport threads are
      * running concurrently.
+     * </p>
      */
     private final AtomicInteger batchCount = new AtomicInteger(0);
 
     /**
-     * A queue of batches that are ready for
+     * A queue of {@link Batch batches} that are ready for
      * {@link com.cinchapi.concourse.server.storage.transporter.Transporter
-     * transport} to the database. Each batch contains writes from a page that
-     * has been filled and is ready for processing.
+     * transport} to the database. Each {@link Batch batch} contains
+     * {@link Write writes} from a {@link Page} that is full and no longer
+     * {@link Page#isMutable() accepting} data.
      */
     private BlockingQueue<Batch> batches = new LinkedBlockingQueue<Batch>();
 
     /**
-     * A collection of listeners that are notified whenever the transport rate
-     * is scaled back.
+     * A collection of listeners that are notified whenever a reader scans the
+     * {@link Buffer}.
      */
     private final Collection<Runnable> scanEventListeners = new ArrayList<>();
 
@@ -550,13 +555,9 @@ public final class Buffer extends Limbo implements BatchTransportable {
     }
 
     /**
-     * Retrieves the next batch of writes that is ready for transport to the
-     * database. This method blocks until a batch is available.
-     * <p>
-     * The Buffer creates batches when pages are filled, ensuring efficient
-     * transport of data in manageable chunks that minimize the impact on
-     * concurrent read operations.
-     * </p>
+     * Retrieve the next {@link Batch batch} of {@link Write writes} that is
+     * ready to be transported, waiting, if necessary, until one becomes
+     * available.
      *
      * @return the next batch to transport
      * @throws InterruptedException if the thread is interrupted while waiting
@@ -1279,15 +1280,16 @@ public final class Buffer extends Limbo implements BatchTransportable {
 
         /**
          * Controls read/write access to this {@link Page}. By locking
-         * individual pages, the overall {@link Buffer} can manage concurrency
-         * at a granular level.
-         * <p>
-         * The {@link Buffer} allows concurrent readers and writers if they are
-         * operating on different pages. Similarly,
-         * {@link Buffer#transport(DurableStore, boolean) transports} can be
-         * made from a page that is not currently being read. This lock
-         * facilitates all of that.
-         * </p>
+         * individual pages, the {@link Buffer} can manage concurrency
+         * at a granular level:
+         * <ul>
+         * <li>Concurrent readers and writers that are operating on different
+         * pages</li>
+         * <li>Concurrent transports and readers that are operating on different
+         * pages</li>
+         * <li>Concurrent transports and writers that are operating on different
+         * pages</li>
+         * </ul>
          */
         private transient StampedLock lock = new StampedLock();
 

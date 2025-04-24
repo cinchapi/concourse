@@ -405,8 +405,8 @@ public final class Database implements DurableStore {
     private transient String tag = "";
 
     /**
-     * An {@link ExecutorService} that is used to for asynchronous writing tasks
-     * in mutable {@link Segment segments}.
+     * An {@link ExecutorService} that is used for asynchronous writing tasks in
+     * mutable {@link Segment segments}.
      */
     private transient AwaitableExecutorService writer;
 
@@ -733,29 +733,28 @@ public final class Database implements DurableStore {
      * Merge a {@link Segment} that contains data that was not previously
      * {@link #accept(Write) accepted} by the {@link Database}.
      * <p>
-     * In addition to appending the {@code segment}, this method will ensure
-     * that any necessary caches are {@link #updateCaches(Receipt) updated}.
+     * In addition to appending the {@code segment}, this method ensures that
+     * any necessary caches are {@link #updateCaches(Receipt) updated}.
      * And, if the {@code segment} is {@link Segment#isMutable() mutable}, it
-     * will be
-     * {@link SegmentStorageSystem#save(Segment) persisted} to disk and made
-     * immutable.
+     * will be {@link SegmentStorageSystem#save(Segment) persisted} to disk and
+     * made immutable.
      * </p>
      * <p>
      * <strong>NOTE:</strong> This method is only intended for adding net-new
-     * data that changes the "state" that would be observed by one or more
-     * future reads. For operations where segments are being inserted but
-     * "state" is not changing (e.g., because the segment contains duplicate
-     * data), use the appropriate specialized method instead:
+     * data that changes the "state" that should be observed by future reads.
+     * For operations where segments are being inserted but "state" is not
+     * changing (e.g., because the segment contains duplicate data), use the
+     * appropriate specialized method instead:
      * <ul>
      * <li>For reindexing, use the {@link #reindex()} method</li>
      * <li>For compaction, use the {@link #compact()} method or a
      * {@link Compactor}</li>
      * </ul>
-     * Those methods manage segment files without modifying the caches in the
-     * {@link Database}.
+     * <em>Those methods manage segment files without modifying the caches in
+     * the {@link Database}.</em>
      * </p>
      * 
-     * @param segment the {@link Segment} to append to the database
+     * @param segment the {@link Segment} to merge into the database
      * @param receipts a {@link List} of {@link Receipt receipts} representing
      *            all the {@link Segment#acquire(Write) acquisitions} by the
      *            {@link Segment}

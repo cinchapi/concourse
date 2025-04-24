@@ -38,7 +38,6 @@ import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.server.concurrent.LockBroker.Permit;
-import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import com.cinchapi.concourse.server.concurrent.RangeToken;
 import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -108,12 +107,14 @@ public final class Engine extends BufferedStore implements
      * 
      * @return the value for {@link #transportLock}
      */
+    @SuppressWarnings("deprecation")
     private static ReentrantReadWriteLock createTransportLock() {
         if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
             return new ReentrantReadWriteLock();
         }
         else {
-            return PriorityReadWriteLock.prioritizeReads();
+            return com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock
+                    .prioritizeReads();
         }
     }
 
@@ -859,9 +860,8 @@ public final class Engine extends BufferedStore implements
     }
 
     /**
-     * Construct the appropriate {@link Transporter} implementation based on
-     * system configuration. The transporter is responsible for moving data from
-     * the buffer to the database.
+     * Construct the appropriate {@link Transporter} based on system
+     * configuration.
      * 
      * @return the configured {@link Transporter} instance
      */
