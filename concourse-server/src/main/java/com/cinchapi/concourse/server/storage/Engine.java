@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -320,6 +321,22 @@ public final class Engine extends BufferedStore implements
             range.release();
             transportLock.readLock().unlock();
         }
+    }
+
+    @Override
+    public ReadWriteLock advisoryLock() {
+        // Higher level abstractions (e.g., the 'Stores' factory class and
+        // Atomic Operations in Concourse Server) call multiple Engine
+        // primitives. Each primitive acquires the transport read lock to
+        // prevent state changes during execution, but releases it immediately
+        // after completion. This creates contention as transports can
+        // interleave between primitive calls within a single logical operation.
+        //
+        // By exposing the transportLock as an advisoryLock, higher level
+        // operations can acquire it once at the beginning and hold it
+        // throughout their execution, ensuring the entire bulk/atomic operation
+        // proceeds without interference from background transports.
+        return transportLock;
     }
 
     @Override
