@@ -69,13 +69,13 @@ import com.google.common.collect.Lists;
  * {@link Revision revisions} (this corresponds to the
  * {@link Segment#acquire(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)}
  * functionality), which are sorted on the fly. Once the {@link Chunk} is
- * {@link #freeze(Path, long) frozen} (happens when its parent {@link Segment}
+ * {@link #flush(ByteSink) flushed} (happens when its parent {@link Segment}
  * is
- * {@link Segment#sync(com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)
- * synced to disk}) it becomes immutable and all lookups eventually become disk
- * based. This means that writing to a {@link Chunk} never incurs any random
- * disk I/O and reading from a {@link #freeze(Path, long) frozen} chunk only
- * loads into memory as much data from disk as necessary to support each
+ * {@link Segment#transfer(com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)
+ * transferred to disk}) it becomes immutable and all lookups eventually become
+ * disk based. This means that writing to a {@link Chunk} never incurs any
+ * random disk I/O and reading from a {@link #flush(ByteSink) flushed} chunk
+ * only loads into memory as much data from disk as necessary to support each
  * individual operation.
  * </p>
  * <p>
