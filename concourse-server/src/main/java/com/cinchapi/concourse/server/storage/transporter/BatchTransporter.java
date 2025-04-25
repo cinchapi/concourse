@@ -163,6 +163,8 @@ public class BatchTransporter extends Transporter {
             }
         }
 
+        segment.compile();
+
         // There may be multiple transport threads, but each Segment must be
         // appended to the Database in the same order that the corresponding
         // Page appeared in the Buffer. So each pass must queue up here until
