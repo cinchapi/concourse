@@ -16,6 +16,7 @@
 package com.cinchapi.concourse.server.concurrent;
 
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -49,6 +50,17 @@ public final class Locks {
      */
     public static ReadLock noOpReadLock() {
         return NOOP_READ_LOCK;
+    }
+
+    /**
+     * Return a {@link ReadWriteLock} that is non-operational and always returns
+     * immediately without actually acquiring and shared or exclusive holds on
+     * any monitor.
+     * 
+     * @return the noop {@link ReadWriteLock}
+     */
+    public static ReadWriteLock noOpReadWriteLock() {
+        return NOOP_READ_WRITE_LOCK;
     }
 
     /**
@@ -207,6 +219,23 @@ public final class Locks {
 
         @Override
         public void unlock() {}
+    };
+    
+    /**
+     * The lock that is returned by the {@link #noOpReadWriteLock()} method.
+     */
+    private static final ReadWriteLock NOOP_READ_WRITE_LOCK = new ReadWriteLock() {
+
+        @Override
+        public Lock readLock() {
+            return NOOP_READ_LOCK;
+        }
+
+        @Override
+        public Lock writeLock() {
+            return NOOP_WRITE_LOCK;
+        }
+
     };
 
 }
