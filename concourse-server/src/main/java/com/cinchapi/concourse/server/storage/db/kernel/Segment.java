@@ -597,6 +597,9 @@ public final class Segment extends TransferableByteSequence implements
      * </p>
      */
     public void compile() {
+        // Accessing each Chunk's manifest, generates it on the fly, which
+        // simultaneously causes each Chunk to generate and cache it's binary
+        // representation.
         table.manifest();
         index.manifest();
         corpus.manifest();
