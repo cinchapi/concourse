@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.base.AnyStrings;
+import com.cinchapi.common.profile.Benchmark;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.io.Composite;
@@ -385,6 +387,73 @@ public class SegmentTest extends ConcourseBaseTest {
         Set<Write> actual = (Set<Write>) segment.writes()
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         Assert.assertEquals(writes, actual);
+    }
+
+    @Test
+    public void testCompileImprovesTranferPerformance()
+            throws SegmentLoadingException {
+        // 1. Create two identical segments with the same data
+        Segment compiled = Segment.create();
+        Segment nonCompiled = Segment.create();
+
+        // Add the same writes to both segments
+        int count = TestData.getScaleCount();
+        for (int i = 0; i < count; ++i) {
+            Write write = TestData.getWriteAdd();
+            compiled.acquire(write);
+            nonCompiled.acquire(write);
+        }
+
+        // 2. Compile one segment but not the other
+        compiled.compile();
+
+        // 3. Measure and compare transfer times
+        long compiledDuration = Benchmark
+                .measure(() -> compiled
+                        .transfer(Paths.get(TestData.getTemporaryTestFile())))
+                .in(TimeUnit.MICROSECONDS).async().run().join();
+
+        long nonCompiledDuration = Benchmark
+                .measure(() -> nonCompiled
+                        .transfer(Paths.get(TestData.getTemporaryTestFile())))
+                .in(TimeUnit.MICROSECONDS).async().run().join();
+
+        // Assert that compilation improves performance
+        Assert.assertTrue(
+                "Compiled segment transfer should be faster than non-compiled",
+                compiledDuration < nonCompiledDuration);
+
+        // Log the performance improvement for visibility
+        System.out.println("compiled = " + compiledDuration);
+        System.out.println("not compiled = " + nonCompiledDuration);
+    }
+
+    @Test
+    public void testCompiledSegmentMaintainsDataIntegrity()
+            throws SegmentLoadingException {
+        Segment a = Segment.create();
+        Segment b = Segment.create();
+        int count = TestData.getScaleCount();
+
+        for (int i = 0; i < count; ++i) {
+            Write write = TestData.getWriteAdd();
+            a.append(write);
+            b.append(write);
+        }
+
+        Path pathA = Paths.get(TestData.getTemporaryTestFile() + ".compiled");
+        Path pathB = Paths
+                .get(TestData.getTemporaryTestFile() + ".noncompiled");
+
+        b.compile();
+        b.transfer(pathB);
+        Assert.assertArrayEquals(a.writes().toArray(), b.writes().toArray());
+
+        a.transfer(pathA);
+        Assert.assertArrayEquals(a.writes().toArray(), b.writes().toArray());
+
+        b = Segment.load(pathB);
+        Assert.assertArrayEquals(a.writes().toArray(), b.writes().toArray());
     }
 
 }

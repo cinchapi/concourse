@@ -568,6 +568,41 @@ public final class Segment extends TransferableByteSequence implements
     }
 
     /**
+     * Prepare this {@link Segment} for an efficient {@link #transfer(Path)}
+     * operation by compiling the binary representation its internal data
+     * structures.
+     * <p>
+     * This method optimizes performance by generating the {@link Segment
+     * Segment's} storage representation ahead of time, reducing the work needed
+     * during the actual transfer operation. The {@link Segment} remains
+     * {@link #isMutable() mutable} after preparation, but the performance
+     * benefits are only realized if no additional {@link Write}s are
+     * {@link #acquire(Write) acquired} before the transfer occurs. Any
+     * modifications after preparation will cause the pre-generated structures
+     * to be invalidated, requiring regeneration during transfer.
+     * </p>
+     * <p>
+     * This method is particularly useful for reducing the critical section
+     * in database-structure altering operations. For example, since the
+     * {@link Database} must acquire a write lock when performing operations
+     * like {@link Database#merge(Segment) merging}
+     * or {@link Database#sync() syncing} it's pending Segment, using
+     * {@link compile()} before acquiring the lock allows expensive preparation
+     * work to happen outside the lock's critical section. This improves
+     * concurrency by minimizing the time that other operations are blocked.
+     * </p>
+     * <p>
+     * Calling this method has no effect if the Segment is already prepared or
+     * if it is immutable.
+     * </p>
+     */
+    public void compile() {
+        table.manifest();
+        index.manifest();
+        corpus.manifest();
+    }
+
+    /**
      * Return this {@link Segment Segment's} {@link CorpusChunk}, if it exists.
      * 
      * @return the {@link CorpusChunk} or {@code null} it it does not exist
@@ -941,4 +976,5 @@ public final class Segment extends TransferableByteSequence implements
         }
 
     }
+
 }
