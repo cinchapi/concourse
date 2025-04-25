@@ -23,16 +23,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.cinchapi.common.profile.Benchmark;
+import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.server.ops.Stores.NavigationKeyFinder;
 import com.cinchapi.concourse.server.storage.AtomicSupport;
 import com.cinchapi.concourse.server.storage.Engine;
+import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -386,6 +390,48 @@ public class StoresTest {
         Map<Long, Map<String, Set<TObject>>> expected = PrettyLinkedTableMap
                 .of(ImmutableMap.of(1L, _expected));
         System.out.println(expected);
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testBulkSelectDuringTransports() throws InterruptedException {
+        AtomicSupport store = getStore();
+        Buffer buffer = Reflection.get("limbo", store);
+
+        AtomicBoolean transportable = new AtomicBoolean(false);
+        while (!transportable.get()) {
+            for (int i = 0; i < TestData.getScaleCount(); ++i) {
+                store.accept(TestData.getWriteAdd());
+            }
+            if(!transportable.get()) {
+                transportable.set(Reflection.call(buffer, "canTransport"));
+            }
+        }
+        setupNavigationGraph(store);
+        List<String> keys = ImmutableList.of("name", "email", "title",
+                "website", "association");
+
+        AtomicBoolean stop = new AtomicBoolean(false);
+        CountDownLatch start = new CountDownLatch(1);
+
+        Thread writer = new Thread(() -> {
+            while (!stop.get()) {
+                for (int i = 0; i < TestData.getScaleCount(); ++i) {
+                    store.accept(TestData.getWriteAdd());
+                }
+                Stores.select(store, keys, 1);
+                start.countDown();
+            }
+        });
+        writer.start();
+        start.await();
+
+        Map<String, Set<TObject>> actual = Stores.select(store, keys, 1);
+        Map<String, Set<TObject>> expected = new LinkedHashMap<>();
+        for (String key : keys) {
+            expected.put(key, Stores.serialSelect(store, key, 1));
+        }
+
         Assert.assertEquals(expected, actual);
     }
 
