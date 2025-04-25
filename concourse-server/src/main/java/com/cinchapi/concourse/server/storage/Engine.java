@@ -15,8 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage;
 
-import static com.google.common.base.Preconditions.*;
 import static com.cinchapi.concourse.server.GlobalState.ENABLE_BATCH_TRANSPORTS;
+import static com.google.common.base.Preconditions.*;
 
 import java.io.File;
 import java.util.Collection;

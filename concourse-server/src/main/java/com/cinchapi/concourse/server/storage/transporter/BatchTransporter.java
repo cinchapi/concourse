@@ -140,6 +140,7 @@ public class BatchTransporter extends Transporter {
     @Override
     public void transport() throws InterruptedException {
         Batch batch = source.nextBatch();
+        Logger.info("Starting batch transport for {}", batch);
 
         int batchSize = batch.size();
         int ordinal = batch.ordinal();
@@ -178,6 +179,7 @@ public class BatchTransporter extends Transporter {
                 // Signal that the next chronological transported Segment can
                 // proceed to this critical section.
                 latch.countUp();
+                Logger.info("Finished batch transport for {}", batch);
             }
             else {
                 throw new IllegalStateException(
@@ -274,7 +276,7 @@ public class BatchTransporter extends Transporter {
          */
         default BuildStage environment(String environment) {
             String threadNameFormat = AnyStrings
-                    .joinSimple("BatchTransporter [", environment, "]-%d");
+                    .joinSimple("Batch Transporter <", environment, ">");
             return threadNameFormat(threadNameFormat);
         }
 
@@ -389,14 +391,14 @@ public class BatchTransporter extends Transporter {
         private Database database;
         private Lock lock;
         private AwaitableExecutorService segmentWriter;
-        private String threadNamePrefix = "Batch Transporter";
+        private String threadNameFormat = "Batch Transporter";
         private UncaughtExceptionHandler uncaughtExceptionHandler = (t, e) -> {
             Logger.error("Uncaught exception in batch transport thread: {}", e);
         };
         private BiFunction<String, UncaughtExceptionHandler, ExecutorService> executorSupplier = Transporter
                 .defaultExecutorSupplier();
         private int numIndexerThreads = 1;
-        private int healthCheckFrequencyInMillis = 10000;
+        private int healthCheckFrequencyInMillis = 0; // disabled, by default
         private int allowableInactivityThresholdInMillis = 5000;
 
         @Override
@@ -407,7 +409,10 @@ public class BatchTransporter extends Transporter {
 
         @Override
         public BatchTransporter build() {
-            return new BatchTransporter(threadNamePrefix,
+            if(numIndexerThreads > 1) {
+                threadNameFormat += " %d";
+            }
+            return new BatchTransporter(threadNameFormat,
                     uncaughtExceptionHandler, executorSupplier,
                     numIndexerThreads, source, database, lock, segmentWriter,
                     healthCheckFrequencyInMillis,
@@ -441,7 +446,7 @@ public class BatchTransporter extends Transporter {
 
         @Override
         public BuildStage threadNameFormat(String threadNameFormat) {
-            this.threadNamePrefix = threadNameFormat;
+            this.threadNameFormat = threadNameFormat;
             return this;
         }
 

@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage.transporter;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.cinchapi.concourse.server.storage.temp.Write;
 
 /**
@@ -33,6 +35,7 @@ import com.cinchapi.concourse.server.storage.temp.Write;
  *
  * @author Jeff Nelson
  */
+@Immutable
 public final class Batch {
 
     /**
@@ -47,13 +50,19 @@ public final class Batch {
     private final int ordinal;
 
     /**
+     * The name of the {@link Batch}. Used for diagnostic purposes.
+     */
+    private final String name;
+
+    /**
      * Construct a new Batch.
      * 
      * @param writes the array of {@link Write} operations in order from oldest
      *            to newest
      * @param ordinal the position of this Batch in the processing sequence
      */
-    public Batch(Write[] writes, int ordinal) {
+    public Batch(String name, Write[] writes, int ordinal) {
+        this.name = name;
         this.writes = writes;
         this.ordinal = ordinal;
     }
@@ -85,5 +94,10 @@ public final class Batch {
      */
     public int ordinal() {
         return ordinal;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }
