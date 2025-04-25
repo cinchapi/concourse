@@ -395,12 +395,12 @@ public final class Engine extends BufferedStore implements
 
     @Override
     public ReadWriteLock advisoryLock() {
-        // Higher level abstractions (in Stores factory class) and atomic
-        // operations in Concourse Server call multiple Engine primitives. Each
-        // primitive acquires the transport read lock to prevent state changes
-        // during execution, but releases it immediately after completion. This
-        // creates contention as transports can interleave between primitive
-        // calls within a single logical operation.
+        // Higher level abstractions (e.g., the 'Stores' factory class and
+        // Atomic Operations in Concourse Server) call multiple Engine
+        // primitives. Each primitive acquires the transport read lock to
+        // prevent state changes during execution, but releases it immediately
+        // after completion. This creates contention as transports can
+        // interleave between primitive calls within a single logical operation.
         //
         // By exposing the transportLock as an advisoryLock, higher level
         // operations can acquire it once at the beginning and hold it
