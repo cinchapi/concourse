@@ -298,31 +298,33 @@ public final class Stores {
             Map<String, Set<TObject>> stored = null;
             Node root = null;
             int count = 1;
-            for (String key : keys) {
-                Key metadata = Keys.parse(key);
-                KeyType type = metadata.type();
-                if(type == KeyType.NAVIGATION_KEY) {
-                    // Generate a single Graph containing all of the stops in
-                    // each of the navigation keys.
-                    root = root == null ? Node.root(record) : root;
-                    Node node = root;
-                    String[] stops = metadata.data();
-                    for (String stop : stops) {
-                        node = node.next(stop);
-                        ++count;
+            store.advisoryLock().readLock().lock();
+            try {
+                for (String key : keys) {
+                    Key metadata = Keys.parse(key);
+                    KeyType type = metadata.type();
+                    if(type == KeyType.NAVIGATION_KEY) {
+                        // Generate a single Graph containing all of the stops
+                        // in each of the navigation keys.
+                        root = root == null ? Node.root(record) : root;
+                        Node node = root;
+                        String[] stops = metadata.data();
+                        for (String stop : stops) {
+                            node = node.next(stop);
+                            ++count;
+                        }
+                        node.end();
                     }
-                    node.end();
-                }
-                else {
-                    Set<TObject> values;
-                    if(type == KeyType.WRITABLE_KEY && keys.size() == 1) {
-                        // Since there is only one key and it is writable, tap
-                        // into the Strategy framework to determine the most
-                        // efficient lookup source.
-                        return ImmutableMap.of(key, lookupWithStrategy(store,
-                                key, record, timestamp));
-                    }
-                    else if(type == KeyType.WRITABLE_KEY) {
+                    else {
+                        Set<TObject> values;
+                        if(type == KeyType.WRITABLE_KEY && keys.size() == 1) {
+                            // Since there is only one key and it is writable,
+                            // tap into the Strategy framework to determine the
+                            // most efficient lookup source.
+                            return ImmutableMap.of(key, lookupWithStrategy(
+                                    store, key, record, timestamp));
+                        }
+                        else if(type == KeyType.WRITABLE_KEY) {
                         // @formatter:off
                         stored = stored == null
                                 ? (timestamp == Time.NONE 
@@ -331,81 +333,94 @@ public final class Stores {
                                   )
                                 : stored;
                         // @formatter:on
-                        values = stored.get(key);
-                        if(values == null) {
+                            values = stored.get(key);
+                            if(values == null) {
+                                values = ImmutableSet.of();
+                            }
+                        }
+                        else if(type == KeyType.IDENTIFIER_KEY) {
+                            values = ImmutableSet
+                                    .of(Convert.javaToThrift(record));
+                        }
+                        else if(type == KeyType.FUNCTION_KEY) {
+                            Function function = metadata.data();
+                            String method = Calculations.alias(
+                                    function.operation()) + "KeyRecordAtomic";
+                            Number value = Reflection.callStatic(
+                                    Operations.class, method, function.key(),
+                                    record, timestamp, store);
+                            values = value != null
+                                    ? ImmutableSet
+                                            .of(Convert.javaToThrift(value))
+                                    : ImmutableSet.of();
+                        }
+                        else {
                             values = ImmutableSet.of();
                         }
+                        data.put(key, values);
                     }
-                    else if(type == KeyType.IDENTIFIER_KEY) {
-                        values = ImmutableSet.of(Convert.javaToThrift(record));
-                    }
-                    else if(type == KeyType.FUNCTION_KEY) {
-                        Function function = metadata.data();
-                        String method = Calculations.alias(function.operation())
-                                + "KeyRecordAtomic";
-                        Number value = Reflection.callStatic(Operations.class,
-                                method, function.key(), record, timestamp,
-                                store);
-                        values = value != null
-                                ? ImmutableSet.of(Convert.javaToThrift(value))
-                                : ImmutableSet.of();
-                    }
-                    else {
-                        values = ImmutableSet.of();
-                    }
-                    data.put(key, values);
                 }
-            }
-            if(root != null) {
-                // Iterate through the graph, in a breadth-first manner, to
-                // perform bulk selection at each Junctions.
-                Queue<Node> queue = new ArrayDeque<>(count);
-                queue.add(root);
-                while (!queue.isEmpty()) {
-                    Node node = queue.poll();
-                    Collection<Node> successors = node.successors();
-                    if(successors.isEmpty()) {
-                        data.put(node.path, node.values());
-                    }
-                    else {
-                        queue.addAll(successors);
-                        Collection<Long> links = node.links();
-                        for (long link : links) {
-                            Map<String, Set<TObject>> intermediate = null;
-                            if(successors.size() > 1) {
-                                // Bypassing the Strategy framework is
-                                // acceptable here because we know that there
-                                // are multiple keys that need to be selected
-                                // from each record, so it makes sense to select
-                                // the entire record from the Engine, once
-                                intermediate = timestamp == Time.NONE
-                                        ? store.select(link)
-                                        : store.select(link, timestamp);
-                            }
-                            for (Node successor : successors) {
-                                String stop = successor.stop;
-                                if(intermediate == null) {
-                                    // This means there is only 1 successor, so
-                                    // the lookup should defer to the Strategy
-                                    // framework
-                                    intermediate = ImmutableMap.of(stop,
-                                            lookupWithStrategy(store, stop,
-                                                    link, timestamp));
+                if(root != null) {
+                    // Iterate through the graph, in a breadth-first manner, to
+                    // perform bulk selection at each Junctions.
+                    Queue<Node> queue = new ArrayDeque<>(count);
+                    queue.add(root);
+                    while (!queue.isEmpty()) {
+                        Node node = queue.poll();
+                        Collection<Node> successors = node.successors();
+                        if(successors.isEmpty()) {
+                            data.put(node.path, node.values());
+                        }
+                        else {
+                            queue.addAll(successors);
+                            Collection<Long> links = node.links();
+                            for (long link : links) {
+                                Map<String, Set<TObject>> intermediate = null;
+                                if(successors.size() > 1) {
+                                    // Bypassing the Strategy framework is
+                                    // acceptable here because we know that
+                                    // there are multiple keys that need to be
+                                    // selected from each record, so it makes
+                                    // sense to select the entire record from
+                                    // the Engine, once
+                                    intermediate = timestamp == Time.NONE
+                                            ? store.select(link)
+                                            : store.select(link, timestamp);
                                 }
-                                Set<TObject> values = intermediate.get(stop);
-                                if(values != null) {
-                                    successor.store(values);
-                                }
-                                else if(stop.equals(
-                                        Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-                                    successor.store(Convert.javaToThrift(link));
+                                for (Node successor : successors) {
+                                    String stop = successor.stop;
+                                    if(intermediate == null) {
+                                        // This means there is only 1 successor,
+                                        // so the lookup should defer to the
+                                        // Strategy framework
+                                        intermediate = ImmutableMap.of(stop,
+                                                lookupWithStrategy(store, stop,
+                                                        link, timestamp));
+                                    }
+                                    Set<TObject> values = intermediate
+                                            .get(stop);
+                                    if(values != null) {
+                                        successor.store(values);
+                                    }
+                                    else if(stop.equals(
+                                            Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+                                        successor.store(
+                                                Convert.javaToThrift(link));
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                // @formatter:off
+                return data.size() > 1
+                        ? new OrderImposingMap<>(keys, data)
+                        : data;
+                // @formatter:on
             }
-            return data.size() > 1 ? new OrderImposingMap<>(keys, data) : data;
+            finally {
+                store.advisoryLock().readLock().unlock();
+            }
         }
     }
 
