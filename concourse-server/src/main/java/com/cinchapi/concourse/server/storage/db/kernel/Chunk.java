@@ -182,8 +182,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * elements are inserted.
      * <p>
      * This collection is only maintained for a {@link #mutable} {@link Chunk}.
-     * A {@link Chunk} that is {@link #freeze() frozen} and subsequently reads
-     * from a {@link #file} does not rely on this collection at all.
+     * A {@link Chunk} that is {@link #flush(ByteSink) flushed} and subsequently
+     * reads from a {@link #file} does not rely on this collection at all.
      * </p>
      */
     /*
