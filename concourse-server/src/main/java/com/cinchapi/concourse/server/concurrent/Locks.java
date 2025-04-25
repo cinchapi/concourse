@@ -220,7 +220,7 @@ public final class Locks {
         @Override
         public void unlock() {}
     };
-    
+
     /**
      * The lock that is returned by the {@link #noOpReadWriteLock()} method.
      */

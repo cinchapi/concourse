@@ -392,15 +392,15 @@ public class StoresTest {
         System.out.println(expected);
         Assert.assertEquals(expected, actual);
     }
-    
+
     @Test
     public void testBulkSelectDuringTransports() throws InterruptedException {
         AtomicSupport store = getStore();
         Buffer buffer = Reflection.get("limbo", store);
-        
+
         AtomicBoolean transportable = new AtomicBoolean(false);
-        while(!transportable.get()) {
-            for(int i = 0; i < TestData.getScaleCount(); ++i) {
+        while (!transportable.get()) {
+            for (int i = 0; i < TestData.getScaleCount(); ++i) {
                 store.accept(TestData.getWriteAdd());
             }
             if(!transportable.get()) {
@@ -408,20 +408,15 @@ public class StoresTest {
             }
         }
         setupNavigationGraph(store);
-        List<String> keys = ImmutableList.of(
-                "name",
-                "email",
-                "title",
-                "website",
-                "association"
-        );
-        
+        List<String> keys = ImmutableList.of("name", "email", "title",
+                "website", "association");
+
         AtomicBoolean stop = new AtomicBoolean(false);
         CountDownLatch start = new CountDownLatch(1);
-        
+
         Thread writer = new Thread(() -> {
-            while(!stop.get()) {
-                for(int i = 0; i < TestData.getScaleCount(); ++i) {
+            while (!stop.get()) {
+                for (int i = 0; i < TestData.getScaleCount(); ++i) {
                     store.accept(TestData.getWriteAdd());
                 }
                 Stores.select(store, keys, 1);
@@ -430,13 +425,13 @@ public class StoresTest {
         });
         writer.start();
         start.await();
-        
+
         Map<String, Set<TObject>> actual = Stores.select(store, keys, 1);
         Map<String, Set<TObject>> expected = new LinkedHashMap<>();
         for (String key : keys) {
             expected.put(key, Stores.serialSelect(store, key, 1));
         }
-        
+
         Assert.assertEquals(expected, actual);
     }
 
