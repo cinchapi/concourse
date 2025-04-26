@@ -21,8 +21,9 @@
 version: 2.1
 orbs:
   ruby: circleci/ruby@1.8.0
-jobs:
-  build:
+
+executors:
+  java-executor:
     docker:
       - image: cimg/openjdk:8.0.322
     resource_class: xlarge
@@ -31,6 +32,10 @@ jobs:
       TERM: dumb
       CONTAINER_BUILD: "true"
       ORG_GRADLE_PROJECT_signing.secretKeyRingFile: /home/circleci/secring.gpg
+
+jobs:
+  setup:
+    executor: java-executor
     steps:
       - checkout:
           path: ~/$CIRCLE_PROJECT_REPONAME
@@ -56,17 +61,46 @@ jobs:
           name: Generate gradle.lock
           command: |
             find ~/$CIRCLE_PROJECT_REPONAME -type f -name build.gradle | sort -d | awk NF | xargs cat > gradle.lock
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - $CIRCLE_PROJECT_REPONAME
+            - secring.gpg
+            - gradle.lock
+
+  compile:
+    executor: java-executor
+    steps:
+      - attach_workspace:
+          at: ~/
       - restore_cache:
-          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "gradle.lock" }}
+          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "~/gradle.lock" }}
       - run:
-          name: Build and Publish
+          name: Compile Project
           command: |
             cd ~/$CIRCLE_PROJECT_REPONAME
-            ./gradlew clean build installer publish uploadArchives cloudsmithUpload dockerize -x spotlessJava -x spotlessJavaCheck --no-daemon
+            ./gradlew compileJava compileTestJava -x spotlessJava -x spotlessJavaCheck --no-daemon
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - $CIRCLE_PROJECT_REPONAME
       - save_cache:
           paths:
             - ~/.gradle
-          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "gradle.lock" }}
+          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "~/gradle.lock" }}
+
+  test:
+    executor: java-executor
+    steps:
+      - attach_workspace:
+          at: ~/
+      - restore_cache:
+          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "~/gradle.lock" }}
+      - run:
+          name: Run Tests
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            ./gradlew test -x spotlessJava -x spotlessJavaCheck --no-daemon
       - run:
           name: Save test results
           command: |
@@ -76,6 +110,37 @@ jobs:
           when: always
       - store_test_results:
           path: ~/junit
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - $CIRCLE_PROJECT_REPONAME
+            - junit
+
+  build:
+    executor: java-executor
+    steps:
+      - attach_workspace:
+          at: ~/
+      - setup_remote_docker:
+          version: default
+          docker_layer_caching: true
+      - restore_cache:
+          key: v1-jars-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Branch }}-{{ checksum "~/gradle.lock" }}
+      - run:
+          name: Package and Publish
+          command: |
+            cd ~/$CIRCLE_PROJECT_REPONAME
+            ./gradlew assemble installer publish uploadArchives cloudsmithUpload dockerize -x spotlessJava -x spotlessJavaCheck --no-daemon
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - $CIRCLE_PROJECT_REPONAME
+
+  collect_artifacts:
+    executor: java-executor
+    steps:
+      - attach_workspace:
+          at: ~/
       - run:
           name: Save artifacts
           command: |
@@ -90,6 +155,7 @@ jobs:
           when: always
       - store_artifacts:
           path: ~/artifacts
+
   publish_docs:
     docker:
       - image: circleci/python:3.6-stretch-node-browsers
@@ -105,9 +171,24 @@ jobs:
             cd ~/$CIRCLE_PROJECT_REPONAME
             sudo ./docs/init.sh
             sudo ./docs/guide/mkdocs gh-deploy -m "Deploying updated documentation [ci skip]" --remote-name https://$MKDOCS_DEPLOY_GH_USER:$MKDOCS_DEPLOY_GH_TOKEN@github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME --force
+
 workflows:
   version: 2
-  build_and_publish_docs:
+  build_and_publish:
     jobs:
-      - build
-      - publish_docs
+      - setup
+      - compile:
+          requires:
+            - setup
+      - test:
+          requires:
+            - compile
+      - build:
+          requires:
+            - test
+      - collect_artifacts:
+          requires:
+            - build
+      - publish_docs:
+          requires:
+            - setup
