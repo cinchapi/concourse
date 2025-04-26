@@ -159,7 +159,7 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "34:53:71:d8:34:5a:c2:af:af:d0:a5:93:e2:ac:9e:f0"
-      - checkout:
+      - checkout
       - run:
           name: Publish Documentation
           command: |
