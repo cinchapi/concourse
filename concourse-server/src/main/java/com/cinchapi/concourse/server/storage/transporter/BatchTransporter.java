@@ -178,7 +178,7 @@ public class BatchTransporter extends Transporter {
             if(database.merge(segment, receipts)) {
                 Logger.info("Successfully merged Segment {} to replace {}",
                         segment, batch);
-                
+
                 source.purge(batch);
 
                 // Signal that the next chronological transported Segment can
