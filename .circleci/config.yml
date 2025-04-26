@@ -67,7 +67,7 @@ jobs:
           name: Compile Project
           command: |
             cd ~/project
-            ./gradlew compileJava compileTestJava -x spotlessJava -x spotlessJavaCheck --no-daemon
+            ./gradlew compileJava compileTestJava -x spotlessJava -x spotlessJavaCheck -x cashdoc --no-daemon
       - persist_to_workspace:
           root: ~/
           paths:
@@ -88,7 +88,7 @@ jobs:
           name: Run Tests
           command: |
             cd ~/project
-            ./gradlew test -x spotlessJava -x spotlessJavaCheck --no-daemon
+            ./gradlew test -x spotlessJava -x spotlessJavaCheck -x cashdoc --no-daemon
       - run:
           name: Save test results
           command: |
