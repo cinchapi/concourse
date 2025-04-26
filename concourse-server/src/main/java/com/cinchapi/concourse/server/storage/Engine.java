@@ -875,8 +875,14 @@ public final class Engine extends BufferedStore implements
         // the Buffer allows group sync to happen. Similarly, #verify should
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
-        Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        return super.add(write, sync, verify);
+        transportLock.readLock().lock();
+        try {
+            Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
+            return super.add(write, sync, verify);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 
     /**
@@ -935,7 +941,13 @@ public final class Engine extends BufferedStore implements
         // the Buffer allows group sync to happen. Similarly, #verify should
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
-        Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
-        return super.remove(write, sync, verify);
+        transportLock.readLock().lock();
+        try {
+            Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
+            return super.remove(write, sync, verify);
+        }
+        finally {
+            transportLock.readLock().unlock();
+        }
     }
 }
