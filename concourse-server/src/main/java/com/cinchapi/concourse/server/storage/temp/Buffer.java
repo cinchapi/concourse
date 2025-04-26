@@ -89,7 +89,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
@@ -744,8 +743,8 @@ public final class Buffer extends Limbo implements BatchTransportable {
                             .namingThreadFactory(threadNamePrefix + "-%d")));
 
             // Load existing Buffer pages from disk
-            SortedMap<File, Page> pageSorter = Maps
-                    .newTreeMap(NaturalSorter.INSTANCE);
+            SortedMap<File, Page> pageSorter = new TreeMap<>(
+                    NaturalSorter.INSTANCE);
             for (File file : new File(directory).listFiles()) {
                 if(!file.isDirectory()) {
                     Page page = new Page(file.getAbsolutePath());
