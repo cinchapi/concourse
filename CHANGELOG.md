@@ -1,4 +1,7 @@
-#### Version 0.11.8 (TBD)
+#### Version 0.11.9 (TBD)
+* Improved the performance of multi-key selection commands that occur during concurrent Buffer transport operations. Previously, when selecting multiple keys while data was being transported for indexing, each primitive select operation would acquire a lock that blocked transports, but transports could still occur between operations, slowing down the overall read. Now, these commands use an advisory lock that blocks all transports until the entire bulk read completes. This optimization significantly improves performance in real-world scenarios with simultaneous reads and writes. In the future, this advisory locking mechanism will be extended to other bulk and atomic operations.
+
+#### Version 0.11.8 (April 15, 2025)
 
 ##### Navigation Queries
 * **Optimized Navigation Key Traversal**: To minimize the number of lookups required when querying, we've implemented a smarter traversal strategy for navigation keys used in a Criteria/Condition. The system now automatically chooses between:
