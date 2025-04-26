@@ -27,13 +27,16 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -87,7 +90,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
@@ -368,20 +370,22 @@ public final class Buffer extends Limbo implements BatchTransportable {
         try {
             while (it.hasNext()) {
                 Write write = it.next();
-                Set<Long> records = context.get(write.getValue().getTObject());
-                if(records == null) {
-                    records = Sets.newLinkedHashSet();
-                    context.put(write.getValue().getTObject(), records);
+                TObject value = write.getValue().getTObject();
+                long record = write.getRecord().longValue();
+                Action action = write.getType();
+                Set<Long> records = context.computeIfAbsent(value,
+                        $ -> new LinkedHashSet<>());
+                if(action == Action.ADD) {
+                    records.add(record);
                 }
-                if(write.getType() == Action.ADD) {
-                    records.add(write.getRecord().longValue());
-                }
-                else {
-                    records.remove(write.getRecord().longValue());
+                else if(action == Action.REMOVE) {
+                    records.remove(record);
+                    if(records.isEmpty()) {
+                        context.remove(value);
+                    }
                 }
             }
-            return Maps.newTreeMap(Maps.filterValues(
-                    (SortedMap<TObject, Set<Long>>) context, emptySetFilter));
+            return new TreeMap<>((SortedMap<TObject, Set<Long>>) context);
         }
         finally {
             Iterators.close(it);
@@ -392,7 +396,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end, Map<Long, Set<TObject>> context) {
         Set<TObject> snapshot = Iterables.getLast(context.values(),
-                Sets.<TObject> newLinkedHashSet());
+                new LinkedHashSet<>());
         if(snapshot.isEmpty() && !context.isEmpty()) {
             // CON-474: Empty set is placed in the context if it was the last
             // snapshot known to the database
@@ -403,24 +407,24 @@ public final class Buffer extends Limbo implements BatchTransportable {
             while (it.hasNext()) {
                 Write write = it.next();
                 long timestamp = write.getVersion();
-                Text $key = write.getKey();
+                String $key = write.getKey().toString();
                 long $record = write.getRecord().longValue();
                 Action action = write.getType();
-                if($key.toString().equals(key) && $record == record) {
-                    snapshot = Sets.newLinkedHashSet(snapshot);
-                    Value value = write.getValue();
+                if($key.equals(key) && $record == record) {
+                    snapshot = new LinkedHashSet<>(snapshot);
+                    TObject value = write.getValue().getTObject();
                     if(action == Action.ADD) {
-                        snapshot.add(value.getTObject());
+                        snapshot.add(value);
                     }
                     else if(action == Action.REMOVE) {
-                        snapshot.remove(value.getTObject());
+                        snapshot.remove(value);
                     }
-                    if(timestamp >= start) {
+                    if(timestamp >= start && !snapshot.isEmpty()) {
                         context.put(timestamp, snapshot);
                     }
                 }
             }
-            return Maps.filterValues(context, emptySetFilter);
+            return context;
         }
         finally {
             Iterators.close(it);
@@ -439,23 +443,22 @@ public final class Buffer extends Limbo implements BatchTransportable {
         try {
             while (it.hasNext()) {
                 Write write = it.next();
-                Set<TObject> values;
-                values = context.get(write.getKey().toString());
-                if(values == null) {
-                    values = Sets.newHashSet();
-                    context.put(write.getKey().toString(), values);
+                String key = write.getKey().toString();
+                Action action = write.getType();
+                TObject value = write.getValue().getTObject();
+                Set<TObject> values = context.computeIfAbsent(key,
+                        $ -> new HashSet<>());
+                if(action == Action.ADD) {
+                    values.add(value);
                 }
-                if(write.getType() == Action.ADD) {
-                    values.add(write.getValue().getTObject());
-                }
-                else {
-                    values.remove(write.getValue().getTObject());
+                else if(action == Action.REMOVE) {
+                    values.remove(value);
+                    if(values.isEmpty()) {
+                        context.remove(key);
+                    }
                 }
             }
-            return Maps
-                    .newLinkedHashMap(
-                            Maps.filterValues(context, emptySetFilter))
-                    .keySet();
+            return context.keySet();
         }
         finally {
             Iterators.close(it);
@@ -638,21 +641,22 @@ public final class Buffer extends Limbo implements BatchTransportable {
         try {
             while (it.hasNext()) {
                 Write write = it.next();
-                Set<TObject> values;
-                values = context.get(write.getKey().toString());
-                if(values == null) {
-                    values = Sets.newLinkedHashSet();
-                    context.put(write.getKey().toString(), values);
+                String key = write.getKey().toString();
+                TObject value = write.getValue().getTObject();
+                Action action = write.getType();
+                Set<TObject> values = context.computeIfAbsent(key,
+                        $ -> new LinkedHashSet<>());
+                if(action == Action.ADD) {
+                    values.add(value);
                 }
-                if(write.getType() == Action.ADD) {
-                    values.add(write.getValue().getTObject());
-                }
-                else {
-                    values.remove(write.getValue().getTObject());
+                else if(action == Action.REMOVE) {
+                    values.remove(value);
+                    if(values.isEmpty()) {
+                        context.remove(key);
+                    }
                 }
             }
-            return Maps.newTreeMap(Maps.filterValues(
-                    (SortedMap<String, Set<TObject>>) context, emptySetFilter));
+            return new TreeMap<>(context);
         }
         finally {
             Iterators.close(it);

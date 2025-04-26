@@ -20,10 +20,12 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
@@ -34,7 +36,6 @@ import com.cinchapi.concourse.collect.Iterators;
 import com.cinchapi.concourse.search.CompiledInfingram;
 import com.cinchapi.concourse.search.Infingram;
 import com.cinchapi.concourse.server.model.TObjectSorter;
-import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.model.Value;
 import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.DurableStore;
@@ -47,7 +48,6 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.TMaps;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -117,12 +117,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
     }
 
     /**
-     * A Predicate that is used to filter out empty sets.
-     */
-    protected static final Predicate<Set<? extends Object>> emptySetFilter = set -> set != null
-            && !set.isEmpty();
-
-    /**
      * Constant {@link Memory} that is always returned by a {@link Limbo} store.
      */
     private final Memory memory = new Memory() {
@@ -170,22 +164,25 @@ public abstract class Limbo implements Store, Iterable<Write> {
         if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
-                if(write.getKey().toString().equals(key)
-                        && write.getVersion() <= timestamp) {
-                    Set<Long> records = context
-                            .get(write.getValue().getTObject());
-                    if(records == null) {
-                        records = Sets.newLinkedHashSet();
-                        context.put(write.getValue().getTObject(), records);
+                TObject value = write.getValue().getTObject();
+                String $key = write.getKey().toString();
+                long $timestamp = write.getVersion();
+                if($key.toString().equals(key) && $timestamp <= timestamp) {
+                    long record = write.getRecord().longValue();
+                    Action action = write.getType();
+                    Set<Long> records = context.computeIfAbsent(value,
+                            $ -> new LinkedHashSet<>());
+                    if(action == Action.ADD) {
+                        records.add(record);
                     }
-                    if(write.getType() == Action.ADD) {
-                        records.add(write.getRecord().longValue());
-                    }
-                    else {
-                        records.remove(write.getRecord().longValue());
+                    else if(action == Action.REMOVE) {
+                        records.remove(record);
+                        if(records.isEmpty()) {
+                            context.remove(value);
+                        }
                     }
                 }
-                else if(write.getVersion() > timestamp) {
+                else if($timestamp > timestamp) {
                     break;
                 }
                 else {
@@ -193,8 +190,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 }
             }
         }
-        return Maps.newTreeMap(Maps.filterValues(
-                (SortedMap<TObject, Set<Long>>) context, emptySetFilter));
+        return new TreeMap<>((SortedMap<TObject, Set<Long>>) context);
     }
 
     /**
@@ -246,25 +242,25 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 break;
             }
             else {
-                Text $key = write.getKey();
+                String $key = write.getKey().toString();
                 long $record = write.getRecord().longValue();
                 Action action = write.getType();
-                if($key.toString().equals(key) && $record == record) {
-                    snapshot = Sets.newLinkedHashSet(snapshot);
-                    Value value = write.getValue();
+                if($key.equals(key) && $record == record) {
+                    snapshot = new LinkedHashSet<>(snapshot);
+                    TObject value = write.getValue().getTObject();
                     if(action == Action.ADD) {
-                        snapshot.add(value.getTObject());
+                        snapshot.add(value);
                     }
                     else if(action == Action.REMOVE) {
-                        snapshot.remove(value.getTObject());
+                        snapshot.remove(value);
                     }
-                    if(timestamp >= start) {
+                    if(timestamp >= start && !snapshot.isEmpty()) {
                         context.put(timestamp, snapshot);
                     }
                 }
             }
         }
-        return Maps.filterValues(context, emptySetFilter);
+        return context;
     }
 
     @Override
@@ -292,19 +288,22 @@ public abstract class Limbo implements Store, Iterable<Write> {
         if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
-                if(write.getRecord().longValue() == record
-                        && write.getVersion() <= timestamp) {
-                    Set<TObject> values;
-                    values = context.get(write.getKey().toString());
-                    if(values == null) {
-                        values = Sets.newHashSet();
-                        context.put(write.getKey().toString(), values);
+                String key = write.getKey().toString();
+                Action action = write.getType();
+                TObject value = write.getValue().getTObject();
+                long $record = write.getRecord().longValue();
+                long $timestamp = write.getVersion();
+                if($record == record && $timestamp <= timestamp) {
+                    Set<TObject> values = context.computeIfAbsent(key,
+                            $ -> new HashSet<>());
+                    if(action == Action.ADD) {
+                        values.add(value);
                     }
-                    if(write.getType() == Action.ADD) {
-                        values.add(write.getValue().getTObject());
-                    }
-                    else {
-                        values.remove(write.getValue().getTObject());
+                    else if(action == Action.REMOVE) {
+                        values.remove(value);
+                        if(values.isEmpty()) {
+                            context.remove(key);
+                        }
                     }
                 }
                 else if(write.getVersion() > timestamp) {
@@ -315,8 +314,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 }
             }
         }
-        return Sets.newLinkedHashSet(
-                Maps.filterValues(context, emptySetFilter).keySet());
+        return context.keySet();
     }
 
     /**
@@ -542,6 +540,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 Write write = it.next();
                 Value value = write.getValue();
                 long record = write.getRecord().longValue();
+                Action action = write.getType();
                 if(isPossibleSearchMatch(key, write, value)) {
                     /*
                      * NOTE: It is not enough to merely check if the stored text
@@ -559,10 +558,13 @@ public abstract class Limbo implements Store, Iterable<Write> {
                     if(needle.in(haystack)) {
                         Set<Value> values = matches.computeIfAbsent(record,
                                 $ -> new HashSet<>());
-                        if(write.getType() == Action.REMOVE) {
+                        if(action == Action.REMOVE) {
                             values.remove(value);
+                            if(values.isEmpty()) {
+                                matches.remove(record);
+                            }
                         }
-                        else {
+                        else if(action == Action.ADD) {
                             values.add(value);
                         }
                     }
@@ -571,8 +573,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
         }
         // FIXME sort search results based on frequency (see
         // CorpusRecord#search())
-        return Sets.newLinkedHashSet(
-                Maps.filterValues(matches, emptySetFilter).keySet());
+        return matches.keySet();
     }
 
     @Override
@@ -609,22 +610,25 @@ public abstract class Limbo implements Store, Iterable<Write> {
         if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
-                if(write.getRecord().longValue() == record
-                        && write.getVersion() <= timestamp) {
-                    Set<TObject> values;
-                    values = context.get(write.getKey().toString());
-                    if(values == null) {
-                        values = Sets.newHashSet();
-                        context.put(write.getKey().toString(), values);
+                String key = write.getKey().toString();
+                TObject value = write.getValue().getTObject();
+                Action action = write.getType();
+                long $record = write.getRecord().longValue();
+                long $timestamp = write.getVersion();
+                if($record == record && $timestamp <= timestamp) {
+                    Set<TObject> values = context.computeIfAbsent(key,
+                            $ -> new LinkedHashSet<>());
+                    if(action == Action.ADD) {
+                        values.add(value);
                     }
-                    if(write.getType() == Action.ADD) {
-                        values.add(write.getValue().getTObject());
-                    }
-                    else {
-                        values.remove(write.getValue().getTObject());
+                    else if(action == Action.REMOVE) {
+                        values.remove(value);
+                        if(values.isEmpty()) {
+                            context.remove(key);
+                        }
                     }
                 }
-                else if(write.getVersion() > timestamp) {
+                else if($timestamp > timestamp) {
                     break;
                 }
                 else {
@@ -632,8 +636,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 }
             }
         }
-        return Maps.newTreeMap(Maps.filterValues(
-                (SortedMap<String, Set<TObject>>) context, emptySetFilter));
+        return new TreeMap<>(context);
     }
 
     /**
