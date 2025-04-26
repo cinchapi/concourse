@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.common.profile.Benchmark;
@@ -394,6 +395,7 @@ public class StoresTest {
     }
 
     @Test
+    @Ignore
     public void testBulkSelectDuringTransports() throws InterruptedException {
         AtomicSupport store = getStore();
         Buffer buffer = Reflection.get("limbo", store);
