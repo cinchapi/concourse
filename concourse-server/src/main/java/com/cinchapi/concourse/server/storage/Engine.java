@@ -758,8 +758,8 @@ public final class Engine extends BufferedStore implements
             durable.reconcile(limbo.hashes());
             doTransactionRecovery();
             transporter = buildTransporter();
-            Logger.info("The Engine is indexing data with the {} transporter",
-                    ENABLE_BATCH_TRANSPORTS ? "batch" : "streaming");
+            Logger.info("The Engine is using the {} transporter to index data",
+                    ENABLE_BATCH_TRANSPORTS ? "Batch" : "Streaming");
             transporter.start();
         }
     }

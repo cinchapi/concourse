@@ -1086,7 +1086,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
                 Batch batch = new Batch(page.filename, page.writes,
                         batchCount.getAndIncrement());
                 batches.add(batch);
-                Logger.info("Queuing page {} for transport", page);
+                Logger.info("Queuing Buffer page {} for transport", page);
             }
             else {
                 throw new IllegalArgumentException(

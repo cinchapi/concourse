@@ -176,12 +176,14 @@ public class BatchTransporter extends Transporter {
             // blocked. This is a short critical section where the Database
             // appends the Segment and updates its caches.
             if(database.merge(segment, receipts)) {
+                Logger.info("Successfully merged Segment {} to replace {}",
+                        segment, batch);
+                
                 source.purge(batch);
 
                 // Signal that the next chronological transported Segment can
                 // proceed to this critical section.
                 latch.countUp();
-                Logger.info("Finished batch transport for {}", batch);
             }
             else {
                 throw new IllegalStateException(
