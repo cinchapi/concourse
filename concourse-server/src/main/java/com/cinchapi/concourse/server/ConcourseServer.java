@@ -45,6 +45,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
@@ -6628,10 +6629,9 @@ public class ConcourseServer extends BaseConcourseServer implements
         // Setup the management server
         TServerSocket mgmtSocket = new TServerSocket(
                 GlobalState.MANAGEMENT_PORT);
-        Args mgmtArgs = new TThreadPoolServer.Args(mgmtSocket)
-                .processor(new ConcourseManagementService.Processor<>(this))
-                .minWorkerThreads(1).maxWorkerThreads(1);
-        this.mgmtServer = new TThreadPoolServer(mgmtArgs);
+        TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
+        mgmtArgs.processor(new ConcourseManagementService.Processor<>(this));
+        this.mgmtServer = new TSimpleServer(mgmtArgs);
     }
 
     /**
