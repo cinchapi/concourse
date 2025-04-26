@@ -221,7 +221,7 @@ remote_debugger_port:
 #   type: The transport type (streaming or batch)
 #   num_threads: Number of threads for transport operations (default: 1)
 #
-# DEFAULT: streaming
+# DEFAULT: batch
 transporter:
 
 #########################################################
