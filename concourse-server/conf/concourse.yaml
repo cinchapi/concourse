@@ -195,6 +195,35 @@ shutdown_port:
 # DEFAULT: 0
 remote_debugger_port:
 
+# Specify how Concourse Server transports and indexes data from the Buffer to
+# the Database.
+#
+# The Transporter is responsible for moving data from the write-optimized Buffer
+# to the read-optimized Database, where it becomes fully indexed. This process 
+# happens automatically in the background.
+#
+# The streaming transporter provides consistent throughput by amortizing indexing
+# costs across operations. It processes smaller batches more frequently, resulting
+# in lower per-merge costs but more frequent interruptions during normal 
+# operations. During high concurrent activity, competing operations can 
+# significantly reduce overall system performance.
+#
+# The batch transporter processes larger batches of data per pass, regardless of
+# system load and indexing happens without blocking any operations until merge time.
+# This approach improves overall throughput but may cause occasional longer pauses 
+# when merging large amounts of cached data.
+#
+# Options:
+#   streaming: Incremental transport with frequent small merges
+#   batch: High-throughput transport with occasional larger merges
+#
+# For advanced configuration, provide an object:
+#   type: The transport type (streaming or batch)
+#   num_threads: Number of threads for transport operations (default: 1)
+#
+# DEFAULT: batch
+transporter:
+
 #########################################################
 ###  EXPERIMENTAL CONFIGURATION FOR CONCOURSE SERVER  ###
 #########################################################

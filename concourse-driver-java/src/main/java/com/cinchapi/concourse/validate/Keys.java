@@ -72,7 +72,14 @@ public final class Keys {
             boolean writable = key.length() > 0
                     && KEY_VALIDATION_REGEX.matcher(key).matches();
             if(writable) {
-                WRITABLE_KEY_CACHE.add(key);
+                try {
+                    WRITABLE_KEY_CACHE.add(key);
+                }
+                catch (Exception e) {
+                    // Ignore any concurrency exceptions while modifying the
+                    // non-concurrent collection because failure would just
+                    // cause us to re-validate the key in the future.
+                }
             }
             return writable;
         }

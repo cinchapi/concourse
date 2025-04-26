@@ -37,8 +37,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * </p>
  * 
  * @author Jeff Nelson
+ * @deprecated Transition to a standard JVM lock
  */
 @SuppressWarnings("serial")
+@Deprecated
 public class PriorityReadWriteLock extends ReentrantReadWriteLock {
 
     /**

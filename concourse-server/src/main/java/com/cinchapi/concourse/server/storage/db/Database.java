@@ -100,7 +100,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
@@ -291,10 +290,34 @@ public final class Database implements DurableStore {
      */
     private final LoadingCache<Composite, IndexRecord> indexCache;
 
+    // @formatter:off
     /**
-     * Lock used to ensure the object is ThreadSafe. This lock provides access
-     * to a masterLock.readLock()() and masterLock.writeLock()().
+     * The read/write lock that governs concurrent access to the Database's structure.
+     *
+     * <h3>Write Lock:</h3>
+     * <ul>
+     * <li>{@link #rotate(boolean)}/{@link #sync()}: Flushing the current seg0 and 
+     *     installing a new one</li>
+     * <li>{@link #merge(Segment, List)}: Inserting new Segments (typically during a
+     *     {@link com.cinchapi.concourse.server.storage.transporter.Transporter#transport()
+     *     transport} operation)</li>
+     * <li>{@link #reindex()}: Rebuilding all Segment files atomically</li>
+     * <li>{@link #repair()}: Deduplicating or garbage-collecting old Segment 
+     *     files</li>
+     * <li>{@link #compact() compaction}: Passed to the {@link Compactor} via
+     *     {@link Storage} and acquired before every shift operation</li>
+     * </ul>
+     *
+     * <h3>Read Lock:</h3>
+     * The read-lock ensures the structure of the {@link #segments} remain consistent
+     * when loading {@link Record Records}. When a Record is already cached, there is
+     * no need to consult the {@link #segments}, but if it is unchached, the lock is 
+     * held while seeking revisions, then released <strong>before</strong> the read is
+     * issued. Read integrity is maintained even after the lock is released because new 
+     * revisions are only added through {@link #accept(Write)} or {@link #merge(Segment, List)}, 
+     * which update the thread-safe cached records via {@link #updateCaches(Receipt)}.
      */
+    // @formatter:on
     private final transient ReentrantReadWriteLock masterLock = new ReentrantReadWriteLock();
 
     /**
@@ -333,7 +356,7 @@ public final class Database implements DurableStore {
      * increasing order is when they are loaded when the database #start()s.
      * </p>
      */
-    private final transient List<Segment> segments = Lists.newArrayList();
+    private final transient List<Segment> segments = new ArrayList<>();
 
     /**
      * The underlying {@link Storage}.
@@ -382,8 +405,8 @@ public final class Database implements DurableStore {
     private transient String tag = "";
 
     /**
-     * An {@link ExecutorService} that is passed to {@link #seg0} to handle
-     * writing tasks asynchronously in the background.
+     * An {@link ExecutorService} that is used for asynchronous writing tasks in
+     * mutable {@link Segment segments}.
      */
     private transient AwaitableExecutorService writer;
 
@@ -537,41 +560,7 @@ public final class Database implements DurableStore {
                 Receipt receipt = seg0.acquire(write, writer);
                 Logger.debug("Indexed '{}' in {}", write, seg0);
 
-                // Update cached records
-                Composite composite;
-
-                composite = receipt.table().getLocatorComposite();
-                TableRecord table = tableCache.getIfPresent(composite);
-                if(table != null) {
-                    table.append(receipt.table().revision());
-                }
-
-                composite = receipt.table().getLocatorKeyComposite();
-                TableRecord tablePartial = tablePartialCache
-                        .getIfPresent(composite);
-                if(tablePartial != null) {
-                    tablePartial.append(receipt.table().revision());
-                }
-
-                composite = receipt.index().getLocatorComposite();
-                IndexRecord index = indexCache.getIfPresent(composite);
-                if(index != null) {
-                    index.append(receipt.index().revision());
-                }
-
-                if(ENABLE_SEARCH_CACHE) {
-                    Cache<Composite, CorpusRecord> cache = corpusCaches
-                            .get(write.getKey());
-                    if(cache != null) {
-                        for (CorpusArtifact artifact : receipt.corpus()) {
-                            composite = artifact.getLocatorKeyComposite();
-                            CorpusRecord corpus = cache.getIfPresent(composite);
-                            if(corpus != null) {
-                                corpus.append(artifact.revision());
-                            }
-                        }
-                    }
-                }
+                updateCaches(receipt);
             }
             catch (InterruptedException e) {
                 Logger.warn(
@@ -738,6 +727,63 @@ public final class Database implements DurableStore {
         Verify.that(running,
                 "Cannot return the memory of a stopped Database instance");
         return memory;
+    }
+
+    /**
+     * Merge a {@link Segment} that contains data that was not previously
+     * {@link #accept(Write) accepted} by the {@link Database}.
+     * <p>
+     * In addition to appending the {@code segment}, this method ensures that
+     * any necessary caches are {@link #updateCaches(Receipt) updated}.
+     * And, if the {@code segment} is {@link Segment#isMutable() mutable}, it
+     * will be {@link SegmentStorageSystem#save(Segment) persisted} to disk and
+     * made immutable.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> This method is only intended for adding net-new
+     * data that changes the "state" that should be observed by future reads.
+     * For operations where segments are being inserted but "state" is not
+     * changing (e.g., because the segment contains duplicate data), use the
+     * appropriate specialized method instead:
+     * <ul>
+     * <li>For reindexing, use the {@link #reindex()} method</li>
+     * <li>For compaction, use the {@link #compact()} method or a
+     * {@link Compactor}</li>
+     * </ul>
+     * <em>Those methods manage segment files without modifying the caches in
+     * the {@link Database}.</em>
+     * </p>
+     * 
+     * @param segment the {@link Segment} to merge into the database
+     * @param receipts a {@link List} of {@link Receipt receipts} representing
+     *            all the {@link Segment#acquire(Write) acquisitions} by the
+     *            {@link Segment}
+     */
+    public boolean merge(Segment segment, List<Receipt> receipts) {
+        masterLock.writeLock().lock();
+        try {
+            String id = segment.id();
+
+            // By convention, #seg0 must always be at the end of the list
+            // because it is Segment that acquires #accepted Writes.
+            int index = Math.max(segments.size() - 1, 0);
+            segments.add(index, segment);
+
+            if(segment.isMutable()) {
+                Path file = storage.save(segment);
+                Logger.debug("Completed sync of {} to disk at {}", id, file);
+            }
+
+            for (Receipt receipt : receipts) {
+                updateCaches(receipt);
+            }
+
+            Logger.debug("Completed merge of {} to the Database", id);
+            return true;
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
     }
 
     @Override
@@ -1394,6 +1440,62 @@ public final class Database implements DurableStore {
     }
 
     /**
+     * If necessary, update all the in-memory caches with data from the
+     * {@link Receipt receipt} in order to maintain read consistency.
+     * <p>
+     * <strong>NOTE:</strong> This method does not validate that the
+     * {@link Receipt} came from one of the {@link Database database's}
+     * {@link #segments}, so the caller must ensuring that the {@link Receipt}
+     * contains valid data.
+     * </p>
+     * 
+     * @param receipt the {@link Receipt} containing data that my need to be
+     *            incorporated into one or more of the internal caches
+     */
+    private void updateCaches(Receipt receipt) {
+        masterLock.writeLock().lock();
+        try {
+            Composite composite;
+
+            composite = receipt.table().getLocatorComposite();
+            TableRecord table = tableCache.getIfPresent(composite);
+            if(table != null) {
+                table.append(receipt.table().revision());
+            }
+
+            composite = receipt.table().getLocatorKeyComposite();
+            TableRecord tablePartial = tablePartialCache
+                    .getIfPresent(composite);
+            if(tablePartial != null) {
+                tablePartial.append(receipt.table().revision());
+            }
+
+            composite = receipt.index().getLocatorComposite();
+            IndexRecord index = indexCache.getIfPresent(composite);
+            if(index != null) {
+                index.append(receipt.index().revision());
+            }
+
+            if(ENABLE_SEARCH_CACHE) {
+                Text key = receipt.table().revision().getKey();
+                Cache<Composite, CorpusRecord> cache = corpusCaches.get(key);
+                if(cache != null) {
+                    for (CorpusArtifact artifact : receipt.corpus()) {
+                        composite = artifact.getLocatorKeyComposite();
+                        CorpusRecord corpus = cache.getIfPresent(composite);
+                        if(corpus != null) {
+                            corpus.append(artifact.revision());
+                        }
+                    }
+                }
+            }
+        }
+        finally {
+            masterLock.writeLock().unlock();
+        }
+    }
+
+    /**
      * Configuration for the various caches used by the {@link Database}.
      * <p>
      * This class provides settings that control the maximum size and refresh
@@ -1526,21 +1628,21 @@ public final class Database implements DurableStore {
         }
 
         /**
-         * Return the maximum size for the index cache.
-         * 
-         * @return the index cache maximum size
-         */
-        int indexCacheMemoryLimit() {
-            return indexCacheMemoryLimit;
-        }
-
-        /**
          * Return the removal listener for cache entries.
          * 
          * @return the removal listener
          */
         Consumer<Record<?, ?, ?>> evictionListener() {
             return evictionListener;
+        }
+
+        /**
+         * Return the maximum size for the index cache.
+         * 
+         * @return the index cache maximum size
+         */
+        int indexCacheMemoryLimit() {
+            return indexCacheMemoryLimit;
         }
 
         /**
@@ -1591,32 +1693,6 @@ public final class Database implements DurableStore {
             }
 
             /**
-             * Set the maximum size for all caches (table, table partial, index,
-             * and corpus).
-             * 
-             * @param value the maximum size for all caches
-             * @return this builder
-             */
-            Builder memoryLimit(int value) {
-                cacheConfig.tableCacheMemoryLimit = value;
-                cacheConfig.tablePartialCacheMemoryLimit = value;
-                cacheConfig.indexCacheMemoryLimit = value;
-                cacheConfig.corpusCacheMemoryLimit = value;
-                return this;
-            }
-
-            /**
-             * Set the frequency in seconds at which cache sizes are refreshed.
-             * 
-             * @param value the cache size refresh frequency in seconds
-             * @return this builder
-             */
-            Builder memoryCheckFrequencyInSeconds(int value) {
-                cacheConfig.cacheMemoryCheckFrequencyInSeconds = value;
-                return this;
-            }
-
-            /**
              * Set the maximum size for the corpus cache.
              * 
              * @param value the maximum size for the corpus cache
@@ -1624,6 +1700,17 @@ public final class Database implements DurableStore {
              */
             Builder corpusCacheMemoryLimit(int value) {
                 cacheConfig.corpusCacheMemoryLimit = value;
+                return this;
+            }
+
+            /**
+             * Set the eviction listener for cache entries.
+             * 
+             * @param listener the removal listener to use
+             * @return this builder
+             */
+            Builder evictionListener(Consumer<Record<?, ?, ?>> listener) {
+                cacheConfig.evictionListener = listener;
                 return this;
             }
 
@@ -1639,13 +1726,28 @@ public final class Database implements DurableStore {
             }
 
             /**
-             * Set the eviction listener for cache entries.
+             * Set the frequency in seconds at which cache sizes are refreshed.
              * 
-             * @param listener the removal listener to use
+             * @param value the cache size refresh frequency in seconds
              * @return this builder
              */
-            Builder evictionListener(Consumer<Record<?, ?, ?>> listener) {
-                cacheConfig.evictionListener = listener;
+            Builder memoryCheckFrequencyInSeconds(int value) {
+                cacheConfig.cacheMemoryCheckFrequencyInSeconds = value;
+                return this;
+            }
+
+            /**
+             * Set the maximum size for all caches (table, table partial, index,
+             * and corpus).
+             * 
+             * @param value the maximum size for all caches
+             * @return this builder
+             */
+            Builder memoryLimit(int value) {
+                cacheConfig.tableCacheMemoryLimit = value;
+                cacheConfig.tablePartialCacheMemoryLimit = value;
+                cacheConfig.indexCacheMemoryLimit = value;
+                cacheConfig.corpusCacheMemoryLimit = value;
                 return this;
             }
 
