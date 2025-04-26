@@ -105,6 +105,9 @@ We made several changes to improve the safety, scalability and operational effic
 	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
 	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
 
+#### Version 0.11.9 (TBD)
+* Improved the performance of multi-key selection commands that occur during concurrent Buffer transport operations. Previously, when selecting multiple keys while data was being transported for indexing, each primitive select operation would acquire a lock that blocked transports, but transports could still occur between operations, slowing down the overall read. Now, these commands use an advisory lock that blocks all transports until the entire bulk read completes. This optimization significantly improves performance in real-world scenarios with simultaneous reads and writes. In the future, this advisory locking mechanism will be extended to other bulk and atomic operations.
+
 #### Version 0.11.8 (April 15, 2025)
 
 ##### Navigation Queries
