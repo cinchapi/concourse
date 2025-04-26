@@ -9,8 +9,8 @@ We've introduced a new mechanism to control how Concourse Server transports data
 * **New Transporter Configuration**: Added the `transporter` configuration option in `concourse.yaml` that allows you to specify how Concourse moves data from the write-optimized Buffer to the read-optimized Database, where it becomes fully indexed.
 
 * **Two Transport Strategies**:
-  * **Streaming Transporter** (default/legacy): Processes writes incrementally in small batches, with transport operations competing with reads and writes for system resources. While this provides consistent throughput by amortizing indexing costs across operations, it can lead to "stop-the-world" situations during high load when transport operations block all reads (and implicitly writes, which perform verification reads).
-  * **Batch Transporter** (new): Performs indexing entirely in the background, allowing reads and writes to continue uninterrupted during the indexing phase. Only a brief critical section is required when merging the fully-indexed data into the Database. This approach dramatically improves overall system throughput by eliminating the resource contention between transport operations and normal read/write operations.
+  * **Streaming Transporter** (legacy): Processes writes incrementally in small batches, with transport operations competing with reads and writes for system resources. While this provides consistent throughput by amortizing indexing costs across operations, it can lead to "stop-the-world" situations during high load when transport operations block all reads (and implicitly writes, which perform verification reads).
+  * **Batch Transporter** (default/new): Performs indexing entirely in the background, allowing reads and writes to continue uninterrupted during the indexing phase. Only a brief critical section is required when merging the fully-indexed data into the Database. This approach dramatically improves overall system throughput by eliminating the resource contention between transport operations and normal read/write operations.
 
 * **Configuration Options**:
 ```
