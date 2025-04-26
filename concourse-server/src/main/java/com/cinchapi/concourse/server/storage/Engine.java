@@ -882,7 +882,7 @@ public final class Engine extends BufferedStore implements
             return super.add(write, sync, verify);
         }
         finally {
-            Locks.lockIfCondition(transportLock.readLock(),
+            Locks.unlockIfCondition(transportLock.readLock(),
                     verify == Verify.YES);
         }
     }
@@ -949,7 +949,7 @@ public final class Engine extends BufferedStore implements
             return super.remove(write, sync, verify);
         }
         finally {
-            Locks.lockIfCondition(transportLock.readLock(),
+            Locks.unlockIfCondition(transportLock.readLock(),
                     verify == Verify.YES);
         }
     }
