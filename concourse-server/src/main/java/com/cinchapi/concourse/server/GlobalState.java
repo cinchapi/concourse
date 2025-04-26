@@ -303,14 +303,14 @@ public final class GlobalState extends Constants {
      * background and in larger batches, which can improve overall throughput at
      * the cost of potentially longer pauses during merges.
      */
-    public static boolean ENABLE_BATCH_TRANSPORTS = false;
+    public static boolean ENABLE_BATCH_TRANSPORTS = true;
 
     /**
      * The type of {@link Transporter} to use when transporting data from the
      * Buffer to the Database.
      */
     @NonPreference
-    public static Class<? extends Transporter> TRANSPORTER_CLASS = StreamingTransporter.class;
+    public static Class<? extends Transporter> TRANSPORTER_CLASS = BatchTransporter.class;
 
     /**
      * The number of threads to use for {@link Transporter#transport()
