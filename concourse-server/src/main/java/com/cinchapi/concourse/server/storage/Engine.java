@@ -40,6 +40,7 @@ import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.server.concurrent.LockBroker.Permit;
+import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.concurrent.RangeToken;
 import com.cinchapi.concourse.server.concurrent.Token;
 import com.cinchapi.concourse.server.io.FileSystem;
@@ -875,13 +876,14 @@ public final class Engine extends BufferedStore implements
         // the Buffer allows group sync to happen. Similarly, #verify should
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
-        transportLock.readLock().lock();
+        Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
+        Locks.lockIfCondition(transportLock.readLock(), verify == Verify.YES);
         try {
-            Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
             return super.add(write, sync, verify);
         }
         finally {
-            transportLock.readLock().unlock();
+            Locks.lockIfCondition(transportLock.readLock(),
+                    verify == Verify.YES);
         }
     }
 
@@ -941,13 +943,14 @@ public final class Engine extends BufferedStore implements
         // the Buffer allows group sync to happen. Similarly, #verify should
         // also be NO during group sync because the Writes have already been
         // verified prior to commit.
-        transportLock.readLock().lock();
+        Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
+        Locks.lockIfCondition(transportLock.readLock(), verify == Verify.YES);
         try {
-            Verify verify = sync == Sync.YES ? Verify.YES : Verify.NO;
             return super.remove(write, sync, verify);
         }
         finally {
-            transportLock.readLock().unlock();
+            Locks.lockIfCondition(transportLock.readLock(),
+                    verify == Verify.YES);
         }
     }
 }
