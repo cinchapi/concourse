@@ -2053,7 +2053,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
                 pageIterator = pages.iterator();
             }
 
-            // Find the next Page which relevant writes and flip to it
+            // Find the next Page with relevant writes and flip to it
             while (pageIterator.hasNext()) {
                 Page next = pageIterator.next();
                 if(lock(next)) {
