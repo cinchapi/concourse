@@ -88,7 +88,6 @@ import com.cinchapi.concourse.util.ThreadFactories;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
@@ -193,7 +192,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
         /**
          * The wrapped list that actually stores the data.
          */
-        private final List<Page> delegate = Lists.newArrayList();
+        private final List<Page> delegate = new ArrayList<>();
 
         @Override
         public void add(int index, Page element) {
@@ -367,7 +366,9 @@ public final class Buffer extends Limbo implements BatchTransportable {
             Map<TObject, Set<Long>> context) {
         Iterator<Write> it = iterator(key, timestamp);
         try {
+            boolean modified = false;
             while (it.hasNext()) {
+                modified = true;
                 Write write = it.next();
                 TObject value = write.getValue().getTObject();
                 long record = write.getRecord().longValue();
@@ -384,7 +385,12 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     }
                 }
             }
-            return new TreeMap<>((SortedMap<TObject, Set<Long>>) context);
+            // @formatter:off
+            Map<TObject, Set<Long>> sorted = modified
+                    ? new TreeMap<>((SortedMap<TObject, Set<Long>>) context)
+                    : context;
+            // @formatter:on
+            return sorted;
         }
         finally {
             Iterators.close(it);
@@ -638,7 +644,9 @@ public final class Buffer extends Limbo implements BatchTransportable {
             Map<String, Set<TObject>> context) {
         Iterator<Write> it = iterator(record, timestamp);
         try {
+            boolean modified = false;
             while (it.hasNext()) {
+                modified = true;
                 Write write = it.next();
                 String key = write.getKey().toString();
                 TObject value = write.getValue().getTObject();
@@ -655,7 +663,12 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     }
                 }
             }
-            return new TreeMap<>(context);
+            // @formatter:off
+            Map<String, Set<TObject>> sorted = modified 
+                    ? new TreeMap<>(context)
+                    : context;
+            // @formatter:on
+            return sorted;
         }
         finally {
             Iterators.close(it);
