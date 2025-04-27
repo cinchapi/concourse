@@ -57,6 +57,7 @@ import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.TMaps;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -522,6 +523,23 @@ public final class Operations {
             records = Paging.page(records, page);
             page = NoPage.INSTANCE;
         }
+        else if(!(page instanceof NoPage) && !order.keys().contains(key)) {
+            // When sorting on a different key than what is being selected, it
+            // takes fewer lookups to first sort and paginate the input records
+            // than it does to select all the data first and then applying the
+            // sorting and pagination.
+            M staging = supplier.get();
+            for (long record : records) {
+                // NOTE: This places "null" under the #key column, which is
+                // never consulted as part of the sort since it is not an order
+                // key.
+                staging.put(record, TObject.NULL);
+            }
+            sortByValue(staging, order, timestamp, store);
+            records = Paging.page(staging.keySet(), page);
+            order = NoOrder.INSTANCE;
+            page = NoPage.INSTANCE;
+        }
         for (long record : records) {
             try {
                 Set<TObject> values = timestamp == Time.NONE
@@ -534,16 +552,15 @@ public final class Operations {
                 continue;
             }
         }
-        if(timestamp == Time.NONE) {
-            data.sort(Sorting.byValue(order, store));
-        }
-        else {
-            data.sort(Sorting.byValue(order, store), timestamp);
-        }
 
-        // Assuming page != NoPage and pagination was not applied to the
-        // input records (e.g., the data was actually sorted); otherwise this is
-        // a no-op
+        // If sorting was requested, but it was not previously applied in this
+        // method during an shortcut optimization, apply it here. This is a
+        // no-op if order == NoOrder.
+        sortByValue(data, order, timestamp, store);
+
+        // If pagination was requested ,but was not previously applied in this
+        // method during a shortcut optimization, perform it here. This is a
+        // no-op if page == NoPage.
         return Paging.page(data, page);
     }
 
@@ -671,6 +688,21 @@ public final class Operations {
             records = Paging.page(records, page);
             page = NoPage.INSTANCE;
         }
+        else if(!(page instanceof NoPage)
+                && shouldSortBeforeSelect(keys, records, order, page)) {
+            // This is a case where both pagination and sorting must be applied
+            // and we've determined that it takes fewer lookups to first sort
+            // and paginate the input records than it does to select all the
+            // data first and then applying the sorting and pagination.
+            M staging = supplier.get();
+            for (long record : records) {
+                staging.put(record, ImmutableMap.of());
+            }
+            sortByValue(staging, order, timestamp, store);
+            records = Paging.page(staging.keySet(), page);
+            order = NoOrder.INSTANCE;
+            page = NoPage.INSTANCE;
+        }
         for (long record : records) {
             Map<String, TObject> row = (timestamp == Time.NONE
                     ? Stores.select(store, keys, record)
@@ -685,16 +717,15 @@ public final class Operations {
                 data.put(record, row);
             }
         }
-        if(timestamp == Time.NONE) {
-            data.sort(Sorting.byValue(order, store));
-        }
-        else {
-            data.sort(Sorting.byValue(order, store), timestamp);
-        }
 
-        // Assuming page != NoPage and pagination was not applied to the
-        // input records (e.g., the data was actually sorted); otherwise this is
-        // a no-op
+        // If sorting was requested, but it was not previously applied in this
+        // method during an shortcut optimization, apply it here. This is a
+        // no-op if order == NoOrder.
+        sortByValue(data, order, timestamp, store);
+
+        // If pagination was requested ,but was not previously applied in this
+        // method during a shortcut optimization, perform it here. This is a
+        // no-op if page == NoPage.
         return Paging.page(data, page);
     }
 
@@ -1346,6 +1377,23 @@ public final class Operations {
             records = Paging.page(records, page);
             page = NoPage.INSTANCE;
         }
+        else if(!(page instanceof NoPage) && !order.keys().contains(key)) {
+            // When sorting on a different key than what is being selected, it
+            // takes fewer lookups to first sort and paginate the input records
+            // than it does to select all the data first and then applying the
+            // sorting and pagination.
+            M staging = supplier.get();
+            for (long record : records) {
+                // NOTE: This places an empty set under the #key column, which
+                // is never consulted as part of the sort since it is not an
+                // order key.
+                staging.put(record, ImmutableSet.of());
+            }
+            sortByValues(staging, order, timestamp, store);
+            records = Paging.page(staging.keySet(), page);
+            order = NoOrder.INSTANCE;
+            page = NoPage.INSTANCE;
+        }
         for (long record : records) {
             try {
                 Set<TObject> values = timestamp == Time.NONE
@@ -1357,16 +1405,15 @@ public final class Operations {
                 continue;
             }
         }
-        if(timestamp == Time.NONE) {
-            data.sort(Sorting.byValues(order, store));
-        }
-        else {
-            data.sort(Sorting.byValues(order, store), timestamp);
-        }
 
-        // Assuming page != NoPage and pagination was not applied to the
-        // input records (e.g., the data was actually sorted); otherwise this is
-        // a no-op
+        // If sorting was requested, but it was not previously applied in this
+        // method during an shortcut optimization, apply it here. This is a
+        // no-op if order == NoOrder.
+        sortByValues(data, order, timestamp, store);
+
+        // If pagination was requested ,but was not previously applied in this
+        // method during a shortcut optimization, perform it here. This is a
+        // no-op if page == NoPage.
         return Paging.page(data, page);
     }
 
@@ -1492,6 +1539,21 @@ public final class Operations {
             records = Paging.page(records, page);
             page = NoPage.INSTANCE;
         }
+        else if(!(page instanceof NoPage)
+                && shouldSortBeforeSelect(keys, records, order, page)) {
+            // This is a case where both pagination and sorting must be applied
+            // and we've determined that it takes fewer lookups to first sort
+            // and paginate the input records than it does to select all the
+            // data first and then applying the sorting and pagination.
+            M staging = supplier.get();
+            for (long record : records) {
+                staging.put(record, ImmutableMap.of());
+            }
+            sortByValues(staging, order, timestamp, store);
+            records = Paging.page(staging.keySet(), page);
+            order = NoOrder.INSTANCE;
+            page = NoPage.INSTANCE;
+        }
         for (long record : records) {
             Map<String, Set<TObject>> row = timestamp == Time.NONE
                     ? Stores.select(store, keys, record)
@@ -1500,16 +1562,15 @@ public final class Operations {
                 TMaps.putResultDatasetOptimized(data, record, row);
             }
         }
-        if(timestamp == Time.NONE) {
-            data.sort(Sorting.byValues(order, store));
-        }
-        else {
-            data.sort(Sorting.byValues(order, store), timestamp);
-        }
 
-        // Assuming page != NoPage and pagination was not applied to the
-        // input records (e.g., the data was actually sorted); otherwise this is
-        // a no-op
+        // If sorting was requested, but it was not previously applied in this
+        // method during an shortcut optimization, apply it here. This is a
+        // no-op if order == NoOrder.
+        sortByValues(data, order, timestamp, store);
+
+        // If pagination was requested ,but was not previously applied in this
+        // method during a shortcut optimization, perform it here. This is a
+        // no-op if page == NoPage.
         return Paging.page(data, page);
     }
 
@@ -1892,6 +1953,79 @@ public final class Operations {
             throws InsufficientAtomicityException {
         if(timestamp == Time.NONE && !(store instanceof AtomicOperation)) {
             throw new InsufficientAtomicityException();
+        }
+    }
+
+    /**
+     * Determine whether it is more efficient to sort records first before
+     * selecting data.
+     * <p>
+     * This method compares the number of lookups required when sorting first
+     * versus selecting first, and returns true if sorting first would require
+     * fewer operations.
+     * </p>
+     * 
+     * @param keys the collection of keys to select
+     * @param records the records to process
+     * @param order the sorting order to apply
+     * @param page the pagination parameters
+     * @return true if sorting records first would be more efficient, false
+     *         otherwise
+     */
+    private static boolean shouldSortBeforeSelect(Collection<String> keys,
+            Iterable<Long> records, Order order, Page page) {
+        int total = Iterables.size(records);
+        Set<String> orderKeys = order.keys();
+        int uniqueOrderKeys = Sets
+                .difference(orderKeys,
+                        com.cinchapi.common.collect.Collections.ensureSet(keys))
+                .size();
+        int numLookupsIfSortFirst = (keys.size() * page.limit())
+                + (orderKeys.size() * total);
+        int numLookupsIfSelectFirst = (keys.size() * total)
+                + (uniqueOrderKeys * total);
+        return numLookupsIfSortFirst < numLookupsIfSelectFirst;
+    }
+
+    /**
+     * Sort the provided data by a single value, according to the specified
+     * order. This method handles both current and historical data based on the
+     * timestamp.
+     * 
+     * @param data the sortable collection to be ordered by its value
+     * @param order the ordering specification to apply
+     * @param timestamp the timestamp at which to view the data, or
+     *            {@link Time#NONE} for current data
+     * @param store the data store to use for comparison operations
+     */
+    private static void sortByValue(Sortable<TObject> data, Order order,
+            long timestamp, Store store) {
+        if(timestamp == Time.NONE) {
+            data.sort(Sorting.byValue(order, store));
+        }
+        else {
+            data.sort(Sorting.byValue(order, store), timestamp);
+        }
+    }
+
+    /**
+     * Sort the provided data by the values contained within, according to the
+     * specified order. This method handles both current and historical data
+     * based on the timestamp.
+     * 
+     * @param data the sortable collection to be ordered by its values
+     * @param order the ordering specification to apply
+     * @param timestamp the timestamp at which to view the data, or
+     *            {@link Time#NONE} for current data
+     * @param store the data store to use for comparison operations
+     */
+    private static void sortByValues(Sortable<Set<TObject>> data, Order order,
+            long timestamp, Store store) {
+        if(timestamp == Time.NONE) {
+            data.sort(Sorting.byValues(order, store));
+        }
+        else {
+            data.sort(Sorting.byValues(order, store), timestamp);
         }
     }
 
