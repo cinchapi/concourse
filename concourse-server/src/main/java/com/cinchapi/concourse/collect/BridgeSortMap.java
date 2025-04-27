@@ -125,7 +125,7 @@ public class BridgeSortMap<K, V> implements SortedMap<K, V> {
     @Override
     public boolean equals(Object obj) {
         if(obj instanceof Map) {
-            Map<K,V> map = (Map<K,V>) obj;
+            Map<K, V> map = (Map<K, V>) obj;
             return map.entrySet().equals(entrySet());
         }
         else {

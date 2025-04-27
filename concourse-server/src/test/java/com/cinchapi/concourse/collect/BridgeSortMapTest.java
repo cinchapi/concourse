@@ -195,7 +195,7 @@ public class BridgeSortMapTest {
                 lengthThenAlpha);
 
         // Add new entries
-        map.put("plum", 7); // 4 chars 
+        map.put("plum", 7); // 4 chars
         map.put("mango", 8); // 5 chars - should be between apple and grape
 
         // Expected order: fig (3), kiwi (4), plum (4), pear (4), apple (5),
@@ -219,26 +219,26 @@ public class BridgeSortMapTest {
         Assert.assertEquals("Keys should be sorted by custom comparator",
                 expectedOrder, actualOrder);
     }
-    
+
     @Test
     public void testPutAllMaintainsSortedOrder() {
         Map<String, Integer> provided = new LinkedHashMap<>();
         provided.put("apple", 1);
         provided.put("grape", 5);
-        
-        BridgeSortMap<String, Integer> map = new BridgeSortMap<>(provided, 
+
+        BridgeSortMap<String, Integer> map = new BridgeSortMap<>(provided,
                 Comparator.naturalOrder());
-        
+
         // Create a batch of new entries
         Map<String, Integer> batch = new HashMap<>();
         batch.put("banana", 2);
         batch.put("cherry", 3);
         batch.put("date", 4);
-        batch.put("apple", 10);  // Should update existing entry
-        
+        batch.put("apple", 10); // Should update existing entry
+
         // Add all entries at once
         map.putAll(batch);
-        
+
         // Verify updates were applied correctly
         Assert.assertEquals(Integer.valueOf(10), map.get("apple"));
         Assert.assertEquals(Integer.valueOf(10), provided.get("apple"));
@@ -246,119 +246,120 @@ public class BridgeSortMapTest {
         Assert.assertEquals(Integer.valueOf(3), map.get("cherry"));
         Assert.assertEquals(Integer.valueOf(4), map.get("date"));
         Assert.assertEquals(Integer.valueOf(5), map.get("grape"));
-        
+
         // Verify the iteration order is correct
         List<String> keys = new ArrayList<>();
         for (String key : map.keySet()) {
             keys.add(key);
         }
-        
+
         List<String> expectedKeys = new ArrayList<>();
         expectedKeys.add("apple");
         expectedKeys.add("banana");
         expectedKeys.add("cherry");
         expectedKeys.add("date");
         expectedKeys.add("grape");
-        
-        Assert.assertEquals("Keys should be in sorted order after putAll", 
+
+        Assert.assertEquals("Keys should be in sorted order after putAll",
                 expectedKeys, keys);
     }
-    
+
     @Test
     public void testValuesFollowKeyOrder() {
         Map<String, Integer> provided = new LinkedHashMap<>();
         provided.put("apple", 1);
         provided.put("banana", 2);
-        
-        BridgeSortMap<String, Integer> map = new BridgeSortMap<>(provided, 
+
+        BridgeSortMap<String, Integer> map = new BridgeSortMap<>(provided,
                 Comparator.naturalOrder());
-        
+
         map.put("cherry", 3);
         map.put("date", 4);
-        
+
         // Values should be in the same order as the sorted keys
         List<Integer> values = new ArrayList<>();
         for (Integer value : map.values()) {
             values.add(value);
         }
-        
+
         List<Integer> expectedValues = new ArrayList<>();
-        expectedValues.add(1);  // apple
-        expectedValues.add(2);  // banana
-        expectedValues.add(3);  // cherry
-        expectedValues.add(4);  // date
-        
-        Assert.assertEquals("Values should follow the sorted key order", 
+        expectedValues.add(1); // apple
+        expectedValues.add(2); // banana
+        expectedValues.add(3); // cherry
+        expectedValues.add(4); // date
+
+        Assert.assertEquals("Values should follow the sorted key order",
                 expectedValues, values);
     }
-    
+
     @Test
     public void testWithSortedMapAsProvided() {
         // Create a SortedMap with natural order
-        SortedMap<String, Integer> provided = new TreeMap<>(Comparator.naturalOrder());
+        SortedMap<String, Integer> provided = new TreeMap<>(
+                Comparator.naturalOrder());
         provided.put("apple", 1);
         provided.put("banana", 2);
         provided.put("grape", 3);
-        
+
         // Create BridgeSortMap with the same natural order
-        BridgeSortMap<String, Integer> map = new BridgeSortMap<>(provided, 
+        BridgeSortMap<String, Integer> map = new BridgeSortMap<>(provided,
                 Comparator.naturalOrder());
-        
+
         map.put("cherry", 4);
         map.put("date", 5);
-        
+
         // Verify the iteration order is correct
         List<String> keys = new ArrayList<>();
         for (String key : map.keySet()) {
             keys.add(key);
         }
-        
+
         List<String> expectedKeys = new ArrayList<>();
         expectedKeys.add("apple");
         expectedKeys.add("banana");
         expectedKeys.add("cherry");
         expectedKeys.add("date");
         expectedKeys.add("grape");
-        
-        Assert.assertEquals("Keys should be in natural order", 
-                expectedKeys, keys);
+
+        Assert.assertEquals("Keys should be in natural order", expectedKeys,
+                keys);
     }
-    
+
     @Test
     public void testEqualsAndHashCode() {
         // Create two maps with the same content
         Map<String, Integer> provided1 = new LinkedHashMap<>();
         provided1.put("apple", 1);
         provided1.put("banana", 2);
-        
-        BridgeSortMap<String, Integer> map1 = new BridgeSortMap<>(provided1, 
+
+        BridgeSortMap<String, Integer> map1 = new BridgeSortMap<>(provided1,
                 Comparator.naturalOrder());
         map1.put("cherry", 3);
-        
+
         Map<String, Integer> provided2 = new LinkedHashMap<>();
         provided2.put("apple", 1);
         provided2.put("banana", 2);
-        
-        BridgeSortMap<String, Integer> map2 = new BridgeSortMap<>(provided2, 
+
+        BridgeSortMap<String, Integer> map2 = new BridgeSortMap<>(provided2,
                 Comparator.naturalOrder());
         map2.put("cherry", 3);
-        
+
         // They should be equal and have the same hashCode
         Assert.assertEquals(map1, map2);
         Assert.assertEquals(map1.hashCode(), map2.hashCode());
-        
+
         // Create a regular map with the same entries
         Map<String, Integer> regularMap = new HashMap<>();
         regularMap.put("apple", 1);
         regularMap.put("banana", 2);
         regularMap.put("cherry", 3);
-        
+
         // The BridgeSortMap should equal the regular map
         Assert.assertEquals(map1, regularMap);
-        
+
         // Modify one map
         map2.put("date", 4);
-        
+
         // They should no longer be equal
         Assert.assertFalse(map1.equals(map2));
     }
