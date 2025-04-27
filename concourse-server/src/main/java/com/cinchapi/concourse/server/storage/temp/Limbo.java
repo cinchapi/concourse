@@ -48,7 +48,6 @@ import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.MultimapViews;
-import com.cinchapi.concourse.util.TMaps;
 import com.google.common.collect.Iterables;
 import com.google.common.hash.HashCode;
 
@@ -259,12 +258,15 @@ public abstract class Limbo implements Store, Iterable<Write> {
                     else if(action == Action.REMOVE) {
                         snapshot.remove(value);
                     }
-                    if(timestamp >= start && !snapshot.isEmpty()) {
+                    if(timestamp >= start) {
                         context.put(timestamp, snapshot);
                     }
                 }
             }
         }
+        // NOTE: Empty snapshots couldn't be removed while processing because
+        // that state needed to be preserved to calculate subsequent diffs.
+        context.values().removeIf(v -> v.isEmpty());
         return context;
     }
 
@@ -382,7 +384,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 }
             }
         }
-        return TMaps.asSortedMap(context);
+        return context;
     }
 
     @Override
@@ -393,7 +395,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
     @Override
     public Map<Long, Set<TObject>> explore(String key, Aliases aliases,
             long timestamp) {
-        return explore(new LinkedHashMap<>(), key, aliases, timestamp);
+        return explore(new TreeMap<>(), key, aliases, timestamp);
     }
 
     /**

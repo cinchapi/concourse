@@ -83,7 +83,6 @@ import com.cinchapi.concourse.util.Integers;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.NaturalSorter;
-import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.ThreadFactories;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -366,9 +365,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
             Map<TObject, Set<Long>> context) {
         Iterator<Write> it = iterator(key, timestamp);
         try {
-            boolean modified = false;
             while (it.hasNext()) {
-                modified = true;
                 Write write = it.next();
                 TObject value = write.getValue().getTObject();
                 long record = write.getRecord().longValue();
@@ -385,12 +382,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     }
                 }
             }
-            // @formatter:off
-            Map<TObject, Set<Long>> sorted = modified
-                    ? new TreeMap<>((SortedMap<TObject, Set<Long>>) context)
-                    : context;
-            // @formatter:on
-            return sorted;
+            return context;
         }
         finally {
             Iterators.close(it);
@@ -424,11 +416,15 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     else if(action == Action.REMOVE) {
                         snapshot.remove(value);
                     }
-                    if(timestamp >= start && !snapshot.isEmpty()) {
+                    if(timestamp >= start) {
                         context.put(timestamp, snapshot);
                     }
                 }
             }
+            // NOTE: Empty snapshots couldn't be removed while processing
+            // because that state needed to be preserved to calculate subsequent
+            // diffs.
+            context.values().removeIf(v -> v.isEmpty());
             return context;
         }
         finally {
@@ -505,7 +501,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     }
                 }
             }
-            return TMaps.asSortedMap(context);
+            return context;
         }
         finally {
             Iterators.close(it);
@@ -644,9 +640,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
             Map<String, Set<TObject>> context) {
         Iterator<Write> it = iterator(record, timestamp);
         try {
-            boolean modified = false;
             while (it.hasNext()) {
-                modified = true;
                 Write write = it.next();
                 String key = write.getKey().toString();
                 TObject value = write.getValue().getTObject();
@@ -663,12 +657,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     }
                 }
             }
-            // @formatter:off
-            Map<String, Set<TObject>> sorted = modified 
-                    ? new TreeMap<>(context)
-                    : context;
-            // @formatter:on
-            return sorted;
+            return context;
         }
         finally {
             Iterators.close(it);
