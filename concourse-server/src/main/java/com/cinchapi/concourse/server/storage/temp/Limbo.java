@@ -25,7 +25,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Function;
 
@@ -158,7 +157,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
      */
     public Map<TObject, Set<Long>> browse(String key, long timestamp,
             Map<TObject, Set<Long>> context) {
-        boolean modified = false;
         if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
@@ -166,7 +164,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 String $key = write.getKey().toString();
                 long $timestamp = write.getVersion();
                 if($key.toString().equals(key) && $timestamp <= timestamp) {
-                    modified = true;
                     long record = write.getRecord().longValue();
                     Action action = write.getType();
                     Set<Long> records = context.computeIfAbsent(value,
@@ -189,12 +186,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 }
             }
         }
-        // @formatter:off
-        Map<TObject, Set<Long>> sorted = modified
-                ? new TreeMap<>((SortedMap<TObject, Set<Long>>) context)
-                : context;
-        // @formatter:on
-        return sorted;
+        return context;
     }
 
     /**
@@ -614,7 +606,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
      */
     public Map<String, Set<TObject>> select(long record, long timestamp,
             Map<String, Set<TObject>> context) {
-        boolean modified = false;
         if(timestamp >= getOldestWriteTimestamp()) {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
@@ -624,7 +615,6 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 long $record = write.getRecord().longValue();
                 long $timestamp = write.getVersion();
                 if($record == record && $timestamp <= timestamp) {
-                    modified = true;
                     Set<TObject> values = context.computeIfAbsent(key,
                             $ -> new LinkedHashSet<>());
                     if(action == Action.ADD) {
@@ -645,12 +635,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 }
             }
         }
-        // @formatter:off
-        Map<String, Set<TObject>> sorted = modified 
-                ? new TreeMap<>(context)
-                : context;
-        // @formatter:on
-        return sorted;
+        return context;
     }
 
     /**
