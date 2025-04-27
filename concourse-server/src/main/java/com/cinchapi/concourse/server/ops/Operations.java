@@ -1975,7 +1975,8 @@ public final class Operations {
     private static boolean shouldSortBeforeSelect(Collection<String> keys,
             Iterable<Long> records, Order order, Page page) {
         int total = Iterables.size(records);
-        Set<String> orderKeys = order.keys();
+        Set<String> orderKeys = Command.isSet() ? Command.current().orderKeys()
+                : order.keys();
         int uniqueOrderKeys = Sets
                 .difference(orderKeys,
                         com.cinchapi.common.collect.Collections.ensureSet(keys))
