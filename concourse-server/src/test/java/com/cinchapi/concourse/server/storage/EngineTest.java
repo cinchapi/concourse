@@ -33,6 +33,7 @@ import org.junit.runner.Description;
 
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.server.io.FileSystem;
+import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.storage.db.Database;
 import com.cinchapi.concourse.server.storage.temp.Buffer;
 import com.cinchapi.concourse.server.storage.temp.Write;
@@ -604,6 +605,39 @@ public class EngineTest extends BufferedStoreTest {
                                     // transporter
         Assert.assertEquals(commits.get(), versions.size());
         Assert.assertEquals(expected.get(), actual.get());
+    }
+
+    @Test
+    public void testBrowseKeyIsSortedWhenAllDataInDatabase() {
+        Engine engine = (Engine) store;
+        Buffer buffer = (Buffer) engine.limbo;
+        Database db = (Database) engine.durable;
+
+        String key = TestData.getSimpleString();
+
+        for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+            long record = TestData.getLong();
+            TObject value = TestData.getTObject();
+            db.accept(Write.add(key, value, record));
+        }
+
+        // Ensure buffer is empty for this key
+        Assert.assertTrue(buffer.browse(key).isEmpty());
+
+        Map<TObject, Set<Long>> data = Variables.register("data",
+                engine.browse(key));
+
+        // Verify values are sorted
+        TObject previous = null;
+        for (TObject current : data.keySet()) {
+            if(previous != null) {
+                Variables.register("previous", previous);
+                Variables.register("current", current);
+                Assert.assertTrue(
+                        TObjectSorter.INSTANCE.compare(previous, current) < 0);
+            }
+            previous = current;
+        }
     }
 
     // @Test

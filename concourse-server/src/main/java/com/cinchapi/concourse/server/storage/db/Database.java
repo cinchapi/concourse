@@ -24,7 +24,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -59,6 +61,7 @@ import com.cinchapi.common.base.Verify;
 import com.cinchapi.common.collect.concurrent.ThreadFactories;
 import com.cinchapi.common.concurrent.JoinableExecutorService;
 import com.cinchapi.concourse.annotate.Restricted;
+import com.cinchapi.concourse.collect.BridgeSortMap;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
 import com.cinchapi.concourse.server.concurrent.NoOpScheduledExecutorService;
@@ -593,7 +596,7 @@ public final class Database implements DurableStore {
         Text L = Text.wrapCached(key);
         IndexRecord index = getIndexRecord(L);
         Map<Value, Set<Identifier>> data = index.getAll();
-        return Transformers.transformTreeMapSet(data, Value::getTObject,
+        return Internals.transformAssumedSortedMap(data, Value::getTObject,
                 Identifier::longValue, TObjectSorter.INSTANCE);
     }
 
@@ -602,7 +605,7 @@ public final class Database implements DurableStore {
         Text L = Text.wrapCached(key);
         IndexRecord index = getIndexRecord(L);
         Map<Value, Set<Identifier>> data = index.getAll(timestamp);
-        return Transformers.transformTreeMapSet(data, Value::getTObject,
+        return Internals.transformAssumedSortedMap(data, Value::getTObject,
                 Identifier::longValue, TObjectSorter.INSTANCE);
     }
 
@@ -1873,6 +1876,47 @@ public final class Database implements DurableStore {
                     || contains(record);
         }
 
+    }
+
+    /**
+     * Utilities for processing, handling and transforming data within a
+     * {@link Database}.
+     *
+     * @author Jeff Nelson
+     */
+    private static class Internals {
+
+        /**
+         * Transform the keys and values in a {@link Map} that is already
+         * assumed to be in sorted order according on the provided
+         * {@code comparator} and would continue to be in the same sorted order
+         * after applying the {@code keyTransformer} (e.g., one that comes from
+         * an {@link IndexRecord}).
+         * 
+         * @param data
+         * @param keyTransformer
+         * @param valueTransformer
+         * @param comparator
+         * @return a {@link Map} that features the data after applying the
+         *         {@code keyTransformer} and {@code valueTransformer}. The
+         *         entries in the {@link Map} retain the original assumed sorted
+         *         order of the pre-transformed {@code data}
+         */
+        public static <K, K2, V, V2> Map<K2, Set<V2>> transformAssumedSortedMap(
+                Map<K, Set<V>> data, Function<K, K2> keyTransformer,
+                Function<V, V2> valueTransformer, Comparator<K2> comparator) {
+            Map<K2, Set<V2>> transformed = new LinkedHashMap<>(data.size());
+            for (Entry<K, Set<V>> entry : data.entrySet()) {
+                K2 key = keyTransformer.apply(entry.getKey());
+                Set<V2> values = new LinkedHashSet<>(entry.getValue().size());
+                for (V value : entry.getValue()) {
+                    values.add(valueTransformer.apply(value));
+                }
+                transformed.put(key, values);
+            }
+            transformed = new BridgeSortMap<>(transformed, comparator);
+            return transformed;
+        }
     }
 
     /**
