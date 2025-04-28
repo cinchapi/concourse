@@ -15,8 +15,10 @@
  */
 package com.cinchapi.concourse.server.ops;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,6 +26,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.common.base.StringSplitter;
@@ -33,8 +36,10 @@ import com.cinchapi.concourse.data.sort.Sortable;
 import com.cinchapi.concourse.lang.ConcourseCompiler;
 import com.cinchapi.concourse.lang.paginate.NoPage;
 import com.cinchapi.concourse.lang.paginate.Page;
+import com.cinchapi.concourse.lang.sort.Direction;
 import com.cinchapi.concourse.lang.sort.NoOrder;
 import com.cinchapi.concourse.lang.sort.Order;
+import com.cinchapi.concourse.lang.sort.OrderComponent;
 import com.cinchapi.concourse.server.ConcourseServer.DeferredWrite;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.calculate.Calculations;
@@ -57,6 +62,7 @@ import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.Numbers;
 import com.cinchapi.concourse.util.TMaps;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -357,6 +363,86 @@ public final class Operations {
     }
 
     /**
+     * "Frame" a collection of {@code records} that is simply ordered using a
+     * single {@code key}.
+     * 
+     * <p>
+     * Framing is the process of applying sorting and pagination to a result
+     * set. This method provides an optimized implementation for cases when the
+     * order only considers a single key. Instead of performing multiple lookups
+     * and comparisons to establish order
+     * among the {@code records}, this method leverages the {@code key}'s index,
+     * which is already sorted, allowing for efficient ordering of the result
+     * set
+     * </p>
+     * 
+     * @param store
+     * @param records
+     * @param timestamp
+     * @param order must be {@link Order#isSingular() singular}
+     * @param page
+     * @return {@code records} (or a subset thereof) that are framed according
+     *         the order and pagination parameters
+     */
+    public static Set<Long> frameRecordsOptionalAtomic(Store store,
+            Iterable<Long> records, long timestamp, Order order, Page page) {
+        // TODO: account for case when its better to do lookups even when the
+        // order is 1. That would usually be if the number of index filter
+        // operations (index.size() - records.size() is way larger tan the
+        // number of records??
+        Preconditions.checkArgument(order.isSingular(),
+                "Efficient framing is only supported for singular Order clauses");
+        OrderComponent component = order.spec().get(0);
+        String key = component.key();
+        Direction direction = component.direction();
+        timestamp = component.timestamp() != null
+                ? component.timestamp().getMicros()
+                : timestamp;
+        Map<TObject, Set<Long>> index = timestamp == Time.NONE
+                ? Stores.browse(store, key)
+                : Stores.browse(store, key, timestamp);
+        Stream<Entry<TObject, Set<Long>>> stream;
+        if(direction == Direction.ASCENDING) {
+            stream = index.entrySet().stream();
+        }
+        else {
+            stream = Lists.reverse(new ArrayList<>(index.entrySet())).stream();
+        }
+        Stream<Long> filtered = stream.flatMap(e -> e.getValue().stream())
+                .filter(record -> Iterables.contains(records, record));
+        if(!(page instanceof NoPage)) {
+            filtered = filtered.skip(page.skip()).limit(page.limit());
+        }
+        return filtered.collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * "Frame" a collection of {@code records} that is simply ordered using a
+     * single {@code key}.
+     * 
+     * <p>
+     * Framing is the process of applying sorting and pagination to a result
+     * set. This method provides an optimized implementation for cases when the
+     * order only considers a single key. Instead of performing multiple lookups
+     * and comparisons to establish order
+     * among the {@code records}, this method leverages the {@code key}'s index,
+     * which is already sorted, allowing for efficient ordering of the result
+     * set
+     * </p>
+     * 
+     * @param store
+     * @param records
+     * @param order must be {@link Order#isSingular() singular}
+     * @param page
+     * @return {@code records} (or a subset thereof) that are framed according
+     *         the order and pagination parameters
+     */
+    public static Set<Long> frameRecordsOptionalAtomic(Store store,
+            Iterable<Long> records, Order order, Page page) {
+        return frameRecordsOptionalAtomic(store, records, Time.NONE, order, page);
+    }
+
+    /**
      * From {@code store}, get the most recently stored value for each key in
      * each of the records that are resolved by the {@code ast}.
      * 
@@ -521,6 +607,13 @@ public final class Operations {
             // pagination directly to the input records so that we don't fetch
             // more data than required.
             records = Paging.page(records, page);
+            page = NoPage.INSTANCE;
+        }
+        else if(order.isSingular()) {
+            // If there is one order component, use it's key's index directly to
+            // efficiently sort and paginate ahead of time.
+            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            order = NoOrder.INSTANCE;
             page = NoPage.INSTANCE;
         }
         else if(!(page instanceof NoPage) && !order.keys().contains(key)) {
@@ -688,6 +781,13 @@ public final class Operations {
             records = Paging.page(records, page);
             page = NoPage.INSTANCE;
         }
+        else if(order.isSingular()) {
+            // If there is one order component, use it's key's index directly to
+            // efficiently sort and paginate ahead of time.
+            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            order = NoOrder.INSTANCE;
+            page = NoPage.INSTANCE;
+        }
         else if(!(page instanceof NoPage)
                 && shouldSortBeforeSelect(keys, records, order, page)) {
             // This is a case where both pagination and sorting must be applied
@@ -786,6 +886,13 @@ public final class Operations {
             records = Paging.page(records, page);
             page = NoPage.INSTANCE;
         }
+        else if(order.isSingular()) {
+            // If there is one order component, use it's key's index directly to
+            // efficiently sort and paginate ahead of time.
+            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            order = NoOrder.INSTANCE;
+            page = NoPage.INSTANCE;
+        }
         for (long record : records) {
             Map<String, TObject> row = (timestamp == Time.NONE
                     ? store.select(record)
@@ -797,16 +904,14 @@ public final class Operations {
                 data.put(record, row);
             }
         }
-        if(timestamp == Time.NONE) {
-            data.sort(Sorting.byValue(order, store));
-        }
-        else {
-            data.sort(Sorting.byValue(order, store), timestamp);
-        }
+        // If sorting was requested, but it was not previously applied in this
+        // method during an shortcut optimization, apply it here. This is a
+        // no-op if order == NoOrder.
+        sortByValue(data, order, timestamp, store);
 
-        // Assuming page != NoPage and pagination was not applied to the
-        // input records (e.g., the data was actually sorted); otherwise this is
-        // a no-op
+        // If pagination was requested ,but was not previously applied in this
+        // method during a shortcut optimization, perform it here. This is a
+        // no-op if page == NoPage.
         return Paging.page(data, page);
     }
 
@@ -1377,6 +1482,13 @@ public final class Operations {
             records = Paging.page(records, page);
             page = NoPage.INSTANCE;
         }
+        else if(order.isSingular()) {
+            // If there is one order component, use it's key's index directly to
+            // efficiently sort and paginate ahead of time.
+            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            order = NoOrder.INSTANCE;
+            page = NoPage.INSTANCE;
+        }
         else if(!(page instanceof NoPage) && !order.keys().contains(key)) {
             // When sorting on a different key than what is being selected, it
             // takes fewer lookups to first sort and paginate the input records
@@ -1539,6 +1651,13 @@ public final class Operations {
             records = Paging.page(records, page);
             page = NoPage.INSTANCE;
         }
+        else if(order.isSingular()) {
+            // If there is one order component, use it's key's index directly to
+            // efficiently sort and paginate ahead of time.
+            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            order = NoOrder.INSTANCE;
+            page = NoPage.INSTANCE;
+        }
         else if(!(page instanceof NoPage)
                 && shouldSortBeforeSelect(keys, records, order, page)) {
             // This is a case where both pagination and sorting must be applied
@@ -1562,7 +1681,6 @@ public final class Operations {
                 TMaps.putResultDatasetOptimized(data, record, row);
             }
         }
-
         // If sorting was requested, but it was not previously applied in this
         // method during an shortcut optimization, apply it here. This is a
         // no-op if order == NoOrder.
@@ -1631,22 +1749,27 @@ public final class Operations {
             records = Paging.page(records, page);
             page = NoPage.INSTANCE;
         }
+        else if(order.isSingular()) {
+            // If there is one order component, use it's key's index directly to
+            // efficiently sort and paginate ahead of time.
+            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            order = NoOrder.INSTANCE;
+            page = NoPage.INSTANCE;
+        }
         for (long record : records) {
             Map<String, Set<TObject>> row = timestamp == Time.NONE
                     ? store.select(record)
                     : store.select(record, timestamp);
             TMaps.putResultDatasetOptimized(data, record, row);
         }
-        if(timestamp == Time.NONE) {
-            data.sort(Sorting.byValues(order, store));
-        }
-        else {
-            data.sort(Sorting.byValues(order, store), timestamp);
-        }
+        // If sorting was requested, but it was not previously applied in this
+        // method during an shortcut optimization, apply it here. This is a
+        // no-op if order == NoOrder.
+        sortByValues(data, order, timestamp, store);
 
-        // Assuming page != NoPage and pagination was not applied to the
-        // input records (e.g., the data was actually sorted); otherwise this is
-        // a no-op
+        // If pagination was requested ,but was not previously applied in this
+        // method during a shortcut optimization, perform it here. This is a
+        // no-op if page == NoPage.
         return Paging.page(data, page);
     }
 
@@ -1834,7 +1957,7 @@ public final class Operations {
         }
         return data;
     }
-
+    
     /**
      * Atomically traverse each of the navigation {@code keys} from
      * {@code record} and map each key to the values that are at the end of the
