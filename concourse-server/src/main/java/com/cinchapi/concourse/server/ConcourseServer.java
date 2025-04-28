@@ -1942,7 +1942,8 @@ public class ConcourseServer extends BaseConcourseServer implements
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            Set<Long> matches = Stores.find(atomic, key, operator, tValues);
+            Set<Long> matches = Stores.find(atomic, timestamp, key, operator,
+                    tValues);
             Order _order = Orders.from(order);
             // NOTE: The #timestamp is not considered when sorting because it is
             // a component of criteria evaluation and no data is being selected.
