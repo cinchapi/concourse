@@ -1902,6 +1902,73 @@ public abstract class StoreTest extends ConcourseBaseTest {
      */
     protected abstract void remove(String key, TObject value, long record);
 
+    @Test
+    public void testExploreKeyIsSorted() {
+        String key = TestData.getSimpleString();
+        Multimap<TObject, Long> data = Variables.register("data",
+                TreeMultimap.<TObject, Long> create());
+
+        // Add data
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!data.containsEntry(value, record)) {
+                    data.put(value, record);
+                    add(key, value, record);
+                }
+            }
+        }
+
+        // Test explore with EQUALS operator
+        Map<Long, Set<TObject>> result = Variables.register("result",
+                store.explore(key, Operator.EQUALS,
+                        data.keySet().toArray(new TObject[0])));
+
+        // Verify records are sorted
+        Long previousRecord = null;
+        for (Long currentRecord : result.keySet()) {
+            if(previousRecord != null) {
+                Variables.register("previousRecord", previousRecord);
+                Variables.register("currentRecord", currentRecord);
+                Assert.assertTrue(previousRecord < currentRecord);
+            }
+            previousRecord = currentRecord;
+        }
+    }
+
+    @Test
+    public void testSelectRecordIsSorted() {
+        Multimap<String, TObject> data = Variables.register("data",
+                HashMultimap.<String, TObject> create());
+        long record = TestData.getLong();
+
+        // Add data
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!data.containsEntry(key, value)) {
+                    data.put(key, value);
+                    add(key, value, record);
+                }
+            }
+        }
+
+        Map<String, Set<TObject>> result = Variables.register("result",
+                store.select(record));
+
+        // Verify keys are sorted
+        String previousKey = null;
+        for (String currentKey : result.keySet()) {
+            if(previousKey != null) {
+                Variables.register("previousKey", previousKey);
+                Variables.register("currentKey", currentKey);
+                Assert.assertTrue(
+                        previousKey.compareToIgnoreCase(currentKey) < 0);
+            }
+            previousKey = currentKey;
+        }
+    }
+
     /**
      * Add {@code key} as a value that satisfies {@code operator} relative to
      * {@code min}.

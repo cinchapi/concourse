@@ -786,6 +786,7 @@ public final class Convert {
                 break;
             }
             buffer.rewind();
+            object.setJavaFormat(java);
         }
         return java;
     }
