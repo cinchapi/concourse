@@ -404,21 +404,17 @@ public final class Buffer extends Limbo implements BatchTransportable {
             while (it.hasNext()) {
                 Write write = it.next();
                 long timestamp = write.getVersion();
-                String $key = write.getKey().toString();
-                long $record = write.getRecord().longValue();
                 Action action = write.getType();
-                if($key.equals(key) && $record == record) {
-                    snapshot = new LinkedHashSet<>(snapshot);
-                    TObject value = write.getValue().getTObject();
-                    if(action == Action.ADD) {
-                        snapshot.add(value);
-                    }
-                    else if(action == Action.REMOVE) {
-                        snapshot.remove(value);
-                    }
-                    if(timestamp >= start) {
-                        context.put(timestamp, snapshot);
-                    }
+                snapshot = new LinkedHashSet<>(snapshot);
+                TObject value = write.getValue().getTObject();
+                if(action == Action.ADD) {
+                    snapshot.add(value);
+                }
+                else if(action == Action.REMOVE) {
+                    snapshot.remove(value);
+                }
+                if(timestamp >= start) {
+                    context.put(timestamp, snapshot);
                 }
             }
             // NOTE: Empty snapshots couldn't be removed while processing
