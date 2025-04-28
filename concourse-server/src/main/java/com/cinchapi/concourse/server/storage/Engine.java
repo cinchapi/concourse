@@ -113,7 +113,7 @@ public final class Engine extends BufferedStore implements
     @SuppressWarnings("deprecation")
     private static ReentrantReadWriteLock createTransportLock() {
         if(ENABLE_BATCH_TRANSPORTS) {
-            return new ReentrantReadWriteLock();
+            return new ReentrantReadWriteLock(true);
         }
         else {
             return com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock
