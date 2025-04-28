@@ -2105,16 +2105,17 @@ public final class Operations {
     private static boolean shouldSortBeforeSelect(Collection<String> keys,
             Iterable<Long> records, Order order, Page page) {
         int total = Iterables.size(records);
+        int limit = Math.min(page.limit(), total);
         Set<String> orderKeys = Command.isSet() ? Command.current().orderKeys()
                 : order.keys();
-        int uniqueOrderKeys = Sets
+        int orderOnlyKeys = Sets
                 .difference(orderKeys,
                         com.cinchapi.common.collect.Collections.ensureSet(keys))
                 .size();
-        int numLookupsIfSortFirst = (keys.size() * page.limit())
+        int numLookupsIfSortFirst = (keys.size() * limit)
                 + (orderKeys.size() * total);
         int numLookupsIfSelectFirst = (keys.size() * total)
-                + (uniqueOrderKeys * total);
+                + (orderOnlyKeys * total);
         return numLookupsIfSortFirst < numLookupsIfSelectFirst;
     }
 
