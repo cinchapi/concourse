@@ -169,7 +169,7 @@ public abstract class BufferedStore implements Store {
      */
     public boolean add(String key, TObject value, long record) {
         return add(Write.add(key, value, record), Sync.YES, Verify.YES);
-    }  
+    }
 
     @Override
     public ReadWriteLock advisoryLock() {
