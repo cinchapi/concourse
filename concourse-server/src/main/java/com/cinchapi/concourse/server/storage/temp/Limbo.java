@@ -16,7 +16,6 @@
 package com.cinchapi.concourse.server.storage.temp;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -46,6 +45,7 @@ import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Comparators;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.google.common.collect.Iterables;
 import com.google.common.hash.HashCode;
@@ -583,14 +583,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
     @Override
     public Map<String, Set<TObject>> select(long record, long timestamp) {
         Map<String, Set<TObject>> context = new TreeMap<>(
-                new Comparator<String>() {
-
-                    @Override
-                    public int compare(String s1, String s2) {
-                        return s1.compareToIgnoreCase(s2);
-                    }
-
-                });
+                Comparators.CASE_INSENSITIVE_STRING_COMPARATOR);
         return select(record, timestamp, context);
     }
 
