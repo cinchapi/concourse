@@ -396,7 +396,7 @@ public class OperationsTest {
             List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L,
                     8L);
             long timestamp = Time.NONE;
-            Order order = Order.by("age");
+            Order order = Order.by("age").then("name");
             Supplier<SortableTable<Set<TObject>>> supplier = () -> SortableTable
                     .multiValued(new LinkedHashMap<>());
 
