@@ -161,9 +161,9 @@ public abstract class Limbo implements Store, Iterable<Write> {
             for (Iterator<Write> it = iterator(); it.hasNext();) {
                 Write write = it.next();
                 TObject value = write.getValue().getTObject();
-                String $key = write.getKey().toString();
-                long $timestamp = write.getVersion();
-                if($key.toString().equals(key) && $timestamp <= timestamp) {
+                long version = write.getVersion();
+                if(write.getKey().toString().toString().equals(key)
+                        && version <= timestamp) {
                     long record = write.getRecord().longValue();
                     Action action = write.getType();
                     Set<Long> records = context.computeIfAbsent(value,
@@ -178,7 +178,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                         }
                     }
                 }
-                else if($timestamp > timestamp) {
+                else if(version > timestamp) {
                     break;
                 }
                 else {
@@ -238,10 +238,9 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 break;
             }
             else {
-                String $key = write.getKey().toString();
-                long $record = write.getRecord().longValue();
                 Action action = write.getType();
-                if($key.equals(key) && $record == record) {
+                if(write.getKey().toString().equals(key)
+                        && write.getRecord().longValue() == record) {
                     snapshot = new LinkedHashSet<>(snapshot);
                     TObject value = write.getValue().getTObject();
                     if(action == Action.ADD) {
@@ -290,9 +289,8 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 String key = write.getKey().toString();
                 Action action = write.getType();
                 TObject value = write.getValue().getTObject();
-                long $record = write.getRecord().longValue();
-                long $timestamp = write.getVersion();
-                if($record == record && $timestamp <= timestamp) {
+                if(write.getRecord().longValue() == record
+                        && write.getVersion() <= timestamp) {
                     Set<TObject> values = context.computeIfAbsent(key,
                             $ -> new HashSet<>());
                     if(action == Action.ADD) {
@@ -605,9 +603,9 @@ public abstract class Limbo implements Store, Iterable<Write> {
                 String key = write.getKey().toString();
                 TObject value = write.getValue().getTObject();
                 Action action = write.getType();
-                long $record = write.getRecord().longValue();
-                long $timestamp = write.getVersion();
-                if($record == record && $timestamp <= timestamp) {
+                long version = write.getVersion();
+                if(write.getRecord().longValue() == record
+                        && version <= timestamp) {
                     Set<TObject> values = context.computeIfAbsent(key,
                             $ -> new LinkedHashSet<>());
                     if(action == Action.ADD) {
@@ -620,7 +618,7 @@ public abstract class Limbo implements Store, Iterable<Write> {
                         }
                     }
                 }
-                else if($timestamp > timestamp) {
+                else if(version > timestamp) {
                     break;
                 }
                 else {
