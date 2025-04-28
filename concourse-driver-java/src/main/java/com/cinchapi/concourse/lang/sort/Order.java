@@ -94,6 +94,16 @@ public interface Order {
     }
 
     /**
+     * Return {@code true} if this {@link Order} only contains one component,
+     * and therefore can be processed by consulting a single index.
+     * 
+     * @return {@code true} if this {@link Order} is singular
+     */
+    public default boolean isSingular() {
+        return spec().size() == 1;
+    }
+
+    /**
      * Return all the keys that are referenced by this {@link Order}.
      * 
      * @return a {@link Set} of all the keys that are referenced by this

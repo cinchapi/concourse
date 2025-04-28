@@ -37,6 +37,11 @@ public class NoOrder implements Order {
     private NoOrder() {/* singleton */}
 
     @Override
+    public boolean isSingular() {
+        return false;
+    }
+
+    @Override
     public List<OrderComponent> spec() {
         return ImmutableList.of();
     }
