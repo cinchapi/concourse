@@ -138,8 +138,7 @@ abstract class StoreSorter<V> implements Sorter<V> {
                             && !Empty.ness().describes(v2)) {
                         // The coefficient is only applied when both values are
                         // non-empty. Otherwise, the empty value should float to
-                        // the
-                        // end of the sort, regardless of the specified
+                        // the end of the sort, regardless of the specified
                         // direction
                         return direction.coefficient() * compare(v1, v2);
                     }
