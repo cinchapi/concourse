@@ -108,7 +108,8 @@ We made several changes to improve the safety, scalability and operational effic
 #### Version 0.11.9 (TBD)
 * Improved the performance of select operations that specify selection keys and require both sorting and pagination. The improvements are achieved from smarter heuristics that determine the most efficient execution path. The system now intelligently decides whether to:
   * Sort all records first and then select only the paginated subset of data, or
-  * Select all data first and then apply sorting and pagination
+  * Select all data first and then apply sorting and pagination, or
+	* If the `Order` clause only uses a single key, use the index of that order key to lookup the sorted order of values and filtering out those that are not in the desired record set.
   
   This decision is based on a cost model that compares the number of lookups required for each approach, considering factors such as the number of keys being selected, the number of records being processed, the pagination limit, and whether the sort keys overlap with the selected keys. This optimization significantly reduces the number of database lookups required for queries that combine sorting and pagination, particularly when working with large datasets where only a small page of results is needed.
 
