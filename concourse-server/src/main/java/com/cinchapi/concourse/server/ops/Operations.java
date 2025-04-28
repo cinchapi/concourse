@@ -439,7 +439,8 @@ public final class Operations {
      */
     public static Set<Long> frameRecordsOptionalAtomic(Store store,
             Iterable<Long> records, Order order, Page page) {
-        return frameRecordsOptionalAtomic(store, records, Time.NONE, order, page);
+        return frameRecordsOptionalAtomic(store, records, Time.NONE, order,
+                page);
     }
 
     /**
@@ -612,7 +613,8 @@ public final class Operations {
         else if(order.isSingular()) {
             // If there is one order component, use it's key's index directly to
             // efficiently sort and paginate ahead of time.
-            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            records = frameRecordsOptionalAtomic(store, records, timestamp,
+                    order, page);
             order = NoOrder.INSTANCE;
             page = NoPage.INSTANCE;
         }
@@ -784,7 +786,8 @@ public final class Operations {
         else if(order.isSingular()) {
             // If there is one order component, use it's key's index directly to
             // efficiently sort and paginate ahead of time.
-            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            records = frameRecordsOptionalAtomic(store, records, timestamp,
+                    order, page);
             order = NoOrder.INSTANCE;
             page = NoPage.INSTANCE;
         }
@@ -889,7 +892,8 @@ public final class Operations {
         else if(order.isSingular()) {
             // If there is one order component, use it's key's index directly to
             // efficiently sort and paginate ahead of time.
-            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            records = frameRecordsOptionalAtomic(store, records, timestamp,
+                    order, page);
             order = NoOrder.INSTANCE;
             page = NoPage.INSTANCE;
         }
@@ -1485,7 +1489,8 @@ public final class Operations {
         else if(order.isSingular()) {
             // If there is one order component, use it's key's index directly to
             // efficiently sort and paginate ahead of time.
-            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            records = frameRecordsOptionalAtomic(store, records, timestamp,
+                    order, page);
             order = NoOrder.INSTANCE;
             page = NoPage.INSTANCE;
         }
@@ -1654,7 +1659,8 @@ public final class Operations {
         else if(order.isSingular()) {
             // If there is one order component, use it's key's index directly to
             // efficiently sort and paginate ahead of time.
-            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            records = frameRecordsOptionalAtomic(store, records, timestamp,
+                    order, page);
             order = NoOrder.INSTANCE;
             page = NoPage.INSTANCE;
         }
@@ -1752,7 +1758,8 @@ public final class Operations {
         else if(order.isSingular()) {
             // If there is one order component, use it's key's index directly to
             // efficiently sort and paginate ahead of time.
-            records = frameRecordsOptionalAtomic(store, records, timestamp, order, page);
+            records = frameRecordsOptionalAtomic(store, records, timestamp,
+                    order, page);
             order = NoOrder.INSTANCE;
             page = NoPage.INSTANCE;
         }
@@ -1957,7 +1964,7 @@ public final class Operations {
         }
         return data;
     }
-    
+
     /**
      * Atomically traverse each of the navigation {@code keys} from
      * {@code record} and map each key to the values that are at the end of the

@@ -485,32 +485,37 @@ public class OperationsTest {
             store.stop();
         }
     }
-    
+
     @Test
     public void testFrameRecordsAscendingOrderWithLimit() {
         // Setup the test environment
         AtomicSupport store = getStore();
         try {
             setupDisconnectedGraph(store);
-            
+
             // Create a collection of records to frame
-            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L);
-            
+            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L,
+                    8L);
+
             // Frame records by name in ascending order with pagination
             Order nameAscOrder = Order.by("name");
             Page page = Page.sized(3);
-            
+
             Set<Long> framedRecords = Operations.frameRecordsOptionalAtomic(
                     store, records, nameAscOrder, page);
-            
+
             // Verify correct records are returned in correct order
             Assert.assertEquals(3, framedRecords.size());
-            
+
             // Convert to list to verify order
             List<Long> recordOrder = new ArrayList<>(framedRecords);
-            Assert.assertEquals(1L, (long) recordOrder.get(0)); // Alice (first alphabetically)
-            Assert.assertEquals(2L, (long) recordOrder.get(1)); // Bob (second alphabetically)
-            Assert.assertEquals(3L, (long) recordOrder.get(2)); // Charlie (third alphabetically)
+            Assert.assertEquals(1L, (long) recordOrder.get(0)); // Alice (first
+                                                                // alphabetically)
+            Assert.assertEquals(2L, (long) recordOrder.get(1)); // Bob (second
+                                                                // alphabetically)
+            Assert.assertEquals(3L, (long) recordOrder.get(2)); // Charlie
+                                                                // (third
+                                                                // alphabetically)
         }
         finally {
             store.stop();
@@ -523,26 +528,31 @@ public class OperationsTest {
         AtomicSupport store = getStore();
         try {
             setupDisconnectedGraph(store);
-            
+
             // Create a collection of records to frame
-            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L);
-            
+            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L,
+                    8L);
+
             // Frame records by age in descending order with pagination
             Order ageDescOrder = Order.by("age").descending();
             Page page = Page.sized(4);
-            
+
             Set<Long> framedRecords = Operations.frameRecordsOptionalAtomic(
                     store, records, ageDescOrder, page);
-            
+
             // Verify correct records are returned in correct order
             Assert.assertEquals(4, framedRecords.size());
-            
+
             // Convert to list to verify order
             List<Long> recordOrder = new ArrayList<>(framedRecords);
-            Assert.assertEquals(6L, (long) recordOrder.get(0)); // Frank (age 45)
-            Assert.assertEquals(3L, (long) recordOrder.get(1)); // Charlie (age 40)
-            Assert.assertEquals(8L, (long) recordOrder.get(2)); // Henry (age 38)
-            Assert.assertEquals(4L, (long) recordOrder.get(3)); // Diana (age 35)
+            Assert.assertEquals(6L, (long) recordOrder.get(0)); // Frank (age
+                                                                // 45)
+            Assert.assertEquals(3L, (long) recordOrder.get(1)); // Charlie (age
+                                                                // 40)
+            Assert.assertEquals(8L, (long) recordOrder.get(2)); // Henry (age
+                                                                // 38)
+            Assert.assertEquals(4L, (long) recordOrder.get(3)); // Diana (age
+                                                                // 35)
         }
         finally {
             store.stop();
@@ -555,25 +565,29 @@ public class OperationsTest {
         AtomicSupport store = getStore();
         try {
             setupDisconnectedGraph(store);
-            
+
             // Create a collection of records to frame
-            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L);
-            
+            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L,
+                    8L);
+
             // Frame records with offset pagination
             Order scoreOrder = Order.by("score").descending();
             Page page = Page.of(2, 3); // Skip 2, take 3
-            
+
             Set<Long> framedRecords = Operations.frameRecordsOptionalAtomic(
                     store, records, scoreOrder, page);
-            
+
             // Verify correct records are returned in correct order
             Assert.assertEquals(3, framedRecords.size());
-            
+
             // Convert to list to verify order
             List<Long> recordOrder = new ArrayList<>(framedRecords);
-            Assert.assertEquals(7L, (long) recordOrder.get(0)); // Grace (score 90)
-            Assert.assertEquals(4L, (long) recordOrder.get(1)); // Diana (score 88)
-            Assert.assertEquals(1L, (long) recordOrder.get(2)); // Alice (score 85)
+            Assert.assertEquals(7L, (long) recordOrder.get(0)); // Grace (score
+                                                                // 90)
+            Assert.assertEquals(4L, (long) recordOrder.get(1)); // Diana (score
+                                                                // 88)
+            Assert.assertEquals(1L, (long) recordOrder.get(2)); // Alice (score
+                                                                // 85)
         }
         finally {
             store.stop();
@@ -586,20 +600,21 @@ public class OperationsTest {
         AtomicSupport store = getStore();
         try {
             setupDisconnectedGraph(store);
-            
+
             // Create a collection of records to frame
-            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L);
-            
+            List<Long> records = ImmutableList.of(1L, 2L, 3L, 4L, 5L, 6L, 7L,
+                    8L);
+
             // Frame records with no pagination
             Order cityOrder = Order.by("city");
             Page page = Page.none();
-            
+
             Set<Long> framedRecords = Operations.frameRecordsOptionalAtomic(
                     store, records, cityOrder, page);
-            
+
             // Verify all records are returned in correct order
             Assert.assertEquals(8, framedRecords.size());
-            
+
             // Convert to list to verify order (cities in alphabetical order)
             List<Long> recordOrder = new ArrayList<>(framedRecords);
             Assert.assertEquals(7L, (long) recordOrder.get(0)); // Austin

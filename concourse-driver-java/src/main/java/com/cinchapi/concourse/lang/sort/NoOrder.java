@@ -45,5 +45,5 @@ public class NoOrder implements Order {
     public List<OrderComponent> spec() {
         return ImmutableList.of();
     }
-    
+
 }
