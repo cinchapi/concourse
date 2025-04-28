@@ -1616,10 +1616,17 @@ public class ConcourseServer extends BaseConcourseServer implements
         AbstractSyntaxTree ast = compiler.parse(ccl);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            SortableSet<Set<TObject>> records = SortableSet
-                    .of(ast.accept(Finder.instance(), atomic));
-            records.sort(Sorting.byValues(Orders.from(order), store));
-            return Paging.page(records, Pages.from(page));
+            Set<Long> matches = ast.accept(Finder.instance(), atomic);
+            Order _order = Orders.from(order);
+            if(_order.isSingular()) {
+                return SortableSet.of(Operations.frameRecordsOptionalAtomic(
+                        atomic, matches, _order, Pages.from(page)));
+            }
+            else {
+                SortableSet<Set<TObject>> records = SortableSet.of(matches);
+                records.sort(Sorting.byValues(_order, store));
+                return Paging.page(records, Pages.from(page));
+            }
         });
     }
 
@@ -1671,10 +1678,17 @@ public class ConcourseServer extends BaseConcourseServer implements
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            SortableSet<Set<TObject>> records = SortableSet
-                    .of(ast.accept(Finder.instance(), atomic));
-            records.sort(Sorting.byValues(Orders.from(order), store));
-            return Paging.page(records, Pages.from(page));
+            Set<Long> matches = ast.accept(Finder.instance(), atomic);
+            Order $order = Orders.from(order);
+            if($order.isSingular()) {
+                return SortableSet.of(Operations.frameRecordsOptionalAtomic(
+                        atomic, matches, $order, Pages.from(page)));
+            }
+            else {
+                SortableSet<Set<TObject>> records = SortableSet.of(matches);
+                records.sort(Sorting.byValues($order, store));
+                return Paging.page(records, Pages.from(page));
+            }
         });
     }
 
@@ -1859,10 +1873,17 @@ public class ConcourseServer extends BaseConcourseServer implements
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            SortableSet<Set<TObject>> records = SortableSet
-                    .of(Stores.find(atomic, key, operator, tValues));
-            records.sort(Sorting.byValues(Orders.from(order), atomic));
-            return Paging.page(records, Pages.from(page));
+            Set<Long> matches = Stores.find(atomic, key, operator, tValues);
+            Order _order = Orders.from(order);
+            if(_order.isSingular()) {
+                return SortableSet.of(Operations.frameRecordsOptionalAtomic(
+                        atomic, matches, _order, Pages.from(page)));
+            }
+            else {
+                SortableSet<Set<TObject>> records = SortableSet.of(matches);
+                records.sort(Sorting.byValues(_order, atomic));
+                return Paging.page(records, Pages.from(page));
+            }
         });
     }
 
@@ -1921,14 +1942,23 @@ public class ConcourseServer extends BaseConcourseServer implements
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            SortableSet<Set<TObject>> records = SortableSet
-                    .of(Stores.find(store, timestamp, key, operator, tValues));
+            Set<Long> matches = Stores.find(atomic, timestamp, key, operator,
+                    tValues);
+            Order _order = Orders.from(order);
             // NOTE: The #timestamp is not considered when sorting because it is
             // a component of criteria evaluation and no data is being selected.
             // The presence of a present state Order also necessities this
             // operation being performed atomically
-            records.sort(Sorting.byValues(Orders.from(order), store));
-            return Paging.page(records, Pages.from(page));
+            if(_order.isSingular()) {
+                return SortableSet.of(Operations.frameRecordsOptionalAtomic(
+                        atomic, matches, _order, Pages.from(page)));
+            }
+            else {
+                SortableSet<Set<TObject>> records = SortableSet.of(matches);
+                records.sort(Sorting.byValues(_order, atomic));
+                return Paging.page(records, Pages.from(page));
+            }
+
         });
     }
 
