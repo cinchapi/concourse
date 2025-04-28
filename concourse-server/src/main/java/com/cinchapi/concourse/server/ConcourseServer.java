@@ -1955,7 +1955,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
             else {
                 SortableSet<Set<TObject>> records = SortableSet.of(matches);
-                records.sort(Sorting.byValues(Orders.from(order), store));
+                records.sort(Sorting.byValues(_order, atomic));
                 return Paging.page(records, Pages.from(page));
             }
 
