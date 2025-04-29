@@ -165,13 +165,13 @@ public final class WriteStreamProfiler<T extends WriteStream> {
                         balanced.clear();
                     }
                 }
-                if(staging.get() != null) {
-                    repaired.put(stream, staging.get());
-                }
-                else {
-                    Logger.info("No duplicate Writes found in {}", stream);
-                }
             });
+            if(staging.get() != null) {
+                repaired.put(stream, staging.get());
+            }
+            else {
+                Logger.info("No duplicate Writes found in {}", stream);
+            }
         });
         return repaired;
     }
