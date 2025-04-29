@@ -214,15 +214,34 @@ remote_debugger_port:
 # when merging large amounts of cached data.
 #
 # Options:
-#   streaming: Incremental transport with frequent small merges
 #   batch: High-throughput transport with occasional larger merges
+#   streaming: Incremental transport with frequent small merges
 #
 # For advanced configuration, provide an object:
-#   type: The transport type (streaming or batch)
-#   num_threads: Number of threads for transport operations (default: 1)
+#   type: The transporter type (batch or streaming)
+#   num_threads: The number of threads to use for transport operations (default: 1)
+#   passive: Whether to always allow other concurrent operations to block the 
+#     transporter from merging its work (default: false)
 #
 # DEFAULT: batch
 transporter:
+
+  # The type of transporter to use (batch or streaming)
+  #
+  # DEFAULT: batch
+  type:
+
+  # The number of threads to use for transport operations
+  #
+  # DEFAULT: 1
+  num_threads:
+
+  # Whether the transporter should be passive and always allow other concurrent
+  # operations to preempt it from merging its work and potentially block it 
+  # indefinitely
+  #
+  # DEFAULT: FALSE
+  passive:
 
 #########################################################
 ###  EXPERIMENTAL CONFIGURATION FOR CONCOURSE SERVER  ###

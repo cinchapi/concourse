@@ -306,6 +306,13 @@ public final class GlobalState extends Constants {
     public static boolean ENABLE_BATCH_TRANSPORTS = true;
 
     /**
+     * Determines whether to use a "fair" lock for managing concurrent access
+     * between the {@link Transporter} and other operations.
+     */
+    @NonPreference
+    public static boolean USE_FAIR_TRANSPORT_LOCK = true;
+
+    /**
      * The type of {@link Transporter} to use when transporting data from the
      * Buffer to the Database.
      */
@@ -512,6 +519,8 @@ public final class GlobalState extends Constants {
                     transporter.toString());
             NUM_TRANSPORTER_THREADS = config.getOrDefault(
                     "transporter.num_threads", NUM_TRANSPORTER_THREADS);
+            USE_FAIR_TRANSPORT_LOCK = !config
+                    .getOrDefault("transporter.passive", false);
         }
         else {
             transporterType = transporter != null ? transporter.toString() : "";
