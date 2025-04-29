@@ -24,7 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -144,7 +143,6 @@ public final class WriteStreamProfiler<T extends WriteStream> {
         streams.forEach(stream -> {
             AtomicReference<T> staging = new AtomicReference<>(null);
             List<Write> balanced = new ArrayList<>();
-            AtomicInteger count = new AtomicInteger(0);
             stream.writes().forEach(write -> {
                 boolean exists = state.computeIfAbsent(write, $ -> false);
                 if((write.getType() == Action.ADD && !exists)
@@ -159,7 +157,6 @@ public final class WriteStreamProfiler<T extends WriteStream> {
                 }
                 else {
                     Logger.warn("Found unoffset Write {} in {}", write, stream);
-                    System.out.println(count.incrementAndGet());
                     if(staging.get() == null) {
                         staging.set(factory.get());
                         for (Write seen : balanced) {
