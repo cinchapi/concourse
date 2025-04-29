@@ -685,6 +685,10 @@ public final class Database implements DurableStore {
         try {
             WriteStreamProfiler<Segment> profiler = new WriteStreamProfiler<>(
                     segments);
+
+            // Deduplication - Remove duplicate Writes about the same topic at
+            // the same commit version (usually happens when the server is
+            // stopped before a Transaction commit is fully acknowledged)
             Map<Segment, Segment> deduped = profiler
                     .deduplicate(() -> Segment.create());
             if(!deduped.isEmpty()) {
@@ -702,6 +706,29 @@ public final class Database implements DurableStore {
                 Logger.warn(
                         "Replaced {} Segments that contained duplicate data. In total, across all Segments, there were {} Write{} duplicated.",
                         deduped.size(), total, total != 1 ? "s" : "");
+            }
+
+            // Balancing - Remove Writes that should not have been inserted
+            // because they did not properly offset a prior Write about the same
+            // topic. It's unclear why this can happen, but if it does, it
+            // leaves the Database in an invalid state. Removing these Writes
+            // does not represent a loss of data because the intended state does
+            // not change
+            Map<Segment, Segment> balanced = profiler
+                    .balance(() -> Segment.create());
+            if(!balanced.isEmpty()) {
+                for (int i = 0; i < segments.size(); ++i) {
+                    Segment segment = segments.get(i);
+                    Segment clean = balanced.get(segment);
+                    if(clean != null) {
+                        clean.transfer(storage.directory()
+                                .resolve(UUID.randomUUID() + ".seg"));
+                        segments.set(i, clean);
+                        segment.delete();
+                    }
+                }
+                Logger.warn("Replaced {} Segments that contained imbalanced.",
+                        balanced.size());
             }
         }
         finally {
