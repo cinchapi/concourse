@@ -118,8 +118,6 @@ We made several changes to improve the safety, scalability and operational effic
 * Eliminated unnecessary re-sorting of Database data that's already in sorted order. Previously, both the Buffer and Atomic Operation/Transaction queues would force a re-sort on all initial read context that was pulled from the Database (even when that data was already sorted because the Database retrieved it from an index or intentionally sorted it before returning). Now, those stores always apply their Writes to the context under the assumption that the context is sorted and will maintain sorter order, which greatly cuts down on the overhead of intermediate processing for read operations.
 * Improved the `concourse data repair` CLI to detect and fix "imbalanced" data--an invalid state caused by a bug or error in Concourse Server's enforcement that any write about a topic must be a net-new ADD for that topic or must offset a previously inserted write for that topic (e.g., a REMOVE can only exist if there was a prior ADD and vice versa). When an unoffset write bypasses this constraint, some read operations will break entirely. The enhanced CLI now goes beyond only fixing duplicate transaction applications and now properly balances data in place, preserving intended state and fully restoring read functionality without any downtime.
 
- an issue where the Database is unable process reads because the data mistakenly became imbalanced. Data is balanced when all writes about a particular topic are properly offset. If an error or bug ever causes an unoffset write to be inserted, it can cause reads to break. Now, the `repair` CLI can detect and recover from this issue without downtime.
-
 #### Version 0.11.8 (April 15, 2025)
 
 ##### Navigation Queries
