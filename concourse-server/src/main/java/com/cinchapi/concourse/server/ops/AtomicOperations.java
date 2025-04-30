@@ -61,11 +61,15 @@ public final class AtomicOperations {
         T value = null;
         while (atomic == null || !atomic.commit(CommitVersions.next())) {
             atomic = store.startAtomicOperation();
+            store.advisoryLock().readLock().lock();
             try {
                 value = supplier.supply(atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
+            }
+            finally {
+                store.advisoryLock().readLock().unlock();
             }
         }
         return value;
