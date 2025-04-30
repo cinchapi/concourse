@@ -69,6 +69,7 @@ import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -97,6 +98,15 @@ class ConcourseThriftDriver extends Concourse {
         PASSWORD = new String(config.getPassword());
         ENVIRONMENT = config.getEnvironment();
     }
+
+    /**
+     * The client-side configuration for the allowed message size. Use by Thrift
+     * to prevent malicious messages. Prior to Thrift 0.14, was effectively
+     * unbounded (~ Integer.MAX_VALUE)
+     */
+    // See https://github.com/apache/thrift/pull/2191/files
+    @VisibleForTesting
+    static int MAX_MESSAGE_SIZE = Integer.MAX_VALUE;
 
     /**
      * The thrift client that actually handles aggregation RPC communication.
@@ -164,6 +174,11 @@ class ConcourseThriftDriver extends Concourse {
     private final ByteBuffer username;
 
     /**
+     * A boolean that indicates whether this client has been marked as failed.
+     */
+    private boolean failed = false;
+
+    /**
      * Create a new Client connection to the environment of the Concourse
      * Server described in the client configuration (e.g.,
      * {@code concourse_client.yaml}) or the default
@@ -222,6 +237,7 @@ class ConcourseThriftDriver extends Concourse {
         this.environment = environment;
         try {
             final TTransport transport = new TSocket(host, port);
+            transport.getConfiguration().setMaxMessageSize(MAX_MESSAGE_SIZE);
             transport.open();
             this.protocol = new TBinaryProtocol(transport);
             this.core = new ConcourseService.Client(
@@ -4172,9 +4188,18 @@ class ConcourseThriftDriver extends Concourse {
         catch (com.cinchapi.concourse.thrift.ManagementException e) {
             throw new ManagementException(e);
         }
+        catch (TTransportException e) {
+            failed = true;
+            throw CheckedExceptions.wrapAsRuntimeException(e);
+        }
         catch (Exception e) {
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
+    }
+
+    @Override
+    boolean failed() {
+        return failed;
     }
 
     /**
