@@ -4190,6 +4190,12 @@ class ConcourseThriftDriver extends Concourse {
         }
         catch (Exception e) {
             if(e instanceof TTransportException) {
+                // Usually, a TTransportException is fatal for the underlying
+                // transport because Thrift keeps internal buffers and state
+                // that won’t self-heal. We could try to close and re-open it
+                // here, but we just mark the client as failed and allow the
+                // consumer to decide what to do (e.g., a ConnectionPool checks
+                // for failure and tries to create a brand new client).
                 failed = true;
             }
             throw CheckedExceptions.wrapAsRuntimeException(e);
