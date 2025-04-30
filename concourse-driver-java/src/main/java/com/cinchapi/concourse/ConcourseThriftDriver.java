@@ -4188,11 +4188,10 @@ class ConcourseThriftDriver extends Concourse {
         catch (com.cinchapi.concourse.thrift.ManagementException e) {
             throw new ManagementException(e);
         }
-        catch (TTransportException e) {
-            failed = true;
-            throw CheckedExceptions.wrapAsRuntimeException(e);
-        }
         catch (Exception e) {
+            if(e instanceof TTransportException) {
+                failed = true;
+            }
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
     }
