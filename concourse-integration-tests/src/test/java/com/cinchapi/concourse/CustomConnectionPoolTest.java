@@ -129,4 +129,10 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
         return new CustomConnectionPool(concourse, 10);
     }
 
+    @Override
+    protected ConnectionPool getConnectionPool(int size) {
+        return new CustomConnectionPool(SERVER_HOST, SERVER_PORT, USERNAME,
+                PASSWORD, size);
+    }
+
 }

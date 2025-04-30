@@ -7709,6 +7709,17 @@ public abstract class Concourse implements AutoCloseable {
             long record, Object replacement);
 
     /**
+     * Return {@code true} if this client is known to be in a non-transient
+     * failed state where the server is still operational for other clients, but
+     * this one cannot further interact.
+     * 
+     * @return {@code true} if this client has failed
+     */
+    boolean failed() {
+        return false;
+    }
+
+    /**
      * Atomically verify that {@code key} equals {@code expected} in
      * {@code record} or set it as such.
      * <p>
@@ -7826,4 +7837,5 @@ public abstract class Concourse implements AutoCloseable {
         }
 
     }
+
 }
