@@ -221,6 +221,43 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
         }
     }
 
+    @Test
+    public void testFailedClientIsAutoReplaced() throws Exception {
+        int priorMaxMessageSize = ConcourseThriftDriver.MAX_MESSAGE_SIZE;
+        ConcourseThriftDriver.MAX_MESSAGE_SIZE = 1000;
+        ConnectionPool pool = getConnectionPool(1);
+        try {
+            Concourse concourse = pool.request();
+            String value = "";
+            for (int i = 0; i < ConcourseThriftDriver.MAX_MESSAGE_SIZE; ++i) {
+                value += Random.getSimpleString();
+            }
+            long record = concourse.add("test", value);
+            try {
+                concourse.get("test", record);
+                Assert.fail(); // Expected MaxMessageSize exception
+            }
+            catch (Exception e) {}
+            Assert.assertTrue(concourse.failed());
+            Assert.assertEquals(0, pool.available.size()); // no other
+                                                           // connections
+                                                           // available
+            pool.release(concourse);
+            Assert.assertEquals(1, pool.available.size()); // connection is
+                                                           // available, so next
+                                                           // request should
+                                                           // return something
+            Concourse concourse2 = pool.request();
+            Assert.assertNotSame(concourse, concourse2);
+            Assert.assertFalse(concourse2.failed());
+            pool.release(concourse2);
+        }
+        finally {
+            pool.forceClose();
+            ConcourseThriftDriver.MAX_MESSAGE_SIZE = priorMaxMessageSize;
+        }
+    }
+
     /**
      * Return a {@link com.cinchapi.concourse.ConnectionPool} to use in a unit
      * test.
@@ -231,8 +268,7 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
 
     /**
      * Return a {@link com.cinchapi.concourse.ConnectionPool} connected to
-     * {@code env} to use in a
-     * unit test.
+     * {@code env} to use in a unit test.
      *
      * @param env
      * @return the ConnectionPool
@@ -246,5 +282,14 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
      * @return the {@link ConnectionPool}
      */
     protected abstract ConnectionPool getConnectionPool(Concourse concourse);
+
+    /**
+     * Return a {@link ConnectionPool} to use in a unit test that has
+     * {@code size} connections available.
+     * 
+     * @param size
+     * @return the {@link ConnectionPool}
+     */
+    protected abstract ConnectionPool getConnectionPool(int size);
 
 }

@@ -88,4 +88,10 @@ public class FixedConnectionPoolTest extends ConnectionPoolTest {
         return ConnectionPool.newFixedConnectionPool(concourse, POOL_SIZE);
     }
 
+    @Override
+    protected ConnectionPool getConnectionPool(int size) {
+        return ConnectionPool.newFixedConnectionPool(SERVER_HOST, SERVER_PORT,
+                USERNAME, PASSWORD, size);
+    }
+
 }
