@@ -407,7 +407,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     /**
      * If it is possible that they exist, look for any {@link Revision
      * revisions} that match the {@code composite} and
-     * {@link Record#append(Revision) append} hem to the {@code record}.
+     * {@link Record#append(Revision) append} them to the {@code record}.
      * 
      * @param composite
      * @param record

@@ -16,7 +16,8 @@
 package com.cinchapi.concourse.server.storage;
 
 import static com.cinchapi.concourse.server.GlobalState.ENABLE_BATCH_TRANSPORTS;
-import static com.google.common.base.Preconditions.*;
+import static com.cinchapi.concourse.server.GlobalState.USE_FAIR_TRANSPORT_LOCK;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.File;
 import java.util.Collection;
@@ -113,7 +114,7 @@ public final class Engine extends BufferedStore implements
     @SuppressWarnings("deprecation")
     private static ReentrantReadWriteLock createTransportLock() {
         if(ENABLE_BATCH_TRANSPORTS) {
-            return new ReentrantReadWriteLock();
+            return new ReentrantReadWriteLock(USE_FAIR_TRANSPORT_LOCK);
         }
         else {
             return com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock
