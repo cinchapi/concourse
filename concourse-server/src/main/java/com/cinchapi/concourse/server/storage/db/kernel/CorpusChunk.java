@@ -45,7 +45,7 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.search.OffHeapTextSet;
+import com.cinchapi.concourse.server.storage.db.search.LargeTermIndexDeduplicator;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
 import com.cinchapi.concourse.thrift.Type;
@@ -367,7 +367,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
 
             // Detect if the #term is large enough to likely cause OOMs when
             // indexing and prepare the appropriate precautions.
-            boolean isLargeTerm = upperBound > 5000000;
+            boolean isLargeTerm = upperBound > 5_000_000;
 
             // A flag that indicates whether the {@link #prepare(CountUpLatch,
             // Text, String, PrimaryKey, int, long, Action) prepare} function
@@ -379,16 +379,16 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             // cause this to fail :-/
             boolean shouldLimitSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
 
+            final char[] chars = isLargeTerm ? term.toCharArray() : null;
             // The set of substrings that have been indexed from {@code term} at
             // {@code position} for {@code key} in {@code record} at {@code
             // version}. This is used to ensure that we do not add duplicate
             // indexes (i.e. 'abrakadabra')
             // @formatter:off
             Set<Text> indexed = isLargeTerm 
-                    ? OffHeapTextSet.create(upperBound)
+                    ? LargeTermIndexDeduplicator.create(chars, upperBound)
                     : Sets.newHashSetWithExpectedSize(upperBound);
             // @formatter:on
-            final char[] chars = isLargeTerm ? term.toCharArray() : null;
             for (int i = 0; i < length; ++i) {
                 int start = i + 1;
                 int limit = (shouldLimitSubstringLength
