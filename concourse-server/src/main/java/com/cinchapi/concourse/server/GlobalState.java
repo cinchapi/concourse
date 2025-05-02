@@ -408,7 +408,8 @@ public final class GlobalState extends Constants {
         SYSTEM_ID = getSystemId();
 
         MAX_SEARCH_SUBSTRING_LENGTH = config.getOrDefault(
-                "max_search_substring_length", MAX_SEARCH_SUBSTRING_LENGTH);
+                "max_search_substring_length", Interpreters.numberOrNull(),
+                MAX_SEARCH_SUBSTRING_LENGTH);
 
         ENABLE_COMPACTION = config.getOrDefault("enable_compaction",
                 ENABLE_COMPACTION);
