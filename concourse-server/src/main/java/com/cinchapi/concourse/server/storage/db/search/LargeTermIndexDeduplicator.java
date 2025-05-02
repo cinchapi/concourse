@@ -115,9 +115,9 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
     public static LargeTermIndexDeduplicator create(char[] term,
             int expectedInsertions) {
         LargeTermIndexDeduplicator deduplicator;
-        int estimatedMemoryRequired = 4 * AVERAGE_SUBSTRING_LENGTH
-                * expectedInsertions;
-        if(estimatedMemoryRequired > availableDirectMemory()) {
+        long estimatedMemoryRequired = (long) 4
+                * (long) AVERAGE_SUBSTRING_LENGTH * (long) expectedInsertions;
+        if(estimatedMemoryRequired <= availableDirectMemory()) {
             try {
                 deduplicator = new ChronicleBackedTermIndexDeduplicator(term,
                         expectedInsertions);
