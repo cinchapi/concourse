@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +31,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.cinchapi.common.profile.Benchmark;
@@ -245,7 +245,6 @@ public class DatabaseTest extends StoreTest {
     }
 
     @Test
-    @Ignore
     public void testGatherVsSelectBenchmark() {
         java.util.Random rand = new java.util.Random();
         Database store = (Database) this.store;
@@ -267,34 +266,28 @@ public class DatabaseTest extends StoreTest {
             }
         }
         Database $store = store;
-        Benchmark select = new Benchmark(TimeUnit.MILLISECONDS) {
-
-            @Override
-            public void action() {
-                for (long record : records) {
-                    for (String key : keys) {
-                        $store.select(key, record);
-                    }
+        CompletableFuture<Double> select = Benchmark.of(() -> {
+            for (long record : records) {
+                for (String key : keys) {
+                    $store.select(key, record);
                 }
             }
+        }).in(TimeUnit.MILLISECONDS).warmups(1).average(3);
 
-        };
-        Benchmark gather = new Benchmark(TimeUnit.MILLISECONDS) {
-
-            @Override
-            public void action() {
-                for (long record : records) {
-                    for (String key : keys) {
-                        $store.gather(key, record);
-                    }
+        CompletableFuture<Double> gather = Benchmark.of(() -> {
+            for (long record : records) {
+                for (String key : keys) {
+                    $store.gather(key, record);
                 }
             }
+        }).in(TimeUnit.MILLISECONDS).async().warmups(1).average(3);
 
-        };
-        double selectTime = select.run(1);
-        double gatherTime = gather.run(1);
+        double selectTime = select.join();
+        double gatherTime = gather.join();
+
         System.out.println("Select took " + selectTime + " ms and gather took "
                 + gatherTime + " ms");
+
         Assert.assertTrue(gatherTime <= selectTime);
     }
 
