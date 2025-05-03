@@ -105,6 +105,9 @@ We made several changes to improve the safety, scalability and operational effic
 	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
 	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
 
+#### Version 0.11.10 (TBD)
+* Fixed a bug that prevented Concourse Server from properly starting if a String configuration value was used for a variable that does not expect a String (e.g., `max_search_substring_length = "40"`). Now, Concouse Server will correctly parse all configuration values to the appropriate type or use the default value if there is an error when parsing.
+
 #### Version 0.11.9 (April 30, 2025)
 * Improved the performance of select operations that specify selection keys and require both sorting and pagination. The improvements are achieved from smarter heuristics that determine the most efficient execution path. The system now intelligently decides whether to:
   * Sort all records first and then select only the paginated subset of data, or
