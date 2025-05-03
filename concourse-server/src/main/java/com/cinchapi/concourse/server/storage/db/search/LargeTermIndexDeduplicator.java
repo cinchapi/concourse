@@ -34,6 +34,7 @@ import net.openhft.chronicle.core.util.ReadResolvable;
 import net.openhft.chronicle.hash.serialization.BytesReader;
 import net.openhft.chronicle.hash.serialization.BytesWriter;
 import net.openhft.chronicle.map.VanillaChronicleMap;
+import net.openhft.chronicle.map.impl.CompiledMapQueryContext;
 import net.openhft.chronicle.set.ChronicleSet;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,8 +44,8 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.logging.Logging;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Experimental;
-import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.Text;
+import com.cinchapi.concourse.server.storage.db.kernel.CorpusChunk.SearchTermMetrics;
 import com.cinchapi.concourse.util.FileOps;
 import com.cinchapi.concourse.util.Logger;
 import com.github.davidmoten.bplustree.BPlusTree;
@@ -94,17 +95,6 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
         Closeable {
 
     /**
-     * Return an {@link LargeTermIndexDeduplicator} for substrings from
-     * {@code term}.
-     * 
-     * @param term
-     * @return the {@link LargeTermIndexDeduplicator}
-     */
-    public static LargeTermIndexDeduplicator create(char[] term) {
-        return create(term, GlobalState.BUFFER_PAGE_SIZE);
-    }
-
-    /**
      * Return an {@link LargeTermIndexDeduplicator} that is configured to
      * accommodate {@code expectedInsertions} number of substrings from
      * {@code term.
@@ -114,10 +104,10 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
      * @return the {@link LargeTermIndexDeduplicator}
      */
     public static LargeTermIndexDeduplicator create(char[] term,
-            int expectedInsertions) {
-        LargeTermIndexDeduplicator deduplicator;
-        long estimatedMemoryRequired = (long) 4
-                * (long) AVERAGE_SUBSTRING_LENGTH * (long) expectedInsertions;
+            SearchTermMetrics metrics) {
+        int expectedInsertions = metrics.upperBoundOfPossibleSubstrings();
+        long estimatedMemoryRequired = (long) metrics.averageSubstringLength()
+                * (long) expectedInsertions;
         long availableDirectMemory = availableDirectMemory();
         long freeHeapMemory = Runtime.getRuntime().freeMemory();
         Logger.info("The search indexer has encountered a large term that "
@@ -125,10 +115,12 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
                 + "up to {} search indexes{}{}", expectedInsertions,
                 System.lineSeparator(), summarizeMemory(estimatedMemoryRequired,
                         availableDirectMemory, freeHeapMemory));
+
+        LargeTermIndexDeduplicator deduplicator;
         if(availableDirectMemory > estimatedMemoryRequired) {
             try {
                 deduplicator = new ChronicleBackedTermIndexDeduplicator(term,
-                        expectedInsertions);
+                        metrics);
             }
             catch (OutOfMemoryError e) {
                 Logger.warn("There appeared to be enough native memory to "
@@ -143,7 +135,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
                 // be slow AF, but is a last resort to try to keep things
                 // running.
                 deduplicator = new BPlusTreeBackedTermIndexDeduplicator(term,
-                        expectedInsertions);
+                        metrics);
             }
         }
         else {
@@ -152,7 +144,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
                     + "must be performed by manually checking if every single "
                     + "potential index string is a duplicate, which is slower...",
                     expectedInsertions);
-            deduplicator = new BruteForceTermIndexDeduplicator(term);
+            deduplicator = new BruteForceTermIndexDeduplicator(term, metrics);
         }
         return deduplicator;
     }
@@ -165,8 +157,9 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
      * @return the {@link LargeTermIndexDeduplicator}
      */
     static LargeTermIndexDeduplicator testCreateBPlusTreeBacked(char[] term) {
-        return new BPlusTreeBackedTermIndexDeduplicator(term,
-                GlobalState.BUFFER_PAGE_SIZE);
+        SearchTermMetrics metrics = Reflection
+                .newInstance(SearchTermMetrics.class, term.length, -1);
+        return new BPlusTreeBackedTermIndexDeduplicator(term, metrics);
     }
 
     /**
@@ -177,7 +170,9 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
      * @return the {@link LargeTermIndexDeduplicator}
      */
     static LargeTermIndexDeduplicator testCreateBruteForceBacked(char[] term) {
-        return new BruteForceTermIndexDeduplicator(term);
+        SearchTermMetrics metrics = Reflection
+                .newInstance(SearchTermMetrics.class, term.length, -1);
+        return new BruteForceTermIndexDeduplicator(term, metrics);
     }
 
     /**
@@ -188,8 +183,9 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
      * @return the {@link LargeTermIndexDeduplicator}
      */
     static LargeTermIndexDeduplicator testCreateChronicleBacked(char[] term) {
-        return new ChronicleBackedTermIndexDeduplicator(term,
-                GlobalState.BUFFER_PAGE_SIZE);
+        SearchTermMetrics metrics = Reflection
+                .newInstance(SearchTermMetrics.class, term.length, -1);
+        return new ChronicleBackedTermIndexDeduplicator(term, metrics);
     }
 
     /**
@@ -447,27 +443,24 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
     }
 
     /**
-     * A conservative estimate of the average length of each substring that
-     * needs to be deduplicated.
-     */
-    private static final int AVERAGE_SUBSTRING_LENGTH = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0
-            ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
-            : 100;
-
-    /**
      * The char array from the overall term that is being indexed. Required to
      * for serialization and deserialization to/from the container's underlying
      * store.
      */
     protected final char[] term;
 
+    protected final SearchTermMetrics metrics;
+
     /**
      * Construct a new instance.
      * 
      * @param term
+     * @param metrics
      */
-    protected LargeTermIndexDeduplicator(char[] term) {
+    protected LargeTermIndexDeduplicator(char[] term,
+            SearchTermMetrics metrics) {
         this.term = term;
+        this.metrics = metrics;
     }
 
     @Override
@@ -558,9 +551,10 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
          * Construct a new instance.
          */
         public BPlusTreeBackedTermIndexDeduplicator(char[] term,
-                int expectedInsertions) {
-            super(term);
-            this.filter = BloomFilter.create(FUNNEL, expectedInsertions);
+                SearchTermMetrics metrics) {
+            super(term, metrics);
+            this.filter = BloomFilter.create(FUNNEL,
+                    metrics.upperBoundOfPossibleSubstrings());
             this.tree = BPlusTree.file().directory(FileOps.tempDir(""))
                     .keySerializer(Serializer.INTEGER)
                     .valueSerializer(serializer).naturalOrder();
@@ -689,9 +683,11 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
          * Construct a new instance.
          * 
          * @param term
+         * @param metrics
          */
-        protected BruteForceTermIndexDeduplicator(char[] term) {
-            super(term);
+        protected BruteForceTermIndexDeduplicator(char[] term,
+                SearchTermMetrics metrics) {
+            super(term, metrics);
         }
 
         @Override
@@ -719,6 +715,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
             Logging.disable(Jvm.class);
             Logging.disable(InternalAnnouncer.class);
             Logging.disable(VanillaChronicleMap.class);
+            Logging.disable(CompiledMapQueryContext.class);
         }
 
         /**
@@ -730,16 +727,16 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
          * Construct a new instance.
          * 
          * @param term
-         * @param expectedInsertions
+         * @param metrics
          */
         public ChronicleBackedTermIndexDeduplicator(char[] term,
-                int expectedInsertions) {
-            super(term);
+                SearchTermMetrics metrics) {
+            super(term, metrics);
             // @formatter:off
             this.chronicle = ChronicleSet.of(Text.class)
-                    .averageKeySize(AVERAGE_SUBSTRING_LENGTH)
+                    .averageKeySize(metrics.averageSubstringLength())
                     .keyMarshaller(TextBytesMarshaller.INSTANCE)
-                    .entries(expectedInsertions)
+                    .entries(metrics.upperBoundOfPossibleSubstrings())
                     .create();
             // @formatter:on
         }

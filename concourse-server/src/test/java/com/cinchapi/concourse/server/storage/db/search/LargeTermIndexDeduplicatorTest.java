@@ -21,6 +21,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.cinchapi.common.util.PossibleCloseables;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
@@ -34,6 +35,24 @@ import com.google.common.base.Strings;
 public abstract class LargeTermIndexDeduplicatorTest {
 
     @Test
+    public void testDuplicatesNotAdded() {
+        // Demonstrate the adding to a LargeTermIndexDeduplicator has the same
+        // effect as adding to a set, for purposes of ensuring no duplicates are
+        // permitted.
+        String string = Random.getSimpleString();
+        while (TestData.getInt() % 3 != 0) {
+            string += Random.getSimpleString();
+        }
+        doTestDuplicatesNotAdded(string);
+    }
+
+    @Test
+    public void testDuplicatesNotAddedReproA() {
+        String string = "uyylzknntouiyoaicjvyadzwppfmofzjdmvrqyzcekhstrhsnjpsfsnllyhlesoxsephbxxmmsuelwyqyhgfteftxvhxnielapgtbvthgnrddgwegkmybyovamczompgyvoptyzfaizbbxgmwjodnfeyxaryvsxatenwwklxozcdalisyukinuunlvdxferuluhrylqzzqjhganpsmhyfitdrxe";
+        doTestDuplicatesNotAdded(string);
+    }
+
+    @Test
     public void testSanityCheck() {
         String term = "abrakadabra";
         char[] chars = term.toCharArray();
@@ -41,32 +60,13 @@ public abstract class LargeTermIndexDeduplicatorTest {
         Text second = Text.wrap(chars, 8, 11);
         Assert.assertEquals(first, second);
         LargeTermIndexDeduplicator deduplicator = getDeduplicator(chars);
-        Assert.assertTrue(deduplicator.add(first));
-        Assert.assertFalse(deduplicator.add(second)); // duplicate
-    }
-
-    @Test
-    public void testDuplicatesNotAdded() {
-        // Demonstrate the adding to a LargeTermIndexDeduplicator has the same
-        // effect as adding to a set, for purposes of ensuring no duplicates are
-        // permitted.
-        String string = Random.getSimpleString();
-        Set<String> expected = new HashSet<>();
-        while (TestData.getInt() % 3 != 0) {
-            string += Random.getSimpleString();
+        try {
+            Assert.assertTrue(deduplicator.add(first));
+            Assert.assertFalse(deduplicator.add(second)); // duplicate
         }
-        char[] chars = string.toCharArray();
-        LargeTermIndexDeduplicator deduplicator = getDeduplicator(chars);
-        for (int i = 0; i < chars.length; ++i) {
-            for (int j = i + 1; j <= chars.length; ++j) {
-                String ss = string.substring(i, j).trim();
-                if(!Strings.isNullOrEmpty(ss)) {
-                    Text st = Text.wrap(chars, i, j);
-                    Assert.assertEquals(expected.add(ss), deduplicator.add(st));
-                }
-            }
+        finally {
+            PossibleCloseables.tryCloseQuietly(deduplicator);
         }
-
     }
 
     /**
@@ -76,5 +76,32 @@ public abstract class LargeTermIndexDeduplicatorTest {
      * @return the deduplicator
      */
     protected abstract LargeTermIndexDeduplicator getDeduplicator(char[] term);
+
+    /**
+     * Run a test with {@code string} to demonstrate duplicates are not added
+     * 
+     * @param string
+     */
+    private void doTestDuplicatesNotAdded(String string) {
+        Set<String> expected = new HashSet<>();
+        char[] chars = string.toCharArray();
+        LargeTermIndexDeduplicator deduplicator = getDeduplicator(chars);
+        try {
+            for (int i = 0; i < chars.length; ++i) {
+                for (int j = i + 1; j <= chars.length; ++j) {
+                    String ss = string.substring(i, j).trim();
+                    if(!Strings.isNullOrEmpty(ss)) {
+                        Text st = Text.wrap(chars, i, j);
+                        Assert.assertEquals(expected.add(ss),
+                                deduplicator.add(st));
+                    }
+                }
+            }
+        }
+        finally {
+            PossibleCloseables.tryCloseQuietly(deduplicator);
+        }
+
+    }
 
 }
