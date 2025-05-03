@@ -322,7 +322,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
 
         // Detect if the #term is large enough to likely cause OOMs when
         // indexing and prepare the appropriate precautions.
-        boolean isLargeTerm = upperBound > 5000000;
+        boolean isLargeTerm = upperBound > 5_000_000;
 
         // A flag that indicates whether the {@link #prepare(CountUpLatch,
         // Text, String, PrimaryKey, int, long, Action) prepare} function
@@ -352,10 +352,10 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                     : length) + 1;
             for (int j = start; j < limit; ++j) {
                 // @formatter:off
-                        Text infix = (isLargeTerm 
-                                ? Text.wrap(chars, i, j)
-                                : Text.wrap(term.substring(i, j))).trim();
-                        // @formatter:on
+                    Text infix = (isLargeTerm 
+                            ? Text.wrap(chars, i, j)
+                            : Text.wrap(term.substring(i, j))).trim();
+                // @formatter:on
                 if(!infix.isEmpty() && indexed.add(infix)) {
                     INDEXER.enqueue(this, tracker, key, infix, pos, version,
                             type, artifacts);
