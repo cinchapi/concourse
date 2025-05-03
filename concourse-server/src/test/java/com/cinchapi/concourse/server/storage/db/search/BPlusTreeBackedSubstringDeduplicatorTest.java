@@ -16,16 +16,16 @@
 package com.cinchapi.concourse.server.storage.db.search;
 
 /**
- * Unit tests for chronicle backed {@link LargeTermIndexDuplicator}.
+ * Unit tests for B+ Tree backed {@link LargeTermIndexDuplicator}.
  *
  * @author Jeff Nelson
  */
-public class ChronicleBackedLargeTermIndexDeduplicatorTest
-        extends LargeTermIndexDeduplicatorTest {
+public class BPlusTreeBackedSubstringDeduplicatorTest
+        extends SubstringDeduplicatorTest {
 
     @Override
-    protected LargeTermIndexDeduplicator getDeduplicator(char[] term) {
-        return LargeTermIndexDeduplicator.testCreateChronicleBacked(term);
+    protected SubstringDeduplicator getDeduplicator(char[] term) {
+        return SubstringDeduplicator.testCreateBPlusTreeBacked(term);
     }
 
 }

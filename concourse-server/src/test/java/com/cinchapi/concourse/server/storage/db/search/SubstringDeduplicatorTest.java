@@ -28,11 +28,11 @@ import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Strings;
 
 /**
- * Unit tests for {@link LargeTermIndexDeduplicator}.
+ * Unit tests for {@link SubstringDeduplicator}.
  *
  * @author Jeff Nelson
  */
-public abstract class LargeTermIndexDeduplicatorTest {
+public abstract class SubstringDeduplicatorTest {
 
     @Test
     public void testDuplicatesNotAdded() {
@@ -59,7 +59,7 @@ public abstract class LargeTermIndexDeduplicatorTest {
         Text first = Text.wrap(chars, 1, 4);
         Text second = Text.wrap(chars, 8, 11);
         Assert.assertEquals(first, second);
-        LargeTermIndexDeduplicator deduplicator = getDeduplicator(chars);
+        SubstringDeduplicator deduplicator = getDeduplicator(chars);
         try {
             Assert.assertTrue(deduplicator.add(first));
             Assert.assertFalse(deduplicator.add(second)); // duplicate
@@ -75,7 +75,7 @@ public abstract class LargeTermIndexDeduplicatorTest {
      * @param term
      * @return the deduplicator
      */
-    protected abstract LargeTermIndexDeduplicator getDeduplicator(char[] term);
+    protected abstract SubstringDeduplicator getDeduplicator(char[] term);
 
     /**
      * Run a test with {@code string} to demonstrate duplicates are not added
@@ -85,7 +85,7 @@ public abstract class LargeTermIndexDeduplicatorTest {
     private void doTestDuplicatesNotAdded(String string) {
         Set<String> expected = new HashSet<>();
         char[] chars = string.toCharArray();
-        LargeTermIndexDeduplicator deduplicator = getDeduplicator(chars);
+        SubstringDeduplicator deduplicator = getDeduplicator(chars);
         try {
             for (int i = 0; i < chars.length; ++i) {
                 for (int j = i + 1; j <= chars.length; ++j) {

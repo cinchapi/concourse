@@ -90,20 +90,19 @@ import com.google.common.hash.PrimitiveSink;
  */
 @NotThreadSafe
 @Experimental
-public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
-        implements
+public abstract class SubstringDeduplicator extends AbstractSet<Text> implements
         Closeable {
 
     /**
-     * Return an {@link LargeTermIndexDeduplicator} that is configured to
+     * Return an {@link SubstringDeduplicator} that is configured to
      * accommodate {@code expectedInsertions} number of substrings from
      * {@code term.
      * 
      * @param expectedInsertions
      * 
-     * @return the {@link LargeTermIndexDeduplicator}
+     * @return the {@link SubstringDeduplicator}
      */
-    public static LargeTermIndexDeduplicator create(char[] term,
+    public static SubstringDeduplicator create(char[] term,
             SearchTermMetrics metrics) {
         int expectedInsertions = metrics.upperBoundOfPossibleSubstrings();
         long estimatedMemoryRequired = (long) metrics.averageSubstringLength()
@@ -116,12 +115,12 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
                 System.lineSeparator(), summarizeMemory(estimatedMemoryRequired,
                         availableDirectMemory, freeHeapMemory));
 
-        LargeTermIndexDeduplicator deduplicator;
+        SubstringDeduplicator deduplicator;
         if(availableDirectMemory > estimatedMemoryRequired) {
             try {
                 Logger.info("Attempting to use off-heap memory to deduplicate "
                         + "the search indexes");
-                deduplicator = new ChronicleBackedTermIndexDeduplicator(term,
+                deduplicator = new ChronicleBackedSubstringDeduplicator(term,
                         metrics);
             }
             catch (OutOfMemoryError e) {
@@ -136,7 +135,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
                 // disk and using a bloom filter to "speed" things up. This will
                 // be slow AF, but is a last resort to try to keep things
                 // running.
-                deduplicator = new BPlusTreeBackedTermIndexDeduplicator(term,
+                deduplicator = new BPlusTreeBackedSubstringDeduplicator(term,
                         metrics);
             }
         }
@@ -146,48 +145,48 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
                     + "must be performed by manually checking if every single "
                     + "potential index string is a duplicate, which is slower...",
                     expectedInsertions);
-            deduplicator = new BruteForceTermIndexDeduplicator(term, metrics);
+            deduplicator = new BruteForceSubstringDeduplicator(term, metrics);
         }
         return deduplicator;
     }
 
     /**
-     * Return an {@link LargeTermIndexDeduplicator} that is only appropriate for
+     * Return an {@link SubstringDeduplicator} that is only appropriate for
      * unit tests.
      * 
      * @param term
-     * @return the {@link LargeTermIndexDeduplicator}
+     * @return the {@link SubstringDeduplicator}
      */
-    static LargeTermIndexDeduplicator testCreateBPlusTreeBacked(char[] term) {
+    static SubstringDeduplicator testCreateBPlusTreeBacked(char[] term) {
         SearchTermMetrics metrics = Reflection
                 .newInstance(SearchTermMetrics.class, term.length, -1);
-        return new BPlusTreeBackedTermIndexDeduplicator(term, metrics);
+        return new BPlusTreeBackedSubstringDeduplicator(term, metrics);
     }
 
     /**
-     * Return an {@link LargeTermIndexDeduplicator} that is only appropriate for
+     * Return an {@link SubstringDeduplicator} that is only appropriate for
      * unit tests.
      * 
      * @param term
-     * @return the {@link LargeTermIndexDeduplicator}
+     * @return the {@link SubstringDeduplicator}
      */
-    static LargeTermIndexDeduplicator testCreateBruteForceBacked(char[] term) {
+    static SubstringDeduplicator testCreateBruteForceBacked(char[] term) {
         SearchTermMetrics metrics = Reflection
                 .newInstance(SearchTermMetrics.class, term.length, -1);
-        return new BruteForceTermIndexDeduplicator(term, metrics);
+        return new BruteForceSubstringDeduplicator(term, metrics);
     }
 
     /**
-     * Return an {@link LargeTermIndexDeduplicator} that is only appropriate for
+     * Return an {@link SubstringDeduplicator} that is only appropriate for
      * unit tests.
      * 
      * @param term
-     * @return the {@link LargeTermIndexDeduplicator}
+     * @return the {@link SubstringDeduplicator}
      */
-    static LargeTermIndexDeduplicator testCreateChronicleBacked(char[] term) {
+    static SubstringDeduplicator testCreateChronicleBacked(char[] term) {
         SearchTermMetrics metrics = Reflection
                 .newInstance(SearchTermMetrics.class, term.length, -1);
-        return new ChronicleBackedTermIndexDeduplicator(term, metrics);
+        return new ChronicleBackedSubstringDeduplicator(term, metrics);
     }
 
     /**
@@ -459,8 +458,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
      * @param term
      * @param metrics
      */
-    protected LargeTermIndexDeduplicator(char[] term,
-            SearchTermMetrics metrics) {
+    protected SubstringDeduplicator(char[] term, SearchTermMetrics metrics) {
         this.term = term;
         this.metrics = metrics;
     }
@@ -481,13 +479,13 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
     }
 
     /**
-     * {@link LargeTermIndexDeduplicator} that is backed by a B+ Tree in a
+     * {@link SubstringDeduplicator} that is backed by a B+ Tree in a
      * {@link Path file}.
      *
      * @author Jeff Nelson
      */
-    private static class BPlusTreeBackedTermIndexDeduplicator
-            extends LargeTermIndexDeduplicator {
+    private static class BPlusTreeBackedSubstringDeduplicator
+            extends SubstringDeduplicator {
 
         /**
          * {@link Funnel} for {@link #filter}.
@@ -552,7 +550,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
         /**
          * Construct a new instance.
          */
-        public BPlusTreeBackedTermIndexDeduplicator(char[] term,
+        public BPlusTreeBackedSubstringDeduplicator(char[] term,
                 SearchTermMetrics metrics) {
             super(term, metrics);
             this.filter = BloomFilter.create(FUNNEL,
@@ -634,7 +632,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
     }
 
     /**
-     * A {@link LargeTermIndexDeduplicator} that uses a brute force approach to
+     * A {@link SubstringDeduplicator} that uses a brute force approach to
      * check if an index from a term is considered a relative duplicate, without
      * using additional memory beyond that which is already utilized to store
      * the term.
@@ -645,8 +643,8 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
      *
      * @author Jeff Nelson
      */
-    private static class BruteForceTermIndexDeduplicator
-            extends LargeTermIndexDeduplicator {
+    private static class BruteForceSubstringDeduplicator
+            extends SubstringDeduplicator {
 
         /**
          * Returns true if the substring s[start..end) occurs at any earlier
@@ -687,7 +685,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
          * @param term
          * @param metrics
          */
-        protected BruteForceTermIndexDeduplicator(char[] term,
+        protected BruteForceSubstringDeduplicator(char[] term,
                 SearchTermMetrics metrics) {
             super(term, metrics);
         }
@@ -705,13 +703,13 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
     }
 
     /**
-     * {@link LargeTermIndexDeduplicator} that is backed by a
+     * {@link SubstringDeduplicator} that is backed by a
      * {@link ChronicleSet}.
      *
      * @author Jeff Nelson
      */
-    private static class ChronicleBackedTermIndexDeduplicator
-            extends LargeTermIndexDeduplicator {
+    private static class ChronicleBackedSubstringDeduplicator
+            extends SubstringDeduplicator {
 
         static {
             Logging.disable(Jvm.class);
@@ -731,7 +729,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
          * @param term
          * @param metrics
          */
-        public ChronicleBackedTermIndexDeduplicator(char[] term,
+        public ChronicleBackedSubstringDeduplicator(char[] term,
                 SearchTermMetrics metrics) {
             super(term, metrics);
             // @formatter:off

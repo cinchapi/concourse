@@ -45,9 +45,9 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.search.LargeTermIndexDeduplicator;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
+import com.cinchapi.concourse.server.storage.db.search.SubstringDeduplicator;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.lib.offheap.collect.ConcurrentOffHeapSortedSet;
@@ -354,7 +354,7 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
             // indexes (i.e. 'abrakadabra')
             // @formatter:off
             Set<Text> indexed = isLargeTerm 
-                    ? LargeTermIndexDeduplicator.create(chars, metrics)
+                    ? SubstringDeduplicator.create(chars, metrics)
                     : Sets.newHashSetWithExpectedSize(upperBound);
             // @formatter:on
             for (int i = 0; i < length; ++i) {

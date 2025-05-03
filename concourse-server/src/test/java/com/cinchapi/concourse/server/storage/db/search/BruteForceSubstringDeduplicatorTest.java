@@ -16,16 +16,16 @@
 package com.cinchapi.concourse.server.storage.db.search;
 
 /**
- * Unit tests for B+ Tree backed {@link LargeTermIndexDuplicator}.
+ * Unit tests for brute force {@link LargeTermIndexDuplicator}.
  *
  * @author Jeff Nelson
  */
-public class BPlusTreeBackedLargeIndexTermDeduplicatorTest
-        extends LargeTermIndexDeduplicatorTest {
+public class BruteForceSubstringDeduplicatorTest
+        extends SubstringDeduplicatorTest {
 
     @Override
-    protected LargeTermIndexDeduplicator getDeduplicator(char[] term) {
-        return LargeTermIndexDeduplicator.testCreateBPlusTreeBacked(term);
+    protected SubstringDeduplicator getDeduplicator(char[] term) {
+        return SubstringDeduplicator.testCreateBruteForceBacked(term);
     }
 
 }
