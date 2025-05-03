@@ -125,7 +125,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
                 + "up to {} search indexes{}{}", expectedInsertions,
                 System.lineSeparator(), summarizeMemory(estimatedMemoryRequired,
                         availableDirectMemory, freeHeapMemory));
-        if(estimatedMemoryRequired <= availableDirectMemory) {
+        if(availableDirectMemory > estimatedMemoryRequired) {
             try {
                 deduplicator = new ChronicleBackedTermIndexDeduplicator(term,
                         expectedInsertions);
@@ -134,7 +134,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
                 Logger.warn("There appeared to be enough native memory to "
                         + "deduplicate up to {} search indexes, but the"
                         + "operating system refused to allocate the requied"
-                        + "capacity.As a result, deduplicaton must be performed "
+                        + "capacity. As a result, deduplicaton must be performed "
                         + "on disk, which is A LOT slower...",
                         expectedInsertions);
                 // This *usually* means that there isn't enough off heap memory
