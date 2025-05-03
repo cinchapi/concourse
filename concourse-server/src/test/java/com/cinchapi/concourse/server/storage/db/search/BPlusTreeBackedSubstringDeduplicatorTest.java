@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.ete.performance;
+package com.cinchapi.concourse.server.storage.db.search;
 
 /**
- * Utilities for cross version benchmark tests.
+ * Unit tests for B+ Tree backed {@link LargeTermIndexDuplicator}.
  *
  * @author Jeff Nelson
  */
-public final class CrossVersionBenchmarkTests {
+public class BPlusTreeBackedSubstringDeduplicatorTest
+        extends SubstringDeduplicatorTest {
 
-    /**
-     * The versions to use in all benchmark tests
-     */
-    public static String[] VERSIONS = { "0.11.3", "0.11.4", "0.11.5",
-            "latest" };
-
-    private CrossVersionBenchmarkTests() {/* no-init */}
+    @Override
+    protected SubstringDeduplicator getDeduplicator(char[] term) {
+        return SubstringDeduplicator.testCreateBPlusTreeBacked(term);
+    }
 
 }

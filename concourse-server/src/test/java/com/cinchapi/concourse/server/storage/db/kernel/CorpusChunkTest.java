@@ -316,8 +316,8 @@ public class CorpusChunkTest extends ChunkTest<Text, Text, Position> {
     public void testLargeUpperBound() {
         String string = FileOps
                 .read(Resources.getAbsolutePath("/long-string2.txt"));
-        Assert.assertTrue(
-                CorpusChunk.upperBoundOfPossibleSubstrings(string) > 0);
+        Assert.assertTrue(new CorpusChunk.SearchTermMetrics(string)
+                .upperBoundOfPossibleSubstrings() > 0);
     }
 
     @SuppressWarnings("unchecked")

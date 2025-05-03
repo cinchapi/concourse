@@ -43,9 +43,9 @@ import com.cinchapi.concourse.server.storage.Action;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.CorpusRevision;
 import com.cinchapi.concourse.server.storage.db.Revision;
-import com.cinchapi.concourse.server.storage.db.search.OffHeapTextSet;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndex;
 import com.cinchapi.concourse.server.storage.db.search.SearchIndexer;
+import com.cinchapi.concourse.server.storage.db.search.SubstringDeduplicator;
 import com.cinchapi.concourse.thrift.Type;
 import com.cinchapi.concourse.util.TStrings;
 import com.cinchapi.lib.offheap.collect.ConcurrentOffHeapSortedSet;
@@ -66,12 +66,6 @@ import com.google.common.collect.Sets;
 public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         implements
         SearchIndex {
-
-    /**
-     * Global flag that indicates if artifacts should be recorded when
-     * {@link #index(Text, Text, Position, long, Action, Collection) indexing}.
-     */
-    private final static boolean TRACK_ARTIFACTS = GlobalState.ENABLE_SEARCH_CACHE;
 
     /**
      * Return a new {@link CorpusChunk}.
@@ -128,37 +122,10 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
     }
 
     /**
-     * Return the upper bound on the number of possible substrings in a
-     * {@code string} while properly handling integer overflow.
-     * 
-     * @param string
-     * @return the upper bound
+     * Global flag that indicates if artifacts should be recorded when
+     * {@link #index(Text, Text, Position, long, Action, Collection) indexing}.
      */
-    @VisibleForTesting
-    protected static int upperBoundOfPossibleSubstrings(String string) {
-        return upperBoundOfPossibleSubstrings(string.length());
-    }
-
-    /**
-     * Return the upper bound on the number of possible substrings in a string
-     * with {@code length} characters while properly handling integer overflow.
-     * 
-     * @param length
-     * @return the upper bound
-     */
-    private static int upperBoundOfPossibleSubstrings(int length) {
-        int upperBound;
-        try {
-            // See: https://www.geeksforgeeks.org/number-substrings-string
-            // [length * (length + 1) / 2]
-            upperBound = Math.multiplyExact(length, Math.addExact(length, 1))
-                    / 2;
-        }
-        catch (ArithmeticException e) {
-            upperBound = Integer.MAX_VALUE;
-        }
-        return upperBound;
-    }
+    private final static boolean TRACK_ARTIFACTS = GlobalState.ENABLE_SEARCH_CACHE;
 
     /**
      * The number of worker threads to reserve for the {@link SearchIndexer}.
@@ -350,7 +317,8 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         int count = 0;
         Position pos = Position.of(record, position);
         int length = term.length();
-        int upperBound = upperBoundOfPossibleSubstrings(length);
+        SearchTermMetrics metrics = new SearchTermMetrics(length);
+        int upperBound = metrics.upperBoundOfPossibleSubstrings();
 
         // Detect if the #term is large enough to likely cause OOMs when
         // indexing and prepare the appropriate precautions.
@@ -366,16 +334,16 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         // cause this to fail :-/
         boolean shouldLimitSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
 
+        final char[] chars = isLargeTerm ? term.toCharArray() : null;
         // The set of substrings that have been indexed from {@code term} at
         // {@code position} for {@code key} in {@code record} at {@code
         // version}. This is used to ensure that we do not add duplicate
         // indexes (i.e. 'abrakadabra')
         // @formatter:off
             Set<Text> indexed = isLargeTerm 
-                    ? OffHeapTextSet.create(upperBound)
+                    ? SubstringDeduplicator.create(chars, metrics)
                     : Sets.newHashSetWithExpectedSize(upperBound);
-            // @formatter:on
-        final char[] chars = isLargeTerm ? term.toCharArray() : null;
+        // @formatter:on
         for (int i = 0; i < length; ++i) {
             int start = i + 1;
             int limit = (shouldLimitSubstringLength
@@ -384,10 +352,10 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                     : length) + 1;
             for (int j = start; j < limit; ++j) {
                 // @formatter:off
-                    Text infix = (isLargeTerm 
-                            ? Text.wrap(chars, i, j)
-                            : Text.wrap(term.substring(i, j))).trim();
-                    // @formatter:on
+                        Text infix = (isLargeTerm 
+                                ? Text.wrap(chars, i, j)
+                                : Text.wrap(term.substring(i, j))).trim();
+                        // @formatter:on
                 if(!infix.isEmpty() && indexed.add(infix)) {
                     INDEXER.enqueue(this, tracker, key, infix, pos, version,
                             type, artifacts);
@@ -401,11 +369,134 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
     }
 
     /**
+     * Encapsulates useful metrics about a search term, that can be useful for
+     * indexing.
+     *
+     * @author Jeff Nelson
+     */
+    public static class SearchTermMetrics {
+
+        /**
+         * The upper bound on possible substrings based on the length of the
+         * search term. Does not account for duplicates.
+         */
+        private final int upperBoundOfPossibleSubstrings;
+
+        /**
+         * The average substring length.
+         */
+        private final int averageSubstringLength;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param term
+         */
+        @VisibleForTesting
+        protected SearchTermMetrics(String term) {
+            this(term.length());
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param length
+         */
+        private SearchTermMetrics(int length) {
+            this(length, GlobalState.MAX_SEARCH_SUBSTRING_LENGTH);
+        }
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param length
+         * @param maxSearchSubstringLenth
+         */
+        private SearchTermMetrics(int length, int maxSearchSubstringLenth) {
+            int cap = maxSearchSubstringLenth > 0
+                    ? Math.min(length, maxSearchSubstringLenth)
+                    : length;
+
+            /*
+             * The upper bound on of possible substrings is
+             * cap * (2*length - cap + 1) / 2
+             * which reduces to
+             * length * (length + 1) / 2]
+             * if there is no cap on substring length
+             * See: https://www.geeksforgeeks.org/number-substrings-string
+             */
+            int upperBound;
+            try {
+                if(cap == length) {
+                    upperBound = Math.multiplyExact(length,
+                            Math.addExact(length, 1)) / 2;
+                }
+                else {
+                    int twoL = Math.multiplyExact(2, length);
+                    int innerTerm = Math.addExact(Math.subtractExact(twoL, cap),
+                            1);
+                    int numerator = Math.multiplyExact(cap, innerTerm);
+                    upperBound = numerator / 2;
+                }
+            }
+            catch (ArithmeticException e) {
+                upperBound = Integer.MAX_VALUE;
+            }
+            this.upperBoundOfPossibleSubstrings = upperBound;
+
+            /*
+             * Total substrings of length k: (l - k + 1)
+             * Sum of lengths S =
+             * ∑[k=1..cap] k*(l - k + 1) = cap*(cap+1)*(3*l - 2*cap + 2) / 6
+             * Count C =
+             * ∑[k=1..cap] (l - k + 1) = cap*(2*l - cap + 1) / 2
+             * Average = S / C =
+             * (cap+1)*(3*l - 2*cap + 2) / [3*(2*l - cap + 1)]
+             *
+             * where cap = min(l, n). If n ≥ l, this reduces to (l+2)/3.
+             */
+            double averageLength;
+            if(cap == length) {
+                averageLength = (length + 2.0) / 3.0;
+            }
+            else {
+                averageLength = (cap + 1.0) * (3.0 * length - 2.0 * cap + 2.0)
+                        / (3.0 * (2.0 * length - cap + 1.0));
+            }
+            this.averageSubstringLength = (int) Math.round(averageLength);
+        }
+
+        /**
+         * Return the average length of a given substring.
+         * 
+         * @return the average length
+         */
+        public int averageSubstringLength() {
+            return averageSubstringLength;
+        }
+
+        /**
+         * Return the upper bound on the number of possible substrings (not
+         * accounting for duplicates), while properly handling integer overflow.
+         * 
+         * @return the upper bound
+         */
+        public int upperBoundOfPossibleSubstrings() {
+            return upperBoundOfPossibleSubstrings;
+        }
+    }
+
+    /**
      * A {@link List} that ignores attempts to write any data.
      *
      * @author Jeff Nelson
      */
     private static class NoOpList<T> extends AbstractList<T> {
+
+        @Override
+        public boolean add(T e) {
+            return false;
+        }
 
         @Override
         public T get(int index) {
@@ -415,11 +506,6 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         @Override
         public int size() {
             return 0;
-        }
-
-        @Override
-        public boolean add(T e) {
-            return false;
         }
 
     }
