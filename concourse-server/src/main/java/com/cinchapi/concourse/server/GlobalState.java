@@ -498,7 +498,7 @@ public final class GlobalState extends Constants {
                 MAX_SEARCH_SUBSTRING_LENGTH);
 
         ENABLE_ASYNC_DATA_READS = config.getOrDefault("enable_async_data_reads",
-                ENABLE_ASYNC_DATA_READS);
+                Interpreters.booleanOrNull(), ENABLE_ASYNC_DATA_READS);
 
         ENABLE_COMPACTION = config.getOrDefault("enable_compaction",
                 Interpreters.booleanOrNull(), ENABLE_COMPACTION);
@@ -516,7 +516,8 @@ public final class GlobalState extends Constants {
                 config.getOrDefault("init_root_username", INIT_ROOT_USERNAME));
 
         ENABLE_EFFICIENT_METADATA = config.getOrDefault(
-                "enable_efficient_metadata", ENABLE_EFFICIENT_METADATA);
+                "enable_efficient_metadata", Interpreters.booleanOrNull(),
+                ENABLE_EFFICIENT_METADATA);
 
         Object transporter = config.get("transporter");
         String transporterType;
@@ -524,9 +525,10 @@ public final class GlobalState extends Constants {
             transporterType = config.getOrDefault("transporter.type",
                     transporter.toString());
             NUM_TRANSPORTER_THREADS = config.getOrDefault(
-                    "transporter.num_threads", NUM_TRANSPORTER_THREADS);
-            USE_FAIR_TRANSPORT_LOCK = !config
-                    .getOrDefault("transporter.passive", false);
+                    "transporter.num_threads", Interpreters.numberOrNull(),
+                    NUM_TRANSPORTER_THREADS);
+            USE_FAIR_TRANSPORT_LOCK = !config.getOrDefault(
+                    "transporter.passive", Interpreters.booleanOrNull(), false);
         }
         else {
             transporterType = transporter != null ? transporter.toString() : "";
