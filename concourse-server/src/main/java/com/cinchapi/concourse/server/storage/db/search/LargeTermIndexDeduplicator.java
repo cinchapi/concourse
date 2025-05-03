@@ -50,6 +50,7 @@ import com.cinchapi.concourse.util.Logger;
 import com.github.davidmoten.bplustree.BPlusTree;
 import com.github.davidmoten.bplustree.LargeByteBuffer;
 import com.github.davidmoten.bplustree.Serializer;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnel;
@@ -76,7 +77,7 @@ import com.google.common.hash.PrimitiveSink;
  * <li>Because of internal memory optimizations, this container can only used to
  * hold and deduplicate substrings that are represented as {@link Text} objects
  * specifically created by {@link Text#wrap(char[], int, int) wrapping} the
- * term's chaar[].</li>
+ * term's char[].</li>
  * <li>While this is an implementation of the {@link Set} interface, the only
  * methods that are guaranteed to be support are {@link #contains(Object)} and
  * {@link #add(Text)}. Attempts to iterate the container or perform other kinds
@@ -117,7 +118,14 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
         LargeTermIndexDeduplicator deduplicator;
         long estimatedMemoryRequired = (long) 4
                 * (long) AVERAGE_SUBSTRING_LENGTH * (long) expectedInsertions;
-        if(estimatedMemoryRequired <= availableDirectMemory()) {
+        long availableDirectMemory = availableDirectMemory();
+        long freeHeapMemory = Runtime.getRuntime().freeMemory();
+        Logger.info("The search indexer has encountered a large term that "
+                + "may require a lot of memory to process. The term has "
+                + "up to {} search indexes{}{}", expectedInsertions,
+                System.lineSeparator(), summarizeMemory(estimatedMemoryRequired,
+                        availableDirectMemory, freeHeapMemory));
+        if(estimatedMemoryRequired <= availableDirectMemory) {
             try {
                 deduplicator = new ChronicleBackedTermIndexDeduplicator(term,
                         expectedInsertions);
@@ -202,6 +210,54 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
     }
 
     /**
+     * Formats a byte count into a human-readable string representation.
+     * 
+     * This method converts a raw byte count into a formatted string with the
+     * most appropriate unit (B, KB, MB, GB, TB, PB, EB) based on the size. Once
+     * the value exceeds 1,000 in one unit, it will be represented in the next
+     * larger unit.
+     * 
+     * For example:
+     * <ul>
+     * <li>900 bytes will be formatted as "900 B"</li>
+     * <li>1,500 bytes will be formatted as "1.5 KB"</li>
+     * <li>1,500,000 bytes will be formatted as "1.5 MB"</li>
+     * <li>343,597,383,520 bytes will be formatted as "343.6 GB"</li>
+     * </ul>
+     * 
+     * The method uses decimal-based units (powers of 1,000) rather than
+     * binary-based units (powers of 1,024).
+     * 
+     * @param bytes The number of bytes to format (must be positive)
+     * @return A formatted string representing the bytes in the most appropriate
+     *         unit
+     * @throws IllegalArgumentException if the byte count is not positive
+     */
+    private static String formatBytes(long bytes) {
+        Preconditions.checkArgument(bytes > 0);
+        double unit = 1000;
+        if(bytes < unit) {
+            return bytes + " B";
+        }
+
+        String[] units = { "KB", "MB", "GB", "TB", "PB", "EB" };
+        int unitIndex = (int) (Math.log10(bytes) / Math.log10(unit)) - 1;
+        unitIndex = Math.min(unitIndex, units.length - 1);
+
+        // Calculate the value in the determined unit
+        double value = bytes / Math.pow(unit, unitIndex + 1);
+
+        // Format with up to 2 decimal places, removing trailing zeros
+        if(value == (long) value) {
+            return String.format("%d %s", (long) value, units[unitIndex]);
+        }
+        else {
+            return String.format("%.2f %s", value, units[unitIndex])
+                    .replaceAll("\\.00$", "").replaceAll("(\\.[0-9])0$", "$1");
+        }
+    }
+
+    /**
      * Retrieve the {@code text}'s end index.
      * 
      * @param text
@@ -243,11 +299,152 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
     }
 
     /**
-     * The char array from the overall term that is being indexed. Required to
-     * for serialization and deserialization to/from the container's underlying
-     * store.
+     * Summarizes memory information into a well-formatted tabular string
+     * representation with proper borders and alignment.
+     * 
+     * This method creates a formatted table showing three memory metrics:
+     * <ul>
+     * <li>Estimated Memory Required</li>
+     * <li>Off Heap Memory Available</li>
+     * <li>Heap Memory Available</li>
+     * </ul>
+     * 
+     * Each memory value is formatted in a human-readable way using appropriate
+     * units (B, KB, MB, GB, TB, PB, EB) based on the size.
+     * 
+     * @param estimatedMemory The estimated memory required in bytes
+     * @param offHeapMemory The available off-heap memory in bytes
+     * @param heapMemory The available heap memory in bytes
+     * @return A formatted string containing a nicely formatted table with
+     *         memory information
+     * @throws IllegalArgumentException if any memory value is negative
      */
-    protected final char[] term;
+    private static String summarizeMemory(long estimated, long direct,
+            long heap) {
+        Preconditions.checkArgument(estimated >= 0,
+                "Estimated memory cannot be negative");
+        Preconditions.checkArgument(direct >= 0,
+                "Off heap memory cannot be negative");
+        Preconditions.checkArgument(heap >= 0,
+                "Heap memory cannot be negative");
+
+        String formattedEstimated = formatBytes(estimated);
+        String formattedOffHeap = formatBytes(direct);
+        String formattedHeap = formatBytes(heap);
+
+        // Define row descriptions with proper length
+        String[] descriptions = { "Estimated Memory Required",
+                "Off Heap Memory Available", "Heap Memory Available" };
+        String[] values = { formattedEstimated, formattedOffHeap,
+                formattedHeap };
+
+        // Find the longest description to determine column width
+        int descColumnWidth = 0;
+        for (String desc : descriptions) {
+            descColumnWidth = Math.max(descColumnWidth, desc.length());
+        }
+
+        // Find the longest value to determine value column width
+        int valueColumnWidth = 0;
+        for (String value : values) {
+            valueColumnWidth = Math.max(valueColumnWidth, value.length());
+        }
+
+        // Add padding
+        descColumnWidth += 2;
+        valueColumnWidth += 2;
+
+        // Total table width
+        int tableWidth = descColumnWidth + valueColumnWidth + 3; // +3 for
+                                                                 // borders
+
+        StringBuilder table = new StringBuilder();
+
+        // Top border
+        table.append("┌");
+        for (int i = 0; i < descColumnWidth; i++) {
+            table.append("─");
+        }
+        table.append("┬");
+        for (int i = 0; i < valueColumnWidth; i++) {
+            table.append("─");
+        }
+        table.append("┐\n");
+
+        // Header
+        String title = "Memory Status";
+        int padding = (tableWidth - title.length() - 2) / 2;
+        table.append("│");
+        for (int i = 0; i < padding; i++) {
+            table.append(" ");
+        }
+        table.append(title);
+        for (int i = 0; i < tableWidth - padding - title.length() - 2; i++) {
+            table.append(" ");
+        }
+        table.append("│\n");
+
+        // Header separator
+        table.append("├");
+        for (int i = 0; i < descColumnWidth; i++) {
+            table.append("─");
+        }
+        table.append("┬");
+        for (int i = 0; i < valueColumnWidth; i++) {
+            table.append("─");
+        }
+        table.append("┤\n");
+
+        // Table content
+        for (int i = 0; i < descriptions.length; i++) {
+            String desc = descriptions[i];
+            String value = values[i];
+
+            // Ensure consistent spacing by adding exact number of spaces needed
+            int descSpaces = descColumnWidth - desc.length() - 1;
+            int valueSpaces = valueColumnWidth - value.length() - 1;
+
+            table.append("│ ").append(desc);
+
+            for (int j = 0; j < descSpaces; j++) {
+                table.append(" ");
+            }
+
+            table.append("│ ").append(value);
+
+            for (int j = 0; j < valueSpaces; j++) {
+                table.append(" ");
+            }
+
+            table.append("│\n");
+
+            // Add separator between rows (except after the last row)
+            if(i < descriptions.length - 1) {
+                table.append("├");
+                for (int j = 0; j < descColumnWidth; j++) {
+                    table.append("─");
+                }
+                table.append("┼");
+                for (int j = 0; j < valueColumnWidth; j++) {
+                    table.append("─");
+                }
+                table.append("┤\n");
+            }
+        }
+
+        // Bottom border
+        table.append("└");
+        for (int i = 0; i < descColumnWidth; i++) {
+            table.append("─");
+        }
+        table.append("┴");
+        for (int i = 0; i < valueColumnWidth; i++) {
+            table.append("─");
+        }
+        table.append("┘");
+
+        return table.toString();
+    }
 
     /**
      * A conservative estimate of the average length of each substring that
@@ -256,6 +453,13 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
     private static final int AVERAGE_SUBSTRING_LENGTH = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0
             ? GlobalState.MAX_SEARCH_SUBSTRING_LENGTH
             : 100;
+
+    /**
+     * The char array from the overall term that is being indexed. Required to
+     * for serialization and deserialization to/from the container's underlying
+     * store.
+     */
+    protected final char[] term;
 
     /**
      * Construct a new instance.
@@ -267,17 +471,17 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
     }
 
     @Override
+    public boolean contains(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Iterator<Text> iterator() {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public int size() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean contains(Object o) {
         throw new UnsupportedOperationException();
     }
 
