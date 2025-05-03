@@ -324,25 +324,23 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
         // indexing and prepare the appropriate precautions.
         boolean isLargeTerm = upperBound > 5_000_000;
 
-        // A flag that indicates whether the {@link #prepare(CountUpLatch,
-        // Text, String, PrimaryKey, int, long, Action) prepare} function
-        // should limit the length of substrings that are indexed.
-        // Generally, this value is {@code true} if the configuration has a
-        // value for {@link GlobalState#MAX_SEARCH_SUBSTRING_LENGTH} that is
+        // A flag that indicates whether we should limit the length of
+        // substrings that are indexed. Generally, this value is {@code true} if
+        // the configuration has a value for MAX_SEARCH_SUBSTRING_LENGTH that is
         // greater than 0.
         // NOTE: This is NOT static because unit tests sequencing would
         // cause this to fail :-/
         boolean shouldLimitSubstringLength = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH > 0;
-
         final char[] chars = isLargeTerm ? term.toCharArray() : null;
+
         // The set of substrings that have been indexed from {@code term} at
         // {@code position} for {@code key} in {@code record} at {@code
         // version}. This is used to ensure that we do not add duplicate
         // indexes (i.e. 'abrakadabra')
         // @formatter:off
-            Set<Text> indexed = isLargeTerm 
-                    ? SubstringDeduplicator.create(chars, metrics)
-                    : Sets.newHashSetWithExpectedSize(upperBound);
+        Set<Text> indexed = isLargeTerm 
+                ? SubstringDeduplicator.create(chars, metrics)
+                : Sets.newHashSetWithExpectedSize(upperBound);
         // @formatter:on
         for (int i = 0; i < length; ++i) {
             int start = i + 1;
@@ -352,9 +350,9 @@ public class CorpusChunk extends ConcurrentChunk<Text, Text, Position>
                     : length) + 1;
             for (int j = start; j < limit; ++j) {
                 // @formatter:off
-                    Text infix = (isLargeTerm 
-                            ? Text.wrap(chars, i, j)
-                            : Text.wrap(term.substring(i, j))).trim();
+                Text infix = (isLargeTerm 
+                        ? Text.wrap(chars, i, j)
+                        : Text.wrap(term.substring(i, j))).trim();
                 // @formatter:on
                 if(!infix.isEmpty() && indexed.add(infix)) {
                     INDEXER.enqueue(this, tracker, key, infix, pos, version,
