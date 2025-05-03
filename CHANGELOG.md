@@ -1,4 +1,7 @@
-#### Version 0.11.9 (TBD)
+#### Version 0.11.10 (TBD)
+* Fixed a bug that prevented Concourse Server from properly starting if a String configuration value was used for a variable that does not expect a String (e.g., `max_search_substring_length = "40"`). Now, Concouse Server will correctly parse all configuration values to the appropriate type or use the default value if there is an error when parsing.
+
+#### Version 0.11.9 (April 30, 2025)
 * Improved the performance of select operations that specify selection keys and require both sorting and pagination. The improvements are achieved from smarter heuristics that determine the most efficient execution path. The system now intelligently decides whether to:
   * Sort all records first and then select only the paginated subset of data, or
   * Select all data first and then apply sorting and pagination, or

@@ -364,16 +364,20 @@ public final class GlobalState extends Constants {
         BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
                 BUFFER_PAGE_SIZE);
 
-        CLIENT_PORT = config.getOrDefault("client_port", CLIENT_PORT);
+        CLIENT_PORT = config.getOrDefault("client_port",
+                Interpreters.numberOrNull(), CLIENT_PORT);
 
         SHUTDOWN_PORT = config.getOrDefault("shutdown_port",
+                Interpreters.numberOrNull(),
                 Networking.getCompanionPort(CLIENT_PORT, 2));
 
-        JMX_PORT = config.getOrDefault("jmx_port", JMX_PORT);
+        JMX_PORT = config.getOrDefault("jmx_port", Interpreters.numberOrNull(),
+                JMX_PORT);
 
         HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
 
-        HTTP_PORT = config.getOrDefault("http_port", HTTP_PORT);
+        HTTP_PORT = config.getOrDefault("http_port",
+                Interpreters.numberOrNull(), HTTP_PORT);
 
         HTTP_ENABLE_CORS = config.getOrDefault("http_enable_cors",
                 HTTP_ENABLE_CORS);
@@ -394,7 +398,7 @@ public final class GlobalState extends Constants {
                 LOG_LEVEL);
 
         ENABLE_CONSOLE_LOGGING = config.getOrDefault("enable_console_logging",
-                ENABLE_CONSOLE_LOGGING);
+                Interpreters.booleanOrNull(), ENABLE_CONSOLE_LOGGING);
         if(!ENABLE_CONSOLE_LOGGING) {
             ENABLE_CONSOLE_LOGGING = Boolean.parseBoolean(System.getProperty(
                     "com.cinchapi.concourse.server.logging.console", "false"));
@@ -403,21 +407,23 @@ public final class GlobalState extends Constants {
                 DEFAULT_ENVIRONMENT);
 
         MANAGEMENT_PORT = config.getOrDefault("management_port",
+                Interpreters.numberOrNull(),
                 Networking.getCompanionPort(CLIENT_PORT, 4));
 
         SYSTEM_ID = getSystemId();
 
         MAX_SEARCH_SUBSTRING_LENGTH = config.getOrDefault(
-                "max_search_substring_length", MAX_SEARCH_SUBSTRING_LENGTH);
+                "max_search_substring_length", Interpreters.numberOrNull(),
+                MAX_SEARCH_SUBSTRING_LENGTH);
 
         ENABLE_COMPACTION = config.getOrDefault("enable_compaction",
-                ENABLE_COMPACTION);
+                Interpreters.booleanOrNull(), ENABLE_COMPACTION);
 
         ENABLE_SEARCH_CACHE = config.getOrDefault("enable_search_cache",
-                ENABLE_SEARCH_CACHE);
+                Interpreters.booleanOrNull(), ENABLE_SEARCH_CACHE);
 
         ENABLE_VERIFY_BY_LOOKUP = config.getOrDefault("enable_verify_by_lookup",
-                ENABLE_VERIFY_BY_LOOKUP);
+                Interpreters.booleanOrNull(), ENABLE_VERIFY_BY_LOOKUP);
 
         INIT_ROOT_PASSWORD = config.getOrDefault("init.root.password",
                 config.getOrDefault("init_root_password", "admin"));

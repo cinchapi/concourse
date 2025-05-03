@@ -129,7 +129,7 @@ subprojects {
         compile 'org.apache.thrift:libthrift:0.20.0'
         compile 'commons-configuration:commons-configuration:1.9'
         compile group: 'com.cinchapi', name: 'accent4j', version: '1.15.0', changing:true
-        compile 'com.cinchapi:lib-config:1.5.1'
+        compile 'com.cinchapi:lib-config:1.7.0'
         
         testCompile 'junit:junit:4.11'
     }
