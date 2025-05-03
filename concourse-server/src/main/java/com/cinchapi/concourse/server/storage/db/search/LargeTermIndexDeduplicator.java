@@ -119,11 +119,13 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
         LargeTermIndexDeduplicator deduplicator;
         if(availableDirectMemory > estimatedMemoryRequired) {
             try {
+                Logger.info("Attempting to use off-heap memory to deduplicate "
+                        + "the search indexes");
                 deduplicator = new ChronicleBackedTermIndexDeduplicator(term,
                         metrics);
             }
             catch (OutOfMemoryError e) {
-                Logger.warn("There appeared to be enough native memory to "
+                Logger.warn("There appeared to be enough off-heap memory to "
                         + "deduplicate up to {} search indexes, but the"
                         + "operating system refused to allocate the requied"
                         + "capacity. As a result, deduplicaton must be performed "
@@ -139,7 +141,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
             }
         }
         else {
-            Logger.warn("There doesn't appear to be enough native memory to "
+            Logger.info("There doesn't appear to be enough off-heap memory to "
                     + "deduplicate up to {} search indexes, so the operation "
                     + "must be performed by manually checking if every single "
                     + "potential index string is a duplicate, which is slower...",
@@ -301,7 +303,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
      * This method creates a formatted table showing three memory metrics:
      * <ul>
      * <li>Estimated Memory Required</li>
-     * <li>Off Heap Memory Available</li>
+     * <li>Off-Heap Memory Available</li>
      * <li>Heap Memory Available</li>
      * </ul>
      * 
@@ -330,7 +332,7 @@ public abstract class LargeTermIndexDeduplicator extends AbstractSet<Text>
 
         // Define row descriptions with proper length
         String[] descriptions = { "Estimated Memory Required",
-                "Off Heap Memory Available", "Heap Memory Available" };
+                "Off-Heap Memory Available", "Heap Memory Available" };
         String[] values = { formattedEstimated, formattedOffHeap,
                 formattedHeap };
 
