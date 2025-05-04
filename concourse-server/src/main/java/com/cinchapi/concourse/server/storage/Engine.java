@@ -42,6 +42,7 @@ import com.cinchapi.common.base.AnyStrings;
 import com.cinchapi.concourse.annotate.Authorized;
 import com.cinchapi.concourse.annotate.DoNotInvoke;
 import com.cinchapi.concourse.annotate.Restricted;
+import com.cinchapi.concourse.collect.Iterators;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.LockService;
 import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
@@ -64,6 +65,7 @@ import com.cinchapi.concourse.util.Logger;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -734,6 +736,31 @@ public final class Engine extends BufferedStore implements
             Logger.info("Attempting to repair the '{}' environment",
                     environment);
             super.repair();
+            List<Iterator<Write>> iterators = ImmutableList
+                    .of(((Database) durable).iterator(), limbo.iterator());
+            for (Iterator<Write> it : iterators) {
+                /*
+                 * For each store, (re)catalog every Write in the inventory, in
+                 * case there are inconsistencies.
+                 * 
+                 * Note: We intentionally reuse the existing inventory instead
+                 * of creating a new one. This approach is safe because:
+                 * - Any extra records in the inventory (that don't exist in
+                 * actual data) will only trigger extraneous verifies
+                 * - These extra lookups don't affect the consistency of the
+                 * observed state
+                 */
+                try {
+                    while (it.hasNext()) {
+                        long record = it.next().getRecord().longValue();
+                        inventory.add(record);
+                    }
+                }
+                finally {
+                    Iterators.close(it);
+                }
+            }
+            inventory.sync();
         }
         finally {
             transportLock.writeLock().unlock();
