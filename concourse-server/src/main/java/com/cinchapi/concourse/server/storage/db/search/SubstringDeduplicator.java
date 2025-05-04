@@ -107,16 +107,19 @@ public abstract class SubstringDeduplicator extends AbstractSet<Text> implements
         int expectedInsertions = metrics.upperBoundOfPossibleSubstrings();
         long estimatedMemoryRequired = (long) metrics.averageSubstringLength()
                 * (long) expectedInsertions;
-        long availableDirectMemory = availableDirectMemory();
-        long freeHeapMemory = Runtime.getRuntime().freeMemory();
+
+        long availableOffHeapMemory = availableOffHeapMemory();
+        long availableHeapMemory = Runtime.getRuntime().freeMemory();
+        boolean swapIsEnabled = isSwapEnabled();
+
         Logger.info("The search indexer has encountered a large term that "
                 + "may require a lot of memory to process. The term has "
                 + "up to {} search indexes{}{}", expectedInsertions,
                 System.lineSeparator(), summarizeMemory(estimatedMemoryRequired,
-                        availableDirectMemory, freeHeapMemory));
+                        availableOffHeapMemory, availableHeapMemory));
 
         SubstringDeduplicator deduplicator;
-        if(availableDirectMemory > estimatedMemoryRequired) {
+        if(availableOffHeapMemory > estimatedMemoryRequired || swapIsEnabled) {
             try {
                 Logger.info("Attempting to use off-heap memory to deduplicate "
                         + "the search indexes");
@@ -196,11 +199,11 @@ public abstract class SubstringDeduplicator extends AbstractSet<Text> implements
      * @return the number of direct memory bytes that are available
      */
     @SuppressWarnings("restriction")
-    private static long availableDirectMemory() {
+    private static long availableOffHeapMemory() {
         try {
-            com.sun.management.OperatingSystemMXBean osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory
+            com.sun.management.OperatingSystemMXBean os = (com.sun.management.OperatingSystemMXBean) ManagementFactory
                     .getOperatingSystemMXBean();
-            return osBean.getFreePhysicalMemorySize();
+            return os.getFreePhysicalMemorySize();
         }
         catch (Exception e) {}
         return 0;
@@ -293,6 +296,22 @@ public abstract class SubstringDeduplicator extends AbstractSet<Text> implements
      */
     private static int getTextStartPos(Text text) {
         return getTextInstanceVariableValue("start", text);
+    }
+
+    /**
+     * If possible, return {@code true} if swap is enabled.
+     * 
+     * @return a boolean that indicates if swap is enabled
+     */
+    @SuppressWarnings("restriction")
+    private static boolean isSwapEnabled() {
+        try {
+            com.sun.management.OperatingSystemMXBean os = (com.sun.management.OperatingSystemMXBean) ManagementFactory
+                    .getOperatingSystemMXBean();
+            return os.getTotalSwapSpaceSize() > 0;
+        }
+        catch (Exception e) {}
+        return false;
     }
 
     /**
