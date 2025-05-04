@@ -27,7 +27,7 @@ import oshi.SystemInfo;
  *
  * @author Jeff Nelson
  */
-public final class Telemetry {
+public final class Telemetry { 
 
     /**
      * Returns the {@link Telemetry} instance.
