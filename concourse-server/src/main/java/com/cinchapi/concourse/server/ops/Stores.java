@@ -15,19 +15,25 @@
  */
 package com.cinchapi.concourse.server.ops;
 
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.AbstractSet;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -56,6 +62,7 @@ import com.cinchapi.concourse.util.KeyValue;
 import com.cinchapi.concourse.validate.Keys;
 import com.cinchapi.concourse.validate.Keys.Key;
 import com.cinchapi.concourse.validate.Keys.KeyType;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.ImmutableList;
@@ -167,6 +174,8 @@ public final class Stores {
      */
     public static Set<Long> find(Store store, long timestamp, String key,
             Operator operator, TObject... values) {
+        Key $key = Keys.parse(key);
+        KeyType keyType = $key.type();
         for (int i = 0; i < values.length; ++i) {
             TObject value = values[i];
             if(value.getType() == Type.FUNCTION) {
@@ -196,17 +205,11 @@ public final class Stores {
                         .callStatic(Operations.class, method, args.build()));
             }
         }
-        if(Keys.isNavigationKey(key)) {
-            Map<TObject, Set<Long>> index = timestamp == Time.NONE
-                    ? browse(store, key)
-                    : browse(store, key, timestamp);
-            Set<Long> records = index.entrySet().stream()
-                    .filter(e -> e.getKey().is(operator, values))
-                    .map(e -> e.getValue()).flatMap(Set::stream)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-            return records;
+        if(keyType == KeyType.NAVIGATION_KEY) {
+            return findNavigationKey(NavigationKeyFinder.AUTO, store, timestamp,
+                    $key, operator, values);
         }
-        else if(Keys.isFunctionKey(key)) {
+        else if(keyType == KeyType.FUNCTION_KEY) {
             Set<Long> records = Sets.newLinkedHashSet();
             for (long record : store.getAllRecords()) {
                 Set<TObject> aggregate = select(store, key, record, timestamp);
@@ -221,7 +224,7 @@ public final class Stores {
         }
         else if((operator == Operator.CONTAINS
                 || operator == Operator.NOT_CONTAINS) && timestamp == Time.NONE
-                && Keys.isWritable(key)) {
+                && keyType == KeyType.WRITABLE_KEY) {
             Set<Long> matches = store.search(key, values[0]);
             if(operator == Operator.CONTAINS) {
                 return matches;
@@ -297,6 +300,7 @@ public final class Stores {
      */
     public static Map<String, Set<TObject>> select(Store store,
             Collection<String> keys, long record, long timestamp) {
+        // TODO: does this need an atomic operation?
         if(keys.isEmpty()) {
             return ImmutableMap.of();
         }
@@ -305,31 +309,33 @@ public final class Stores {
             Map<String, Set<TObject>> stored = null;
             Node root = null;
             int count = 1;
-            for (String key : keys) {
-                Key metadata = Keys.parse(key);
-                KeyType type = metadata.type();
-                if(type == KeyType.NAVIGATION_KEY) {
-                    // Generate a single Graph containing all of the stops in
-                    // each of the navigation keys.
-                    root = root == null ? Node.root(record) : root;
-                    Node node = root;
-                    String[] stops = metadata.data();
-                    for (String stop : stops) {
-                        node = node.next(stop);
-                        ++count;
+            store.advisoryLock().readLock().lock();
+            try {
+                for (String key : keys) {
+                    Key metadata = Keys.parse(key);
+                    KeyType type = metadata.type();
+                    if(type == KeyType.NAVIGATION_KEY) {
+                        // Generate a single Graph containing all of the stops
+                        // in each of the navigation keys.
+                        root = root == null ? Node.root(record) : root;
+                        Node node = root;
+                        String[] stops = metadata.data();
+                        for (String stop : stops) {
+                            node = node.next(stop);
+                            ++count;
+                        }
+                        node.end();
                     }
-                    node.end();
-                }
-                else {
-                    Set<TObject> values;
-                    if(type == KeyType.WRITABLE_KEY && keys.size() == 1) {
-                        // Since there is only one key and it is writable, tap
-                        // into the Strategy framework to determine the most
-                        // efficient lookup source.
-                        return ImmutableMap.of(key, lookupWithStrategy(store,
-                                key, record, timestamp));
-                    }
-                    else if(type == KeyType.WRITABLE_KEY) {
+                    else {
+                        Set<TObject> values;
+                        if(type == KeyType.WRITABLE_KEY && keys.size() == 1) {
+                            // Since there is only one key and it is writable,
+                            // tap into the Strategy framework to determine the
+                            // most efficient lookup source.
+                            return ImmutableMap.of(key, lookupWithStrategy(
+                                    store, key, record, timestamp));
+                        }
+                        else if(type == KeyType.WRITABLE_KEY) {
                         // @formatter:off
                         stored = stored == null
                                 ? (timestamp == Time.NONE 
@@ -338,81 +344,94 @@ public final class Stores {
                                   )
                                 : stored;
                         // @formatter:on
-                        values = stored.get(key);
-                        if(values == null) {
+                            values = stored.get(key);
+                            if(values == null) {
+                                values = ImmutableSet.of();
+                            }
+                        }
+                        else if(type == KeyType.IDENTIFIER_KEY) {
+                            values = ImmutableSet
+                                    .of(Convert.javaToThrift(record));
+                        }
+                        else if(type == KeyType.FUNCTION_KEY) {
+                            Function function = metadata.data();
+                            String method = Calculations.alias(
+                                    function.operation()) + "KeyRecordAtomic";
+                            Number value = Reflection.callStatic(
+                                    Operations.class, method, function.key(),
+                                    record, timestamp, store);
+                            values = value != null
+                                    ? ImmutableSet
+                                            .of(Convert.javaToThrift(value))
+                                    : ImmutableSet.of();
+                        }
+                        else {
                             values = ImmutableSet.of();
                         }
+                        data.put(key, values);
                     }
-                    else if(type == KeyType.IDENTIFIER_KEY) {
-                        values = ImmutableSet.of(Convert.javaToThrift(record));
-                    }
-                    else if(type == KeyType.FUNCTION_KEY) {
-                        Function function = metadata.data();
-                        String method = Calculations.alias(function.operation())
-                                + "KeyRecordAtomic";
-                        Number value = Reflection.callStatic(Operations.class,
-                                method, function.key(), record, timestamp,
-                                store);
-                        values = value != null
-                                ? ImmutableSet.of(Convert.javaToThrift(value))
-                                : ImmutableSet.of();
-                    }
-                    else {
-                        values = ImmutableSet.of();
-                    }
-                    data.put(key, values);
                 }
-            }
-            if(root != null) {
-                // Iterate through the graph, in a breadth-first manner, to
-                // perform bulk selection at each Junctions.
-                Queue<Node> queue = new ArrayDeque<>(count);
-                queue.add(root);
-                while (!queue.isEmpty()) {
-                    Node node = queue.poll();
-                    Collection<Node> successors = node.successors();
-                    if(successors.isEmpty()) {
-                        data.put(node.path, node.values());
-                    }
-                    else {
-                        queue.addAll(successors);
-                        Collection<Long> links = node.links();
-                        for (long link : links) {
-                            Map<String, Set<TObject>> intermediate = null;
-                            if(successors.size() > 1) {
-                                // Bypassing the Strategy framework is
-                                // acceptable here because we know that there
-                                // are multiple keys that need to be selected
-                                // from each record, so it makes sense to select
-                                // the entire record from the Engine, once
-                                intermediate = timestamp == Time.NONE
-                                        ? store.select(link)
-                                        : store.select(link, timestamp);
-                            }
-                            for (Node successor : successors) {
-                                String stop = successor.stop;
-                                if(intermediate == null) {
-                                    // This means there is only 1 successor, so
-                                    // the lookup should defer to the Strategy
-                                    // framework
-                                    intermediate = ImmutableMap.of(stop,
-                                            lookupWithStrategy(store, stop,
-                                                    link, timestamp));
+                if(root != null) {
+                    // Iterate through the graph, in a breadth-first manner, to
+                    // perform bulk selection at each Junctions.
+                    Queue<Node> queue = new ArrayDeque<>(count);
+                    queue.add(root);
+                    while (!queue.isEmpty()) {
+                        Node node = queue.poll();
+                        Collection<Node> successors = node.successors();
+                        if(successors.isEmpty()) {
+                            data.put(node.path, node.values());
+                        }
+                        else {
+                            queue.addAll(successors);
+                            Collection<Long> links = node.links();
+                            for (long link : links) {
+                                Map<String, Set<TObject>> intermediate = null;
+                                if(successors.size() > 1) {
+                                    // Bypassing the Strategy framework is
+                                    // acceptable here because we know that
+                                    // there are multiple keys that need to be
+                                    // selected from each record, so it makes
+                                    // sense to select the entire record from
+                                    // the Engine, once
+                                    intermediate = timestamp == Time.NONE
+                                            ? store.select(link)
+                                            : store.select(link, timestamp);
                                 }
-                                Set<TObject> values = intermediate.get(stop);
-                                if(values != null) {
-                                    successor.store(values);
-                                }
-                                else if(stop.equals(
-                                        Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-                                    successor.store(Convert.javaToThrift(link));
+                                for (Node successor : successors) {
+                                    String stop = successor.stop;
+                                    if(intermediate == null) {
+                                        // This means there is only 1 successor,
+                                        // so the lookup should defer to the
+                                        // Strategy framework
+                                        intermediate = ImmutableMap.of(stop,
+                                                lookupWithStrategy(store, stop,
+                                                        link, timestamp));
+                                    }
+                                    Set<TObject> values = intermediate
+                                            .get(stop);
+                                    if(values != null) {
+                                        successor.store(values);
+                                    }
+                                    else if(stop.equals(
+                                            Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+                                        successor.store(
+                                                Convert.javaToThrift(link));
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                // @formatter:off
+                return data.size() > 1
+                        ? new OrderImposingMap<>(keys, data)
+                        : data;
+                // @formatter:on
             }
-            return data.size() > 1 ? new OrderImposingMap<>(keys, data) : data;
+            finally {
+                store.advisoryLock().readLock().unlock();
+            }
         }
     }
 
@@ -579,6 +598,189 @@ public final class Stores {
     }
 
     /**
+     * Find the records that contain stored values under a navigation
+     * {@code key} that satisfy {@code operator} in relation to the specified
+     * {@code values} at {@code timestamp}.
+     * <p>
+     * The {@code finder} parameter instructs this method on the lookup
+     * technique to use when processing the command. Use
+     * {@link NavigationKeyFinder#AUTO} to select the most optimal path given
+     * the nature of the stored data and the navigation path being traversed.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> The {@code store} must be an
+     * {@link AtomicOperation} or one that {@link AtomicSupport supports}
+     * starting one.
+     * </p>
+     * <p>
+     * <em>Since this method is exposed for internal and testing purposes, there
+     * is no verification that {@code key} is a {@link KeyType#NAVIGATION_KEY
+     * NAVIGATION_KEY}.</em>
+     * </p>
+     * 
+     * @param finder
+     * @param store
+     * @param timestamp
+     * @param key
+     * @param operator
+     * @param values
+     * @return the records that satisfy the condition
+     */
+    @VisibleForTesting
+    static Set<Long> findNavigationKey(NavigationKeyFinder finder, Store store,
+            long timestamp, Key key, Operator operator, TObject... values) {
+        if(!(store instanceof AtomicOperation) && timestamp == Time.NONE) {
+            if(store instanceof AtomicSupport) {
+                return AtomicOperations.supplyWithRetry((AtomicSupport) store,
+                        atomic -> findNavigationKey(finder, atomic, timestamp,
+                                key, operator, values));
+            }
+            else {
+                throw new UnsupportedOperationException(
+                        "Cannot query the present data for a navigation key using a "
+                                + "Store that does not support atomic operations");
+            }
+        }
+        else if(finder == NavigationKeyFinder.ADHOC_INDEX) {
+            Map<TObject, Set<Long>> index = timestamp == Time.NONE
+                    ? browse(store, key.value())
+                    : browse(store, key.value(), timestamp);
+            Set<Long> records = index.entrySet().stream()
+                    .filter(e -> e.getKey().is(operator, values))
+                    .map(e -> e.getValue()).flatMap(Set::stream)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            return records;
+        }
+        else {
+            /*
+             * ENHANCED NAVIGATION KEY FINDING:
+             * Given navigation key (e.g., "user.posts.comments.text" =
+             * "foo"), we can do an optimized find by:
+             * 1. Parsing the key into individual stops (e.g., ["user",
+             * "posts", "comments", "text"])
+             * 2. Finding records that have outgoing links on the first stop
+             * key ("user")
+             * 3. Finding records matching the final condition (e.g., "text"
+             * = "foo")
+             * 4. Connecting these endpoints by traversing the navigation
+             * path
+             *
+             * We have two possible traversal strategies:
+             * - Forward traversal: Start with records having outgoing links
+             * on the first stop and follow links forward
+             * - Reverse traversal: Start with records matching the final
+             * condition and work backwards
+             *
+             * The choice between strategies depends on the relative sizes
+             * of the result sets:
+             * - Forward is better when: (# of start records * # of stops)
+             * <= # of end records
+             * - Reverse is better when: (# of start records * # of stops) >
+             * # of end records
+             */
+            String[] stops = key.data();
+
+            // The "starts" are records that have outgoing links on the
+            // first stop key. This creates a mapping from those link
+            // destinations to the source records containing those links
+            Stream<Entry<Long, Set<Long>>> starts = (timestamp == Time.NONE
+                    ? browse(store, stops[0])
+                    : browse(store, stops[0], timestamp)).entrySet().stream()
+                            .filter(e -> e.getKey().getType() == Type.LINK)
+                            .map(e -> {
+                                Long destination = ((Link) Convert
+                                        .thriftToJava(e.getKey())).longValue();
+                                Set<Long> sources = e.getValue();
+                                return new SimpleImmutableEntry<>(destination,
+                                        sources);
+                            });
+            AtomicInteger numStarts = new AtomicInteger(0);
+            starts = starts.peek($ -> numStarts.incrementAndGet())
+                    .collect(Collectors.toList()).stream();
+
+            // The "ends" are records that match the final condition in the
+            // navigation path (e.g., where the last stop key satisfies the
+            // operator in relation to the values
+            Set<Long> $ends = find(store, timestamp, stops[stops.length - 1],
+                    operator, values);
+            int remainingStops = stops.length - 2;
+            if(finder == NavigationKeyFinder.REVERSE_TRAVERSAL
+                    || (finder == NavigationKeyFinder.AUTO
+                            && (numStarts.get() * remainingStops) > $ends
+                                    .size())) {
+                /*
+                 * REVERSE TRAVERSAL APPROACH:
+                 * 1. Starting with each of the #ends and going backwards
+                 * until reaching the starts, find records that link to each
+                 * #end on the previous stop in the path.
+                 * 2. For each end record, find records that link to it via
+                 * the previous stop
+                 * 
+                 * In this approach, we only need to consult the index for
+                 * each stop key along the path.
+                 */
+                for (int i = stops.length - 2; i > 0; --i) {
+                    String stop = stops[i];
+                    Set<Long> intermediates = new LinkedHashSet<>();
+                    for (long end : $ends) {
+                        Set<Long> intermediate = find(store, timestamp, stop,
+                                Operator.LINKS_TO, Convert.javaToThrift(end));
+                        intermediates.addAll(intermediate);
+                    }
+                    $ends = intermediates;
+                }
+            }
+            else {
+                /*
+                 * FORWARD TRAVERSAL APPROACH:
+                 * 1. For each of the #starts, follow their links to the
+                 * second to last stop and map any of those values that are
+                 * Links to the source record from which the traversal tarted
+                 * (#intermediates)
+                 * 2. Filter out any #intermediates that are not links to
+                 * one of the #ends.
+                 * 2. For each of these records, follow their links to the
+                 * second to last stop.
+                 */
+                while (remainingStops > 0) {
+                    String[] _stops = Arrays.copyOfRange(stops, 1,
+                            1 + remainingStops);
+                    String intermediatePath = String.join(".", _stops);
+                    remainingStops -= _stops.length;
+                    starts = starts.flatMap(e -> {
+                        Long successor = e.getKey();
+                        Set<Long> initialSources = e.getValue();
+                        Set<TObject> intermediates = Operations
+                                .traverseKeyRecordOptionalAtomic(
+                                        intermediatePath, successor, timestamp,
+                                        store);
+                        // Replace each of the destinations in #starts with
+                        // the #intermediate destinations, mapped to the
+                        // initialSources. This way, we can simply check if
+                        // those intermediate destinations are contained in
+                        // the set of the #ends (e.g., matches to the ultimate
+                        // find condition) that we captured above
+                        return intermediates.stream()
+                                .filter(_value -> _value.getType() == Type.LINK)
+                                .map(_link -> ((Link) Convert
+                                        .thriftToJava(_link)).longValue())
+                                .map(_destination -> new SimpleImmutableEntry<>(
+                                        _destination,
+                                        new LinkedHashSet<>(initialSources)));
+                    });
+                }
+            }
+            Set<Long> ends = $ends instanceof HashSet ? $ends
+                    : new LinkedHashSet<>($ends);
+            starts = starts.filter(e -> ends.contains(e.getKey()));
+            Set<Long> records = starts.map(e -> e.getValue())
+                    .flatMap(Set::stream)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            return records;
+        }
+    }
+
+    /**
      * Use the {@link Strategy} framework to lookup {@code key} in
      * {@code record} at {@code timestamp} within {@code store}.
      * <p>
@@ -643,6 +845,60 @@ public final class Stores {
     private static final String NAVIGATION_KEYS_GRAPH_END_NODE = "$";
 
     private Stores() {/* no-init */}
+
+    /**
+     * An enumeration that specifies the strategy to use when finding records
+     * that match
+     * a condition on a navigation key.
+     * <p>
+     * Navigation keys allow traversing through linked records. This enum
+     * provides options
+     * for how to efficiently search through these linked structures.
+     * </p>
+     *
+     * @author Jeff Nelson
+     */
+    enum NavigationKeyFinder {
+        /**
+         * Automatically select the most efficient traversal strategy based on
+         * the characteristics of the data. This will choose between forward
+         * traversal, reverse traversal, or ad-hoc indexing depending on the
+         * relative sizes of the start and end record sets.
+         */
+        AUTO,
+
+        /**
+         * Use forward traversal, starting with records that have outgoing links
+         * on the first stop of the navigation path and following links forward
+         * to find matches.
+         * <p>
+         * This strategy is generally more efficient when there are fewer start
+         * records than end records.
+         * </p>
+         */
+        FORWARD_TRAVERSAL,
+
+        /**
+         * Use reverse traversal, starting with records that match the final
+         * condition and working backwards through the navigation path.
+         * <p>
+         * This strategy is generally more efficient when there are more start
+         * records than end records.
+         * </p>
+         */
+        REVERSE_TRAVERSAL,
+
+        /**
+         * Use an ad-hoc index created by browsing all values for the navigation
+         * key.
+         * <p>
+         * This approach creates a temporary index mapping values to records for
+         * the entire navigation path, which can be efficient for certain query
+         * patterns.
+         * </p>
+         */
+        ADHOC_INDEX
+    }
 
     /**
      * A {@link Map} that imposes a specific iteration order.

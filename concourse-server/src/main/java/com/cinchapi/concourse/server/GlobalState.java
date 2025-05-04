@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
@@ -38,10 +39,14 @@ import com.cinchapi.concourse.config.ConcourseClusterSpecification;
 import com.cinchapi.concourse.config.ConcourseServerConfiguration;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.plugin.data.WriteEvent;
+import com.cinchapi.concourse.server.storage.transporter.BatchTransporter;
+import com.cinchapi.concourse.server.storage.transporter.StreamingTransporter;
+import com.cinchapi.concourse.server.storage.transporter.Transporter;
 import com.cinchapi.concourse.util.Networking;
 import com.cinchapi.lib.config.read.Interpreters;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Contains configuration and state that must be accessible to various parts of
@@ -292,6 +297,37 @@ public final class GlobalState extends Constants {
     public static String INIT_ROOT_USERNAME = "admin";
 
     /**
+     * Determines whether to use batch instead of streaming
+     * {@link Transporter transports}.
+     * <p>
+     * When enabled, data is moved from the Buffer to the Database in the
+     * background and in larger batches, which can improve overall throughput at
+     * the cost of potentially longer pauses during merges.
+     */
+    public static boolean ENABLE_BATCH_TRANSPORTS = true;
+
+    /**
+     * Determines whether to use a "fair" lock for managing concurrent access
+     * between the {@link Transporter} and other operations.
+     */
+    @NonPreference
+    public static boolean USE_FAIR_TRANSPORT_LOCK = true;
+
+    /**
+     * The type of {@link Transporter} to use when transporting data from the
+     * Buffer to the Database.
+     */
+    @NonPreference
+    public static Class<? extends Transporter> TRANSPORTER_CLASS = BatchTransporter.class;
+
+    /**
+     * The number of threads to use for {@link Transporter#transport()
+     * transport} operations. More threads can improve transport throughput in
+     * some scenarios, but may increase resource contention.
+     */
+    public static int NUM_TRANSPORTER_THREADS = 1;
+
+    /**
      * Potentially use multiple threads to asynchronously read data from disk.
      * <p>
      * When enabled, reads will typically be faster when accessing data too
@@ -391,6 +427,18 @@ public final class GlobalState extends Constants {
                         .collect(Collectors.toList())
                         .toArray(Array.containing()));
 
+        // @formatter:off
+        Map<String, Class<? extends Transporter>> transporterClasses = ImmutableMap
+                .<String, Class<? extends Transporter>> builder()
+                .put("streaming", StreamingTransporter.class)
+                .put(StreamingTransporter.class.getName(), StreamingTransporter.class)
+                .put(StreamingTransporter.class.getSimpleName(), StreamingTransporter.class)
+                .put("batch", BatchTransporter.class)
+                .put(BatchTransporter.class.getName(), BatchTransporter.class)
+                .put(BatchTransporter.class.getSimpleName(), BatchTransporter.class)
+                .build();
+        // @formatter:on
+
         // =================== PREF READING BLOCK ====================
         ACCESS_CREDENTIALS_FILE = FileSystem
                 .expandPath(config.getOrDefault("access_credentials_file",
@@ -405,16 +453,20 @@ public final class GlobalState extends Constants {
         BUFFER_PAGE_SIZE = (int) config.getSize("buffer_page_size",
                 BUFFER_PAGE_SIZE);
 
-        CLIENT_PORT = config.getOrDefault("client_port", CLIENT_PORT);
+        CLIENT_PORT = config.getOrDefault("client_port",
+                Interpreters.numberOrNull(), CLIENT_PORT);
 
         SHUTDOWN_PORT = config.getOrDefault("shutdown_port",
+                Interpreters.numberOrNull(),
                 Networking.getCompanionPort(CLIENT_PORT, 2));
 
-        JMX_PORT = config.getOrDefault("jmx_port", JMX_PORT);
+        JMX_PORT = config.getOrDefault("jmx_port", Interpreters.numberOrNull(),
+                JMX_PORT);
 
         HEAP_SIZE = config.getSize("heap_size", HEAP_SIZE);
 
-        HTTP_PORT = config.getOrDefault("http_port", HTTP_PORT);
+        HTTP_PORT = config.getOrDefault("http_port",
+                Interpreters.numberOrNull(), HTTP_PORT);
 
         HTTP_ENABLE_CORS = config.getOrDefault("http_enable_cors",
                 HTTP_ENABLE_CORS);
@@ -435,7 +487,7 @@ public final class GlobalState extends Constants {
                 LOG_LEVEL);
 
         ENABLE_CONSOLE_LOGGING = config.getOrDefault("enable_console_logging",
-                ENABLE_CONSOLE_LOGGING);
+                Interpreters.booleanOrNull(), ENABLE_CONSOLE_LOGGING);
         if(!ENABLE_CONSOLE_LOGGING) {
             ENABLE_CONSOLE_LOGGING = Boolean.parseBoolean(System.getProperty(
                     "com.cinchapi.concourse.server.logging.console", "false"));
@@ -444,24 +496,26 @@ public final class GlobalState extends Constants {
                 DEFAULT_ENVIRONMENT);
 
         MANAGEMENT_PORT = config.getOrDefault("management_port",
+                Interpreters.numberOrNull(),
                 Networking.getCompanionPort(CLIENT_PORT, 4));
 
         SYSTEM_ID = getSystemId();
 
         MAX_SEARCH_SUBSTRING_LENGTH = config.getOrDefault(
-                "max_search_substring_length", MAX_SEARCH_SUBSTRING_LENGTH);
+                "max_search_substring_length", Interpreters.numberOrNull(),
+                MAX_SEARCH_SUBSTRING_LENGTH);
 
         ENABLE_ASYNC_DATA_READS = config.getOrDefault("enable_async_data_reads",
-                ENABLE_ASYNC_DATA_READS);
+                Interpreters.booleanOrNull(), ENABLE_ASYNC_DATA_READS);
 
         ENABLE_COMPACTION = config.getOrDefault("enable_compaction",
-                ENABLE_COMPACTION);
+                Interpreters.booleanOrNull(), ENABLE_COMPACTION);
 
         ENABLE_SEARCH_CACHE = config.getOrDefault("enable_search_cache",
-                ENABLE_SEARCH_CACHE);
+                Interpreters.booleanOrNull(), ENABLE_SEARCH_CACHE);
 
         ENABLE_VERIFY_BY_LOOKUP = config.getOrDefault("enable_verify_by_lookup",
-                ENABLE_VERIFY_BY_LOOKUP);
+                Interpreters.booleanOrNull(), ENABLE_VERIFY_BY_LOOKUP);
 
         CLUSTER = ConcourseClusterSpecification.from(config);
 
@@ -472,7 +526,27 @@ public final class GlobalState extends Constants {
                 config.getOrDefault("init_root_username", INIT_ROOT_USERNAME));
 
         ENABLE_EFFICIENT_METADATA = config.getOrDefault(
-                "enable_efficient_metadata", ENABLE_EFFICIENT_METADATA);
+                "enable_efficient_metadata", Interpreters.booleanOrNull(),
+                ENABLE_EFFICIENT_METADATA);
+
+        Object transporter = config.get("transporter");
+        String transporterType;
+        if(transporter != null && transporter instanceof Map) {
+            transporterType = config.getOrDefault("transporter.type",
+                    transporter.toString());
+            NUM_TRANSPORTER_THREADS = config.getOrDefault(
+                    "transporter.num_threads", Interpreters.numberOrNull(),
+                    NUM_TRANSPORTER_THREADS);
+            USE_FAIR_TRANSPORT_LOCK = !config.getOrDefault(
+                    "transporter.passive", Interpreters.booleanOrNull(), false);
+        }
+        else {
+            transporterType = transporter != null ? transporter.toString() : "";
+        }
+        TRANSPORTER_CLASS = transporterClasses.getOrDefault(transporterType,
+                TRANSPORTER_CLASS);
+        ENABLE_BATCH_TRANSPORTS = TRANSPORTER_CLASS == BatchTransporter.class;
+
         // =================== PREF READING BLOCK ====================
     }
 
@@ -545,6 +619,25 @@ public final class GlobalState extends Constants {
     @NonPreference
     public static final int DISK_READ_BUFFER_SIZE = (int) Math.pow(2, 20); // 1048567
                                                                            // (~1MiB)
+
+    /**
+     * The maximum number of bytes to reserve for caching data. This cache
+     * memory quota is shared by multiple caches per environment and must be
+     * lower than the overall {@link #HEAP_SIZE}. It represents the approximate
+     * total space that can be used for caching non-essential storage metadata
+     * in the entire system.
+     */
+    @NonPreference
+    public static int CACHE_MEMORY_LIMIT = (int) (.5 * HEAP_SIZE);
+
+    /**
+     * The frequency, in seconds, at which the memory usage of each cached value
+     * is checked. This periodic check is essential to ensuring that size-based
+     * eviction is accurately enforced as cached values are incrementally
+     * updated with new data writes.
+     */
+    @NonPreference
+    public static int CACHE_MEMORY_CHECK_FREQUENCY = 60;
 
     /**
      * The path to the underlying file from which the preferences are extracted.

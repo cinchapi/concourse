@@ -92,14 +92,12 @@ public class Table {
 
     /**
      * Removes and returns all values associated with the specified record
-     * and key
-     * intersection.
+     * and key intersection.
      * 
      * @param record The record identifier
      * @param key The key identifier
      * @return An unmodifiable set of the removed values, or an empty set if
-     *         the
-     *         cell was empty
+     *         the cell was empty
      * @throws NullPointerException if any parameter is null
      */
     public Set<TObject> clear(Long record, String key) {
@@ -173,7 +171,7 @@ public class Table {
         Objects.requireNonNull(key, "Key cannot be null");
 
         return data.getOrDefault(record, Collections.emptyMap())
-                .getOrDefault(key, Collections.emptySet());
+                .getOrDefault(key, new LinkedHashSet<>(0));
     }
 
     /**

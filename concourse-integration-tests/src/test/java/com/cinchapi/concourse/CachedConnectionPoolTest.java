@@ -61,4 +61,13 @@ public class CachedConnectionPoolTest extends ConnectionPoolTest {
         return ConnectionPool.newCachedConnectionPool(concourse);
     }
 
+    @Override
+    protected ConnectionPool getConnectionPool(int size) {
+        ConnectionPool pool = getConnectionPool();
+        while (pool.available.size() > size) {
+            pool.available.remove();
+        }
+        return pool;
+    }
+
 }

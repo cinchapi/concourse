@@ -1706,6 +1706,11 @@ public abstract class ForwardingConcourse extends Concourse {
         concourse.verifyOrSet(key, value, record);
     }
 
+    @Override
+    boolean failed() {
+        return concourse.failed();
+    }
+
     /**
      * Construct an instance of this {@link ForwardingConcourse} using the
      * provided {@code concourse} connection as the proxied handle.

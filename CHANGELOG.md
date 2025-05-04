@@ -17,6 +17,37 @@
   * Not recommended for production systems or mission-critical data
 * The focus of this initial implementation is on core correctness of the distributed system protocol, data routing, and consistency - consider it a proof of concept at this stage.
 
+##### Batch Transporter for Improved Automatic Indexing
+
+We've introduced a new mechanism to control how Concourse Server transports data from the Buffer to the Database, significantly improving system throughput and responsiveness:
+
+* **New Transporter Configuration**: Added the `transporter` configuration option in `concourse.yaml` that allows you to specify how Concourse moves data from the write-optimized Buffer to the read-optimized Database, where it becomes fully indexed.
+
+* **Two Transport Strategies**:
+  * **Streaming Transporter** (legacy): Processes writes incrementally in small batches, with transport operations competing with reads and writes for system resources. While this provides consistent throughput by amortizing indexing costs across operations, it can lead to "stop-the-world" situations during high load when transport operations block all reads (and implicitly writes, which perform verification reads).
+  * **Batch Transporter** (default/new): Performs indexing entirely in the background, allowing reads and writes to continue uninterrupted during the indexing phase. Only a brief critical section is required when merging the fully-indexed data into the Database. This approach dramatically improves overall system throughput by eliminating the resource contention between transport operations and normal read/write operations.
+
+* **Configuration Options**:
+```
+# Simple configuration
+transporter: batch  # or "streaming"
+
+# Advanced configuration
+transporter:
+  type: batch       # or "streaming"
+  num_threads: 2    # default: 1
+```
+
+* **Performance Benefits**: The Batch Transporter significantly improves system throughput by:
+  * Moving the time-consuming indexing work to background threads
+  * Minimizing the duration of critical sections where locks block concurrent operations
+  * Reducing "stop-the-world" situations during high load
+  * Making system performance more predictable and responsive
+
+* **Use Case Recommendation**: The Batch Transporter is particularly beneficial for workloads with high concurrent activity or large data volumes that require extensive indexing.
+
+This enhancement represents a fundamental improvement to Concourse's architecture, addressing a key bottleneck in the storage engine by separating the indexing process from the critical path of normal operations.
+
 ##### Search
 We made several changes to improve search performance and accuracy:
 
@@ -58,7 +89,7 @@ We made several changes to improve the safety, scalability and operational effic
 * Reduced the amount of heap space required for essential storage metadata.
 * **Efficient Metadata:** Added the `enable_efficient_metadata` configuration option to further reduce the amount of heap space required for essential storage metadata. When this option is set to `true`, metadata will occupy approximately one-third less heap space and likely improve overall system performance due to a decrease in garbage collection pauses (although per-operation performance may be slightly affected by additional overhead).
 * **Asynchronous Data Reads:** Added the `enable_async_data_reads` configuration option to allow Concourse Server to *potentially* use multiple threads to read data from disk. When data records are either no longer cached or not eligible to ever be cached (due to space limitations), Concourse Server streams the relevant information from disk on-demand. By default, this is a synchronous process and the performance is linear based on the number of Segment files in the database. With this new configuration option, Concourse Server can now stream the data using multiple threads. Even under high contention, the read performance should be no worse than the default synchronous performance, but there may be additional overhead that reduces peak performance on a per-operation basis.
-* Improved write performance of the `set` method in large transactions by creating normalized views of existing data, which are consulted during the method’s implicit `select` read operation.
+* Improved write performance of the `set` method in large transactions by creating normalized views of existing data, which are consulted during the method's implicit `select` read operation.
 * Improved the performance of the `verifyOrSet` method by removing redundant internal verification that occurred while finalizing the write.
 
 ##### Bug Fixes
@@ -66,7 +97,8 @@ We made several changes to improve the safety, scalability and operational effic
 * [GH-535](https://github.com/cinchapi/concourse/issues/535): Fixed an issue that caused JVM startup options overriden in an environment variable to be ignored (e.g., `CONCOURSE_HEAP_SIZE`).
 * [GH-491](https://github.com/cinchapi/concourse/issues/491) Fixed a race condition that made it possible for a range bloked operation to spurriously be allowed to proceed if it was waiting to acquire a range lock whose intended scope of protection intersected the scope of a range lock that was concurrently released.  
 * Fixed a bug that caused range locks to protect an inadequate scope of data once acquired.
-* [GH-490](https://github.com/cinchapi/concourse/issues/490): Fixed a bug that made it possible for a write to a key within a record (e.g., key `A` in record `1`) to erroneously block a concurrent write to a different key in the same record (e.g., key `B` in record `1`). The practial consquence of this bug was that more Atomic Operations and Transactions failed than actually necessary. 
+* [GH-490](https://github.com/cinchapi/concourse/issues/490): Fixed a bug that made it possible for a write to a key within a record (e.g., key `A` in record `1`) to erroneously block a concurrent write to a different key in the same record (e.g., key `B` in record `1`). The practial consquence of this bug was that more Atomic Operations and Transactions failed than actually necessary.
+* Fixed an issue that occurred when using a navigation key in a Criteria/Condition that was passed as a parameter to a Concourse Server command. Previously, the individual stops of navigation keys were not individually registered as *condition keys*. As a result, the `Strategy` framework didn't have all the relevant information to accurately determine all the ideal lookup sources when traversing the document graph to retrieve the values along the path. Now, in addition to the entire navigation key, each individual stop is registered as a *condition key*, which means that the `Strategy` framework will have enough information to determine if more efficient to use any index data (as opposed to table data) for lookups. 
 
 ##### API Breaks and Deprecations
 * Concourse CLIs have been updated to leverage the `lib-cli` framework. There are no changes in functionality, however, in the `concourse-cli` framework, the following classes have been deprecated:
@@ -88,9 +120,43 @@ We made several changes to improve the safety, scalability and operational effic
 	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
 	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
 
-#### Version 0.11.7 (TBD)
+#### Version 0.11.10 (TBD)
+* Fixed a bug that prevented Concourse Server from properly starting if a String configuration value was used for a variable that does not expect a String (e.g., `max_search_substring_length = "40"`). Now, Concouse Server will correctly parse all configuration values to the appropriate type or use the default value if there is an error when parsing.
+* **Enhanced Memory Management for Large Term Indexing** - Fixed a critical issue where Concourse Server would crash when indexing large search terms on systems with disabled memory swapping (such as *Container-Optimized OS* on *Google Kubernetes Engine*). Previously, when encountering large search terms to index, Concourse Server would always attempt to use off-heap memory to preserve heap space for other operations. If memory pressure occurred during processing, Concourse would detect this signal from the OS and fall back to a file-based approach. However, on swap-disabled systems like Container-Optimized OS, instead of receiving a graceful memory pressure signal, Concourse would be immediately `OOMKilled` before any fallback mechanism could activate. With this update, Concourse Server now proactively estimates required memory before attempting off-heap processing. If sufficient memory is available, it proceeds with the original approach (complete with file-based fallback capability). But, if insufficient memory is detected upfront, Concourse immediately employs a more rudimentary processing mechanism that requires no additional memory, preventing OOMKill scenarios while maintaining indexing functionality in memory-constrained environments.
+* Enhanced the `concourse data repair` CLI so that it fixes any inconsistencies between the inventory (which catalogs every record that was ever populated) and the repaired data.
+
+#### Version 0.11.9 (April 30, 2025)
+* Improved the performance of select operations that specify selection keys and require both sorting and pagination. The improvements are achieved from smarter heuristics that determine the most efficient execution path. The system now intelligently decides whether to:
+  * Sort all records first and then select only the paginated subset of data, or
+  * Select all data first and then apply sorting and pagination, or
+	* If the `Order` clause only uses a single key, use the index of that order key to lookup the sorted order of values and filtering out those that are not in the desired record set.
+  
+  This decision is based on a cost model that compares the number of lookups required for each approach, considering factors such as the number of keys being selected, the number of records being processed, the pagination limit, and whether the sort keys overlap with the selected keys. This optimization significantly reduces the number of database lookups required for queries that combine sorting and pagination, particularly when working with large datasets where only a small page of results is needed.
+* Improved multi-key selection commands that occur during concurrent Buffer transport operations. Previously, when selecting multiple keys while data was being transported for indexing, each primitive select operation would acquire a lock that blocked transports, but transports could still occur between operations, slowing down the overall read. Now, these commands use an advisory lock that blocks all transports until the entire bulk read completes. This optimization significantly improves performance in real-world scenarios with simultaneous reads and writes.
+* Improved the performance of multi-key selection commands that occur during concurrent Buffer transport operations. Previously, when selecting multiple keys while data was being transported for indexing, each primitive select operation would acquire a lock that blocked transports, but transports could still occur between operations, slowing down the overall read. Now, these commands use an advisory lock that blocks all transports until the entire bulk read completes. This optimization significantly improves performance in real-world scenarios with simultaneous reads and writes. In the future, this advisory locking mechanism will be extended to other bulk and atomic operations.
+* Implemented a caching mechanism for parsed keys to eliminate repeated validation and processing throughout the system. Previously, keys (especially navigation keys) were repeatedly validated against the WRITABLE_KEY regex and tokenized for every operation, even when the same keys were used multiple times. This optimization significantly improves performance for all operations that involve key validation and navigation key processing, with particularly noticeable benefits in scenarios that use the same keys repeatedly across multiple records.
+* Eliminated unnecessary re-sorting of Database data that's already in sorted order. Previously, both the Buffer and Atomic Operation/Transaction queues would force a re-sort on all initial read context that was pulled from the Database (even when that data was already sorted because the Database retrieved it from an index or intentionally sorted it before returning). Now, those stores always apply their Writes to the context under the assumption that the context is sorted and will maintain sorter order, which greatly cuts down on the overhead of intermediate processing for read operations.
+* Improved the `concourse data repair` CLI to detect and fix "imbalanced" data--an invalid state caused by a bug or error in Concourse Server's enforcement that any write about a topic must be a net-new ADD for that topic or must offset a previously inserted write for that topic (e.g., a REMOVE can only exist if there was a prior ADD and vice versa). When an unoffset write bypasses this constraint, some read operations will break entirely. The enhanced CLI now goes beyond only fixing duplicate transaction applications and now properly balances data in place, preserving intended state and fully restoring read functionality without any downtime.
+* Implemented auto-healing for `ConnectionPool`s where failed connections are detected and automatically replaced when they are released back to the pool.
+
+#### Version 0.11.8 (April 15, 2025)
+
+##### Navigation Queries
+* **Optimized Navigation Key Traversal**: To minimize the number of lookups required when querying, we've implemented a smarter traversal strategy for navigation keys used in a Criteria/Condition. The system now automatically chooses between:
+  * **Forward Traversal**: Starting from the beginning of the path and following links forward (traditional approach)
+  * **Reverse Traversal**: Starting from records matching the final condition and working backwards
+
+  For example, a query like `identity.credential.email = foo@foo.com` likely returns few records, so reverse traversal is more efficient - first finding records where `email = foo@foo.com` and then tracing backwards through the document graph. Conversely, a query like `identity.credential.numLogins > 5` that likely matches many records is better handled with forward traversal, starting with records containing links from the `identity` key and following the path forward.
+  
+  This optimization significantly improves performance for navigation queries where the initial key in the path has high cardinality (many unique values across records), but the final condition is more selective (e.g., a specific email address).
+
+##### Caching
+* **Dynamic Memory-Aware Eviction**: Record caches in the database now evict entires based on overall memory consumption instead of evicting after exceeding a static number of entries. Caches can grow up to an internally defined proportion of the defined `heap_size` and will be purged once this limit is exceeded or when system memory pressure necessitates garbage collection.
+* **Enhanced Diagnostic Logging**: For improved observability, DEBUG logging now emits messages whenever a cached record is evicted, allowing for more effective monitoring and troubleshooting of cache behavior.
+
+#### Version 0.11.7 (April 7, 2025)
 * Fixed a bug that made it possible to leak filesystem resources by opening duplicate file descriptors for the same Segment file. At scale, this could prematurely lead to "too many open files" errors.
-[GH-534](https://github.com/cinchapi/concourse/issues/534): Fixed a bug that caused the `CONCOURSE_HEAP_SIZE` environment variable, if set, not to be read on server startup.
+* [GH-534](https://github.com/cinchapi/concourse/issues/534): Fixed a bug that caused the `CONCOURSE_HEAP_SIZE` environment variable, if set, not to be read on server startup.
 
 #### Version 0.11.6 (July 6, 2024)
 * Added new configuration options for initializing Concourse Server with custom admin credentials upon first run. These options enhance security by allowing a non-default usernames and passwords before starting the server.

@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.annotate;
+package com.cinchapi.concourse.ete.performance;
 
 /**
- * A {@link com.cinchapi.concourse.Concourse Concourse} operation that combines
- * two or more operations in a <strong>non-atomic</strong> manner. This means
- * that certain parts of the operation may fail without affecting the success of
- * other parts.
- * 
+ * Unit tests for throughput when transporter.type = streaming
+ *
  * @author Jeff Nelson
  */
-public @interface CompoundOperation {
+public class StreamingTransporterThroughputTest
+        extends AbstractTransporterThroughputTest {
+
+    @Override
+    protected boolean enableBatchTransporter() {
+        return false;
+    }
 
 }

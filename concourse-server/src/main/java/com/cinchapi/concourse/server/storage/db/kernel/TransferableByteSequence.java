@@ -222,7 +222,7 @@ abstract class TransferableByteSequence implements Closeable {
      */
     public final void transfer(Path file, long position) {
         Preconditions.checkState(mutable,
-                "%s has already been transferred to %s", this, file);
+                "%s has already been transferred to %s", this, this.file);
         write.lock();
         try {
             long length = length();

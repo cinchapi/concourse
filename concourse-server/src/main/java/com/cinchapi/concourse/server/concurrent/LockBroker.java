@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -51,12 +52,12 @@ import com.google.common.collect.Range;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
- * A {@link LockBrocker} provides the ability to lock granular notions of things
+ * A {@link LockBroker} provides the ability to lock granular notions of things
  * (e.g., records, fields, ranges, keys ,etc) that are identified by a
  * {@link Token}.
  * <p>
  * The {@link LockBroker} uses dynamic canonical locks that are created
- * on-demand. A {@link LockBrocker} should be used for managing concurrent
+ * on-demand. A {@link LockBroker} should be used for managing concurrent
  * access to dynamic resources that aren't tangibly defined in their own right.
  * </p>
  * <p>
@@ -602,12 +603,7 @@ public class LockBroker {
                         return;
                     }
                     else {
-                        Queue<Thread> threads = parked.computeIfAbsent(
-                                token.getKey(),
-                                $ -> new ConcurrentLinkedQueue<>());
-                        threads.add(Thread.currentThread());
-                        LockSupport.park(this);
-                        continue;
+                        park();
                     }
                 }
             }
@@ -622,12 +618,7 @@ public class LockBroker {
                         return;
                     }
                     else {
-                        Queue<Thread> threads = parked.computeIfAbsent(
-                                token.getKey(),
-                                $ -> new ConcurrentLinkedQueue<>());
-                        threads.add(Thread.currentThread());
-                        LockSupport.park(this);
-                        continue;
+                        park();
                     }
                 }
             }
@@ -643,12 +634,14 @@ public class LockBroker {
                 Operator operator = token.getOperator();
                 Map<Range<Value>, Integer> ranges = rangeLocks
                         .computeIfAbsent(key, $ -> new ConcurrentHashMap<>());
+                List<Integer> states = new ArrayList<>(1);
                 outer: for (;;) {
                     /*
                      * NOTE: Continuation of the #outer loop (e.g., retry)
                      * occurs when a lock has been newly acquired or released
                      * while checking its state.
                      */
+                    states.clear();
                     for (Range<Value> range : token.ranges()) {
                         int state = ranges.computeIfAbsent(range, $ -> 0);
                         if(mode == Mode.WRITE && (state >= 1 || state < 0)) {
@@ -669,7 +662,8 @@ public class LockBroker {
                                 // isn't the case we can proceed to the next of
                                 // #token.ranges() without checking the current
                                 // #range for conflicts with other locked
-                                // connected ranges.
+                                // connected ranges.;
+                                states.add(state);
                                 continue;
                             }
                             else if(state > 0
@@ -684,29 +678,31 @@ public class LockBroker {
                         // and determine if this lock is blocked as a result.
                         Iterator<Entry<Range<Value>, Integer>> it = ranges
                                 .entrySet().iterator();
+                        int cstate;
                         while (it.hasNext()) {
                             Entry<Range<Value>, Integer> entry = it.next();
                             Range<Value> locked = entry.getKey();
-                            state = entry.getValue();
-                            if((state == 0
-                                    || (mode == Mode.READ && state < 0))) {
-                                if(ranges.replace(locked, state, state)) {
+                            cstate = entry.getValue();
+                            if((cstate == 0
+                                    || (mode == Mode.READ && cstate < 0))) {
+                                if(ranges.replace(locked, cstate, cstate)) {
                                     // If the #locked range is actually unlocked
                                     // or we are attempting a READ lock and the
                                     // #locked range is also a READ lock, we can
                                     // move onto checking for conflicts with the
                                     // next #locked range.
+                                    states.add(state);
                                     continue;
                                 }
                                 else {
                                     continue outer;
                                 }
                             }
-                            else if(((mode == Mode.READ && state > 0)
-                                    || (mode == Mode.WRITE && state < 0))
+                            else if(((mode == Mode.READ && cstate > 0)
+                                    || (mode == Mode.WRITE && cstate < 0))
                                     && Ranges.haveNonEmptyIntersection(locked,
                                             range)) {
-                                if(ranges.replace(locked, state, state)) {
+                                if(ranges.replace(locked, cstate, cstate)) {
                                     return false;
                                 }
                                 else {
@@ -714,10 +710,15 @@ public class LockBroker {
                                 }
                             }
                         }
+                        states.add(state);
                     }
+
+                    // Verify that each range's previously observed state is
+                    // still valid and adjust accordingly
                     List<Range<Value>> undos = new ArrayList<>(1);
+                    Iterator<Integer> it = states.iterator();
                     for (Range<Value> range : token.ranges()) {
-                        int state = ranges.computeIfAbsent(range, $ -> 0);
+                        int state = it.next();
                         if(!ranges.replace(range, state,
                                 state + (mode == Mode.READ ? -1 : 1))) {
                             // The lock has been newly acquired or released
@@ -819,8 +820,38 @@ public class LockBroker {
                 }
             }
 
+            /**
+             * {@link LockSupport#park() Park} the current thread unless or
+             * until it is free to retry the lock acquisition.
+             */
+            private void park() {
+                AtomicBoolean park = new AtomicBoolean(false);
+                parked.compute(token.getKey(), (key, threads) -> {
+                    if(threads == null) {
+                        // This is the first time that a lock attempt is
+                        // being made for this key, so initialize it
+                        // with a fresh Queue and try again
+                        return new ConcurrentLinkedQueue<>();
+                    }
+                    else if(threads.isEmpty()) {
+                        // No threads are currently parked, which means
+                        // there was an unlock between our initial
+                        // #tryLock attempt and now, so try again
+                        return threads;
+                    }
+                    else {
+                        // Join the other threads that are currently
+                        // parked
+                        threads.add(Thread.currentThread());
+                        park.set(true);
+                        return threads;
+                    }
+                });
+                if(park.get()) {
+                    LockSupport.park(this);
+                }
+            }
         }
-
     }
 
     /**

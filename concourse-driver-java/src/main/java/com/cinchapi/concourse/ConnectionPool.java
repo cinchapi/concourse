@@ -534,6 +534,12 @@ public abstract class ConnectionPool implements AutoCloseable {
         verifyOpenState();
         verifyValidOrigin(connection);
         leased.remove(connection);
+        if(connection.failed()) {
+            // Dynamically detect when there is a client-specific failure and
+            // replace it with a new one.
+            connection.exit();
+            connection = supplier.get();
+        }
         available.offer(connection);
     }
 

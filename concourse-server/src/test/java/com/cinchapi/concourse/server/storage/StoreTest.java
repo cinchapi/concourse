@@ -27,14 +27,10 @@ import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +38,8 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -73,7 +67,7 @@ import com.google.common.collect.TreeMultimap;
  * @author Jeff Nelson
  */
 @RunWith(Theories.class)
-public abstract class StoreTest extends ConcourseBaseTest {
+public abstract class StoreTest extends AbstractStoreTest {
 
     public final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -86,30 +80,6 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @DataPoints
     public static SearchType[] searchTypes = { SearchType.PREFIX,
             SearchType.INFIX, SearchType.SUFFIX, SearchType.FULL };
-
-    protected Store store;
-
-    private int pref = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
-
-    @Rule
-    public TestRule watcher = new TestWatcher() {
-
-        @Override
-        protected void finished(Description desc) {
-            store.stop();
-            cleanup(store);
-            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = pref;
-        }
-
-        @Override
-        protected void starting(Description desc) {
-            store = getStore();
-            store.start();
-            // Don't allow dev preferences to interfere with unit test logic...
-            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = -1;
-
-        }
-    };
 
     // TODO test audit
 
@@ -1898,37 +1868,72 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 Operator.CONTAINS, Convert.javaToThrift(needle)));
     }
 
-    /**
-     * Add {@code key} as {@code value} to {@code record} in the {@code store}.
-     * 
-     * @param key
-     * @param value
-     * @param record
-     */
-    protected abstract void add(String key, TObject value, long record);
+    @Test
+    public void testExploreKeyIsSorted() {
+        String key = TestData.getSimpleString();
+        Multimap<TObject, Long> data = Variables.register("data",
+                TreeMultimap.<TObject, Long> create());
 
-    /**
-     * Cleanup the store and release and resources, etc.
-     * 
-     * @param store
-     */
-    protected abstract void cleanup(Store store);
+        // Add data
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!data.containsEntry(value, record)) {
+                    data.put(value, record);
+                    add(key, value, record);
+                }
+            }
+        }
 
-    /**
-     * Return a Store for testing.
-     * 
-     * @return the Store
-     */
-    protected abstract Store getStore();
+        // Test explore with EQUALS operator
+        Map<Long, Set<TObject>> result = Variables.register("result",
+                store.explore(key, Operator.EQUALS,
+                        data.keySet().toArray(new TObject[0])));
 
-    /**
-     * Remove {@code key} as {@code value} from {@code record} in {@code store}.
-     * 
-     * @param key
-     * @param value
-     * @param record
-     */
-    protected abstract void remove(String key, TObject value, long record);
+        // Verify records are sorted
+        Long previousRecord = null;
+        for (Long currentRecord : result.keySet()) {
+            if(previousRecord != null) {
+                Variables.register("previousRecord", previousRecord);
+                Variables.register("currentRecord", currentRecord);
+                Assert.assertTrue(previousRecord < currentRecord);
+            }
+            previousRecord = currentRecord;
+        }
+    }
+
+    @Test
+    public void testSelectRecordIsSorted() {
+        Multimap<String, TObject> data = Variables.register("data",
+                HashMultimap.<String, TObject> create());
+        long record = TestData.getLong();
+
+        // Add data
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!data.containsEntry(key, value)) {
+                    data.put(key, value);
+                    add(key, value, record);
+                }
+            }
+        }
+
+        Map<String, Set<TObject>> result = Variables.register("result",
+                store.select(record));
+
+        // Verify keys are sorted
+        String previousKey = null;
+        for (String currentKey : result.keySet()) {
+            if(previousKey != null) {
+                Variables.register("previousKey", previousKey);
+                Variables.register("currentKey", currentKey);
+                Assert.assertTrue(
+                        previousKey.compareToIgnoreCase(currentKey) < 0);
+            }
+            previousKey = currentKey;
+        }
+    }
 
     /**
      * Add {@code key} as a value that satisfies {@code operator} relative to

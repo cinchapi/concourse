@@ -47,7 +47,6 @@ import org.apache.thrift.TException;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
@@ -251,6 +250,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                 try {
                     CommandLine.displayWelcomeBanner();
                     System.out.println("System ID: " + GlobalState.SYSTEM_ID);
+                    displayMaxFileDescriptors();
                     server.start();
                 }
                 catch (TTransportException e) {
@@ -313,6 +313,22 @@ public class ConcourseServer extends BaseConcourseServer implements
             }
 
         });
+    }
+
+    /**
+     * Display the maximum number of file descriptors available to the JVM.
+     * This method will print nothing if the information cannot be retrieved
+     * (e.g., when not running on a Unix-like system).
+     */
+    @SuppressWarnings("restriction")
+    private static void displayMaxFileDescriptors() {
+        try {
+            com.sun.management.UnixOperatingSystemMXBean os = (com.sun.management.UnixOperatingSystemMXBean) ManagementFactory
+                    .getOperatingSystemMXBean();
+            System.out.println("Max File Descriptor Limit: "
+                    + os.getMaxFileDescriptorCount());
+        }
+        catch (Exception e) {}
     }
 
     /**
@@ -1616,10 +1632,17 @@ public class ConcourseServer extends BaseConcourseServer implements
         AbstractSyntaxTree ast = compiler.parse(ccl);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            SortableSet<Set<TObject>> records = SortableSet
-                    .of(ast.accept(Finder.instance(), atomic));
-            records.sort(Sorting.byValues(Orders.from(order), store));
-            return Paging.page(records, Pages.from(page));
+            Set<Long> matches = ast.accept(Finder.instance(), atomic);
+            Order _order = Orders.from(order);
+            if(_order.isSingular()) {
+                return SortableSet.of(Operations.frameRecordsOptionalAtomic(
+                        atomic, matches, _order, Pages.from(page)));
+            }
+            else {
+                SortableSet<Set<TObject>> records = SortableSet.of(matches);
+                records.sort(Sorting.byValues(_order, store));
+                return Paging.page(records, Pages.from(page));
+            }
         });
     }
 
@@ -1671,10 +1694,17 @@ public class ConcourseServer extends BaseConcourseServer implements
         AbstractSyntaxTree ast = compiler.parse(criteria);
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            SortableSet<Set<TObject>> records = SortableSet
-                    .of(ast.accept(Finder.instance(), atomic));
-            records.sort(Sorting.byValues(Orders.from(order), store));
-            return Paging.page(records, Pages.from(page));
+            Set<Long> matches = ast.accept(Finder.instance(), atomic);
+            Order $order = Orders.from(order);
+            if($order.isSingular()) {
+                return SortableSet.of(Operations.frameRecordsOptionalAtomic(
+                        atomic, matches, $order, Pages.from(page)));
+            }
+            else {
+                SortableSet<Set<TObject>> records = SortableSet.of(matches);
+                records.sort(Sorting.byValues($order, store));
+                return Paging.page(records, Pages.from(page));
+            }
         });
     }
 
@@ -1859,10 +1889,17 @@ public class ConcourseServer extends BaseConcourseServer implements
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            SortableSet<Set<TObject>> records = SortableSet
-                    .of(Stores.find(atomic, key, operator, tValues));
-            records.sort(Sorting.byValues(Orders.from(order), atomic));
-            return Paging.page(records, Pages.from(page));
+            Set<Long> matches = Stores.find(atomic, key, operator, tValues);
+            Order _order = Orders.from(order);
+            if(_order.isSingular()) {
+                return SortableSet.of(Operations.frameRecordsOptionalAtomic(
+                        atomic, matches, _order, Pages.from(page)));
+            }
+            else {
+                SortableSet<Set<TObject>> records = SortableSet.of(matches);
+                records.sort(Sorting.byValues(_order, atomic));
+                return Paging.page(records, Pages.from(page));
+            }
         });
     }
 
@@ -1921,14 +1958,23 @@ public class ConcourseServer extends BaseConcourseServer implements
         TObject[] tValues = values.toArray(Array.containing());
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, atomic -> {
-            SortableSet<Set<TObject>> records = SortableSet
-                    .of(Stores.find(store, timestamp, key, operator, tValues));
+            Set<Long> matches = Stores.find(atomic, timestamp, key, operator,
+                    tValues);
+            Order _order = Orders.from(order);
             // NOTE: The #timestamp is not considered when sorting because it is
             // a component of criteria evaluation and no data is being selected.
             // The presence of a present state Order also necessities this
             // operation being performed atomically
-            records.sort(Sorting.byValues(Orders.from(order), store));
-            return Paging.page(records, Pages.from(page));
+            if(_order.isSingular()) {
+                return SortableSet.of(Operations.frameRecordsOptionalAtomic(
+                        atomic, matches, _order, Pages.from(page)));
+            }
+            else {
+                SortableSet<Set<TObject>> records = SortableSet.of(matches);
+                records.sort(Sorting.byValues(_order, atomic));
+                return Paging.page(records, Pages.from(page));
+            }
+
         });
     }
 
@@ -6646,9 +6692,10 @@ public class ConcourseServer extends BaseConcourseServer implements
         // Setup the management server
         TServerSocket mgmtSocket = new TServerSocket(
                 GlobalState.MANAGEMENT_PORT);
-        TSimpleServer.Args mgmtArgs = new TSimpleServer.Args(mgmtSocket);
-        mgmtArgs.processor(new ConcourseManagementService.Processor<>(this));
-        this.mgmtServer = new TSimpleServer(mgmtArgs);
+        Args mgmtArgs = new TThreadPoolServer.Args(mgmtSocket)
+                .processor(new ConcourseManagementService.Processor<>(this))
+                .minWorkerThreads(1).maxWorkerThreads(1);
+        this.mgmtServer = new TThreadPoolServer(mgmtArgs);
 
         // Setup the distributed cluster
         if(CLUSTER.isDefined()) {

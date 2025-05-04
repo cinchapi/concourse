@@ -15,11 +15,12 @@
  */
 package com.cinchapi.concourse.validate;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
 import com.cinchapi.ccl.grammar.FunctionKeySymbol;
 import com.cinchapi.ccl.grammar.Symbol;
@@ -29,6 +30,7 @@ import com.cinchapi.ccl.type.Function;
 import com.cinchapi.ccl.type.function.ImplicitKeyRecordFunction;
 import com.cinchapi.concourse.Constants;
 import com.cinchapi.concourse.lang.ConcourseCompiler;
+import com.google.common.base.Preconditions;
 
 /**
  * Utility functions for data keys.
@@ -44,7 +46,7 @@ public final class Keys {
      * @return {@code true} if the provided {@code key} is a function key
      */
     public static boolean isFunctionKey(String key) {
-        return tryParseFunction(key) != null;
+        return parse(key).type() == KeyType.FUNCTION_KEY;
     }
 
     /**
@@ -55,7 +57,7 @@ public final class Keys {
      *         key
      */
     public static boolean isNavigationKey(String key) {
-        return key.indexOf('.') > 0;
+        return parse(key).type() == KeyType.NAVIGATION_KEY;
     }
 
     /**
@@ -65,18 +67,7 @@ public final class Keys {
      * @return {@code true} if the provided {@code key} is valid for writing
      */
     public static boolean isWritable(String key) {
-        if(WRITABLE_KEY_CACHE.contains(key)) {
-            return true;
-        }
-        else {
-            boolean writable = key.length() > 0
-                    && KEY_VALIDATION_REGEX.matcher(key).matches();
-            if(writable) {
-                WRITABLE_KEY_CACHE.add(key);
-            }
-            return writable;
-        }
-
+        return parse(key).type() == KeyType.WRITABLE_KEY;
     }
 
     /**
@@ -87,25 +78,27 @@ public final class Keys {
      * @return the parsed {@link Key}
      */
     public static Key parse(String key) {
-        String[] toks;
-        ImplicitKeyRecordFunction func;
-        if(isWritable(key)) {
-            return new Key(key, KeyType.WRITABLE_KEY, key);
-        }
-        else if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
-            return new Key(key, KeyType.IDENTIFIER_KEY, key);
-        }
-        else {
-            toks = key.split("\\.");
-            if(toks.length > 1) {
-                return new Key(key, KeyType.NAVIGATION_KEY, toks);
+        Preconditions.checkArgument(key != null, "Cannot parse a null key");
+        return CACHE.computeIfAbsent(key, $ -> {
+            if(key.length() > 0
+                    && KEY_VALIDATION_REGEX.matcher(key).matches()) {
+                return new Key(key, KeyType.WRITABLE_KEY, key);
             }
-            func = tryParseFunction(key);
-            if(func != null) {
-                return new Key(key, KeyType.FUNCTION_KEY, func);
+            else if(key.equals(Constants.JSON_RESERVED_IDENTIFIER_NAME)) {
+                return new Key(key, KeyType.IDENTIFIER_KEY, key);
             }
-            return new Key(key, KeyType.INVALID_KEY, key);
-        }
+            else {
+                String[] toks = key.split("\\.");
+                if(toks.length > 1) {
+                    return new Key(key, KeyType.NAVIGATION_KEY, toks);
+                }
+                ImplicitKeyRecordFunction func = tryParseFunction(key);
+                if(func != null) {
+                    return new Key(key, KeyType.FUNCTION_KEY, func);
+                }
+                return new Key(key, KeyType.INVALID_KEY, key);
+            }
+        });
     }
 
     /**
@@ -134,21 +127,18 @@ public final class Keys {
     }
 
     /**
+     * A global set of all inquired about keys and the information parsed about
+     * them.
+     */
+    private static final Map<String, Key> CACHE = new ConcurrentHashMap<>(100);
+
+    /**
      * A pre-compiled regex pattern that is used to validate that each key is
      * non-empty, alphanumeric with no special characters other than underscore
      * (_).
      */
     private static final Pattern KEY_VALIDATION_REGEX = Pattern
             .compile("^[a-zA-Z0-9_]+$");
-
-    /**
-     * A global set of all {@link String Strings} known to be
-     * {@link #isWritable(String) writable} keys.
-     */
-    // We aren't concerned about thread safety here because items are never
-    // removed from the cache and spurious lookup failure would merely trigger
-    // manual validation.
-    private static final Set<String> WRITABLE_KEY_CACHE = new HashSet<>(100);
 
     private Keys() {/* no-init */}
 
@@ -159,6 +149,7 @@ public final class Keys {
      *
      * @author Jeff Nelson
      */
+    @Immutable
     public static final class Key {
 
         /**
@@ -204,6 +195,11 @@ public final class Keys {
             return (T) data;
         }
 
+        @Override
+        public String toString() {
+            return value;
+        }
+
         /**
          * Return the {@link KeyType}.
          * 
@@ -219,11 +215,6 @@ public final class Keys {
          * @return the value
          */
         public String value() {
-            return value;
-        }
-
-        @Override
-        public String toString() {
             return value;
         }
 

@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -169,6 +170,11 @@ public abstract class BufferedStore implements Store {
      */
     public boolean add(String key, TObject value, long record) {
         return add(Write.add(key, value, record), Sync.YES, Verify.YES);
+    }
+
+    @Override
+    public ReadWriteLock advisoryLock() {
+        return durable.advisoryLock();
     }
 
     @Override

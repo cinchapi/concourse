@@ -69,13 +69,13 @@ import com.google.common.collect.Lists;
  * {@link Revision revisions} (this corresponds to the
  * {@link Segment#acquire(com.cinchapi.concourse.server.storage.temp.Write, com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)}
  * functionality), which are sorted on the fly. Once the {@link Chunk} is
- * {@link #freeze(Path, long) frozen} (happens when its parent {@link Segment}
+ * {@link #flush(ByteSink) flushed} (happens when its parent {@link Segment}
  * is
- * {@link Segment#sync(com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)
- * synced to disk}) it becomes immutable and all lookups eventually become disk
- * based. This means that writing to a {@link Chunk} never incurs any random
- * disk I/O and reading from a {@link #freeze(Path, long) frozen} chunk only
- * loads into memory as much data from disk as necessary to support each
+ * {@link Segment#transfer(com.cinchapi.concourse.server.concurrent.AwaitableExecutorService)
+ * transferred to disk}) it becomes immutable and all lookups eventually become
+ * disk based. This means that writing to a {@link Chunk} never incurs any
+ * random disk I/O and reading from a {@link #flush(ByteSink) flushed} chunk
+ * only loads into memory as much data from disk as necessary to support each
  * individual operation.
  * </p>
  * <p>
@@ -182,8 +182,8 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
      * elements are inserted.
      * <p>
      * This collection is only maintained for a {@link #mutable} {@link Chunk}.
-     * A {@link Chunk} that is {@link #freeze() frozen} and subsequently reads
-     * from a {@link #file} does not rely on this collection at all.
+     * A {@link Chunk} that is {@link #flush(ByteSink) flushed} and subsequently
+     * reads from a {@link #file} does not rely on this collection at all.
      * </p>
      */
     /*
@@ -407,7 +407,7 @@ public abstract class Chunk<L extends Byteable & Comparable<L>, K extends Byteab
     /**
      * If it is possible that they exist, look for any {@link Revision
      * revisions} that match the {@code composite} and
-     * {@link Record#append(Revision) append} hem to the {@code record}.
+     * {@link Record#append(Revision) append} them to the {@code record}.
      * 
      * @param composite
      * @param record
