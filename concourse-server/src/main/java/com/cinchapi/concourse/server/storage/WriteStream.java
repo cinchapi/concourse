@@ -21,6 +21,12 @@ import com.cinchapi.concourse.server.storage.temp.Write;
 
 /**
  * Able to return a {@link Stream} of {@link Write Writes}.
+ * <p>
+ * A {@link WriteStream} is backed by a stable collection of {@link Write
+ * Writes} that may allow {@link #append(Write) appending}, but guarantees that
+ * the underlying collection will not be modified while {@link #writes()
+ * streaming}.
+ * </p>
  *
  * @author Jeff Nelson
  */
@@ -31,7 +37,9 @@ public interface WriteStream {
      * 
      * @param write
      */
-    public void append(Write write);
+    public default void append(Write write) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Return a {@link Stream} of {@link Write writes}.
