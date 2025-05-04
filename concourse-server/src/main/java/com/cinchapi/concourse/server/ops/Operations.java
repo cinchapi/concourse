@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.cinchapi.ccl.syntax.AbstractSyntaxTree;
 import com.cinchapi.common.base.StringSplitter;
@@ -410,10 +411,15 @@ public final class Operations {
         }
         Stream<Long> filtered = stream.flatMap(e -> e.getValue().stream())
                 .filter(record -> Iterables.contains(records, record));
+        // GH-570: Concat records to end of stream to simulate the behaviour of
+        // sorting on a record where #key isn't present.
+        filtered = Stream.concat(filtered,
+                StreamSupport.stream(records.spliterator(), false));
         if(!(page instanceof NoPage)) {
             filtered = filtered.skip(page.skip()).limit(page.limit());
         }
-        return filtered.collect(Collectors.toCollection(LinkedHashSet::new));
+        return filtered.distinct()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
