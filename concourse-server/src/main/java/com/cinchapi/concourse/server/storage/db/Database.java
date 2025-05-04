@@ -916,6 +916,10 @@ public final class Database implements DurableStore {
 
     @Override
     public Set<Long> search(String key, String query) {
+        // TODO: should we consider first checking if the index for key is in
+        // memory and using that instead of loading the corpus record. If
+        // ENABLE_SEARCH_CACHE is true then also check if there exist caches for
+        // key?
         // NOTE: Locking must happen here since CorpusRecords are not cached and
         // search potentially works across multiple ones.
         masterLock.readLock().lock();
