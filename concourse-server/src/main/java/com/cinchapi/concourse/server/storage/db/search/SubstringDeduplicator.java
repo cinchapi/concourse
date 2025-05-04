@@ -17,7 +17,6 @@ package com.cinchapi.concourse.server.storage.db.search;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.AbstractSet;
@@ -44,6 +43,7 @@ import com.cinchapi.common.io.ByteBuffers;
 import com.cinchapi.common.logging.Logging;
 import com.cinchapi.common.reflect.Reflection;
 import com.cinchapi.concourse.annotate.Experimental;
+import com.cinchapi.concourse.server.Telemetry;
 import com.cinchapi.concourse.server.model.Text;
 import com.cinchapi.concourse.server.storage.db.kernel.CorpusChunk.SearchTermMetrics;
 import com.cinchapi.concourse.util.FileOps;
@@ -107,16 +107,20 @@ public abstract class SubstringDeduplicator extends AbstractSet<Text> implements
         int expectedInsertions = metrics.upperBoundOfPossibleSubstrings();
         long estimatedMemoryRequired = (long) metrics.averageSubstringLength()
                 * (long) expectedInsertions;
-        long availableDirectMemory = availableDirectMemory();
-        long freeHeapMemory = Runtime.getRuntime().freeMemory();
+
+        Telemetry telemetry = Telemetry.get();
+        long availableOffHeapMemory = telemetry.availableSystemMemory();
+        long availableHeapMemory = telemetry.availableHeapMemory();
+        boolean swapIsEnabled = telemetry.isSwapEnabled();
+
         Logger.info("The search indexer has encountered a large term that "
                 + "may require a lot of memory to process. The term has "
                 + "up to {} search indexes{}{}", expectedInsertions,
                 System.lineSeparator(), summarizeMemory(estimatedMemoryRequired,
-                        availableDirectMemory, freeHeapMemory));
+                        availableOffHeapMemory, availableHeapMemory));
 
         SubstringDeduplicator deduplicator;
-        if(availableDirectMemory > estimatedMemoryRequired) {
+        if(availableOffHeapMemory > estimatedMemoryRequired || swapIsEnabled) {
             try {
                 Logger.info("Attempting to use off-heap memory to deduplicate "
                         + "the search indexes");
@@ -187,23 +191,6 @@ public abstract class SubstringDeduplicator extends AbstractSet<Text> implements
         SearchTermMetrics metrics = Reflection
                 .newInstance(SearchTermMetrics.class, term.length, -1);
         return new ChronicleBackedSubstringDeduplicator(term, metrics);
-    }
-
-    /**
-     * If possible, return the amount of "direct" memory that is available for
-     * off-heap storage.
-     * 
-     * @return the number of direct memory bytes that are available
-     */
-    @SuppressWarnings("restriction")
-    private static long availableDirectMemory() {
-        try {
-            com.sun.management.OperatingSystemMXBean osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory
-                    .getOperatingSystemMXBean();
-            return osBean.getFreePhysicalMemorySize();
-        }
-        catch (Exception e) {}
-        return 0;
     }
 
     /**
