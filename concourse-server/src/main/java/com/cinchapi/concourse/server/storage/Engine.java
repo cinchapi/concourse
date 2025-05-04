@@ -591,8 +591,8 @@ public final class Engine extends BufferedStore implements
                     .of(((Database) durable).iterator(), limbo.iterator());
             for (Iterator<Write> it : iterators) {
                 /*
-                 * For each store, catalog every Write in the inventory, in case
-                 * there are inconsistencies.
+                 * For each store, (re)catalog every Write in the inventory, in
+                 * case there are inconsistencies.
                  * 
                  * Note: We intentionally reuse the existing inventory instead
                  * of creating a new one. This approach is safe because:
