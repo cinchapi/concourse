@@ -35,7 +35,6 @@ import com.cinchapi.concourse.server.storage.db.Revision;
 import com.cinchapi.concourse.server.storage.db.TableRevision;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.TObject;
-import com.cinchapi.concourse.time.Time;
 
 /**
  * A utility class for getting test data.
@@ -52,7 +51,7 @@ public final class TestData extends Random {
      * @return the file path
      */
     public static String getTemporaryTestFile() {
-        return DATA_DIR + File.separator + Time.now() + ".tmp";
+        return DATA_DIR + File.separator + Identifiers.next() + ".tmp";
     }
 
     /**
@@ -61,7 +60,7 @@ public final class TestData extends Random {
      * @return the directory path
      */
     public static String getTemporaryTestDir() {
-        return DATA_DIR + File.separator + Time.now();
+        return DATA_DIR + File.separator + Identifiers.next();
     }
 
     public static TableRevision getPrimaryRevision() {

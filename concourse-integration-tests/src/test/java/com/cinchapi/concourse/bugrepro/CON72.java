@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.thrift.Operator;
-import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Identifiers;
 
 /**
  * Repro of <a href="https://cinchapi.atlassian.net/browse/CON-72">CON-72</a>
@@ -36,7 +36,7 @@ public class CON72 extends ConcourseIntegrationTest {
     @Test
     public void repro() throws IOException {
         client.stage();
-        long record = Time.now();
+        long record = Identifiers.next();
         client.set("__table__", "com.blavity.server.model.App", record);
         client.find("__table__", Operator.EQUALS,
                 "com.blavity.server.model.App");

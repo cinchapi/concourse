@@ -27,13 +27,16 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.common.io.ByteBuffers;
+import com.cinchapi.concourse.annotate.DoNotInvoke;
+import com.cinchapi.concourse.server.concurrent.LockBroker;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.storage.temp.Queue;
 import com.cinchapi.concourse.server.storage.temp.ToggleQueue;
 import com.cinchapi.concourse.server.storage.temp.Write;
-import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Logger;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * An {@link AtomicOperation} that performs backups prior to commit to make sure
@@ -46,7 +49,7 @@ import com.cinchapi.concourse.util.Logger;
  * @author Jeff Nelson
  */
 @NotThreadSafe
-public final class Transaction extends AtomicOperation {
+public class Transaction extends AtomicOperation implements Distributed {
 
     /**
      * Return the Transaction for {@code destination} that is backed up to
@@ -61,7 +64,7 @@ public final class Transaction extends AtomicOperation {
         try {
             ByteBuffer bytes = FileSystem.map(file, MapMode.READ_ONLY, 0,
                     FileSystem.getFileSize(file));
-            Transaction transaction = new Transaction(destination, bytes);
+            Transaction transaction = new Transaction(destination, bytes, file);
             transaction.invokeSuperApply(true); // recovering transaction
                                                 // must always syncAndVerify
                                                 // to prevent possible data
@@ -82,30 +85,34 @@ public final class Transaction extends AtomicOperation {
     }
 
     /**
-     * Return a new Transaction with {@code engine} as the eventual destination.
+     * Return a new {@link Transaction} with {@code engine} as the eventual
+     * destination.
      * 
      * @param engine
-     * @return the new Transaction
+     * @param id
+     * @return the new {@link Transaction}
      */
-    public static Transaction start(Engine engine) {
-        return new Transaction(engine);
+    public static Transaction start(Engine engine, String id) {
+        return new Transaction(engine, id);
     }
 
     /**
-     * The unique Transaction id.
+     * Return a new {@link Transaction} with {@code engine} as the eventual
+     * destination.
+     * 
+     * @param engine
+     * @return the new {@link Transaction}
      */
-    private final String id;
+    @VisibleForTesting
+    static Transaction start(Engine engine) {
+        return start(engine, Long.toString(Identifiers.next()));
+    }
 
     /**
      * Construct a new instance.
-     * 
-     * @param destination
      */
-    private Transaction(Engine destination) {
-        super(new ToggleQueue(INITIAL_CAPACITY), destination,
-                destination.broker);
-        this.id = Long.toString(Time.now());
-    }
+    @DoNotInvoke
+    Transaction() {}
 
     /**
      * Construct a new instance.
@@ -113,11 +120,27 @@ public final class Transaction extends AtomicOperation {
      * @param destination
      * @param bytes
      */
-    private Transaction(Engine destination, ByteBuffer bytes) {
-        this(destination);
+    private Transaction(Engine destination, ByteBuffer bytes, String id) {
+        this(destination, id);
         deserialize(bytes);
         setStatus(Status.COMMITTED);
 
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param destination
+     * @param id
+     */
+    private Transaction(Engine destination, String id) {
+        super(new ToggleQueue(INITIAL_CAPACITY), destination,
+                destination.broker, id);
+    }
+
+    @Override
+    public LockBroker $ensembleLockBroker() {
+        return ((Engine) durable).broker;
     }
 
     @Override

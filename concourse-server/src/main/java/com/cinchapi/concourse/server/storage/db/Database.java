@@ -660,7 +660,7 @@ public final class Database implements DurableStore {
         Map<Identifier, Set<Value>> map = index.findAndGet(aliases.operator(),
                 Ks);
         return Transformers.transformTreeMapSet(map, Identifier::longValue,
-                Value::getTObject, Long::compare);
+                Value::getTObject, Comparators.LONG_COMPARATOR);
     }
 
     @Override
@@ -673,7 +673,7 @@ public final class Database implements DurableStore {
         Map<Identifier, Set<Value>> map = index.findAndGet(timestamp,
                 aliases.operator(), Ks);
         return Transformers.transformTreeMapSet(map, Identifier::longValue,
-                Value::getTObject, Long::compare);
+                Value::getTObject, Comparators.LONG_COMPARATOR);
     }
 
     @Override
