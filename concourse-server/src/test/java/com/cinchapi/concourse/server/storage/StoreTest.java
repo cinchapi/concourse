@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,10 @@ import javax.annotation.Nullable;
 
 import org.junit.Assert;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +38,8 @@ import org.slf4j.LoggerFactory;
 import com.cinchapi.concourse.Link;
 import com.cinchapi.concourse.Tag;
 import com.cinchapi.concourse.Timestamp;
-import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.model.TObjectSorter;
 import com.cinchapi.concourse.server.model.Value;
-import com.cinchapi.concourse.test.ConcourseBaseTest;
 import com.cinchapi.concourse.test.Variables;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
@@ -73,7 +67,7 @@ import com.google.common.collect.TreeMultimap;
  * @author Jeff Nelson
  */
 @RunWith(Theories.class)
-public abstract class StoreTest extends ConcourseBaseTest {
+public abstract class StoreTest extends AbstractStoreTest {
 
     public final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -86,30 +80,6 @@ public abstract class StoreTest extends ConcourseBaseTest {
     @DataPoints
     public static SearchType[] searchTypes = { SearchType.PREFIX,
             SearchType.INFIX, SearchType.SUFFIX, SearchType.FULL };
-
-    protected Store store;
-
-    private int pref = GlobalState.MAX_SEARCH_SUBSTRING_LENGTH;
-
-    @Rule
-    public TestRule watcher = new TestWatcher() {
-
-        @Override
-        protected void finished(Description desc) {
-            store.stop();
-            cleanup(store);
-            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = pref;
-        }
-
-        @Override
-        protected void starting(Description desc) {
-            store = getStore();
-            store.start();
-            // Don't allow dev preferences to interfere with unit test logic...
-            GlobalState.MAX_SEARCH_SUBSTRING_LENGTH = -1;
-
-        }
-    };
 
     // TODO test audit
 
@@ -590,13 +560,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testCaseInsensitiveSearchLower() { // CON-10
         String key = Variables.register("key", "foo");
         TObject value = null;
-        while (value == null || GlobalState.STOPWORDS.contains(value.toString())
-                || GlobalState.STOPWORDS
-                        .contains(value.toString().toUpperCase())
-                || GlobalState.STOPWORDS
-                        .contains(value.toString().toLowerCase())
-                || Strings.isNullOrEmpty(
-                        TStrings.stripStopWords(value.toString()))) {
+        while (value == null || Strings.isNullOrEmpty(value.toString())) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toUpperCase()));
         }
@@ -623,13 +587,7 @@ public abstract class StoreTest extends ConcourseBaseTest {
     public void testCaseInsensitiveSearchUpper() {
         String key = Variables.register("key", "foo");
         TObject value = null;
-        while (value == null || GlobalState.STOPWORDS.contains(value.toString())
-                || GlobalState.STOPWORDS
-                        .contains(value.toString().toLowerCase())
-                || GlobalState.STOPWORDS
-                        .contains(value.toString().toUpperCase())
-                || Strings.isNullOrEmpty(
-                        TStrings.stripStopWords(value.toString()))) {
+        while (value == null || Strings.isNullOrEmpty(value.toString())) {
             value = Variables.register("value",
                     Convert.javaToThrift(TestData.getString().toLowerCase()));
         }
@@ -1499,14 +1457,14 @@ public abstract class StoreTest extends ConcourseBaseTest {
         for (long i = 0; i < 10; i++) {
             String word = null;
             while (Strings.isNullOrEmpty(word)
-                    || TStrings.isInfixSearchMatch(query, word)) {
+                    || isInfixSearchMatch(query, word)) {
                 word = TestData.getString();
             }
             for (long j = 0; j <= i; j++) {
                 word += " " + query;
                 String other = null;
                 while (Strings.isNullOrEmpty(other)
-                        || TStrings.isInfixSearchMatch(query, other)) {
+                        || isInfixSearchMatch(query, other)) {
                     other = TestData.getString();
                 }
                 word += " " + other;
@@ -1870,37 +1828,112 @@ public abstract class StoreTest extends ConcourseBaseTest {
 
     }
 
-    /**
-     * Add {@code key} as {@code value} to {@code record} in the {@code store}.
-     * 
-     * @param key
-     * @param value
-     * @param record
-     */
-    protected abstract void add(String key, TObject value, long record);
+    @Test
+    public void testSearchStopWordCornerCase() {
+        String haystack = "complex simplethesimple complex";
+        String needle = "complex the complex";
+        String key = "text";
+        long record = 1;
+        add(key, Convert.javaToThrift(haystack), record);
+        Assert.assertTrue(store.search(key, needle).contains(record));
+    }
 
-    /**
-     * Cleanup the store and release and resources, etc.
-     * 
-     * @param store
-     */
-    protected abstract void cleanup(Store store);
+    @Test
+    public void testSearchStopWordCornerCaseB() {
+        String haystack = "complex complex";
+        String needle = "complex the complex";
+        String key = "text";
+        long record = 1;
+        add(key, Convert.javaToThrift(haystack), record);
+        Assert.assertFalse(store.search(key, needle).contains(record));
+    }
 
-    /**
-     * Return a Store for testing.
-     * 
-     * @return the Store
-     */
-    protected abstract Store getStore();
+    @Test
+    public void testSearchReproGCornerCase() {
+        String haystack = "uo0qgmr6r66mfuligawh08f33ce63uubwuaue186r6x0g9bwwqg9c4wooctgu72a5kksbepajevzkfpjny2osj6pu0ryk3o";
+        String needle = "w  8";
+        String key = "text";
+        long record = 1;
+        add(key, Convert.javaToThrift(haystack), record);
+        Assert.assertFalse(store.search(key, needle).contains(record));
+    }
 
-    /**
-     * Remove {@code key} as {@code value} from {@code record} in {@code store}.
-     * 
-     * @param key
-     * @param value
-     * @param record
-     */
-    protected abstract void remove(String key, TObject value, long record);
+    @Test
+    public void testFindSearch() {
+        String key = "foo";
+        String needle = "fect the tech";
+        String haystack = "jeffective sthent  techniques";
+        add(key, Convert.javaToThrift(haystack), 1);
+        Assert.assertEquals(store.search(key, needle), store.find(key,
+                Operator.CONTAINS, Convert.javaToThrift(needle)));
+    }
+
+    @Test
+    public void testExploreKeyIsSorted() {
+        String key = TestData.getSimpleString();
+        Multimap<TObject, Long> data = Variables.register("data",
+                TreeMultimap.<TObject, Long> create());
+
+        // Add data
+        for (TObject value : getValues()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                long record = TestData.getLong();
+                if(!data.containsEntry(value, record)) {
+                    data.put(value, record);
+                    add(key, value, record);
+                }
+            }
+        }
+
+        // Test explore with EQUALS operator
+        Map<Long, Set<TObject>> result = Variables.register("result",
+                store.explore(key, Operator.EQUALS,
+                        data.keySet().toArray(new TObject[0])));
+
+        // Verify records are sorted
+        Long previousRecord = null;
+        for (Long currentRecord : result.keySet()) {
+            if(previousRecord != null) {
+                Variables.register("previousRecord", previousRecord);
+                Variables.register("currentRecord", currentRecord);
+                Assert.assertTrue(previousRecord < currentRecord);
+            }
+            previousRecord = currentRecord;
+        }
+    }
+
+    @Test
+    public void testSelectRecordIsSorted() {
+        Multimap<String, TObject> data = Variables.register("data",
+                HashMultimap.<String, TObject> create());
+        long record = TestData.getLong();
+
+        // Add data
+        for (String key : getKeys()) {
+            for (int i = 0; i < TestData.getScaleCount() % 4; i++) {
+                TObject value = TestData.getTObject();
+                if(!data.containsEntry(key, value)) {
+                    data.put(key, value);
+                    add(key, value, record);
+                }
+            }
+        }
+
+        Map<String, Set<TObject>> result = Variables.register("result",
+                store.select(record));
+
+        // Verify keys are sorted
+        String previousKey = null;
+        for (String currentKey : result.keySet()) {
+            if(previousKey != null) {
+                Variables.register("previousKey", previousKey);
+                Variables.register("currentKey", currentKey);
+                Assert.assertTrue(
+                        previousKey.compareToIgnoreCase(currentKey) < 0);
+            }
+            previousKey = currentKey;
+        }
+    }
 
     /**
      * Add {@code key} as a value that satisfies {@code operator} relative to
@@ -2040,6 +2073,17 @@ public abstract class StoreTest extends ConcourseBaseTest {
     }
 
     /**
+     * Return {@code true} if {@code needle} is an infix for {@code haystack}.
+     * 
+     * @param needle
+     * @param haystack
+     * @return {@code true} if this is an infix search match
+     */
+    private final boolean isInfixSearchMatch(String needle, String haystack) {
+        return TStrings.isInfixSearchMatch(needle, haystack);
+    }
+
+    /**
      * Setup a search test by adding some matches for {@code query} that
      * obey search {@code type} for {@code key} in some of the records from
      * {@code recordSource}.
@@ -2059,12 +2103,12 @@ public abstract class StoreTest extends ConcourseBaseTest {
                         && recordSource.size() == otherSource.size()));
         Set<Long> records = Sets.newHashSet();
         recordSource = recordSource == null ? getRecords() : recordSource;
-        if(!Strings.isNullOrEmpty(TStrings.stripStopWords(query))) {
+        if(!Strings.isNullOrEmpty(query)) {
             int i = 0;
             for (long record : recordSource) {
                 if(otherSource != null) {
                     String other = otherSource.get(i);
-                    boolean matches = TStrings.isInfixSearchMatch(query, other);
+                    boolean matches = isInfixSearchMatch(query, other);
                     SearchTestItem sti = Variables.register("sti_" + record,
                             new SearchTestItem(key, Convert.javaToThrift(other),
                                     record, query, matches));
@@ -2076,10 +2120,9 @@ public abstract class StoreTest extends ConcourseBaseTest {
                 else {
                     String other = null;
                     while (other == null || other.equals(query)
-                            || TStrings.isInfixSearchMatch(query, other)
-                            || TStrings.isInfixSearchMatch(other, query)
-                            || Strings.isNullOrEmpty(
-                                    TStrings.stripStopWords(other))) {
+                            || isInfixSearchMatch(query, other)
+                            || isInfixSearchMatch(other, query)
+                            || Strings.isNullOrEmpty(other)) {
                         other = TestData.getString();
                     }
                     boolean match = TestData.getInt() % 3 == 0;

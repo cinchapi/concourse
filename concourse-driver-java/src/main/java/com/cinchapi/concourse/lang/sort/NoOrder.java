@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,11 @@ public class NoOrder implements Order {
      * Construct a new instance.
      */
     private NoOrder() {/* singleton */}
+
+    @Override
+    public boolean isSingular() {
+        return false;
+    }
 
     @Override
     public List<OrderComponent> spec() {

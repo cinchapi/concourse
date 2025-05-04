@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.cinchapi.concourse.annotate;
+package com.cinchapi.concouse.server.upgrade;
+
+import com.cinchapi.common.base.Array;
+import com.cinchapi.concourse.test.StorageUpgradeTest;
 
 /**
- * A {@link com.cinchapi.concourse.Concourse Concourse} operation that combines
- * two or more operations in a <strong>non-atomic</strong> manner. This means
- * that certain parts of the operation may fail without affecting the success of
- * other parts.
- * 
+ * Test that data integrity is still valid after 0.12 upgrade.
+ *
  * @author Jeff Nelson
  */
-public @interface CompoundOperation {
+public class Upgrade0_12_0_1StorageTest extends StorageUpgradeTest {
+
+    @Override
+    protected String[] envs() {
+        return Array.containing("default");
+    }
+
+    @Override
+    protected String getInitialServerVersion() {
+        return "0.11.5";
+    }
 
 }

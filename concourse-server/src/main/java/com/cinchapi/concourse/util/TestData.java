@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,15 +115,15 @@ public final class TestData extends Random {
     }
 
     public static Write getWriteAdd() {
-        return Write.add(getString(), getTObject(), getLong());
+        return Write.add(getSimpleString(), getTObject(), getLong());
     }
 
     public static Write getWriteRemove() {
-        return Write.remove(getString(), getTObject(), getLong());
+        return Write.remove(getSimpleString(), getTObject(), getLong());
     }
 
     public static Write getWriteNotStorable() {
-        return Write.notStorable(getString(), getTObject(), getLong());
+        return Write.notStorable(getSimpleString(), getTObject(), getLong());
     }
 
     /**

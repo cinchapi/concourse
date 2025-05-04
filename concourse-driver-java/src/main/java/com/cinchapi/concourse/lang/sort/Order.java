@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,16 @@ public interface Order {
      */
     public static Order none() {
         return NoOrder.INSTANCE;
+    }
+
+    /**
+     * Return {@code true} if this {@link Order} only contains one component,
+     * and therefore can be processed by consulting a single index.
+     * 
+     * @return {@code true} if this {@link Order} is singular
+     */
+    public default boolean isSingular() {
+        return spec().size() == 1;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,7 +222,7 @@ abstract class TransferableByteSequence implements Closeable {
      */
     public final void transfer(Path file, long position) {
         Preconditions.checkState(mutable,
-                "%s has already been transferred to %s", this, file);
+                "%s has already been transferred to %s", this, this.file);
         write.lock();
         try {
             long length = length();

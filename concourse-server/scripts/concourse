@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2013-2024 Cinchapi Inc.
+# Copyright (c) 2013-2025 Cinchapi Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -185,6 +185,15 @@ BIN_DIR="$APP_HOME/bin"
 JVMOPTS=$JVMOPTS"
 -D$APP_HOME_PROPERTY
 "
+
+if [ "$darwin" = "true" ]; then
+  # Disable MaxFDLimit on macOS to prevent file descriptor limitations.
+  # By default, HotSpot on macOS enforces a built-in OPEN_MAX of 10,240 file descriptors
+  # even when the OS ulimit or kern.maxfilesperproc is set higher.
+  JVMOPTS=$JVMOPTS"
+  -XX:-MaxFDLimit
+  "
+fi
 
 # The CLIs in the bin directory are automatically registered as invokable
 # by this script, however, this is a place to define aliases for certain

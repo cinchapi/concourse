@@ -13,5 +13,5 @@
 <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="com.cinchapi.concourse.server.ConcourseServer"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="concourse-server"/>
-<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Declipse=true -Xms512m -Xmx1024m -XX:+UseThreadPriorities -XX:ThreadPriorityPolicy=42 -XX:CompileThreshold=500"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Declipse=true -Xms512m -Xmx1024m -XX:+UseThreadPriorities -XX:ThreadPriorityPolicy=42 -XX:CompileThreshold=500 -XX:-MaxFDLimit"/>
 </launchConfiguration>

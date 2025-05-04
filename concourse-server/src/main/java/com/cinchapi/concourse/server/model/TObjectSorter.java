@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,13 @@ public enum TObjectSorter implements Comparator<TObject> {
 
     @Override
     public int compare(TObject v1, TObject v2) {
+        // This logic features a bit of misdirection, but it's intentional. Yes,
+        // the Value.Sorter ultimately uses the TObject comparator, but, in
+        // addition to storing a reference to the wrapped TObject, Value's cache
+        // themselves on the TObject to ensure instances are deduplicated across
+        // the JVM. So, converting TObject's to Values here allows us to take
+        // advantage of that while maintaining one logical codepath for
+        // TObject/Value equality, which should always behave the same.
         return Value.Sorter.INSTANCE.compare(Value.wrap(v1), Value.wrap(v2));
     }
 }

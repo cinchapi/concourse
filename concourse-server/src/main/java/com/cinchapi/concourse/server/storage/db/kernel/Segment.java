@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -512,7 +512,7 @@ public final class Segment extends TransferableByteSequence implements
     /**
      * Append the {@code write} to this {@link Segment} using the
      * {@code executor} to asynchronously write to all the contained
-     * {@link Block blocks}.
+     * {@link Chunk cunks}.
      * 
      * @param write
      * @param executor
@@ -565,6 +565,44 @@ public final class Segment extends TransferableByteSequence implements
     @Override
     public void append(Write write) {
         acquire(write);
+    }
+
+    /**
+     * Prepare this {@link Segment} for an efficient {@link #transfer(Path)}
+     * operation by compiling the binary representation its internal data
+     * structures.
+     * <p>
+     * This method optimizes performance by generating the {@link Segment
+     * Segment's} storage representation ahead of time, reducing the work needed
+     * during the actual transfer operation. The {@link Segment} remains
+     * {@link #isMutable() mutable} after preparation, but the performance
+     * benefits are only realized if no additional {@link Write}s are
+     * {@link #acquire(Write) acquired} before the transfer occurs. Any
+     * modifications after preparation will cause the pre-generated structures
+     * to be invalidated, requiring regeneration during transfer.
+     * </p>
+     * <p>
+     * This method is particularly useful for reducing the critical section
+     * in database-structure altering operations. For example, since the
+     * {@link Database} must acquire a write lock when performing operations
+     * like {@link Database#merge(Segment) merging}
+     * or {@link Database#sync() syncing} it's pending Segment, using
+     * {@link compile()} before acquiring the lock allows expensive preparation
+     * work to happen outside the lock's critical section. This improves
+     * concurrency by minimizing the time that other operations are blocked.
+     * </p>
+     * <p>
+     * Calling this method has no effect if the Segment is already prepared or
+     * if it is immutable.
+     * </p>
+     */
+    public void compile() {
+        // Accessing each Chunk's manifest, generates it on the fly, which
+        // simultaneously causes each Chunk to generate and cache it's binary
+        // representation.
+        table.manifest();
+        index.manifest();
+        corpus.manifest();
     }
 
     /**
@@ -821,10 +859,10 @@ public final class Segment extends TransferableByteSequence implements
 
     /**
      * A {@link Receipt} is acknowledges the successful
-     * {@link Segment#acquire(Write, AwaitableExecutorService) transfer} of a
-     * {@link Write} to a {@link Segment} and includes the {@link Revision
-     * revisions} that were created in the Segment's storage {@link Block
-     * Blocks}.
+     * {@link Segment#acquire(Write, AwaitableExecutorService) acquisition} of a
+     * {@link Write} by a {@link Segment} and includes the {@link Revision
+     * revisions} that were created in the Segment's storage {@link Chunk
+     * Chunks}.
      *
      * @author Jeff Nelson
      */
@@ -941,4 +979,5 @@ public final class Segment extends TransferableByteSequence implements
         }
 
     }
+
 }

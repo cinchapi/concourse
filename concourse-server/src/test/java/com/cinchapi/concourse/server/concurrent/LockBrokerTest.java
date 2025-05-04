@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
  */
 package com.cinchapi.concourse.server.concurrent;
 
+import java.lang.Thread.State;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -1087,6 +1089,147 @@ public class LockBrokerTest extends ConcourseBaseTest {
         Assert.assertNull(broker.tryWriteLock(token));
         a.release();
         Assert.assertNotNull(broker.tryWriteLock(token));
+    }
+
+    @Test
+    public void testContentionAtScale() throws InterruptedException {
+        // Ensure that we never get an IllegalMonitorStateException when there
+        // is high contention
+        final Text key = Text.wrap("foo");
+        final Value value = Value.wrap(Convert.javaToThrift(1));
+
+        // Use EQUALS so every read/write truly conflicts
+        final RangeToken readToken = RangeToken.forReading(key, Operator.EQUALS,
+                value);
+        final RangeToken writeToken = RangeToken.forWriting(key, value);
+
+        final int iterations = 1_000;
+        final CountDownLatch readerDone = new CountDownLatch(1);
+        final AtomicBoolean readerError = new AtomicBoolean(false);
+
+        Thread reader = new Thread(() -> {
+            try {
+                for (int i = 0; i < iterations; i++) {
+                    Permit p = broker.readLock(readToken);
+                    // small pause to increase contention window
+                    Threads.sleep(1);
+                    p.release();
+                }
+            }
+            catch (IllegalMonitorStateException t) {
+                readerError.set(true);
+            }
+            finally {
+                readerDone.countDown();
+            }
+        });
+
+        final CountDownLatch writerDone = new CountDownLatch(1);
+        final AtomicBoolean writerError = new AtomicBoolean(false);
+
+        Thread writer = new Thread(() -> {
+            try {
+                for (int i = 0; i < iterations; i++) {
+                    Permit p = broker.writeLock(writeToken);
+                    Threads.sleep(1);
+                    p.release();
+                }
+            }
+            catch (IllegalMonitorStateException t) {
+                writerError.set(true);
+            }
+            finally {
+                writerDone.countDown();
+            }
+        });
+
+        reader.start();
+        writer.start();
+
+        boolean finished = readerDone.await(5, TimeUnit.SECONDS)
+                && writerDone.await(5, TimeUnit.SECONDS);
+
+        Assert.assertTrue(
+                "Threads hung → possible deadlock in RangeLock.lock()",
+                finished);
+        Assert.assertFalse("Reader threw an exception", readerError.get());
+        Assert.assertFalse("Writer threw an exception", writerError.get());
+    }
+
+    @Test
+    public void testFailedLockDoesntParkUnecessarily() throws Exception {
+        // Test a corner case where a a range lock can't be initially acquired
+        // by Thread A, but it is unlocked before Thread A goes to park. Ensure
+        // that Thread A does not proceed to park and never wakeup.
+        LockBroker broker = LockBroker.create();
+        Text key = Text.wrap("foo");
+        Value value = Value.wrap(Convert.javaToThrift(1));
+        final RangeToken readToken = RangeToken.forReading(key, Operator.EQUALS,
+                value);
+        final RangeToken writeToken = RangeToken.forWriting(key, value);
+
+        // Writer continuously grabs/releases the write‐lock
+        AtomicBoolean stopWriter = new AtomicBoolean(false);
+        AtomicBoolean writerHolding = new AtomicBoolean(false);
+        Thread writer = new Thread(() -> {
+            while (!stopWriter.get()) {
+                Permit wp = broker.writeLock(writeToken);
+                writerHolding.set(true);
+                // hold it just long enough to trigger the race
+                LockSupport.parkNanos(1_000);
+                writerHolding.set(false);
+                wp.release();
+                // give other threads a chance
+                Thread.yield();
+            }
+        }, "RaceWriter");
+        writer.setDaemon(true);
+        writer.start();
+
+        // Attempt many reader iterations
+        final int ITER = 5_000;
+        for (int i = 0; i < ITER; i++) {
+            while (!writerHolding.get()) {
+                if(writer.getState() == State.WAITING
+                        && broker.tryReadLock(readToken) != null) {
+                    Assert.fail("Writer is WAITING in iteration " + i
+                            + " but the lock is available");
+                }
+            }
+
+            // The WRITER got the lock and will soon release, it so queue up a
+            // read to create some more contention
+            AtomicBoolean done = new AtomicBoolean(false);
+            AtomicBoolean error = new AtomicBoolean(false);
+            Thread reader = new Thread(() -> {
+                try {
+                    Permit rp = broker.readLock(readToken);
+                    rp.release();
+                }
+                catch (Throwable t) {
+                    error.set(true);
+                }
+                finally {
+                    done.set(true);
+                }
+            }, "RaceReader-" + i);
+            reader.start();
+            // 3) Wait up to 50ms for reader to finish
+            long start = System.currentTimeMillis();
+            while (!done.get() && System.currentTimeMillis() - start < 50) {
+                Thread.yield();
+            }
+            // 4) If reader never finished or threw, fail immediately
+            if(!done.get() || error.get()) {
+                stopWriter.set(true);
+                writer.join();
+                Assert.fail("Reader hung or errored at iteration " + i);
+            }
+        }
+
+        // Clean up
+        stopWriter.set(true);
+        writer.join();
     }
 
     private Value decrease(Value value) {

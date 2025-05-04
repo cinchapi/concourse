@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -971,6 +971,19 @@ public final class ManagedConcourseServer {
          */
         public Client(String username, String password, String environment) {
             this(username, password, environment, 5);
+        }
+
+        /**
+         * Constructor for {@link #copyConnection()}.
+         * 
+         * @param clazz
+         * @param delegate
+         * @param loader
+         */
+        private Client(Class<?> clazz, Object delegate, ClassLoader loader) {
+            this.clazz = clazz;
+            this.delegate = delegate;
+            this.loader = loader;
         }
 
         /**
@@ -3050,7 +3063,7 @@ public final class ManagedConcourseServer {
 
         @Override
         protected Concourse copyConnection() {
-            throw new UnsupportedOperationException();
+            return new Client(clazz, invoke("copyConnection").with(), loader);
         }
 
         /**

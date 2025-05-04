@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ import com.google.common.collect.Sets;
  * A logical grouping of data for a single entity.
  * <p>
  * This is the primary view of stored data within Concourse, similar to a Row in
- * a traditional database. PrimaryRecords are designed to efficiently handle
- * direct/non-query reads.
+ * a traditional database. A {@link TableRecord} is designed to efficiently
+ * handle direct/non-query reads.
  * </p>
  * 
  * @author Jeff Nelson

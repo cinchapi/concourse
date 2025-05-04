@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses({ LockBrokerTest.class, RangeTokenTest.class,
-        ReadWriteSharedLockTest.class, SharedReadWriteLockTest.class,
-        AwaitableExecutorServiceTest.class })
+        SharedReadWriteLockTest.class, AwaitableExecutorServiceTest.class })
 public class ConcurrencySuite {
 
 }

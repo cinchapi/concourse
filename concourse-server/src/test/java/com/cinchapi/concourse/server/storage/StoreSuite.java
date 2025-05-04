@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import com.cinchapi.concourse.server.storage.db.DatabaseMergeTest;
 import com.cinchapi.concourse.server.storage.db.DatabaseTest;
 import com.cinchapi.concourse.server.storage.temp.BufferTest;
 import com.cinchapi.concourse.server.storage.temp.QueueTest;
@@ -32,8 +33,8 @@ import com.cinchapi.concourse.server.storage.temp.QueueTest;
 @SuiteClasses({ BufferTest.class, QueueTest.class, EngineTest.class,
         EngineAtomicOperationTest.class, DatabaseTest.class,
         TransactionTest.class, TransactionAtomicOperationTest.class,
-        TransactionGarbageCollectionTest.class,
-        NestedAtomicOperationTest.class })
+        TransactionGarbageCollectionTest.class, NestedAtomicOperationTest.class,
+        DatabaseMergeTest.class })
 public class StoreSuite {
 
 }

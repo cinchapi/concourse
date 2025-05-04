@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.cinchapi.common.base.CheckedExceptions;
 import com.cinchapi.concourse.server.concurrent.Threads;
 import com.cinchapi.concourse.test.ConcourseIntegrationTest;
 import com.cinchapi.concourse.util.Environments;
+import com.cinchapi.concourse.util.Random;
 import com.cinchapi.concourse.util.TestData;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -193,6 +194,70 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
         });
     }
 
+    @Test
+    public void testCopyConnectionPoolIndependentOfCopiedHandler()
+            throws Exception {
+        Concourse concourse = Concourse.connect(SERVER_HOST, SERVER_PORT,
+                USERNAME, PASSWORD, Random.getSimpleString());
+        ConnectionPool pool = getConnectionPool(concourse);
+        try {
+            concourse.exit();
+            try {
+                concourse.inventory();
+                Assert.fail();
+            }
+            catch (Exception e) {
+                Assert.assertTrue(true);
+            }
+            for (int i = 0; i < TestData.getScaleCount(); ++i) {
+                Concourse connection = pool.request();
+                connection.inventory();
+                Assert.assertTrue(true);
+                pool.release(connection);
+            }
+        }
+        finally {
+            pool.close();
+        }
+    }
+
+    @Test
+    public void testFailedClientIsAutoReplaced() throws Exception {
+        int priorMaxMessageSize = ConcourseThriftDriver.MAX_MESSAGE_SIZE;
+        ConcourseThriftDriver.MAX_MESSAGE_SIZE = 1000;
+        ConnectionPool pool = getConnectionPool(1);
+        try {
+            Concourse concourse = pool.request();
+            String value = "";
+            for (int i = 0; i < ConcourseThriftDriver.MAX_MESSAGE_SIZE; ++i) {
+                value += Random.getSimpleString();
+            }
+            long record = concourse.add("test", value);
+            try {
+                concourse.get("test", record);
+                Assert.fail(); // Expected MaxMessageSize exception
+            }
+            catch (Exception e) {}
+            Assert.assertTrue(concourse.failed());
+            Assert.assertEquals(0, pool.available.size()); // no other
+                                                           // connections
+                                                           // available
+            pool.release(concourse);
+            Assert.assertEquals(1, pool.available.size()); // connection is
+                                                           // available, so next
+                                                           // request should
+                                                           // return something
+            Concourse concourse2 = pool.request();
+            Assert.assertNotSame(concourse, concourse2);
+            Assert.assertFalse(concourse2.failed());
+            pool.release(concourse2);
+        }
+        finally {
+            pool.forceClose();
+            ConcourseThriftDriver.MAX_MESSAGE_SIZE = priorMaxMessageSize;
+        }
+    }
+
     /**
      * Return a {@link com.cinchapi.concourse.ConnectionPool} to use in a unit
      * test.
@@ -203,12 +268,28 @@ public abstract class ConnectionPoolTest extends ConcourseIntegrationTest {
 
     /**
      * Return a {@link com.cinchapi.concourse.ConnectionPool} connected to
-     * {@code env} to use in a
-     * unit test.
+     * {@code env} to use in a unit test.
      *
      * @param env
      * @return the ConnectionPool
      */
     protected abstract ConnectionPool getConnectionPool(String env);
+
+    /**
+     * Return a {@link ConnectionPool} to use in a unit test.
+     * 
+     * @param concourse
+     * @return the {@link ConnectionPool}
+     */
+    protected abstract ConnectionPool getConnectionPool(Concourse concourse);
+
+    /**
+     * Return a {@link ConnectionPool} to use in a unit test that has
+     * {@code size} connections available.
+     * 
+     * @param size
+     * @return the {@link ConnectionPool}
+     */
+    protected abstract ConnectionPool getConnectionPool(int size);
 
 }

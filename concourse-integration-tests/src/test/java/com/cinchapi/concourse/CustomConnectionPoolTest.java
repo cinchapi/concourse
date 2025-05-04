@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,16 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
         /**
          * Construct a new instance.
          * 
+         * @param concourse
+         * @param poolSize
+         */
+        public CustomConnectionPool(Concourse concourse, int poolSize) {
+            super(concourse, poolSize);
+        }
+
+        /**
+         * Construct a new instance.
+         * 
          * @param host
          * @param port
          * @param username
@@ -112,6 +122,17 @@ public class CustomConnectionPoolTest extends ConnectionPoolTest {
             return available.poll();
         }
 
+    }
+
+    @Override
+    protected ConnectionPool getConnectionPool(Concourse concourse) {
+        return new CustomConnectionPool(concourse, 10);
+    }
+
+    @Override
+    protected ConnectionPool getConnectionPool(int size) {
+        return new CustomConnectionPool(SERVER_HOST, SERVER_PORT, USERNAME,
+                PASSWORD, size);
     }
 
 }

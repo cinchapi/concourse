@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,15 @@ package com.cinchapi.concourse.server.storage;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import com.cinchapi.concourse.annotate.DoNotInvoke;
+import com.cinchapi.concourse.server.concurrent.Locks;
 import com.cinchapi.concourse.server.storage.temp.Write;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
+import com.cinchapi.concourse.util.Convert;
 
 /**
  * <p>
@@ -43,6 +46,40 @@ import com.cinchapi.concourse.thrift.TObject.Aliases;
  * @author Jeff Nelson
  */
 public interface Store {
+
+    /**
+     * Return an advisory lock that can be used to coordinate access to this
+     * {@link Store}.
+     * <p>
+     * An advisory lock is a synchronization mechanism that relies on
+     * cooperative behavior among threads or processes. Unlike mandatory locks,
+     * advisory locks don't automatically prevent access to a resource and only
+     * work if all parties check and respect the lock.
+     * </p>
+     * <p>
+     * For higher-level abstractions that use this {@link Store Store's}
+     * primitives in an atomic or bulk operation, this lock can be used to
+     * signal to the {@link Store} that it should, if possible, block other
+     * potentially conflicting operations to reduce contention and improve
+     * performance of the higher level operation.
+     * </p>
+     * <p>
+     * By the nature of being "advisory", the {@link Store} implementation may
+     * not actually provide the desired protection. External callers shouldn't
+     * rely exclusively on this lock for correctness and must account for the
+     * possibility that the lock provides no actual coordination.
+     * </p>
+     * <p>
+     * The default implementation returns a no-op lock that doesn't provide any
+     * protection. Subclasses should override this method if they can provide
+     * meaningful advisory locking.
+     * </p>
+     * 
+     * @return a {@link ReadWriteLock} that can be used for advisory locking
+     */
+    public default ReadWriteLock advisoryLock() {
+        return Locks.noOpReadWriteLock();
+    }
 
     /**
      * Browse {@code key}.
@@ -412,6 +449,22 @@ public interface Store {
      *         search
      */
     public Set<Long> search(String key, String query);
+
+    /**
+     * Search {@code key} for {@code query}.
+     * <p>
+     * This method performs a fulltext search for {@code query} in all data
+     * <em>currently</em> mapped from {@code key}.
+     * </p>
+     * 
+     * @param key
+     * @param query
+     * @return the Set of primary keys identifying the records matching the
+     *         search
+     */
+    public default Set<Long> search(String key, TObject query) {
+        return search(key, Convert.thriftToJava(query).toString());
+    }
 
     /**
      * Browse {@code record}.

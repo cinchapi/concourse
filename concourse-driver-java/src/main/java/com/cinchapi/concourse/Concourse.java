@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -5126,12 +5126,19 @@ public abstract class Concourse implements AutoCloseable {
     /**
      * Test the connection to the server.
      * <p>
-     * Check if this client is still connected to the server by sending an echo
-     * request and awaiting a response. This can be used to ensure subsequent
-     * communication with the server is possible. If the connection is broken,
-     * it will be necessary to establish a new connection.
+     * Check if the server is responsive by sending an echo request and awaiting
+     * a response. This request is designed to simply test the connection and
+     * potentially measure latency without incurring any additional overhead for
+     * data processing or availability.
+     * <p>
+     * If this method returns {@code false} it could mean that this client was
+     * somehow disconnected, and establishing a new connection would allow for
+     * subsequent communication. Or, it can mean that the server is down.
+     * Callers are advised to attempt multiple {@link #ping() pings} across
+     * different connections before concluding that the server is down.
+     * </p>
      * 
-     * @return boolean - {@code true} if the connection is still alive
+     * @return boolean - {@code true} if the server is responsive to this client
      */
     public abstract boolean ping();
 
@@ -7721,6 +7728,17 @@ public abstract class Concourse implements AutoCloseable {
             long record, Object replacement);
 
     /**
+     * Return {@code true} if this client is known to be in a non-transient
+     * failed state where the server is still operational for other clients, but
+     * this one cannot further interact.
+     * 
+     * @return {@code true} if this client has failed
+     */
+    boolean failed() {
+        return false;
+    }
+
+    /**
      * Atomically verify that {@code key} equals {@code expected} in
      * {@code record} or set it as such.
      * <p>
@@ -7838,4 +7856,5 @@ public abstract class Concourse implements AutoCloseable {
         }
 
     }
+
 }

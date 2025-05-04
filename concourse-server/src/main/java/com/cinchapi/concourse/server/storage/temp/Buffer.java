@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,24 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
 
 import javax.annotation.Nullable;
@@ -54,8 +59,6 @@ import com.cinchapi.concourse.collect.CloseableIterator;
 import com.cinchapi.concourse.collect.Iterators;
 import com.cinchapi.concourse.server.GlobalState;
 import com.cinchapi.concourse.server.concurrent.AwaitableExecutorService;
-import com.cinchapi.concourse.server.concurrent.Locks;
-import com.cinchapi.concourse.server.concurrent.PriorityReadWriteLock;
 import com.cinchapi.concourse.server.io.ByteableCollections;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.model.Identifier;
@@ -68,6 +71,8 @@ import com.cinchapi.concourse.server.storage.Engine;
 import com.cinchapi.concourse.server.storage.Inventory;
 import com.cinchapi.concourse.server.storage.cache.BloomFilter;
 import com.cinchapi.concourse.server.storage.db.Database;
+import com.cinchapi.concourse.server.storage.transporter.Batch;
+import com.cinchapi.concourse.server.storage.transporter.BatchTransportable;
 import com.cinchapi.concourse.thrift.Operator;
 import com.cinchapi.concourse.thrift.TObject;
 import com.cinchapi.concourse.thrift.TObject.Aliases;
@@ -78,14 +83,10 @@ import com.cinchapi.concourse.util.Integers;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MultimapViews;
 import com.cinchapi.concourse.util.NaturalSorter;
-import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.ThreadFactories;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * A {@code Buffer} is a special implementation of {@link Limbo} that aims to
@@ -101,7 +102,7 @@ import com.google.common.collect.Sets;
  * @author Jeff Nelson
  */
 @ThreadSafe
-public final class Buffer extends Limbo {
+public final class Buffer extends Limbo implements BatchTransportable {
 
     /**
      * The average number of bytes used to store an arbitrary Write.
@@ -124,21 +125,6 @@ public final class Buffer extends Limbo {
                     ThreadFactories.namingDaemonThreadFactory("buffer-global"));
 
     /**
-     * Don't let the transport rate exceed this value.
-     */
-    private static int MAX_TRANSPORT_RATE = 8192;
-
-    /**
-     * The maximum number of milliseconds to sleep between transport cycles.
-     */
-    private static final int MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 100;
-
-    /**
-     * The minimum number of milliseconds to sleep between transport cycles.
-     */
-    private static final int MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS = 5;
-
-    /**
      * The number of slots to put in each Page's bloom filter. We want this
      * small enough to have few hash functions, but large enough so that the
      * bloom filter does not become saturated.
@@ -152,12 +138,6 @@ public final class Buffer extends Limbo {
      */
     @VisibleForTesting
     protected Collection<WriteEvent> eventLog = GlobalState.BINARY_QUEUE;
-
-    /**
-     * The multiplier that is used when increasing the rate of transport.
-     */
-    @VisibleForTesting
-    protected int transportRateMultiplier = 2;
 
     /**
      * A pointer to the current Page.
@@ -183,16 +163,6 @@ public final class Buffer extends Limbo {
      * A runnable that flushes the inventory to disk.
      */
     private Runnable inventorySync = () -> inventory.sync();
-
-    /**
-     * The number of verifies initiated.
-     */
-    private AtomicLong numVerifyRequests;
-
-    /**
-     * The number of verifies scanning the buffer.
-     */
-    private AtomicLong numVerifyScans;
 
     /**
      * The sequence of Pages that make up the Buffer.
@@ -221,7 +191,7 @@ public final class Buffer extends Limbo {
         /**
          * The wrapped list that actually stores the data.
          */
-        private final List<Page> delegate = Lists.newArrayList();
+        private final List<Page> delegate = new ArrayList<>();
 
         @Override
         public void add(int index, Page element) {
@@ -319,13 +289,6 @@ public final class Buffer extends Limbo {
     private String threadNamePrefix;
 
     /**
-     * We keep track of the time when the last transport occurred so that the
-     * Engine can determine if it should avoid busy waiting in the
-     * BufferTransportThread.
-     */
-    private AtomicLong timeOfLastTransport = new AtomicLong(Time.now());
-
-    /**
      * A monitor that is used to make a thread block while waiting for the
      * Buffer to become transportable. The {@link #waitUntilTransportable()}
      * waits for this monitor and the {@link #insert(Write)} method notifies the
@@ -335,23 +298,37 @@ public final class Buffer extends Limbo {
     private final Object transportable = new Object();
 
     /**
-     * The number of items to transport to the Database per attempt. There is a
-     * tension between transporting and reading data (e.g. reads cannot happen
-     * while a transport occurs and vice versa). Transports are most efficient
-     * when they can batch up the amount of work per cycle, but that would be
-     * reads are blocked longer. So this variable indicates how many items
-     * should be transported in a single cycle. Each time a transport happens,
-     * this value will increase, but it will be decreased whenever a read
-     * occurs. This allows us to be more aggressive with transports when there
-     * are no reads happening, and also allows us to scale back transports when
-     * reads do occur.
+     * A monitor that is used to make a reader thread block on a Page while
+     * waiting for a writer (e.g., appender or transporter) to finish.
      */
-    private int transportRate = 1;
+    private final Object readable = new Object();
 
     /**
-     * The number of milliseconds to sleep between transport cycles.
+     * A counter that tracks the total number of {@link Batch batches} that have
+     * been {@link #queueTransportBatch(Page) queued} for transport.
+     * <p>
+     * Each {@link Batch} is assigned a value from this counter as it's
+     * {@link Batch#ordinal()} to ensure that batches are processed in the
+     * correct chronological order, even when multiple transport threads are
+     * running concurrently.
+     * </p>
      */
-    private int transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
+    private final AtomicInteger batchCount = new AtomicInteger(0);
+
+    /**
+     * A queue of {@link Batch batches} that are ready for
+     * {@link com.cinchapi.concourse.server.storage.transporter.Transporter
+     * transport} to the database. Each {@link Batch batch} contains
+     * {@link Write writes} from a {@link Page} that is full and no longer
+     * {@link Page#isMutable() accepting} data.
+     */
+    private BlockingQueue<Batch> batches = new LinkedBlockingQueue<Batch>();
+
+    /**
+     * A collection of listeners that are notified whenever a reader scans the
+     * {@link Buffer}.
+     */
+    private final Collection<Runnable> scanEventListeners = new ArrayList<>();
 
     /**
      * Construct a Buffer that is backed by the default location, which is
@@ -381,8 +358,6 @@ public final class Buffer extends Limbo {
                                                  // there is no call to
                                                  // #setInventory
         this.threadNamePrefix = "buffer-" + System.identityHashCode(this);
-        this.numVerifyRequests = new AtomicLong(0);
-        this.numVerifyScans = new AtomicLong(0);
     }
 
     @Override
@@ -392,20 +367,22 @@ public final class Buffer extends Limbo {
         try {
             while (it.hasNext()) {
                 Write write = it.next();
-                Set<Long> records = context.get(write.getValue().getTObject());
-                if(records == null) {
-                    records = Sets.newLinkedHashSet();
-                    context.put(write.getValue().getTObject(), records);
+                TObject value = write.getValue().getTObject();
+                long record = write.getRecord().longValue();
+                Action action = write.getType();
+                Set<Long> records = context.computeIfAbsent(value,
+                        $ -> new LinkedHashSet<>());
+                if(action == Action.ADD) {
+                    records.add(record);
                 }
-                if(write.getType() == Action.ADD) {
-                    records.add(write.getRecord().longValue());
-                }
-                else {
-                    records.remove(write.getRecord().longValue());
+                else if(action == Action.REMOVE) {
+                    records.remove(record);
+                    if(records.isEmpty()) {
+                        context.remove(value);
+                    }
                 }
             }
-            return Maps.newTreeMap(Maps.filterValues(
-                    (SortedMap<TObject, Set<Long>>) context, emptySetFilter));
+            return context;
         }
         finally {
             Iterators.close(it);
@@ -416,7 +393,7 @@ public final class Buffer extends Limbo {
     public Map<Long, Set<TObject>> chronologize(String key, long record,
             long start, long end, Map<Long, Set<TObject>> context) {
         Set<TObject> snapshot = Iterables.getLast(context.values(),
-                Sets.<TObject> newLinkedHashSet());
+                new LinkedHashSet<>());
         if(snapshot.isEmpty() && !context.isEmpty()) {
             // CON-474: Empty set is placed in the context if it was the last
             // snapshot known to the database
@@ -427,24 +404,24 @@ public final class Buffer extends Limbo {
             while (it.hasNext()) {
                 Write write = it.next();
                 long timestamp = write.getVersion();
-                Text $key = write.getKey();
-                long $record = write.getRecord().longValue();
                 Action action = write.getType();
-                if($key.toString().equals(key) && $record == record) {
-                    snapshot = Sets.newLinkedHashSet(snapshot);
-                    Value value = write.getValue();
-                    if(action == Action.ADD) {
-                        snapshot.add(value.getTObject());
-                    }
-                    else if(action == Action.REMOVE) {
-                        snapshot.remove(value.getTObject());
-                    }
-                    if(timestamp >= start) {
-                        context.put(timestamp, snapshot);
-                    }
+                snapshot = new LinkedHashSet<>(snapshot);
+                TObject value = write.getValue().getTObject();
+                if(action == Action.ADD) {
+                    snapshot.add(value);
+                }
+                else if(action == Action.REMOVE) {
+                    snapshot.remove(value);
+                }
+                if(timestamp >= start) {
+                    context.put(timestamp, snapshot);
                 }
             }
-            return Maps.filterValues(context, emptySetFilter);
+            // NOTE: Empty snapshots couldn't be removed while processing
+            // because that state needed to be preserved to calculate subsequent
+            // diffs.
+            context.values().removeIf(v -> v.isEmpty());
+            return context;
         }
         finally {
             Iterators.close(it);
@@ -463,23 +440,22 @@ public final class Buffer extends Limbo {
         try {
             while (it.hasNext()) {
                 Write write = it.next();
-                Set<TObject> values;
-                values = context.get(write.getKey().toString());
-                if(values == null) {
-                    values = Sets.newHashSet();
-                    context.put(write.getKey().toString(), values);
+                String key = write.getKey().toString();
+                Action action = write.getType();
+                TObject value = write.getValue().getTObject();
+                Set<TObject> values = context.computeIfAbsent(key,
+                        $ -> new HashSet<>());
+                if(action == Action.ADD) {
+                    values.add(value);
                 }
-                if(write.getType() == Action.ADD) {
-                    values.add(write.getValue().getTObject());
-                }
-                else {
-                    values.remove(write.getValue().getTObject());
+                else if(action == Action.REMOVE) {
+                    values.remove(value);
+                    if(values.isEmpty()) {
+                        context.remove(key);
+                    }
                 }
             }
-            return Maps
-                    .newLinkedHashMap(
-                            Maps.filterValues(context, emptySetFilter))
-                    .keySet();
+            return context.keySet();
         }
         finally {
             Iterators.close(it);
@@ -521,7 +497,7 @@ public final class Buffer extends Limbo {
                     }
                 }
             }
-            return TMaps.asSortedMap(context);
+            return context;
         }
         finally {
             Iterators.close(it);
@@ -545,21 +521,6 @@ public final class Buffer extends Limbo {
     }
 
     @Override
-    public int getDesiredTransportSleepTimeInMs() {
-        return transportThreadSleepTimeInMs;
-    }
-
-    /**
-     * Return the timestamp of the most recent data transport from the Buffer.
-     * 
-     * @return the time of last transport
-     */
-    @Restricted
-    public long getTimeOfLastTransport() {
-        return timeOfLastTransport.get();
-    }
-
-    @Override
     public boolean insert(Write write, boolean sync) {
         structure.lock();
         try {
@@ -567,7 +528,7 @@ public final class Buffer extends Limbo {
             currentPage.append(write, sync);
             if(notify) {
                 synchronized (transportable) {
-                    transportable.notify();
+                    transportable.notifyAll();
                 }
             }
             return true;
@@ -591,6 +552,49 @@ public final class Buffer extends Limbo {
     @Override
     public Iterator<Write> iterator() {
         return new AllSeekingIterator(Time.NONE);
+    }
+
+    /**
+     * Retrieve the next {@link Batch batch} of {@link Write writes} that is
+     * ready to be transported, waiting, if necessary, until one becomes
+     * available.
+     *
+     * @return the next batch to transport
+     * @throws InterruptedException if the thread is interrupted while waiting
+     */
+    @Override
+    public Batch nextBatch() throws InterruptedException {
+        return batches.take();
+    }
+
+    /**
+     * Register a {@code listener} to be notified whenever a reader scans the
+     * {@link Buffer}.
+     * <p>
+     * Writes never scan the {@link Buffer}, but most reads do. So this method
+     * can be used to get insight on when and how often reads/scans are
+     * happening and react accordingly.
+     * </p>
+     * <p>
+     * <strong>NOTE:</strong> Scan notifications are meant to be as unobtrusive
+     * as possible, so it isn't possible to get insight into the specific
+     * request that triggered a scan AND the notification of a scan may arrive
+     * at some time after the scan actually occurred.
+     * </p>
+     *
+     * @param listener
+     */
+    public void onScan(Runnable listener) {
+        scanEventListeners.add(listener);
+    }
+
+    @Override
+    public void purge(Batch batch) {
+        // The merge of a transported Pages is guaranteed to follow the order
+        // that the Pages appeared in the Buffer (even if multiple threads are
+        // participating in the transport process). Therefore, we can always
+        // remove the first page of the Buffer when instructed to purge.
+        removePage();
     }
 
     @Override
@@ -634,21 +638,22 @@ public final class Buffer extends Limbo {
         try {
             while (it.hasNext()) {
                 Write write = it.next();
-                Set<TObject> values;
-                values = context.get(write.getKey().toString());
-                if(values == null) {
-                    values = Sets.newLinkedHashSet();
-                    context.put(write.getKey().toString(), values);
+                String key = write.getKey().toString();
+                TObject value = write.getValue().getTObject();
+                Action action = write.getType();
+                Set<TObject> values = context.computeIfAbsent(key,
+                        $ -> new LinkedHashSet<>());
+                if(action == Action.ADD) {
+                    values.add(value);
                 }
-                if(write.getType() == Action.ADD) {
-                    values.add(write.getValue().getTObject());
-                }
-                else {
-                    values.remove(write.getValue().getTObject());
+                else if(action == Action.REMOVE) {
+                    values.remove(value);
+                    if(values.isEmpty()) {
+                        context.remove(key);
+                    }
                 }
             }
-            return Maps.newTreeMap(Maps.filterValues(
-                    (SortedMap<String, Set<TObject>>) context, emptySetFilter));
+            return context;
         }
         finally {
             Iterators.close(it);
@@ -724,11 +729,20 @@ public final class Buffer extends Limbo {
         if(!running) {
             running = true;
             Logger.info("Buffer configured to store data in {}", directory);
+
+            // Reset state (in case the same instance was previously started and
+            // stopped)
+            pages.clear();
+            currentPage = null;
+            batches.clear();
+            batchCount.set(0);
             syncer = new AwaitableExecutorService(
                     Executors.newCachedThreadPool(ThreadFactories
                             .namingThreadFactory(threadNamePrefix + "-%d")));
-            SortedMap<File, Page> pageSorter = Maps
-                    .newTreeMap(NaturalSorter.INSTANCE);
+
+            // Load existing Buffer pages from disk
+            SortedMap<File, Page> pageSorter = new TreeMap<>(
+                    NaturalSorter.INSTANCE);
             for (File file : new File(directory).listFiles()) {
                 if(!file.isDirectory()) {
                     Page page = new Page(file.getAbsolutePath());
@@ -736,13 +750,25 @@ public final class Buffer extends Limbo {
                     Logger.info("Loading Buffer content from {}...", page);
                 }
             }
-            pages.clear();
-            pages.addAll(pageSorter.values());
-            if(pages.isEmpty()) {
+
+            // Setup shortcuts in memory to facilitate writes and transports
+            Iterator<Page> it = pageSorter.values().iterator();
+            if(!it.hasNext()) {
                 addPage(false);
             }
             else {
-                currentPage = pages.get(pages.size() - 1);
+                while (it.hasNext()) {
+                    Page page = it.next();
+                    pages.add(page);
+                    if(!it.hasNext()) {
+                        // Set the most recently added Page as the currentPage
+                        // in case it has capacity for more Writes
+                        currentPage = page;
+                    }
+                    else {
+                        queueTransportBatch(page);
+                    }
+                }
             }
         }
     }
@@ -755,6 +781,7 @@ public final class Buffer extends Limbo {
                 transportable.notifyAll(); // notify to allow any waiting
                                            // threads to terminate
             }
+            batches.clear();
         }
         syncer.shutdown();
     }
@@ -789,41 +816,61 @@ public final class Buffer extends Limbo {
     public void transport(DurableStore destination, boolean sync) {
         // NOTE: The #sync parameter is ignored because the Database does not
         // support allowing the Buffer to control when syncs happen.
+        transport(1, destination);
+    }
+
+    /**
+     * Attempt to transport <strong>up to</strong> {@count} {@link Write Writes}
+     * to the {@code destination} and return {@code true} if any are
+     * successfully transported.
+     * <p>
+     * If this method returns {@code true} it is guaranteed that the
+     * {@link Buffer Buffer's} state has changed, but not necessarily that all
+     * {@code count} {@link Write writes} have been transported. Therefore, the
+     * {@code count} parameter is best used as a lever to control the max
+     * transport rate to balance resource contention among readers and writers
+     * throughout the system.
+     * </p>
+     * 
+     * @param count
+     * @param destination
+     * @return {@code true} if at least one {@link Write write} has been
+     *         transported to the {@code destination}
+     */
+    public boolean transport(int count, DurableStore destination) {
+        Preconditions.checkArgument(count > 0,
+                "The count parameter must be greater than 0");
         if(pages.size() > 1) {
             Page page = pages.get(0);
-            if(!page.transportLock.writeLock().isHeldByCurrentThread()
-                    && page.transportLock.writeLock().tryLock()) {
+            long stamp;
+            if((stamp = page.lock.tryWriteLock()) != 0) {
                 try {
-                    for (int i = 0; i < transportRate; ++i) {
+                    for (int i = 0; i < count; ++i) {
                         if(page.hasNext()) {
                             destination.accept(page.next());
                             page.remove();
                         }
                         else {
                             ((Database) destination).sync();
-                            removePage();
+                            removePage(stamp);
                             break;
                         }
                     }
-                    timeOfLastTransport.set(Time.now());
-                    transportRate = transportRate >= MAX_TRANSPORT_RATE
-                            ? MAX_TRANSPORT_RATE
-                            : (transportRate * transportRateMultiplier);
-                    --transportThreadSleepTimeInMs;
-                    if(transportThreadSleepTimeInMs < MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS) {
-                        transportThreadSleepTimeInMs = MIN_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
-                    }
+                    return true;
                 }
                 finally {
-                    page.transportLock.writeLock().unlock();
+                    page.lock.unlockWrite(stamp);
+                    synchronized (readable) {
+                        readable.notifyAll();
+                    }
                 }
             }
         }
+        return false;
     }
 
     @Override
     public boolean verify(Write write, long timestamp) {
-        numVerifyRequests.incrementAndGet();
         boolean exists = false;
         Iterator<Write> it = iterator(write, timestamp);
         try {
@@ -852,75 +899,14 @@ public final class Buffer extends Limbo {
     public void waitUntilTransportable() {
         if(pages.size() <= 1) {
             synchronized (transportable) {
-                try {
-                    transportable.wait();
+                while (pages.size() <= 1) {
+                    try {
+                        transportable.wait();
+                    }
+                    catch (InterruptedException e) {/* ignore */}
                 }
-                catch (InterruptedException e) {/* ignore */}
             }
         }
-    }
-
-    /**
-     * Add a new Page to the Buffer.
-     */
-    private void addPage() {
-        addPage(true);
-    }
-
-    /**
-     * Add a new Page to the Buffer and optionally perform a {@code sync}.
-     * 
-     * @param sync - a flag that determines whether the {@link #sync()} method
-     *            should be called to durably persist the current page to disk.
-     *            This should only be false when called from the
-     *            {@link #start()} method.
-     */
-    private void addPage(boolean sync) {
-        structure.lock();
-        try {
-            if(sync) {
-                sync();
-            }
-            currentPage = new Page(BUFFER_PAGE_SIZE);
-            pages.add(currentPage);
-            Logger.debug("Added page {} to Buffer", currentPage);
-        }
-        finally {
-            structure.unlock();
-        }
-    }
-
-    /**
-     * Determines the percentage within range [0, 1] of verifies that scan
-     * the buffer.
-     * 
-     * @return: decimal percentage of verifies initiated that scanned the
-     *          buffer.
-     */
-    @SuppressWarnings("unused")
-    private float getPercentVerifyScans() { // to be used for CON-236
-        return ((float) numVerifyScans.get()) / numVerifyRequests.get();
-    }
-
-    /**
-     * Remove the first page in the Buffer.
-     */
-    private void removePage() {
-        structure.lock();
-        try {
-            pages.remove(0).delete();
-        }
-        finally {
-            structure.unlock();
-        }
-    }
-
-    /**
-     * Scale back the number of items that are transported in a single cycle.
-     */
-    private void scaleBackTransportRate() {
-        transportRate = 1;
-        transportThreadSleepTimeInMs = MAX_TRANSPORT_THREAD_SLEEP_TIME_IN_MS;
     }
 
     /**
@@ -1031,6 +1017,120 @@ public final class Buffer extends Limbo {
     }
 
     /**
+     * Add a new Page to the Buffer.
+     */
+    private void addPage() {
+        addPage(true);
+    }
+
+    /**
+     * Add a new Page to the Buffer and optionally perform a {@code sync}.
+     * 
+     * @param sync - a flag that determines whether the {@link #sync()} method
+     *            should be called to durably persist the current page to disk.
+     *            This should only be false when called from the
+     *            {@link #start()} method.
+     */
+    private void addPage(boolean sync) {
+        structure.lock();
+        try {
+            if(sync) {
+                sync();
+            }
+            Page previousPage = currentPage;
+            currentPage = new Page(BUFFER_PAGE_SIZE);
+            pages.add(currentPage);
+            if(previousPage != null) {
+                queueTransportBatch(previousPage);
+            }
+            Logger.debug("Added page {} to Buffer", currentPage);
+        }
+        finally {
+            structure.unlock();
+        }
+    }
+
+    /**
+     * Broadcast that the {@link Buffer} has been scanned.
+     */
+    private void broadcastScanEvent() {
+        if(!GlobalState.ENABLE_BATCH_TRANSPORTS) {
+            // By convention, StreamingTransporter is the only one that
+            // listens for scale back events, so don't waste cycles sending
+            // notifications if it isn't necessary.
+            for (Runnable listener : scanEventListeners) {
+                ForkJoinPool.commonPool().execute(listener);
+            }
+        }
+    }
+
+    /**
+     * Queue a page for batch transport processing.
+     * <p>
+     * When batch transport is enabled, this method adds the page to a queue
+     * where it will be processed by the {@link BatchTransporter}. Each page
+     * is assigned a sequential batch number to ensure pages are transported
+     * in chronological order, even when multiple transport threads are running
+     * concurrently.
+     * </p>
+     * <p>
+     * This method should only be called for pages that are not the current
+     * page (i.e., pages that are no longer accepting new writes).
+     * </p>
+     * 
+     * @param page the page to queue for batch transport
+     * @throws IllegalArgumentException if the current page is passed
+     */
+    private void queueTransportBatch(Page page) {
+        if(GlobalState.ENABLE_BATCH_TRANSPORTS) {
+            if(page != currentPage) {
+                Batch batch = new Batch(page.filename, page.writes,
+                        batchCount.getAndIncrement());
+                batches.add(batch);
+                Logger.info("Queuing Buffer page {} for transport", page);
+            }
+            else {
+                throw new IllegalArgumentException(
+                        "The current page cannot be transported");
+            }
+        }
+    }
+
+    /**
+     * Remove the first {@link Page} of the {@link Buffer}.
+     */
+    private void removePage() {
+        structure.lock();
+        try {
+            Preconditions.checkState(pages.size() > 1,
+                    "The current Buffer page cannot be removed");
+            pages.remove(0).delete();
+        }
+        finally {
+            structure.unlock();
+        }
+    }
+
+    /**
+     * Remove the first {@link Page} of the {@link Buffer} as part of a
+     * processed that has already grabbed that {@link Page Page's}
+     * {@link Page#lock lock}.
+     * 
+     * @param stamp
+     */
+    private void removePage(long stamp) {
+        structure.lock();
+        try {
+            Preconditions.checkState(pages.size() > 1,
+                    "The current Buffer page cannot be removed");
+            pages.remove(0).delete(stamp);
+        }
+        finally {
+            structure.unlock();
+        }
+    }
+
+    /**
      * A {@link SeekingIterator} for all the writes in the buffer.
      * 
      * @author Jeff Nelson
@@ -1048,6 +1148,14 @@ public final class Buffer extends Limbo {
         }
 
         @Override
+        protected void finalize() throws Throwable {
+            // TODO: Replace with Cleaner in Java 9+
+            // (https://docs.oracle.com/javase/9/docs/api/java/lang/ref/Cleaner.html)
+            super.finalize();
+            close();
+        }
+
+        @Override
         protected boolean isRelevantWrite(Write write) {
             return true;
         }
@@ -1055,14 +1163,6 @@ public final class Buffer extends Limbo {
         @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
             return true;
-        }
-
-        @Override
-        protected void finalize() throws Throwable {
-            // TODO: Replace with Cleaner in Java 9+
-            // (https://docs.oracle.com/javase/9/docs/api/java/lang/ref/Cleaner.html)
-            super.finalize();
-            close();
         }
 
     }
@@ -1155,7 +1255,23 @@ public final class Buffer extends Limbo {
      * 
      * @author Jeff Nelson
      */
-    private class Page implements Iterator<Write>, Iterable<Write> {
+    private class Page implements Iterable<Write> {
+
+        /*
+         * Thread-safety & Locking policy
+         *
+         * - #head and #size are modified only while the Page’s write-lock is
+         * held, which is grabbed for #append() and #transport()
+         * - All reads processed via a SeekingIterator hold the read-lock.
+         * - The private #hasNext(), #next() and #remove() methods are called
+         * only from #transport(...) while that write-lock is still held, so
+         * they need no extra synchronization.
+         *
+         * Invariants:
+         *
+         * 0 ≤ head ≤ size ≤ writes.length
+         * writes[i] is fully initialized for i ∈ [head, size)
+         */
 
         // NOTE: This class does not define hashCode() and equals() because the
         // defaults are the desired behaviour.
@@ -1166,12 +1282,19 @@ public final class Buffer extends Limbo {
         private static final String ext = ".buf";
 
         /**
-         * The local lock for read/write access on the page. This is only used
-         * when this page is equal to the {@link #currentPage}. In that case,
-         * this lock is grabbed before any access is allowed on the page, so
-         * subsequent structures that are used need not be thread safe.
+         * Controls read/write access to this {@link Page}. By locking
+         * individual pages, the {@link Buffer} can manage concurrency
+         * at a granular level:
+         * <ul>
+         * <li>Concurrent readers and writers that are operating on different
+         * pages</li>
+         * <li>Concurrent transports and readers that are operating on different
+         * pages</li>
+         * <li>Concurrent transports and writers that are operating on different
+         * pages</li>
+         * </ul>
          */
-        private transient StampedLock accessLock = new StampedLock();
+        private transient StampedLock lock = new StampedLock();
 
         /**
          * The append-only buffer that contains the content of the backing file.
@@ -1220,14 +1343,6 @@ public final class Buffer extends Limbo {
          * The upper bound on the number of writes that this page can hold.
          */
         private final transient int sizeUpperBound;
-
-        /**
-         * The transportLock makes it possible to append new Writes and
-         * transport old writes concurrently while prohibiting reading the Page
-         * and transporting writes at the same time.
-         */
-        private final transient ReentrantReadWriteLock transportLock = PriorityReadWriteLock
-                .prioritizeReads();
 
         /**
          * A bloom filter like cache that is used to help determine if it
@@ -1313,9 +1428,9 @@ public final class Buffer extends Limbo {
          *             remaining capacity of {@link #content}
          */
         public void append(Write write, boolean sync) throws CapacityException {
-            Preconditions.checkState(this == currentPage, "Illegal attempt to "
+            Preconditions.checkState(isMutable(), "Illegal attempt to "
                     + "append a Write to an inactive Page");
-            long stamp = accessLock.writeLock();
+            long stamp = lock.writeLock();
             try {
                 if(content.remaining() >= write.size() + 4) {
                     appendUnsafe(write, sync); /* (authorized) */
@@ -1333,7 +1448,10 @@ public final class Buffer extends Limbo {
                 }
             }
             finally {
-                accessLock.unlockWrite(stamp);
+                lock.unlockWrite(stamp);
+                synchronized (readable) {
+                    readable.notifyAll();
+                }
             }
         }
 
@@ -1342,9 +1460,18 @@ public final class Buffer extends Limbo {
          * until garbage collection.
          */
         public void delete() {
-            FileSystem.deleteFile(filename);
-            FileSystem.unmap(content); // CON-163 (authorized)
-            Logger.info("Deleting Buffer page {}", filename);
+            Preconditions.checkState(!isMutable(),
+                    "The current Page cannot be deleted");
+            long stamp = lock.writeLock();
+            try {
+                delete0();
+            }
+            finally {
+                lock.unlockWrite(stamp);
+                synchronized (readable) {
+                    readable.notifyAll();
+                }
+            }
         }
 
         /**
@@ -1360,26 +1487,6 @@ public final class Buffer extends Limbo {
             // timestamp
             return oldestWrite == null ? Long.MAX_VALUE
                     : oldestWrite.getVersion();
-        }
-
-        /**
-         * Returns {@code true} if {@link #head} is smaller than the largest
-         * occupied index in {@link #writes}. This means that it is possible for
-         * calls to this method to initially return {@code false} at t0, but
-         * eventually return {@code true} at t1 if an element is added to the
-         * Page between t0 and t1.
-         */
-        @Override
-        public boolean hasNext() {
-            long stamp = Locks.stampLockReadIfCondition(accessLock,
-                    this == currentPage);
-            try {
-                return head < size;
-            }
-            finally {
-                Locks.stampUnlockReadIfCondition(accessLock, stamp,
-                        this == currentPage);
-            }
         }
 
         /**
@@ -1522,48 +1629,40 @@ public final class Buffer extends Limbo {
             }
         }
 
-        /**
-         * Returns the Write at index {@link #head} in {@link #writes}.
-         * <p>
-         * <strong>NOTE:</strong>
-         * <em>This method will return the same element on multiple
-         * invocations until {@link #remove()} is called.</em>
-         * </p>
-         */
-        @Override
-        public Write next() {
-            long stamp = Locks.stampLockReadIfCondition(accessLock,
-                    this == currentPage);
-            try {
-                return writes[head];
-            }
-            finally {
-                Locks.stampUnlockReadIfCondition(accessLock, stamp,
-                        this == currentPage);
-            }
-        }
-
-        /**
-         * Simulates the removal of the head Write from the Page. This method
-         * only updates the {@link #head} and {@link #pos} metadata and does not
-         * actually delete any data, which is a performance optimization.
-         */
-        @Override
-        public void remove() {
-            long stamp = Locks.stampLockWriteIfCondition(accessLock,
-                    this == currentPage);
-            try {
-                ++head;
-            }
-            finally {
-                Locks.stampUnlockWriteIfCondition(accessLock, stamp,
-                        this == currentPage);
-            }
-        }
-
         @Override
         public String toString() {
             return filename;
+        }
+
+        /**
+         * Dump the contents of this page.
+         * 
+         * @return the dump string
+         */
+        protected String dump() {
+            long stamp = lock.readLock();
+            try {
+                StringBuilder sb = new StringBuilder();
+                sb.append("Dump for " + getClass().getSimpleName() + " "
+                        + filename);
+                sb.append("\n");
+                sb.append("------");
+                sb.append("\n");
+                for (Write write : writes) {
+                    if(write == null) {
+                        break;
+                    }
+                    else {
+                        sb.append(write);
+                        sb.append("\n");
+                    }
+                }
+                sb.append("\n");
+                return sb.toString();
+            }
+            finally {
+                lock.unlockRead(stamp);
+            }
         }
 
         /**
@@ -1604,6 +1703,46 @@ public final class Buffer extends Limbo {
         }
 
         /**
+         * Delete the {@link Page} from disk, as part of a process that has
+         * already grabbed the {@link Page page's} write {@link Page#lock lock}.
+         * 
+         * @param stamp
+         */
+        private void delete(long stamp) {
+            Preconditions.checkState(!isMutable(),
+                    "The current Page cannot be deleted");
+            if(lock.validate(stamp)) {
+                delete0();
+            }
+            else {
+                throw new IllegalMonitorStateException(
+                        "Invalid stamp provided when deleting a Page");
+            }
+        }
+
+        /**
+         * Do the work to delete the {@link Page} from disk and, as much as
+         * possible, clear its content from memory.
+         */
+        private void delete0() {
+            FileSystem.deleteFile(filename);
+            FileSystem.unmap(content); // CON-163 (authorized)
+            Logger.info("Deleting Buffer page {}", filename);
+        }
+
+        /**
+         * Returns {@code true} if {@link #head} is smaller than the largest
+         * occupied index in {@link #writes}. This means that it is possible for
+         * calls to this method to initially return {@code false} at t0, but
+         * eventually return {@code true} at t1 if an element is added to the
+         * Page between t0 and t1.
+         */
+        @GuardedBy("Buffer.Page#transport(int, DurableStore)")
+        private boolean hasNext() {
+            return head < size;
+        }
+
+        /**
          * Insert {@code write} into the list of {@link #writes} and increment
          * the {@link #size} counter.
          * 
@@ -1632,6 +1771,40 @@ public final class Buffer extends Limbo {
         }
 
         /**
+         * Return {@code true} if this {@link Page} is mutable and available for
+         * additional {@link Write writes} to be {@link #append(Write, boolean)
+         * appended}.
+         * 
+         * @return {@code true} if this {@link Page} is mutable
+         */
+        private boolean isMutable() {
+            return this == currentPage;
+        }
+
+        /**
+         * Returns the Write at index {@link #head} in {@link #writes}.
+         * <p>
+         * <strong>NOTE:</strong>
+         * <em>This method will return the same element on multiple
+         * invocations until {@link #remove()} is called.</em>
+         * </p>
+         */
+        @GuardedBy("Buffer.Page#transport(int, DurableStore)")
+        private Write next() {
+            return writes[head];
+        }
+
+        /**
+         * Simulates the removal of the head Write from the Page. This method
+         * only updates the {@link #head} and {@link #pos} metadata and does not
+         * actually delete any data, which is a performance optimization.
+         */
+        @GuardedBy("Buffer.Page#transport(int, DurableStore)")
+        private void remove() {
+            ++head;
+        }
+
+        /**
          * Convenience function to return the appropriate slot in one of the
          * Page's filter's between 0 and {@code #sizeUpperBound} for an object
          * with {@code hashCode}.
@@ -1653,39 +1826,6 @@ public final class Buffer extends Limbo {
          */
         private int slotify(int... hashCodes) {
             return Math.abs(Integers.avg(hashCodes) % sizeUpperBound);
-        }
-
-        /**
-         * Dump the contents of this page.
-         * 
-         * @return the dump string
-         */
-        protected String dump() {
-            long stamp = Locks.stampLockReadIfCondition(accessLock,
-                    this == currentPage);
-            try {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Dump for " + getClass().getSimpleName() + " "
-                        + filename);
-                sb.append("\n");
-                sb.append("------");
-                sb.append("\n");
-                for (Write write : writes) {
-                    if(write == null) {
-                        break;
-                    }
-                    else {
-                        sb.append(write);
-                        sb.append("\n");
-                    }
-                }
-                sb.append("\n");
-                return sb.toString();
-            }
-            finally {
-                Locks.stampUnlockReadIfCondition(accessLock, stamp,
-                        this == currentPage);
-            }
         }
     }
 
@@ -1751,15 +1891,15 @@ public final class Buffer extends Limbo {
 
         /**
          * The stamp returned from grabbing the read access lock from
-         * {@link #myCurrentPage}.
+         * the {@link #locked} {@link Page}.
          */
-        private long myAccessStamp = 0L;
+        private long stamp = 0L;
 
         /**
-         * A reference to the page in which the iterator is currently
-         * traversing.
+         * A reference to the {@link Page#lock} of the {@link Page} which the
+         * iterator is currently traversing.
          */
-        private Page myCurrentPage;
+        private StampedLock lock;
 
         /**
          * The next write to return.
@@ -1769,7 +1909,7 @@ public final class Buffer extends Limbo {
         /**
          * An iterator over all the pages in the Buffer.
          */
-        private Iterator<Page> pageIterator = pages.iterator();
+        private Iterator<Page> pageIterator;
 
         /**
          * The max timestamp for which to seek. If a Write's version is greater
@@ -1791,10 +1931,11 @@ public final class Buffer extends Limbo {
         private Iterator<Write> writeIterator = null;
 
         /**
-         * A flag that determines whether this iterator is
-         * {@link #grabLocks(Page) holding any locks}.
+         * A flag that indicates that the iterator has started providing writes.
+         * This is used to check that we haven't hit a race condition corner
+         * case in {@link #flip()}.
          */
-        private boolean isHoldingLocks = false;
+        private boolean started = false;
 
         /**
          * Construct a new instance.
@@ -1804,10 +1945,8 @@ public final class Buffer extends Limbo {
         protected SeekingIterator(long timestamp) {
             this.timestamp = timestamp;
             if(timestamp >= getOldestWriteTimestamp()) {
-                scaleBackTransportRate();
-                this.ignoreTimestamp = timestamp == Long.MAX_VALUE;
-                this.next = advance();
                 this.useable = true;
+                this.ignoreTimestamp = timestamp == Long.MAX_VALUE;
             }
             else {
                 this.useable = false;
@@ -1817,9 +1956,7 @@ public final class Buffer extends Limbo {
 
         @Override
         public void close() throws IOException {
-            if(isHoldingLocks) {
-                releaseLocks();
-            }
+            unlock();
         }
 
         @Override
@@ -1840,97 +1977,6 @@ public final class Buffer extends Limbo {
         }
 
         /**
-         * Advance to the next write that this iterator should return, if it
-         * exists.
-         * 
-         * @return the next write or {@code null}
-         */
-        private Write advance() {
-            for (;;) {
-                if(writeIterator == null) {
-                    return null;
-                }
-                while (writeIterator.hasNext()) {
-                    Write write = writeIterator.next();
-                    if(!ignoreTimestamp && write.getVersion() > timestamp) {
-                        writeIterator = null;
-                        pageIterator = null;
-                        releaseLocks();
-                        return null;
-                    }
-                    else if(isRelevantWrite(write)) {
-                        return write;
-                    }
-                }
-                flip();
-            }
-        }
-
-        /**
-         * Flip to the next page in the Buffer.
-         */
-        private void flip() {
-            flip(false);
-        }
-
-        /**
-         * Flip to the next page in the Buffer with the option to temporarily
-         * skip the timestamp check.
-         * 
-         * @param skipTsCheck
-         */
-        private void flip(boolean skipTsCheck) {
-            writeIterator = null;
-            releaseLocks();
-            if(pageIterator.hasNext()) {
-                while (pageIterator.hasNext()) {
-                    Page next = pageIterator.next();
-                    grabLocks(next);
-                    if(!skipTsCheck && !ignoreTimestamp
-                            && next.getOldestWriteTimestamp() > timestamp) {
-                        writeIterator = null;
-                        pageIterator = null;
-                        releaseLocks();
-                        break;
-                    }
-                    if(pageMightContainRelevantWrites(next)) {
-                        writeIterator = next.iterator();
-                        break;
-                    }
-                    else {
-                        releaseLocks();
-                    }
-                }
-            }
-        }
-
-        /**
-         * Grab the necessary locks to protected {@code #page} while it is used
-         * in the iterator.
-         * 
-         * @param page
-         */
-        private void grabLocks(Page page) {
-            myCurrentPage = page;
-            myAccessStamp = Locks.stampLockReadIfCondition(
-                    myCurrentPage.accessLock, myCurrentPage == currentPage);
-            myCurrentPage.transportLock.readLock().lock();
-            isHoldingLocks = true;
-        }
-
-        /**
-         * Release the locks for {@link #myCurrentPage}.
-         */
-        private void releaseLocks() {
-            if(myCurrentPage != null) {
-                Locks.stampUnlockReadIfCondition(myCurrentPage.accessLock,
-                        myAccessStamp, myCurrentPage == currentPage);
-                myCurrentPage.transportLock.readLock().unlock();
-                isHoldingLocks = false;
-            }
-        }
-
-        /**
          * Each subclass should call this method after constructing the initial
          * state to turn to the first page and get the first write.
          */
@@ -1938,6 +1984,7 @@ public final class Buffer extends Limbo {
             if(useable) {
                 flip(true);
                 this.next = advance();
+                broadcastScanEvent();
             }
         }
 
@@ -1959,6 +2006,159 @@ public final class Buffer extends Limbo {
          */
         protected abstract boolean pageMightContainRelevantWrites(Page page);
 
+        /**
+         * Advance to the next write that this iterator should return, if it
+         * exists.
+         * 
+         * @return the next write or {@code null}
+         */
+        private Write advance() {
+            for (;;) {
+                if(writeIterator == null) {
+                    return null;
+                }
+                while (writeIterator.hasNext()) {
+                    Write write = writeIterator.next();
+                    if(!ignoreTimestamp && write.getVersion() > timestamp) {
+                        // We've reach a point where the writes on this page are
+                        // later than the timestamp we are seeking, which means
+                        // we can stop iterating, entirely.
+                        halt();
+                        return null;
+                    }
+                    else if(isRelevantWrite(write)) {
+                        return write;
+                    }
+                }
+                flip();
+            }
+        }
+
+        /**
+         * Flip to the next page in the Buffer.
+         */
+        private void flip() {
+            flip(false);
+        }
+
+        /**
+         * Flip to the next {@link Page} in the {@link Buffer}, or {@code reset}
+         * and flip to the first one.
+         * 
+         * @param reset
+         */
+        private void flip(boolean reset) {
+            writeIterator = null;
+
+            if(reset) {
+                pageIterator = pages.iterator();
+            }
+
+            // Find the next Page with relevant writes and flip to it
+            while (pageIterator.hasNext()) {
+                Page next = pageIterator.next();
+                if(lock(next)) {
+                    if(!ignoreTimestamp
+                            && next.getOldestWriteTimestamp() > timestamp) {
+                        // The #page only contains Writes that are later than
+                        // the timestamp we are seeking, which means we can stop
+                        // iterating, entirely.
+                        halt();
+                        break;
+                    }
+                    else if(pageMightContainRelevantWrites(next)) {
+                        started = true;
+                        writeIterator = next.iterator();
+                        break;
+                    }
+                    else {
+                        // The #page doesn't contain any relevant Writes, so
+                        // move onto the next one.
+                        continue;
+                    }
+                }
+                else if(!started) {
+                    // This is a corner case where a Transporter is holding the
+                    // first Page's write lock. In case the Transporter ends up
+                    // removing the Page, we have to spin and flip to the new
+                    // beginning so that we don't start on an Page that no
+                    // longer exists
+                    synchronized (readable) {
+                        try {
+                            readable.wait();
+                        }
+                        catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    flip(true);
+                    return;
+                }
+                else {
+                    // Once the iteration has started, a Transporter should not
+                    // beat us and acquire the write lock for a page before we
+                    // get to it. If that happens, the results are undefined
+                    // because there is a situation where both the previously
+                    // iterated writes have been transported (which, alone is
+                    // acceptable) AND some writes that have not yet been
+                    // iterated have also been transported, which means the
+                    // iterator will produce an inconsistent state.
+                    throw new IllegalStateException(
+                            "The iterator was unable to acquire a Page lock after iteration started");
+                }
+            }
+        }
+
+        /**
+         * Halt the iterator.
+         */
+        private void halt() {
+            writeIterator = null;
+            pageIterator = null;
+            unlock();
+        }
+
+        /**
+         * Grab the necessary locks to protect {@code #page} while it is being
+         * scanned during the course of the iteration.
+         * 
+         * @param page
+         * @return {@code true} if the lock is eventually acquired or
+         *         {@code false} if it cannot be acquired
+         */
+        private boolean lock(Page page) {
+            long s;
+            if(lock != null) {
+                // We've successfully locked earlier pages during this
+                // iteration, so acquire the lock for the next page before
+                // releasing the current lock so we ensure that no Transporter
+                // ever jumps ahead of us and messes up the results
+                StampedLock prior = lock;
+                s = page.lock.readLock();
+                prior.unlockRead(stamp);
+            }
+            else if((s = page.lock.tryReadLock()) == 0) {
+                // This is the first page we're trying to lock, so do wait if we
+                // are unsuccessful in case we were beat by a Transporter that
+                // may remove #page
+                return false;
+            }
+            lock = page.lock;
+            stamp = s;
+            return true;
+        }
+
+        /**
+         * Release the locks for {@link #locked}.
+         */
+        private void unlock() {
+            if(lock != null && stamp > 0) {
+                lock.unlockRead(stamp);
+                lock = null;
+                stamp = 0;
+            }
+        }
+
     }
 
     /**
@@ -1968,13 +2168,6 @@ public final class Buffer extends Limbo {
      * @author Jeff Nelson
      */
     private class WriteSeekingIterator extends SeekingIterator {
-
-        /**
-         * A flag to check whether the buffer has already been scanned (to
-         * mitigate multiple increments given multiple scans
-         * to the same buffer).
-         */
-        private boolean scanned;
 
         /**
          * The relevant write.
@@ -1999,11 +2192,7 @@ public final class Buffer extends Limbo {
 
         @Override
         protected boolean pageMightContainRelevantWrites(Page page) {
-            boolean mightContain = page.mightContain(write);
-            if(!scanned && mightContain) {
-                numVerifyScans.incrementAndGet();
-            }
-            return mightContain;
+            return page.mightContain(write);
         }
     }
 }

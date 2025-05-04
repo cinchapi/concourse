@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,11 +61,15 @@ public final class AtomicOperations {
         T value = null;
         while (atomic == null || !atomic.commit(CommitVersions.next())) {
             atomic = store.startAtomicOperation();
+            store.advisoryLock().readLock().lock();
             try {
                 value = supplier.supply(atomic);
             }
             catch (AtomicStateException e) {
                 atomic = null;
+            }
+            finally {
+                store.advisoryLock().readLock().unlock();
             }
         }
         return value;

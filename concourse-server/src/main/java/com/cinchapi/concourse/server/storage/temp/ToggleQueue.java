@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,6 +125,11 @@ public class ToggleQueue extends Queue {
         return history.size() > 0 ? history.get(0).getVersion()
                 : super.getOldestWriteTimestamp();
 
+    }
+
+    @Override
+    protected boolean isReadOptimized() {
+        return history.size() > Queue.BLOOM_FILTER_CREATION_THRESHOLD;
     }
 
     /**

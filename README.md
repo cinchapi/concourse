@@ -157,6 +157,8 @@ Since Concourse makes very few assumptions about data, it integrates with your a
 ###### Search
 Concourse supports rich full text search right out the box, so you don't need to deploy an external search server. Data is automatically indexed and **searchable in real-time** without ever diminishing write performance. In Concourse, you can always perform **as-you-type searches** that match full or partial terms.
 
+Concourse's **InfiNgram Search** merges the principles of infix searching, ngram analysis, and substring matching. This innovative feature ensures that each word in your search query is treated as a substring, allowing the search engine to locate matches within the stored text based on relative positioning of these substrings. This not only enhances the flexibility of the search but also its robustness in retrieving relevant data.
+
 ## Overview
 ##### System Requirements
 * At least 256 MB of available memory
@@ -193,6 +195,6 @@ Read the [contributing guidelines](CONTRIBUTING.md) to learn how to get involved
 
 ##### License
 
-Copyright © 2013-2024 Cinchapi Inc.
+Copyright © 2013-2025 Cinchapi Inc.
 
 Concourse is released under the Apache License, Version 2.0. For more information see LICENSE, which is included with this package.

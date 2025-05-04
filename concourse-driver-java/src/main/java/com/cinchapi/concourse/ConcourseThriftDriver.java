@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2024 Cinchapi Inc.
+ * Copyright (c) 2013-2025 Cinchapi Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,7 @@ import com.cinchapi.concourse.util.Navigation;
 import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -105,6 +106,15 @@ class ConcourseThriftDriver extends Concourse {
      */
     private static final Set<Class<? extends Throwable>> FAILED_CONNECTION_EXCEPTION_TYPES = ImmutableSet
             .of(TTransportException.class, SocketException.class);
+
+    /**
+     * The client-side configuration for the allowed message size. Use by Thrift
+     * to prevent malicious messages. Prior to Thrift 0.14, was effectively
+     * unbounded (~ Integer.MAX_VALUE)
+     */
+    // See https://github.com/apache/thrift/pull/2191/files
+    @VisibleForTesting
+    static int MAX_MESSAGE_SIZE = Integer.MAX_VALUE;
 
     /**
      * The thrift client that actually handles aggregation RPC communication.
@@ -172,6 +182,11 @@ class ConcourseThriftDriver extends Concourse {
     private final ByteBuffer username;
 
     /**
+     * A boolean that indicates whether this client has been marked as failed.
+     */
+    private boolean failed = false;
+
+    /**
      * Create a new Client connection to the environment of the Concourse
      * Server described in the client configuration (e.g.,
      * {@code concourse_client.yaml}) or the default
@@ -230,6 +245,7 @@ class ConcourseThriftDriver extends Concourse {
         this.environment = environment;
         try {
             final TTransport transport = new TSocket(host, port);
+            transport.getConfiguration().setMaxMessageSize(MAX_MESSAGE_SIZE);
             transport.open();
             this.protocol = new TBinaryProtocol(transport);
             this.core = new ConcourseService.Client(
@@ -4199,8 +4215,22 @@ class ConcourseThriftDriver extends Concourse {
             throw new ManagementException(e);
         }
         catch (Exception e) {
+            if(e instanceof TTransportException) {
+                // Usually, a TTransportException is fatal for the underlying
+                // transport because Thrift keeps internal buffers and state
+                // that won’t self-heal. We could try to close and re-open it
+                // here, but we just mark the client as failed and allow the
+                // consumer to decide what to do (e.g., a ConnectionPool checks
+                // for failure and tries to create a brand new client).
+                failed = true;
+            }
             throw CheckedExceptions.wrapAsRuntimeException(e);
         }
+    }
+
+    @Override
+    boolean failed() {
+        return failed;
     }
 
     /**
