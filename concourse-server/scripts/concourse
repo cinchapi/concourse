@@ -270,6 +270,60 @@ fi
 JVMOPTS=${JVMOPTS/Xms1024m/Xms$HEAP"m"}
 JVMOPTS=${JVMOPTS/Xmx1024m/Xmx$HEAP"m"}
 
+# if G1GC is forced, configure the JVM accordingly and optimize GC behavior
+if [ ! -z "$CONCOURSE_FORCE_G1GC" ]; then
+  FORCE_G1GC=$CONCOURSE_FORCE_G1GC
+else
+  FORCE_G1GC=`cat $PREFS | grep -e '^force_g1gc\s*=\s*true$' | head -n1 | cut -d'=' -f2 | tr -d ' '`
+fi
+FORCE_G1GC=`echo "$FORCE_G1GC" | grep -e ''[Tt][Rr][Uu][Ee]`
+if [ -n "$FORCE_G1GC" ]; then
+  G1_TARGET_NUM_REGIONS=4096
+  G1_REGION_SIZE=$(( HEAP / G1_TARGET_NUM_REGIONS ))
+  if   [ "$G1_REGION_SIZE" -lt 1 ];  then G1_REGION_SIZE=1
+  elif [ "$G1_REGION_SIZE" -lt 2 ];  then G1_REGION_SIZE=2
+  elif [ "$G1_REGION_SIZE" -lt 4 ];  then G1_REGION_SIZE=4
+  elif [ "$G1_REGION_SIZE" -lt 8 ];  then G1_REGION_SIZE=8
+  elif [ "$G1_REGION_SIZE" -lt 16 ]; then G1_REGION_SIZE=16
+  else                                    G1_REGION_SIZE=32
+  fi
+
+  if command -v nproc >/dev/null 2>&1; then
+    VCPUS=$(nproc)
+  else
+    VCPUS=$(getconf _NPROCESSORS_ONLN || echo 1)
+  fi
+
+  if [ "$VCPUS" -le 8 ]; then
+    PARALLEL_GC_THREADS=$VCPUS
+  elif [ "$VCPUS" -ge 9 ] && [ "$VCPUS" -lt 13 ]; then
+    PARALLEL_GC_THREADS=8
+  else
+    # Approximately 5/8 of logical processors
+    # See https://www.oracle.com/technical-resources/articles/java/g1gc.html
+    PARALLEL_GC_THREADS=$(( (VCPUS * 5) / 8 ))
+  fi
+
+  CONC_GC_THREADS=$(( PARALLEL_GC_THREADS / 4 ))
+  [ "$CONC_GC_THREADS" -lt 1 ] && CONC_GC_THREADS=1
+
+  JVMOPTS=$JVMOPTS"
+  -XX:+UseG1GC
+  -XX:+UnlockExperimentalVMOptions
+  -XX:MaxGCPauseMillis=200
+  -XX:InitiatingHeapOccupancyPercent=35
+  -XX:G1HeapRegionSize=${G1_REGION_SIZE}m
+  -XX:G1ReservePercent=15
+  -XX:SurvivorRatio=8
+  -XX:MaxTenuringThreshold=1
+  -XX:G1MixedGCLiveThresholdPercent=85
+  -XX:ParallelGCThreads=${PARALLEL_GC_THREADS}
+  -XX:ConcGCThreads=${CONC_GC_THREADS}
+  -XX:+ParallelRefProcEnabled
+  -XX:G1RSetUpdatingPauseTimePercent=5
+  "
+fi
+
 # if the log_level = DEBUG, these options are also passed to the JVM.
 DEBUG=`cat $PREFS | grep -e '^log_level\s*=\s*[Dd][Ee][Bb][Uu][Gg]'`
 if [ -n "$DEBUG" ]
