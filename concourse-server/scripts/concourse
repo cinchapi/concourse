@@ -270,7 +270,7 @@ fi
 JVMOPTS=${JVMOPTS/Xms1024m/Xms$HEAP"m"}
 JVMOPTS=${JVMOPTS/Xmx1024m/Xmx$HEAP"m"}
 
-#force_g1gc
+# if G1GC is forced, configure the JVM accordingly and optimize GC behavior
 if [ ! -z "$CONCOURSE_FORCE_G1GC" ]; then
   FORCE_G1GC=$CONCOURSE_FORCE_G1GC
 else
