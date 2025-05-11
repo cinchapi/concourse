@@ -889,7 +889,8 @@ public final class Database implements DurableStore {
                         segment.delete();
                     }
                 }
-                Logger.warn("Replaced {} Segments that contained imbalanced.",
+                Logger.warn(
+                        "Replaced {} Segments that contained unoffset Writes.",
                         balanced.size());
             }
         }

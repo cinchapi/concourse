@@ -5124,6 +5124,25 @@ public abstract class Concourse implements AutoCloseable {
             Timestamp timestamp);
 
     /**
+     * Test the connection to the server.
+     * <p>
+     * Check if the server is responsive by sending an echo request and awaiting
+     * a response. This request is designed to simply test the connection and
+     * potentially measure latency without incurring any additional overhead for
+     * data processing or availability.
+     * <p>
+     * If this method returns {@code false} it could mean that this client was
+     * somehow disconnected, and establishing a new connection would allow for
+     * subsequent communication. Or, it can mean that the server is down.
+     * Callers are advised to attempt multiple {@link #ping() pings} across
+     * different connections before concluding that the server is down.
+     * </p>
+     * 
+     * @return boolean - {@code true} if the server is responsive to this client
+     */
+    public abstract boolean ping();
+
+    /**
      * Atomically check to see if each of the {@code records} currently contains
      * any data.
      * 
