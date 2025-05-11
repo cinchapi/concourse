@@ -43,14 +43,16 @@ public class PingTest extends ClientServerTest {
     @Test
     public void testPingWhenRestarted() {
         Assert.assertTrue(client.ping());
-        server.restart();
+        server.stop();
+        server.start();
         Assert.assertFalse(client.ping());
     }
 
     @Test
     public void testPingWhenRestartedAndReconnected() {
         Assert.assertTrue(client.ping());
-        server.restart();
+        server.stop();
+        server.start();
         Assert.assertFalse(client.ping());
         client = server.connect();
         Assert.assertTrue(client.ping());
