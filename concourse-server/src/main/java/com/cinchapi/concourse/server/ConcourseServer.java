@@ -4306,6 +4306,15 @@ public class ConcourseServer extends BaseConcourseServer implements
     @TranslateClientExceptions
     @VerifyAccessToken
     @VerifyReadPermission
+    public boolean ping(AccessToken creds, TransactionToken transaction,
+            String environment) throws TException {
+        return true;
+    }
+
+    @Override
+    @TranslateClientExceptions
+    @VerifyAccessToken
+    @VerifyReadPermission
     public boolean pingRecord(long record, AccessToken creds,
             TransactionToken transaction, String environment)
             throws TException {
