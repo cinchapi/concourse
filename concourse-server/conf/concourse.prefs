@@ -238,8 +238,8 @@
 # - Concourse Server is configured with a large heap_size (e.g., > 4 GB)
 # - Consistent response times are critical, as G1 may provide more predictable
 #   pause times than the default JDK8 collector
-# - Concourse Server will serve many concurrent client connections, as G1 
-#   handles concurrent object allocation patterns more efficiently
+# - Concourse Server is expected to server many simultaneous client connections,
+#   as G1 handles concurrent object allocation patterns more efficiently
 #
 # When set to false, Concourse Server will use the JVM's default collector.
 #
