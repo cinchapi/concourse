@@ -6,6 +6,7 @@
 * Fixed a bug that prevented Concourse Server from properly starting if a String configuration value was used for a variable that does not expect a String (e.g., `max_search_substring_length = "40"`). Now, Concouse Server will correctly parse all configuration values to the appropriate type or use the default value if there is an error when parsing.
 * Enhanced the `concourse data repair` CLI so that it fixes any inconsistencies between the inventory (which catalogs every record that was ever populated) and the repaired data.
 * Added a new `ping()` method to the Concourse API that allows clients to test the connection to the server. This method is designed to be lightweight and can be used to check server responsiveness or measure latency without incurring additional overhead for data processing. The method returns `true` if the server is responsive and `false` if the connection has failed, making it useful for health checks and connection monitoring.
+* [GH-570](https://github.com/cinchapi/concourse/issues/570): Fixed a regression that occurred when sorting on a single key and the result set failed to include data for records where the sort key was not present, even if that data would fit in the requested page.
 
 #### Version 0.11.9 (April 30, 2025)
 * Improved the performance of select operations that specify selection keys and require both sorting and pagination. The improvements are achieved from smarter heuristics that determine the most efficient execution path. The system now intelligently decides whether to:
