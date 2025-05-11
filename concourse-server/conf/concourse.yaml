@@ -199,18 +199,18 @@ remote_debugger_port:
 # the Database.
 #
 # The Transporter is responsible for moving data from the write-optimized Buffer
-# to the read-optimized Database, where it becomes fully indexed. This process 
+# to the read-optimized Database, where it becomes fully indexed. This process
 # happens automatically in the background.
 #
 # The streaming transporter provides consistent throughput by amortizing indexing
 # costs across operations. It processes smaller batches more frequently, resulting
-# in lower per-merge costs but more frequent interruptions during normal 
-# operations. During high concurrent activity, competing operations can 
+# in lower per-merge costs but more frequent interruptions during normal
+# operations. During high concurrent activity, competing operations can
 # significantly reduce overall system performance.
 #
 # The batch transporter processes larger batches of data per pass, regardless of
 # system load and indexing happens without blocking any operations until merge time.
-# This approach improves overall throughput but may cause occasional longer pauses 
+# This approach improves overall throughput but may cause occasional longer pauses
 # when merging large amounts of cached data.
 #
 # Options:
@@ -220,7 +220,7 @@ remote_debugger_port:
 # For advanced configuration, provide an object:
 #   type: The transporter type (batch or streaming)
 #   num_threads: The number of threads to use for transport operations (default: 1)
-#   passive: Whether to always allow other concurrent operations to block the 
+#   passive: Whether to always allow other concurrent operations to block the
 #     transporter from merging its work (default: false)
 #
 # DEFAULT: batch
@@ -237,7 +237,7 @@ transporter:
   num_threads:
 
   # Whether the transporter should be passive and always allow other concurrent
-  # operations to preempt it from merging its work and potentially block it 
+  # operations to preempt it from merging its work and potentially block it
   # indefinitely
   #
   # DEFAULT: FALSE
@@ -308,6 +308,21 @@ enable_search_cache:
 #
 # DEFAULT: false
 enable_verify_by_lookup:
+
+# If running on JDK 8, force Concourse Server to use the Garbage-First (G1)
+# garbage collector.
+#
+# It is recommended to force G1GC when:
+# - Concourse Server is configured with a large heap_size (e.g., > 4 GB)
+# - Consistent response times are critical, as G1 may provide more predictable
+#   pause times than the default JDK8 collector
+# - Concourse Server is expected to server many simultaneous client connections,
+#   as G1 handles concurrent object allocation patterns more efficiently
+#
+# When set to false, Concourse Server will use the JVM's default collector.
+#
+# DEFAULT: false
+force_g1gc:
 
 #############################################
 ###  INITIALIZATION FOR CONCOURSE SERVER  ###
