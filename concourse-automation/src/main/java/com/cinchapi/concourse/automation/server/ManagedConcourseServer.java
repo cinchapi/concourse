@@ -2306,6 +2306,11 @@ public final class ManagedConcourseServer {
         }
 
         @Override
+        public boolean ping() {
+            return invoke("ping").with();
+        }
+
+        @Override
         public Map<Long, Boolean> ping(Collection<Long> records) {
             return invoke("ping", Collection.class).with(records);
         }
