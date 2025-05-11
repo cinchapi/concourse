@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse;
 
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -70,6 +71,7 @@ import com.cinchapi.concourse.util.PrettyLinkedHashMap;
 import com.cinchapi.concourse.util.PrettyLinkedTableMap;
 import com.cinchapi.concourse.util.Transformers;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -98,6 +100,12 @@ class ConcourseThriftDriver extends Concourse {
         PASSWORD = new String(config.getPassword());
         ENVIRONMENT = config.getEnvironment();
     }
+
+    /**
+     * Exceptions that indicate the connection to the server has failed.
+     */
+    private static final Set<Class<? extends Throwable>> FAILED_CONNECTION_EXCEPTION_TYPES = ImmutableSet
+            .of(TTransportException.class, SocketException.class);
 
     /**
      * The client-side configuration for the allowed message size. Use by Thrift
@@ -2484,6 +2492,24 @@ class ConcourseThriftDriver extends Concourse {
             String destination = Navigation.getKeyDestination(key);
             return DataColumn.multiValued(destination, data);
         });
+    }
+
+    @Override
+    public boolean ping() {
+        try {
+            return execute(() -> core.ping(creds, transaction, environment));
+        }
+        catch (Exception e) {
+            Set<Class<?>> causes = Throwables.getCausalChain(e).stream()
+                    .map(Object::getClass).collect(Collectors.toSet());
+            if(!Sets.intersection(causes, FAILED_CONNECTION_EXCEPTION_TYPES)
+                    .isEmpty()) {
+                return false;
+            }
+            else {
+                throw e;
+            }
+        }
     }
 
     @Override
