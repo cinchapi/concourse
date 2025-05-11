@@ -53,6 +53,12 @@ public abstract class SubstringDeduplicatorTest {
     }
 
     @Test
+    public void testDuplicatesNotAddedReproB() {
+        String string = "wjxzzywpqzaecrgyonfoayffnkletncndqnldjknumlzmmiuxdwjyecwvlhcwrszvutwhqrmylrvrzsqofpurfdmhcccdhompnakqqghgjrjjlqtveyaygdqsfnzftoemdhxkqljjaojhxpyltudgltibecdcigrymowxvqrsoxbdditorpqerdiuvvxwreshlghxapdnapvwacdnanskhokwbqwvrspmfijdcmawflmnlfuyyodhuxfipbuogjmbewlwqeaedortqlgmidgujaiopoblgnomgncfmzomyb";
+        doTestDuplicatesNotAdded(string);
+    }
+
+    @Test
     public void testSanityCheck() {
         String term = "abrakadabra";
         char[] chars = term.toCharArray();
@@ -92,6 +98,8 @@ public abstract class SubstringDeduplicatorTest {
                     String ss = string.substring(i, j).trim();
                     if(!Strings.isNullOrEmpty(ss)) {
                         Text st = Text.wrap(chars, i, j);
+                        System.out.println(
+                                ss + " vs " + st + " with " + i + " and " + j);
                         Assert.assertEquals(expected.add(ss),
                                 deduplicator.add(st));
                     }
