@@ -750,6 +750,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
                     Logger.info("Loading Buffer content from {}...", page);
                 }
             }
+            inventory.sync();
 
             // Setup shortcuts in memory to facilitate writes and transports
             Iterator<Page> it = pageSorter.values().iterator();
@@ -1404,6 +1405,7 @@ public final class Buffer extends Limbo implements BatchTransportable {
             while (it.hasNext()) {
                 Write write = Write.fromByteBuffer(it.next());
                 index(write);
+                inventory.add(write.getRecord().longValue());
                 Logger.debug("Found existing write '{}' in the Buffer", write);
             }
         }
