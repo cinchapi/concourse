@@ -739,6 +739,7 @@ public final class Buffer extends Limbo {
                     Logger.info("Loading Buffer content from {}...", page);
                 }
             }
+            inventory.sync();
             pages.clear();
             pages.addAll(pageSorter.values());
             if(pages.isEmpty()) {
@@ -1292,6 +1293,7 @@ public final class Buffer extends Limbo {
             while (it.hasNext()) {
                 Write write = Write.fromByteBuffer(it.next());
                 index(write);
+                inventory.add(write.getRecord().longValue());
                 Logger.debug("Found existing write '{}' in the Buffer", write);
             }
         }
