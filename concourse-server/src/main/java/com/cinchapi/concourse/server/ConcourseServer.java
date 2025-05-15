@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -75,6 +77,7 @@ import com.cinchapi.concourse.server.aop.TranslateClientExceptions;
 import com.cinchapi.concourse.server.aop.VerifyAccessToken;
 import com.cinchapi.concourse.server.aop.VerifyReadPermission;
 import com.cinchapi.concourse.server.aop.VerifyWritePermission;
+import com.cinchapi.concourse.server.gossip.StartEngineGossip;
 import com.cinchapi.concourse.server.http.HttpServer;
 import com.cinchapi.concourse.server.io.FileSystem;
 import com.cinchapi.concourse.server.jmx.ManagedOperation;
@@ -121,12 +124,18 @@ import com.cinchapi.concourse.thrift.TPage;
 import com.cinchapi.concourse.thrift.TransactionException;
 import com.cinchapi.concourse.thrift.TransactionToken;
 import com.cinchapi.concourse.time.Time;
+import com.cinchapi.concourse.time.TimeSource;
 import com.cinchapi.concourse.util.Convert;
 import com.cinchapi.concourse.util.Environments;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.TMaps;
 import com.cinchapi.concourse.util.Timestamps;
 import com.cinchapi.concourse.util.Version;
+import com.cinchapi.ensemble.Cluster;
+import com.cinchapi.ensemble.Ensemble;
+import com.cinchapi.ensemble.core.LocalProcess;
+import com.cinchapi.ensemble.core.Node;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -134,6 +143,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.net.HostAndPort;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -402,6 +412,12 @@ public class ConcourseServer extends BaseConcourseServer implements
     private final ConcourseCompiler compiler = ConcourseCompiler.get();
 
     /**
+     * The distributed {@link Cluster} of nodes.
+     */
+    @Nullable
+    private Cluster cluster;
+
+    /**
      * The base location where the indexed database records are stored.
      */
     private String dbStore;
@@ -475,7 +491,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             throws TException {
         AtomicSupport store = getStore(transaction, environment);
         return AtomicOperations.supplyWithRetry(store, (atomic) -> {
-            long record = Time.now();
+            long record = Identifiers.next();
             Operations.addIfEmptyAtomic(key, value, record, atomic);
             return record;
         });
@@ -2043,7 +2059,7 @@ public class ConcourseServer extends BaseConcourseServer implements
             records.clear();
             records.addAll(atomic.find(key, Operator.EQUALS, value));
             if(records.isEmpty()) {
-                long record = Time.now();
+                long record = Identifiers.next();
                 Operations.addIfEmptyAtomic(key, value, record, atomic);
                 records.add(record);
             }
@@ -3386,7 +3402,7 @@ public class ConcourseServer extends BaseConcourseServer implements
                                     .longValue();
                 }
                 else {
-                    record = Time.now();
+                    record = Identifiers.next();
                 }
                 atomic.touch(record);
                 if(Operations.insertAtomic(object, record, atomic, deferred)) {
@@ -6069,9 +6085,25 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     @PluginRestricted
     public void start() throws TTransportException {
+        if(cluster != null) {
+            Logger.info(
+                    "Concourse Server is waiting to join a distributed cluster...");
+            CompletableFuture<Void> task = cluster.join();
+            try {
+                task.get();
+            }
+            catch (Exception e) {
+                throw CheckedExceptions.wrapAsRuntimeException(e);
+            }
+            Logger.info("Concourse Server has joined a distributed cluster");
+        }
+
+        // Load the Engine for the default environment
+        getEngine();
         for (Engine engine : engines.values()) {
             engine.start();
         }
+
         httpServer.start();
         pluginManager.start();
         Thread mgmtThread = new Thread(() -> {
@@ -6089,6 +6121,10 @@ public class ConcourseServer extends BaseConcourseServer implements
     @PluginRestricted
     public void stop() {
         if(server.isServing()) {
+            if(cluster != null) {
+                cluster.leave();
+                Logger.info("Concourse Server has left a distributed cluster");
+            }
             mgmtServer.stop();
             server.stop();
             pluginManager.stop();
@@ -6500,12 +6536,7 @@ public class ConcourseServer extends BaseConcourseServer implements
      */
     @Internal
     protected Engine getEngine(String env) {
-        Engine engine = engines.get(env);
-        if(engine == null) {
-            env = Environments.sanitize(env);
-            return getEngineUnsafe(env);
-        }
-        return engine;
+        return getEngineUnsafe(Environments.sanitize(env));
     }
 
     @Override
@@ -6557,6 +6588,10 @@ public class ConcourseServer extends BaseConcourseServer implements
             String buffer = bufferStore + File.separator + env;
             String db = dbStore + File.separator + env;
             Engine engine = new Engine(buffer, db, env);
+            if(cluster != null) {
+                engine = Ensemble.replicate(engine).across(cluster);
+                cluster.spread(new StartEngineGossip(env));
+            }
             engine.start();
             numEnginesInitialized.incrementAndGet();
             return engine;
@@ -6628,7 +6663,7 @@ public class ConcourseServer extends BaseConcourseServer implements
         this.server = new TThreadPoolServer(args);
         this.bufferStore = bufferStore;
         this.dbStore = dbStore;
-        this.engines = Maps.newConcurrentMap();
+        this.engines = new ConcurrentHashMap<>();
         this.users = UserService.create(ACCESS_CREDENTIALS_FILE);
         this.inspector = new Inspector() {
 
@@ -6660,7 +6695,6 @@ public class ConcourseServer extends BaseConcourseServer implements
         this.httpServer = GlobalState.HTTP_PORT > 0
                 ? HttpServer.create(this, GlobalState.HTTP_PORT)
                 : HttpServer.disabled();
-        getEngine(); // load the default engine
         this.pluginManager = new PluginManager(this,
                 GlobalState.CONCOURSE_HOME + File.separator + "plugins");
 
@@ -6671,6 +6705,44 @@ public class ConcourseServer extends BaseConcourseServer implements
                 .processor(new ConcourseManagementService.Processor<>(this))
                 .minWorkerThreads(1).maxWorkerThreads(1);
         this.mgmtServer = new TThreadPoolServer(mgmtArgs);
+
+        // Setup the distributed cluster
+        if(CLUSTER.isDefined()) {
+            EnsembleSetup.interceptLogging();
+            EnsembleSetup.registerCustomSerialization();
+
+            // Claim ports used by this node to disambiguate among any other
+            // nodes that may be running on the same physical/logical machine.
+            LocalProcess.instance().clear();
+            LocalProcess.instance().claim(port);
+            // TODO: claim shutdown port?
+
+            Cluster.Builder builder = Cluster.builder();
+            builder.replicationFactor(CLUSTER.replicationFactor());
+            // TODO: add a Node for this instance just incase it isn't defined
+            // in the config? How do I detect if it is defined in the config?
+            for (String address : CLUSTER.nodes()) {
+                Node node = new Node(HostAndPort.fromString(address));
+                builder.add(node);
+            }
+
+            // Configure this Node to receive Gossip from other nodes and handle
+            // it accordingly
+            builder.handle(StartEngineGossip.class, gossip -> {
+                String environment = gossip.environment();
+                getEngineUnsafe(environment);
+            });
+
+            // Configure both the distributed framework AND internal operations
+            // to generate timestamps that are "synced" across each node in the
+            // cluster.
+            builder.clock(TimeSource.distributed());
+
+            this.cluster = builder.build();
+        }
+        else {
+            this.cluster = null;
+        }
     }
 
     /**

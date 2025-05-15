@@ -15,6 +15,7 @@
  */
 package com.cinchapi.concourse.util;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 import com.google.common.collect.Ordering;
@@ -36,8 +37,9 @@ public final class Comparators {
      * 
      * @return the comparator
      */
+    @SuppressWarnings("unchecked")
     public static <T> Comparator<T> equalOrArbitrary() {
-        return (o1, o2) -> {
+        return (Comparator<T> & Serializable) (o1, o2) -> {
             if(o1 == o2 || o1.equals(o2)) {
                 return 0;
             }
@@ -56,7 +58,7 @@ public final class Comparators {
      */
     @SuppressWarnings("unchecked")
     public static <T> Comparator<T> naturalOrArbitrary() {
-        return (o1, o2) -> {
+        return (Comparator<T> & Serializable) (o1, o2) -> {
 
             if(o1 instanceof Comparable) {
                 return ((Comparable<T>) o1).compareTo(o2);
@@ -69,11 +71,40 @@ public final class Comparators {
     }
 
     /**
+     * Return a {@link Comparator} that sorts {@link Long} values.
+     * 
+     * @return the {@link Comparator}
+     */
+    @SuppressWarnings("unchecked")
+    private static final Comparator<Long> longComparator() {
+        return (Comparator<Long> & Serializable) (o1, o2) -> o1.compareTo(o2);
+    }
+
+    /**
+     * Return a {@link Comparator} that sorts {@link String Strings} in a case
+     * insensitive manner.
+     * 
+     * @return the comparator
+     */
+    @SuppressWarnings("unchecked")
+    private static final Comparator<String> stringIgnoreCase() {
+        return (Comparator<String> & Serializable) (s1, s2) -> s1
+                .compareToIgnoreCase(s2);
+    }
+
+    /**
      * A comparator that sorts strings lexicographically without regards to
      * case.
      */
-    public final static Comparator<String> CASE_INSENSITIVE_STRING_COMPARATOR = (
-            s1, s2) -> s1.compareToIgnoreCase(s2);
+    // NOTE: In order for this to be serializable, it must be set to the value
+    // returned from #caseInsensitiveStringComparator(), which casts the lambda
+    // as Serializable
+    public final static Comparator<String> CASE_INSENSITIVE_STRING_COMPARATOR = stringIgnoreCase();
+
+    /**
+     * A {@link Comparator} that sorts {@link Long} values.
+     */
+    public final static Comparator<Long> LONG_COMPARATOR = longComparator();
 
     private Comparators() {/* noop */}
 

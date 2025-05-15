@@ -63,8 +63,8 @@ import com.cinchapi.concourse.server.plugin.util.Versions;
 import com.cinchapi.concourse.thrift.AccessToken;
 import com.cinchapi.concourse.thrift.ComplexTObject;
 import com.cinchapi.concourse.thrift.TransactionToken;
-import com.cinchapi.concourse.time.Time;
 import com.cinchapi.concourse.util.ConcurrentMaps;
+import com.cinchapi.concourse.util.Identifiers;
 import com.cinchapi.concourse.util.Logger;
 import com.cinchapi.concourse.util.MorePaths;
 import com.cinchapi.concourse.util.Queues;
@@ -311,7 +311,7 @@ public class PluginManager {
      * The session id for the {@link PluginManager}. This is used for grouping
      * shared memory files.
      */
-    private final static String SESSID = Long.toString(Time.now());
+    private final static String SESSID = Long.toString(Identifiers.next());
 
     /**
      * Construct a new instance.

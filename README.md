@@ -133,6 +133,35 @@ stage({
 ```
 You can find more examples in the [examples](examples) directory. More information is also available in the [Concourse Guide](https://docs.cinchapi.com/concourse).
 
+## Distributed Concourse
+
+Concourse can operate as a distributed system, allowing you to run a cluster of Concourse nodes that work together to provide improved fault tolerance and reliability.
+
+### Key Features
+
+* **Peer-to-peer architecture**: Every node in a Concourse cluster is a peer - there is no designated leader. Clients can connect to any node to perform operations.
+* **Strong consistency**: Distributed Concourse is a CP system that prioritizes data consistency while maximizing availability when possible through optimistic availability techniques.
+* **Simple configuration**: Enable distribution by providing cluster information in your configuration:
+  ```yaml
+  cluster:
+    nodes:
+      - host1:1717
+      - host2:1717
+      - host3:1717
+    replication_factor: 2  # Defaults to n/2+1 if not specified
+  ```
+
+### Developer Utilities
+
+For development and testing, you can use the included utility script to quickly spin up a local cluster:
+
+```bash
+# Start a 3-node cluster running on ports 1717, 1718, and 1719
+./utils/start-cluster.sh --nodes 1717 1718 1719
+```
+
+This creates a fully functional Concourse cluster on your local machine, perfect for testing distributed features or simulating various cluster scenarios during development.
+
 ## Motivation
 Whether you use SQL or NoSQL, it's hard to get real-time insight into your mission critical data because most systems are only optimized for either transactions or analytics, not both. As a result, end-to-end data management requires complex data pipelining, which slows down development, complicates infrastructure and increases costs.
 

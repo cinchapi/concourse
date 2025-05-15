@@ -324,6 +324,23 @@ enable_verify_by_lookup:
 # DEFAULT: false
 force_g1gc:
 
+#########################################################
+###  CONFIGURATION FOR DISTRIBUTED CONCOURSE CLUSTER  ###
+#########################################################
+
+# If this Concourse Server instance is a node in a distributed cluster, list the servers
+# address (formatted as host:port) for each a node in the cluster, including this one.
+#
+# DEFAULT: (standalone instance that is not a node within a distributed cluster)
+cluster:
+
+  # List the server address for each node in the cluster
+  nodes:
+
+  # The number of nodes that must store a copy of each piece of data. This parameter
+  # directly affects the fault tolerance and consistency guarantees of the system.
+  replication_factor:
+
 #############################################
 ###  INITIALIZATION FOR CONCOURSE SERVER  ###
 #############################################

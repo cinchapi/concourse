@@ -15,6 +15,8 @@
  */
 package com.cinchapi.concourse.server.storage;
 
+import com.cinchapi.concourse.util.Identifiers;
+
 /**
  * A store that can initiate and therefore serve as the destination for a
  * {@link Transaction}.
@@ -28,6 +30,16 @@ public interface TransactionSupport {
      * 
      * @return the Transaction
      */
-    public Transaction startTransaction();
+    public default Transaction startTransaction() {
+        return startTransaction(Long.toString(Identifiers.next()));
+    }
+
+    /**
+     * Start a new {@link Transaction}.
+     * 
+     * @param id
+     * @return the Transaction
+     */
+    public Transaction startTransaction(String id);
 
 }

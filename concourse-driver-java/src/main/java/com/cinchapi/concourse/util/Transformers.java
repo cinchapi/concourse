@@ -21,8 +21,11 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import com.cinchapi.common.collect.MergeStrategies;
 import com.cinchapi.concourse.annotate.UtilityClass;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -186,9 +189,11 @@ public final class Transformers {
     }
 
     /**
-     * Transform the keys in {@code original} with the {@code keys} function
-     * and each of the values with the {@code values} function and return the
-     * map result that is sorted according to the {@code sorter}.
+     * Transform the keys in {@code original} with the {@code keyMapper}
+     * function
+     * and each of the values with the {@code valueMapper} function and return
+     * the
+     * map result that is sorted according to the {@code comparator}.
      * <p>
      * <strong>WARNING:</strong> There is the potential for data loss in the
      * event that {@code function} returns duplicate transformed results for
@@ -196,21 +201,23 @@ public final class Transformers {
      * </p>
      * 
      * @param original
-     * @param keys
-     * @param values
-     * @param sorter
+     * @param keyMapper
+     * @param valueMapper
+     * @param comparator
      * @return the transformed TreeMap
      */
+    @SuppressWarnings("unchecked")
     public static <K, K2, V, V2> Map<K2, Set<V2>> transformTreeMapSet(
-            Map<K, Set<V>> original, Function<? super K, ? extends K2> keys,
-            Function<? super V, ? extends V2> values,
-            final Comparator<K2> sorter) {
-        Map<K2, Set<V2>> transformed = Maps.newTreeMap(sorter);
-        for (Map.Entry<K, Set<V>> entry : original.entrySet()) {
-            transformed.put(keys.apply(entry.getKey()),
-                    transformSet(entry.getValue(), values));
-        }
-        return transformed;
+            Map<K, Set<V>> original,
+            Function<? super K, ? extends K2> keyMapper,
+            Function<? super V, ? extends V2> valueMapper,
+            final Comparator<K2> comparator) {
+        return original.entrySet().stream().collect(Collectors.toMap(
+                entry -> keyMapper.apply(entry.getKey()),
+                entry -> entry.getValue().stream().map(valueMapper)
+                        .collect(Collectors.toSet()),
+                (set1, set2) -> (Set<V2>) MergeStrategies.upsert(set1, set2),
+                () -> new TreeMap<>(comparator)));
     }
 
     /**
