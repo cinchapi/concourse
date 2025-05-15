@@ -63,7 +63,7 @@ We made several changes to improve search performance and accuracy:
 We made several changes to improve the safety, scalability and operational efficiency of the Just-in-Time (JIT) locking protocol:
 
 * Eliminated redundant logic and localized the determination of when an Atomic Operation or Transaction becomes preempted by another commit. Previously that determination was managed globally in the Engine and relied on the JVM garbage collector (GC) to remove terminated operations from listening for data conflicts. Under contention, If many terminated operations accumulated between GC cycles, write performance could become degraded for hot data topics. As a result of this change, JIT locking is generally more memory efficient.
-* Reduced lock metadata by consolidating the provisioning for all locks to a single broker. Previously, range locks and granular locks were issued and managed independently by different services. 
+* Reduced lock metadata by consolidating the provisioning for all locks to a single broker. Previously, range locks and granular locks were issued and managed independently by different services.
 * Improved the CPU efficiency of range locks by scheduling range blocked operations to park instead of busy waiting.
 * Eliminated a known race condition that made it possible for two different conflicting commits to violate ACID semantics by concurrently acquiring different locks for the same resource.
 * Switched the basis for all storage engine locks from `java.util.concurrent.locks.ReenteantReadWriteLock` to either `java.util.concurrent.locks.StampedLock` or other synchronization primitives that are generally shown to have better throughput.
@@ -95,10 +95,10 @@ We made several changes to improve the safety, scalability and operational effic
 ##### Bug Fixes
 * [GH-454](https://github.com/cinchapi/concourse/issues/454): Fixed an issue that caused JVM startup options overriden in a ".dev" configuration file to be ignored (e.g., `heap_size`).
 * [GH-535](https://github.com/cinchapi/concourse/issues/535): Fixed an issue that caused JVM startup options overriden in an environment variable to be ignored (e.g., `CONCOURSE_HEAP_SIZE`).
-* [GH-491](https://github.com/cinchapi/concourse/issues/491) Fixed a race condition that made it possible for a range bloked operation to spurriously be allowed to proceed if it was waiting to acquire a range lock whose intended scope of protection intersected the scope of a range lock that was concurrently released.  
+* [GH-491](https://github.com/cinchapi/concourse/issues/491) Fixed a race condition that made it possible for a range bloked operation to spurriously be allowed to proceed if it was waiting to acquire a range lock whose intended scope of protection intersected the scope of a range lock that was concurrently released.
 * Fixed a bug that caused range locks to protect an inadequate scope of data once acquired.
 * [GH-490](https://github.com/cinchapi/concourse/issues/490): Fixed a bug that made it possible for a write to a key within a record (e.g., key `A` in record `1`) to erroneously block a concurrent write to a different key in the same record (e.g., key `B` in record `1`). The practial consquence of this bug was that more Atomic Operations and Transactions failed than actually necessary.
-* Fixed an issue that occurred when using a navigation key in a Criteria/Condition that was passed as a parameter to a Concourse Server command. Previously, the individual stops of navigation keys were not individually registered as *condition keys*. As a result, the `Strategy` framework didn't have all the relevant information to accurately determine all the ideal lookup sources when traversing the document graph to retrieve the values along the path. Now, in addition to the entire navigation key, each individual stop is registered as a *condition key*, which means that the `Strategy` framework will have enough information to determine if more efficient to use any index data (as opposed to table data) for lookups. 
+* Fixed an issue that occurred when using a navigation key in a Criteria/Condition that was passed as a parameter to a Concourse Server command. Previously, the individual stops of navigation keys were not individually registered as *condition keys*. As a result, the `Strategy` framework didn't have all the relevant information to accurately determine all the ideal lookup sources when traversing the document graph to retrieve the values along the path. Now, in addition to the entire navigation key, each individual stop is registered as a *condition key*, which means that the `Strategy` framework will have enough information to determine if more efficient to use any index data (as opposed to table data) for lookups.
 
 ##### API Breaks and Deprecations
 * Concourse CLIs have been updated to leverage the `lib-cli` framework. There are no changes in functionality, however, in the `concourse-cli` framework, the following classes have been deprecated:
@@ -120,17 +120,20 @@ We made several changes to improve the safety, scalability and operational effic
 	* This was removed without deprecation because the utility provided by the `accent4j` version is nearly identical to the one that was provided in Concourse and `accent4j` is naturally available to users of Concourse frameworks by virtue of being a transitive dependency.
 	* The `waitFor` and `waitForSuccessfulCompletion` methods of `accent4j`'s `Processes` utility return a `ProcessResult`, which provides access to the process's exit code, output stream and error stream (in the Concourse version, these methods had a `void` return type). This means that an Exception will be thrown if an attempt is made to use the `getStdErr` or `getStdOut` method on a process that was submitted to `waitFor` or `waitForSuccessfulCompletion`.
 
-#### Version 0.11.10 (TBD)
-* Fixed a bug that prevented Concourse Server from properly starting if a String configuration value was used for a variable that does not expect a String (e.g., `max_search_substring_length = "40"`). Now, Concouse Server will correctly parse all configuration values to the appropriate type or use the default value if there is an error when parsing.
+#### Version 0.11.10 (May 11, 2025)
 * **Enhanced Memory Management for Large Term Indexing** - Fixed a critical issue where Concourse Server would crash when indexing large search terms on systems with disabled memory swapping (such as *Container-Optimized OS* on *Google Kubernetes Engine*). Previously, when encountering large search terms to index, Concourse Server would always attempt to use off-heap memory to preserve heap space for other operations. If memory pressure occurred during processing, Concourse would detect this signal from the OS and fall back to a file-based approach. However, on swap-disabled systems like Container-Optimized OS, instead of receiving a graceful memory pressure signal, Concourse would be immediately `OOMKilled` before any fallback mechanism could activate. With this update, Concourse Server now proactively estimates required memory before attempting off-heap processing. If sufficient memory is available, it proceeds with the original approach (complete with file-based fallback capability). But, if insufficient memory is detected upfront, Concourse immediately employs a more rudimentary processing mechanism that requires no additional memory, preventing OOMKill scenarios while maintaining indexing functionality in memory-constrained environments.
+* **Configurable Garbage Collection** - Added the `force_g1gc` configuration option to allow Concourse Server to use the Garbage-First (G1) garbage collector on JDK 8. When enabled, Concourse Server will configure G1GC with optimized settings based on the available heap size and CPU cores. This option is particularly beneficial for deployments with large heaps (>4GB) or where consistent response times are critical, as G1 provides more predictable pause times than the default collector.
+* Fixed a bug that prevented Concourse Server from properly starting if a String configuration value was used for a variable that does not expect a String (e.g., `max_search_substring_length = "40"`). Now, Concouse Server will correctly parse all configuration values to the appropriate type or use the default value if there is an error when parsing.
 * Enhanced the `concourse data repair` CLI so that it fixes any inconsistencies between the inventory (which catalogs every record that was ever populated) and the repaired data.
+* Added a new `ping()` method to the Concourse API that allows clients to test the connection to the server. This method is designed to be lightweight and can be used to check server responsiveness or measure latency without incurring additional overhead for data processing. The method returns `true` if the server is responsive and `false` if the connection has failed, making it useful for health checks and connection monitoring.
+* [GH-570](https://github.com/cinchapi/concourse/issues/570): Fixed a regression that occurred when sorting on a single key and the result set failed to include data for records where the sort key was not present, even if that data would fit in the requested page.
 
 #### Version 0.11.9 (April 30, 2025)
 * Improved the performance of select operations that specify selection keys and require both sorting and pagination. The improvements are achieved from smarter heuristics that determine the most efficient execution path. The system now intelligently decides whether to:
   * Sort all records first and then select only the paginated subset of data, or
   * Select all data first and then apply sorting and pagination, or
 	* If the `Order` clause only uses a single key, use the index of that order key to lookup the sorted order of values and filtering out those that are not in the desired record set.
-  
+
   This decision is based on a cost model that compares the number of lookups required for each approach, considering factors such as the number of keys being selected, the number of records being processed, the pagination limit, and whether the sort keys overlap with the selected keys. This optimization significantly reduces the number of database lookups required for queries that combine sorting and pagination, particularly when working with large datasets where only a small page of results is needed.
 * Improved multi-key selection commands that occur during concurrent Buffer transport operations. Previously, when selecting multiple keys while data was being transported for indexing, each primitive select operation would acquire a lock that blocked transports, but transports could still occur between operations, slowing down the overall read. Now, these commands use an advisory lock that blocks all transports until the entire bulk read completes. This optimization significantly improves performance in real-world scenarios with simultaneous reads and writes.
 * Improved the performance of multi-key selection commands that occur during concurrent Buffer transport operations. Previously, when selecting multiple keys while data was being transported for indexing, each primitive select operation would acquire a lock that blocked transports, but transports could still occur between operations, slowing down the overall read. Now, these commands use an advisory lock that blocks all transports until the entire bulk read completes. This optimization significantly improves performance in real-world scenarios with simultaneous reads and writes. In the future, this advisory locking mechanism will be extended to other bulk and atomic operations.
@@ -147,7 +150,7 @@ We made several changes to improve the safety, scalability and operational effic
   * **Reverse Traversal**: Starting from records matching the final condition and working backwards
 
   For example, a query like `identity.credential.email = foo@foo.com` likely returns few records, so reverse traversal is more efficient - first finding records where `email = foo@foo.com` and then tracing backwards through the document graph. Conversely, a query like `identity.credential.numLogins > 5` that likely matches many records is better handled with forward traversal, starting with records containing links from the `identity` key and following the path forward.
-  
+
   This optimization significantly improves performance for navigation queries where the initial key in the path has high cardinality (many unique values across records), but the final condition is more selective (e.g., a specific email address).
 
 ##### Caching
@@ -182,7 +185,7 @@ We made several changes to improve the safety, scalability and operational effic
 * Improved the performance of commands that select multiple keys from a record by adding herustics to the storage engine to reduce the number of overall lookups required. As a result, commands that select multiple keys are **up to 96% faster**.
 * Streamlined the logic for reads that have a combination of `time`, `order` and `page` parameters by adding more intelligent heuristics for determining the most efficient code path. For example, a read that only has `time` and `page` parameters (e.g., no `order`) does not need to be performed atomically. Previously, those reads converged into an atomic code path, but now a separate code path exists so those reads can be more performant. Additionally, the logic is more aware of when attempts to sort or paginate data don't actually have an effect and now avoids unnecessary data transformations of re-collection.
 * Fixed a bug that caused Concourse Server to not use the `Strategy` framework to determine the most efficient lookup source (e.g., field, record, or index) for navigation keys.
-* Added support for querying on the intrinsic `identifier` of Records, as both a selection and evaluation key. The record identifier can be refernced using the `$id$` key (NOTE: this must be properly escaped in `concourse shell` as `\$id\$`). 
+* Added support for querying on the intrinsic `identifier` of Records, as both a selection and evaluation key. The record identifier can be refernced using the `$id$` key (NOTE: this must be properly escaped in `concourse shell` as `\$id\$`).
 	* It is useful to include the Record identifier as a selection key for some navigation reads (e.g., `select(["partner.name", partner.\$id\$], 1)`)).
 	* It is useful to include the Record identifier as an evaluation key in cases where you want to explictly exclude a record from matching a `Condition` (e.g., `select(["partner.name", parner.\$id\$], "\$id\$ != 2")`))
 * Fixed a bug that caused historical reads with sorting to not be performed atomically; potentially violating ACID semantics.
@@ -212,13 +215,13 @@ We made several changes to improve the safety, scalability and operational effic
 #### Version 0.11.0 (March 4, 2022)
 
 ##### BREAKING CHANGES
-There is only **PARTIAL COMPATIBILITY** between 
-* an `0.11.0+` client and an older server, and 
+There is only **PARTIAL COMPATIBILITY** between
+* an `0.11.0+` client and an older server, and
 * a `0.11.0+` server and an older client.
 
 Due to changes in Concourse's internal APIs,
 * An older client will receive an error when trying to invoke any `audit` methods on a `0.11.0+` server.
-* An older server will throw an error message when any `audit` or `review` methods are invoked from an `0.11.0+` client. 
+* An older server will throw an error message when any `audit` or `review` methods are invoked from an `0.11.0+` client.
 
 ##### Storage Format Version 3
 * This version introduces a new, more concise storage format where Database files are now stored as **Segments** instead of Blocks. In a segment file (`.seg`), all views of indexed data (primary, secondary, and search) are stored in the same file whereas a separate block file (`.blk`) was used to store each view of data in the v2 storage format. The process of transporting writes from the `Buffer` to the `Database` remains unchanged. When a Buffer page is fully transported, its data is durably synced in a new Segment file on disk.
@@ -249,7 +252,7 @@ All the writes in a committed `atomic operation` (e.g. anything from primitive a
 * Added the ability to configure the location of the access credentials file using the new `access_credentials_file` preference in `concourse.prefs`. This makes it possible to store credentials in a more secure directory that is also protected againist instances when the `concourse-server` installation directory is deleted. Please note that changing the value of `access_credentials_file` does not migrate existing credentials. By default, credentials are still stored in the `.access` within the root of the `concourse-server` installation directory.
 * Added a separate log file for upgrade tasks (`log/upgrade.log`).
 * Added a mechanism for failed upgrade tasks to automatically perform a rollback that'll reset the system state to be consistent with the state before the task was attempted.
-* Added `PrettyLinkedHashMap.of` and `PrettyLinkedTableMap.of` factory methods that accept an analogous Map as a parameter. The input Map is lazily converted into one with a pretty `toString` format on-demand. In cases where a Map is not expected to be rendered as a String, but should be pretty if it is, these factories return a Map that defers the overhead of prettification until it is necessary. 
+* Added `PrettyLinkedHashMap.of` and `PrettyLinkedTableMap.of` factory methods that accept an analogous Map as a parameter. The input Map is lazily converted into one with a pretty `toString` format on-demand. In cases where a Map is not expected to be rendered as a String, but should be pretty if it is, these factories return a Map that defers the overhead of prettification until it is necessary.
 
 ##### CCL Support
 * Added support for specifying a CCL Function Statement as a selection/operation key, evaluation key (within a `Condition` or evaluation value (wthin a `Conditon`). A function statement can be provided as either the appropriate string form (e.g. `function(key)`, `function(key, ccl)`, `key | function`, etc) or the appropriate Java Object (e.g. `IndexFunction`, `KeyConditionFunction`, `ImplicitKeyRecordFunction`, etc). The default behaviour when reading is to interpret any string that looks like a function statement as a function statement. To perform a literal read of a string that appears to be a function statement, simply wrap the string in quotes. Finally, a function statement can never be written as a value.
@@ -261,7 +264,7 @@ All the writes in a committed `atomic operation` (e.g. anything from primitive a
 * Additionally, if enabled, performing compaction can be **suggested** to Concourse Server on an adhoc basis using the new `concourse data compact` CLI.
   * Compaction can be enabled by setting the `enable_compaction` preference to `true`. If this setting is `false`, Concourse Server will not perform compaction automatically or when suggested to do so.
 
-###### Search Caching 
+###### Search Caching
 * Concouse Server can now be configured to cache search indexes. This feature is currently experimental and turned off by default. Enabling the search cache will further improve the performance of repeated searches by up to **200%**, but there is additional overhead that can slightly decrease the throughput of overall data indexing. Decreased indexing throughput may also indirectly affect write performance.
   * The search cache can be enabled by setting the `enable_search_cache` preference to `true`.
 
@@ -290,18 +293,18 @@ All the writes in a committed `atomic operation` (e.g. anything from primitive a
 
 ##### Removed limit on Block file sizes
 * Added support for storing data in `Block` files that are larger than `2147483647` bytes (e.g. ~2.147GB) and fixed bugs that existed because of the previous limitation:
-  * If a mutable `Block` exceeded the previous limit in memory it was not synced to disk and the storage engine didn't provide an error or warning, so indexing continued as normal. As a result, there was the potential for permanent data loss. 
+  * If a mutable `Block` exceeded the previous limit in memory it was not synced to disk and the storage engine didn't provide an error or warning, so indexing continued as normal. As a result, there was the potential for permanent data loss.
   * When a mutable Block failed to sync in the manner described above, the data held in the Block remained completely in memory, resulting in a memory leak.
 * To accommodate the possibility of larger Block files, the `BlockIndex` now records position pointers using 8 bytes instead of 4. As a result, all Block files must be reindexed, which is automatically done when Concourse Server starts are new installation or upgrade.
 
 ##### Eliminated risks of data inconsistency caused by premature shutdown
 * Fixed the logic that prevents duplicate data indexing when Concourse Server prematurely shuts down or the background indexing job terminates because of an unexpected error. The logic was previously implemented to address [CON-83](https://cinchapi.atlassian.net/browse/CON-83), but it relied on data values instead of data versions and was therefore not robust enough to handle corner cases descried in [GH-441](https://github.com/cinchapi/concourse/issues/441) and [GH-442](https://github.com/cinchapi/concourse/issues/442).
   * A `concourse data repair` CLI has been added to detect and remediate data files that are corrupted because of the abovementioned bugs. The CLI can be run at anytime. If no corrupt data files are detected, the CLI has no effect.
-  * Upon upgrading to this version, as a precuation, the CLIs routine is run for each environment.  
+  * Upon upgrading to this version, as a precuation, the CLIs routine is run for each environment.
 
 ##### Other
 * Fixed a bug that caused the default `log_level` to be `DEBUG` instead of `INFO`.
- 
+
 #### Version 0.10.5 (August 22, 2020)
 * Fixed a bug where sorting on a navigation key that isn't fetched (e.g. using a navigation key in a `find` operation or not specifying the navigation key as an operation key in a `get` or `select` operation), causes the results set to be returned in the incorrect order.
 * Upgraded CCL version to `2.6.3` in order to fix a parsing bug that occurred when creating a `Criteria` containing a String or String-like value with a whitespace or equal sign (e.g. `=`) character.
@@ -309,7 +312,7 @@ All the writes in a committed `atomic operation` (e.g. anything from primitive a
 * Fixed a race condition that occurred when multiple client connections logged into a non-default environment at the same time. The proper concurrency controls weren't in place, so the simultaneous connection attempts, in many cases, caused the Engine for that environment to be initialized multiple times. This did not cause any data duplication issues (because only one of the duplicate Engines would be recognized at any given time), but it could cause an `OutOfMemoryException` if that corresponding environment had a lot of metadata to be loaded into memory during intialization.
 
 #### Version 0.10.4 (December 15, 2019)
-* Added support for using the `LIKE`, `NOT_LIKE` and `LINKS_TO` operators in the `TObject#is` methods. 
+* Added support for using the `LIKE`, `NOT_LIKE` and `LINKS_TO` operators in the `TObject#is` methods.
 * Fixed a bug that made it possible for a `ConnectionPool` to refuse to accept the `release` of a previously issued `Concourse` connection due to a race condition.
 * Fixed a bug that made it possible for Concourse to violate ACID consistency when performing a concurrent write to a key/record alongside a wide read in the same record.
 * Fixed a bug that caused inconsistencies in the intrinsic order of the result set records from a `find` operation vs a `select` or `get` operation.
@@ -343,13 +346,13 @@ All the writes in a committed `atomic operation` (e.g. anything from primitive a
 #### Version 0.10.0 (August 3, 2019)
 
 ##### BREAKING CHANGES
-There is only **PARTIAL COMPATIBILITY** between 
-* an `0.10.0+` client and an older server, and 
+There is only **PARTIAL COMPATIBILITY** between
+* an `0.10.0+` client and an older server, and
 * a `0.10.0+` server and an older client.
 
 Due to changes in Concourse's internal APIs,
 * Older client will receive an error when trying to invoke any navigate or calculation methods on a `0.10.0+` server.
-* Older servers will throw an error message when any navigate or calculation methods are invoked from an `0.10.0+` client. 
+* Older servers will throw an error message when any navigate or calculation methods are invoked from an `0.10.0+` client.
 
 ##### New Features
 
@@ -379,15 +382,15 @@ Concourse Server now (finally) has the ability to page through results!
 * Reading a navigation key using `get` or `select` is intended to repleace the `navigate` methods.
 * When reading a navigation key in the context of one or more records, the root record (e.g the record from which the document-graph traversal starts) is mapped to the values that are retrieved from the destination records. In the `navgiate` methods, the destination record is associated with the destination value(s).
 	* For example, assume record `1` is linked to record `2` on the `friends` key. Record `2` contains the value `Jeff` for the `name` key...
-	* if you `select("friends.name", 1)`, the return value will map `1` to `[Jeff]` whereas the return value of `navigate("friends.name", 1)` maps `2` to `[Jeff]`. 
-	
+	* if you `select("friends.name", 1)`, the return value will map `1` to `[Jeff]` whereas the return value of `navigate("friends.name", 1)` maps `2` to `[Jeff]`.
+
 ###### Navigable Criteria
 * You can now use navigation keys in `Criteria` objects or `ccl` statements that are passed to the `find`, `get` and `select` methods.
 
-###### ETL 
+###### ETL
 * Added the `com.cinchapi.concourse.etl` package that contains data processing utilities:
 	*  A `Strainer` can be used to process a `Map<String, Object>` using Concourse's data model rules. In particular, the `Strainer` encapsulates logic to break down top-level sequence values and process their elements individually.
-	* The `Transform` class contains functions for common data transformations. 
+	* The `Transform` class contains functions for common data transformations.
 
 ###### Miscellaneous
 * Added an iterative connection builder that is accessible using the `Concourse.at()` static factory method.
@@ -403,8 +406,8 @@ Concourse Server now (finally) has the ability to page through results!
 * Improved the performance of querying certain Concourse Server methods from a plugin via `ConcourseRuntime` by eliminating unnecessary server-side calculations meant to facilitate analytics. These calculations will continue to be computed when the plugin receives the data from `ConcourseRuntime`.
 
 ##### Bug Fixes
-* Fixed a bug that caused data imported from STDIN to not have a `__datasource` tag, even if the `--annotate-data-source` flag was included with the CLI invocation. 
-* Fixed a bug that allowed Concourse Server to start an environment's storage engine in a partially or wholly unreadable state if the Engine partially completed a block sync while Concourse Server was going through its shutdown routine. In this scenario, the partially written block is malformed and should not be processed by the Engine since the data contained in the malformed block is still contained in the Buffer. While the malformed block files can be safely deleted, the implemented fix causes the Engine to simply ignore them if they are encountered upon initialization. 
+* Fixed a bug that caused data imported from STDIN to not have a `__datasource` tag, even if the `--annotate-data-source` flag was included with the CLI invocation.
+* Fixed a bug that allowed Concourse Server to start an environment's storage engine in a partially or wholly unreadable state if the Engine partially completed a block sync while Concourse Server was going through its shutdown routine. In this scenario, the partially written block is malformed and should not be processed by the Engine since the data contained in the malformed block is still contained in the Buffer. While the malformed block files can be safely deleted, the implemented fix causes the Engine to simply ignore them if they are encountered upon initialization.
 * Added checks to ensure that a storage Engine cannot transport writes from the Buffer to the Database while Concourse Server is shutting down.
 * Fixed a bug that allow methods annotated as `PluginRestricted` to be invoked if those methods were defined in an ancestor class or interface of the invokved plugin.
 * Fixed a bug introduced by [JEF-245](https://openjdk.java.net/jeps/245) that caused Concourse Server to fail to start on recent versions of Java 8 and Java 9+ due to an exploitation of a JVM bug that was used to allow Concourse Server to specify native thread prioritization when started by a non-root user. As a result of this fix, Concourse Server will only try to specify native thread prioritization when started by a root user.
@@ -441,7 +444,7 @@ Concourse Server now (finally) has the ability to page through results!
 
 ##### Enhancements
 * Upgraded client and server configuration management and added support for incremental configuration overrides. Now
-	* Server preferences defined in `conf/concourse.prefs` can be individually overriden in a `conf/concourse.prefs.dev` file (previously override preferences in the .dev file had to be done all or nothing). 
+	* Server preferences defined in `conf/concourse.prefs` can be individually overriden in a `conf/concourse.prefs.dev` file (previously override preferences in the .dev file had to be done all or nothing).
 	* Both server and client preferences can be individually overriden using environment variables that are capitalized and prefixed with `CONCOURSE_`. For example, you can override the `heap_size` preference with an environment variable named `CONCOURSE_HEAP_SIZE`.
 * Added Docker image [https://hub.docker.com/r/cinchapi/concourse](https://hub.docker.com/r/cinchapi/concourse). See [https://docs.cinchapi.com/concourse/quickstart](https://docs.cinchapi.com/concourse/quickstart) for more information.
 

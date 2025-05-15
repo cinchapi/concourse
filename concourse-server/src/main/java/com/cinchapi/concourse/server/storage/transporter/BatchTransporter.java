@@ -212,7 +212,6 @@ public class BatchTransporter extends Transporter {
                         TimeUnit.MILLISECONDS.convert(runningTimeInMicros,
                                 TimeUnit.MICROSECONDS),
                         allowableInactivityThresholdInMillis);
-                return true;
             }
         }
         else {
